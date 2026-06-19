@@ -1,0 +1,586 @@
+@import "tailwindcss";
+
+/* ============================================================
+   PAKODRIVE Premium Design System — globals.css
+   ============================================================ */
+
+/* ---------- Custom CSS Properties -------------------------- */
+:root {
+  --pd-primary: #ea580c;
+  --pd-primary-dark: #c2410c;
+  --pd-primary-rgb: 234, 88, 12;
+  --pd-secondary: #0f172a;
+  --pd-accent: #3b82f6;
+  --pd-accent-rgb: 59, 130, 246;
+  --pd-success: #10b981;
+  --pd-light-bg: #f8fafc;
+  --pd-card-shadow: 0 10px 30px rgba(15, 23, 42, 0.1);
+  --pd-card-shadow-hover: 0 20px 40px rgba(234, 88, 12, 0.14);
+  --pd-transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  --pd-radius: 16px;
+  --pd-btn-radius: 50px;
+  --pd-card-radius: 16px;
+  --pd-font: 'Inter', system-ui, -apple-system, sans-serif;
+  --pd-font-size-base: 16px;
+  --pd-glass-bg: rgba(255, 255, 255, 0.72);
+  --pd-glass-blur: blur(12px);
+  --pd-glass-border: 1px solid rgba(255, 255, 255, 0.4);
+  --pd-hero-grad-start: #fff7ed;
+  --pd-hero-grad-end: #ffffff;
+  
+  /* Bootstrap overrides */
+  --bs-primary: #ea580c;
+  --bs-primary-rgb: 234, 88, 12;
+  --bs-success: #10b981;
+  --bs-dark: #0f172a;
+  --bs-light: #f8fafc;
+}
+
+/* ---------- Base Reset ------------------------------------- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--pd-font) !important;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+/* ---------- Premium Custom Scrollbar ----------------------- */
+::-webkit-scrollbar {
+  width: 7px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--pd-primary);
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--pd-primary-dark);
+}
+
+/* ---------- Selection Highlight ---------------------------- */
+::selection {
+  background: var(--pd-primary);
+  color: #fff;
+}
+
+/* ---------- Premium Focus Ring ----------------------------- */
+:focus-visible {
+  outline: 2.5px solid var(--pd-primary);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+/* ---------- Keyframe Animations ---------------------------- */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(28px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeInLeft {
+  from { opacity: 0; transform: translateX(-30px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes fadeInRight {
+  from { opacity: 0; transform: translateX(30px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.92); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes pulseRing {
+  0%   { box-shadow: 0 0 0 0 rgba(249, 115, 22, 0.5); }
+  70%  { box-shadow: 0 0 0 12px rgba(249, 115, 22, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(249, 115, 22, 0); }
+}
+
+@keyframes countUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes gradientShift {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-8px); }
+}
+
+/* ---------- Utility: Animate on Scroll --------------------- */
+.animate-on-scroll {
+  opacity: 0;
+  transform: translateY(32px);
+  transition: opacity 0.65s cubic-bezier(0.22, 1, 0.36, 1),
+              transform 0.65s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: opacity, transform;
+}
+.animate-on-scroll.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+/* Stagger siblings automatically */
+.animate-on-scroll:nth-child(2) { transition-delay: 0.08s; }
+.animate-on-scroll:nth-child(3) { transition-delay: 0.16s; }
+.animate-on-scroll:nth-child(4) { transition-delay: 0.24s; }
+.animate-on-scroll:nth-child(5) { transition-delay: 0.32s; }
+.animate-on-scroll:nth-child(6) { transition-delay: 0.40s; }
+.animate-on-scroll:nth-child(7) { transition-delay: 0.48s; }
+.animate-on-scroll:nth-child(8) { transition-delay: 0.56s; }
+
+/* ---------- Skeleton Loader -------------------------------- */
+.skeleton {
+  background: linear-gradient(90deg, #e2e8f0 25%, #f1f5f9 50%, #e2e8f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s ease infinite;
+  border-radius: 8px;
+}
+
+/* ---------- Premium Badge ---------------------------------- */
+.badge-premium {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: linear-gradient(135deg, var(--pd-primary), var(--pd-primary-dark));
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  padding: 3px 10px;
+  border-radius: 20px;
+  text-transform: uppercase;
+}
+
+/* ---------- Section Title Enhancement --------------------- */
+.section-title {
+  position: relative;
+  display: inline-block;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+}
+.section-title::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: -6px;
+  width: 48px;
+  height: 4px;
+  background: linear-gradient(90deg, var(--pd-primary), var(--pd-accent));
+  border-radius: 2px;
+}
+
+/* ---------- Hero Gradient Overlay -------------------------- */
+.hero-gradient-overlay {
+  background: linear-gradient(135deg, rgba(248, 250, 252, 0.97) 0%, rgba(248, 250, 252, 0.82) 60%, transparent 100%);
+}
+
+/* ---------- Glassmorphism Card ---------------------------- */
+.glass-card {
+  background: var(--pd-glass-bg);
+  backdrop-filter: var(--pd-glass-blur);
+  -webkit-backdrop-filter: var(--pd-glass-blur);
+  border: var(--pd-glass-border);
+  border-radius: var(--pd-card-radius);
+  box-shadow: var(--pd-card-shadow);
+}
+
+/* ---------- Counter Number Style -------------------------- */
+.counter-number {
+  font-size: 2.4rem;
+  font-weight: 800;
+  color: var(--pd-primary);
+  line-height: 1;
+  animation: countUp 0.6s ease forwards;
+}
+
+/* ---------- Pulse on Cart Badge --------------------------- */
+.cart-badge-pulse {
+  animation: pulseRing 1.8s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+}
+
+/* ---------- Gradient Button -------------------------------- */
+.btn-gradient {
+  background: linear-gradient(135deg, var(--pd-primary) 0%, var(--pd-primary-dark) 100%);
+  color: #fff;
+  border: none;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  transition: var(--pd-transition);
+  box-shadow: 0 4px 14px rgba(var(--pd-primary-rgb), 0.35);
+  border-radius: var(--pd-btn-radius) !important;
+}
+.btn-gradient:hover {
+  background: linear-gradient(135deg, var(--pd-primary-dark) 0%, color-mix(in srgb, var(--pd-primary) 65%, #000) 100%);
+  color: #fff;
+  box-shadow: 0 6px 20px rgba(var(--pd-primary-rgb), 0.5);
+  transform: translateY(-1px);
+}
+
+/* ---------- Floating Image Animation ---------------------- */
+.img-float {
+  animation: float 4s ease-in-out infinite;
+}
+
+/* ---------- Shimmer Loading Placeholder ------------------- */
+.product-skeleton {
+  height: 320px;
+  border-radius: var(--pd-radius);
+}
+
+/* ---------- Offer Card Hover ------------------------------ */
+.offer-card {
+  transition: var(--pd-transition);
+  border-radius: var(--pd-radius) !important;
+  overflow: hidden;
+  position: relative;
+}
+.offer-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(249,115,22,0.04) 0%, transparent 100%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+  z-index: 0;
+}
+.offer-card:hover {
+  box-shadow: var(--pd-card-shadow-hover) !important;
+  transform: translateY(-4px);
+  border-color: var(--pd-primary) !important;
+}
+.offer-card:hover::before {
+  opacity: 1;
+}
+.offer-card > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* ---------- Service Item Hover ---------------------------- */
+.service-item {
+  transition: var(--pd-transition);
+  border-radius: 10px;
+}
+.service-item:hover {
+  background: linear-gradient(135deg, #fff7ed 0%, #fff 100%);
+  box-shadow: inset 0 0 0 1.5px var(--pd-primary);
+}
+.service-item:hover .service-icon {
+  transform: scale(1.2) rotate(-5deg);
+  color: var(--pd-primary) !important;
+}
+.service-icon {
+  transition: transform 0.3s ease, color 0.3s ease;
+  font-size: 2rem;
+}
+
+/* ---------- Tab Button Premium ---------------------------- */
+.tab-btn {
+  transition: var(--pd-transition);
+  font-weight: 600;
+  font-size: 0.875rem;
+  letter-spacing: 0.3px;
+}
+.tab-btn.active {
+  background: linear-gradient(135deg, var(--pd-primary), var(--pd-primary-dark)) !important;
+  color: #fff !important;
+  box-shadow: 0 4px 14px rgba(var(--pd-primary-rgb), 0.3);
+}
+.tab-btn:not(.active):hover {
+  background: #fff7ed !important;
+  color: var(--pd-primary) !important;
+}
+
+/* ---------- Trusted-By Strip ------------------------------ */
+.trusted-strip {
+  background: linear-gradient(90deg, #f8fafc 0%, #fff 50%, #f8fafc 100%);
+  border-top: 1px solid #e2e8f0;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+/* ---------- Back to Top Button ---------------------------- */
+.back-to-top {
+  position: fixed;
+  right: 30px;
+  bottom: 100px;
+  display: flex;
+  width: 44px;
+  height: 44px;
+  align-items: center;
+  justify-content: center;
+  transition: var(--pd-transition);
+  z-index: 9998;
+  background: linear-gradient(135deg, var(--pd-primary), var(--pd-primary-dark));
+  color: #fff !important;
+  border-radius: 50%;
+  box-shadow: 0 4px 16px rgba(var(--pd-primary-rgb), 0.4);
+  border: none;
+  cursor: pointer;
+}
+.back-to-top:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(var(--pd-primary-rgb), 0.5);
+}
+
+/* ---------- Product Card Premium overrides ---------------- */
+.product-item {
+  transition: var(--pd-transition) !important;
+}
+.product-item:hover {
+  transform: translateY(-6px);
+  box-shadow: var(--pd-card-shadow-hover) !important;
+}
+
+/* ---------- Footer links ---------------------------------- */
+.footer-social-btn {
+  width: 38px;
+  height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.07);
+  color: rgba(255,255,255,0.7);
+  transition: var(--pd-transition);
+  border: 1px solid rgba(255,255,255,0.12);
+  font-size: 15px;
+}
+.footer-social-btn:hover {
+  background: var(--pd-primary);
+  color: #fff;
+  border-color: var(--pd-primary);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(249,115,22,0.4);
+}
+
+/* ---------- Announcement Bar ------------------------------ */
+.announcement-bar {
+  background: linear-gradient(90deg, #1e293b 0%, #0f172a 50%, #1e293b 100%);
+  background-size: 200% 100%;
+  animation: gradientShift 5s ease infinite;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.3px;
+}
+
+/* ---------- Navbar Enhancement ---------------------------- */
+.nav-bar {
+  transition: box-shadow 0.3s ease, background 0.3s ease;
+}
+
+/* ---------- Premium Custom Overrides ----------------------- */
+body, button, input, select, textarea, .btn, .nav-link {
+  font-family: var(--pd-font) !important;
+}
+
+/* Sleek Dark Navbar */
+.nav-bar .bg-primary {
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%) !important;
+  box-shadow: 0 4px 25px rgba(0, 0, 0, 0.1);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.nav-bar .navbar-light.bg-primary {
+  background: transparent !important;
+}
+
+/* Nav links styling */
+.nav-bar .navbar-nav .nav-link {
+  color: rgba(255, 255, 255, 0.85) !important;
+  font-weight: 500;
+  transition: var(--pd-transition);
+}
+.nav-bar .navbar-nav .nav-link:hover,
+.nav-bar .navbar-nav .nav-link.active {
+  color: #fb923c !important;
+  transform: translateY(-0.5px);
+}
+
+/* Premium Buttons overrides */
+.btn-gradient, form button[type="submit"].btn-gradient {
+  background: linear-gradient(135deg, var(--pd-primary) 0%, var(--pd-primary-dark) 100%) !important;
+  color: #fff !important;
+  font-weight: 600;
+  border-radius: var(--pd-btn-radius) !important;
+  box-shadow: 0 4px 12px rgba(var(--pd-primary-rgb), 0.25) !important;
+  border: none !important;
+}
+.btn-gradient:hover {
+  background: linear-gradient(135deg, var(--pd-primary-dark) 0%, color-mix(in srgb, var(--pd-primary) 60%, #000) 100%) !important;
+  box-shadow: 0 6px 18px rgba(var(--pd-primary-rgb), 0.4) !important;
+}
+
+/* Category Sidebar Refinement */
+.product-categories {
+  background: #fff;
+  border-radius: var(--pd-radius);
+  padding: 24px;
+  border: 1px solid #f1f5f9;
+  box-shadow: var(--pd-card-shadow);
+}
+.product-categories h4 {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--pd-secondary);
+  border-bottom: 2px solid #f1f5f9;
+  padding-bottom: 12px;
+  margin-bottom: 16px;
+  letter-spacing: -0.3px;
+}
+.product-categories ul li .categories-item {
+  border-bottom: 1px solid #f8fafc;
+}
+.product-categories ul li .categories-item a,
+.product-categories ul li .categories-item button {
+  display: flex;
+  align-items: center;
+  padding: 10px 0;
+  font-weight: 500;
+  font-size: 0.9rem;
+  color: #475569 !important;
+  transition: var(--pd-transition);
+}
+.product-categories ul li .categories-item a:hover,
+.product-categories ul li .categories-item button:hover {
+  color: var(--pd-primary) !important;
+  padding-left: 6px;
+}
+.product-categories ul li .categories-item button.text-primary {
+  font-weight: 700;
+  color: var(--pd-primary) !important;
+}
+
+/* Sidebar list icons */
+.categories-item i {
+  color: #94a3b8 !important;
+  font-size: 10px;
+  transition: var(--pd-transition);
+}
+.categories-item:hover i,
+.categories-item button.text-primary i {
+  color: var(--pd-primary) !important;
+  transform: scale(1.2);
+}
+
+/* Nav toggler categories */
+.nav-bar .navbar-toggler, .navbar-toggler {
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: #fff !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+}
+.nav-bar button.navbar-toggler h4 {
+  color: #fff !important;
+}
+
+/* Categories Collapse container */
+#allCat {
+  border-radius: 0 0 12px 12px;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.15) !important;
+  border: 1px solid #e2e8f0;
+  border-top: none;
+}
+#allCat .categories-bars-item {
+  border-bottom: 1px solid #f1f5f9 !important;
+  transition: var(--pd-transition);
+}
+#allCat .categories-bars-item:hover {
+  background: #fff7ed !important;
+}
+#allCat .categories-bars-item a {
+  color: #1e293b !important;
+  font-weight: 500 !important;
+}
+#allCat .categories-bars-item:hover a {
+  color: var(--pd-primary) !important;
+}
+
+/* Product Cards visual upgrades */
+.product-item {
+  border-radius: var(--pd-card-radius);
+  overflow: hidden;
+  box-shadow: var(--pd-card-shadow);
+  border: 1px solid #f1f5f9 !important;
+  background: #fff;
+  transition: var(--pd-transition) !important;
+}
+.product-item-inner {
+  border: none !important;
+}
+.product-item:hover {
+  transform: translateY(-8px);
+  box-shadow: var(--pd-card-shadow-hover) !important;
+  border-color: #ffe0cc !important;
+}
+.product-item-add {
+  border: none !important;
+  background: #fff !important;
+}
+
+/* Footer redesign for premium dark theme */
+footer, .footer {
+  background: #0f172a !important;
+  color: #94a3b8 !important;
+  border-top: 1px solid #1e293b;
+}
+footer h5, footer h4, .footer h4, .footer h5 {
+  color: #fff !important;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+}
+footer a, .footer a {
+  color: #94a3b8 !important;
+  transition: var(--pd-transition);
+}
+footer a:hover, .footer a:hover {
+  color: #fb923c !important;
+}
+.footer-social-btn {
+  background: #1e293b !important;
+  border: 1px solid #334155 !important;
+}
+.footer-social-btn:hover {
+  background: var(--pd-primary) !important;
+  color: #fff !important;
+}
+
+/* Copyright footer override */
+.copyright {
+  background: #090d16 !important;
+  border-top: 1px solid #1e293b !important;
+}
+
+/* Product Card Hover Details */
+.product-item:hover .product-card-img {
+  transform: scale(1.06);
+}
+.product-item:hover .product-quick-actions {
+  opacity: 1 !important;
+}
+
+/* ============================================================
+   END globals.css
+   ============================================================ */

@@ -1,0 +1,562 @@
+'use client';
+
+import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import Image from 'next/image';
+
+export default function AdminNewProductPage() {
+  const router = useRouter();
+  const [categories, setCategories] = useState<any[]>([]);
+
+  // Form Fields
+  const [name, setName] = useState('');
+  const [description, setDescription] = useState('');
+  const [price, setPrice] = useState('');
+  const [originalPrice, setOriginalPrice] = useState('');
+  const [category, setCategory] = useState('');
+  const [image, setImage] = useState('');
+  const [uploading, setUploading] = useState(false);
+  const [images, setImages] = useState<string[]>([]);
+  const [galleryUploading, setGalleryUploading] = useState(false);
+  const [galleryUrlInput, setGalleryUrlInput] = useState('');
+
+  const [mainImageError, setMainImageError] = useState(false);
+  const [galleryImageErrors, setGalleryImageErrors] = useState<Record<number, boolean>>({});
+
+  useEffect(() => {
+    setMainImageError(false);
+  }, [image]);
+
+  useEffect(() => {
+    setGalleryImageErrors({});
+  }, [images]);
+
+  const handleGalleryFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setGalleryUploading(true);
+    setError('');
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const json = await res.json();
+      if (json.success) {
+        setImages((prev) => [...prev, json.url]);
+      } else {
+        throw new Error(json.error || 'Failed to upload gallery image.');
+      }
+    } catch (err: any) {
+      console.error(err);
+      setError(err.message || 'Error uploading gallery file.');
+    } finally {
+      setGalleryUploading(false);
+      e.target.value = '';
+    }
+  };
+
+  const handleAddGalleryUrl = () => {
+    if (!galleryUrlInput.trim()) return;
+    setImages((prev) => [...prev, galleryUrlInput.trim()]);
+    setGalleryUrlInput('');
+  };
+
+  const handleRemoveGalleryImage = (index: number) => {
+    setImages((prev) => prev.filter((_, idx) => idx !== index));
+  };
+
+  const handleSetMainImage = (url: string) => {
+    const oldMain = image;
+    setImage(url);
+    if (oldMain.trim()) {
+      setImages((prev) => [...prev.filter((x) => x !== url), oldMain]);
+    } else {
+      setImages((prev) => prev.filter((x) => x !== url));
+    }
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploading(true);
+    setError('');
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const json = await res.json();
+      if (json.success) {
+        setImage(json.url);
+      } else {
+        throw new Error(json.error || 'Failed to upload image file.');
+      }
+    } catch (err: any) {
+      console.error(err);
+      setError(err.message || 'Error uploading file.');
+    } finally {
+      setUploading(false);
+    }
+  };
+  const [stock, setStock] = useState('10');
+  const [isFeatured, setIsFeatured] = useState(false);
+  const [isNewArrival, setIsNewArrival] = useState(true);
+  const [isTopSelling, setIsTopSelling] = useState(false);
+
+  // Specifications
+  const [specs, setSpecs] = useState<Array<{ key: string; value: string }>>([
+    { key: 'Brand', value: '' },
+  ]);
+
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    async function fetchCategories() {
+      try {
+        const res = await fetch('/api/categories');
+        const json = await res.json();
+        if (json.success && json.data.length > 0) {
+          setCategories(json.data);
+          setCategory(json.data[0].slug); // default select first category
+        }
+      } catch (err) {
+        console.error('Error fetching categories:', err);
+      }
+    }
+    fetchCategories();
+  }, []);
+
+  const handleAddSpecRow = () => {
+    setSpecs([...specs, { key: '', value: '' }]);
+  };
+
+  const handleRemoveSpecRow = (index: number) => {
+    if (specs.length === 1) return;
+    setSpecs(specs.filter((_, idx) => idx !== index));
+  };
+
+  const handleSpecChange = (index: number, field: 'key' | 'value', value: string) => {
+    const updated = [...specs];
+    updated[index][field] = value;
+    setSpecs(updated);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+
+    if (!image.trim()) {
+      setError('Please upload an image file or provide an image URL link.');
+      setLoading(false);
+      return;
+    }
+
+    // Format specifications Map/Record
+    const specifications: Record<string, string> = {};
+    specs.forEach((s) => {
+      if (s.key.trim() && s.value.trim()) {
+        specifications[s.key.trim()] = s.value.trim();
+      }
+    });
+
+    const payload = {
+      name,
+      description,
+      price: Number(price),
+      originalPrice: Number(originalPrice) || Number(price),
+      category,
+      image,
+      images,
+      stock: Number(stock),
+      isFeatured,
+      isNewArrival,
+      isTopSelling,
+      specifications,
+    };
+
+    try {
+      const res = await fetch('/api/products', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      const json = await res.json();
+      if (json.success) {
+        router.push('/admin/products');
+      } else {
+        throw new Error(json.error || 'Failed to create product');
+      }
+    } catch (err: any) {
+      console.error(err);
+      setError(err.message || 'Error executing request.');
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="fade-in">
+      <div className="card border-0 shadow-sm rounded-4 p-4 bg-white mb-4">
+        <div className="d-flex align-items-center justify-content-between">
+          <h5 className="fw-bold text-secondary mb-0">Create New Product</h5>
+          <Link href="/admin/products" className="btn btn-outline-secondary btn-sm rounded-pill px-3">
+            <i className="fas fa-arrow-left me-1.5" /> Back to List
+          </Link>
+        </div>
+      </div>
+
+      {error && (
+        <div className="alert alert-danger border-0 mb-4" role="alert">
+          {error}
+        </div>
+      )}
+
+      <form onSubmit={handleSubmit}>
+        <div className="row g-4">
+          {/* Main Info */}
+          <div className="col-12 col-lg-8">
+            <div className="card border-0 shadow-sm rounded-4 bg-white p-4 mb-4">
+              <h6 className="fw-bold text-dark border-bottom pb-2 mb-3">General Information</h6>
+              <div className="mb-3">
+                <label className="form-label text-muted small fw-semibold">Product Name *</label>
+                <input
+                  type="text"
+                  required
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="form-control rounded-3"
+                  placeholder="e.g. Sony WH-1000XM5 Wireless Headphones"
+                />
+              </div>
+
+              <div className="mb-3">
+                <label className="form-label text-muted small fw-semibold">Description *</label>
+                <textarea
+                  required
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  className="form-control rounded-3"
+                  rows={6}
+                  placeholder="Provide detailed description of product highlights, features, and package box contents..."
+                />
+              </div>
+            </div>
+
+            {/* Specifications Card */}
+            <div className="card border-0 shadow-sm rounded-4 bg-white p-4">
+              <div className="d-flex align-items-center justify-content-between border-bottom pb-2 mb-3">
+                <h6 className="fw-bold text-dark mb-0">Technical Specifications</h6>
+                <button
+                  type="button"
+                  onClick={handleAddSpecRow}
+                  className="btn btn-sm btn-outline-primary rounded-pill px-2.5"
+                >
+                  <i className="fas fa-plus me-1" /> Add Row
+                </button>
+              </div>
+
+              <div className="d-flex flex-column gap-2">
+                {specs.map((s, idx) => (
+                  <div key={idx} className="d-flex gap-2 align-items-center">
+                    <input
+                      type="text"
+                      value={s.key}
+                      onChange={(e) => handleSpecChange(idx, 'key', e.target.value)}
+                      placeholder="Specification Title (e.g. Color)"
+                      className="form-control rounded-3"
+                      style={{ flex: 1 }}
+                    />
+                    <input
+                      type="text"
+                      value={s.value}
+                      onChange={(e) => handleSpecChange(idx, 'value', e.target.value)}
+                      placeholder="Detail value (e.g. Black matte)"
+                      className="form-control rounded-3"
+                      style={{ flex: 1 }}
+                    />
+                    <button
+                      type="button"
+                      disabled={specs.length === 1}
+                      onClick={() => handleRemoveSpecRow(idx)}
+                      className="btn btn-outline-danger border-0 rounded-circle"
+                      style={{ width: '38px', height: '38px' }}
+                    >
+                      <i className="fas fa-trash-alt" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Sidebar Settings */}
+          <div className="col-12 col-lg-4">
+            {/* Price & Stock Card */}
+            <div className="card border-0 shadow-sm rounded-4 bg-white p-4 mb-4">
+              <h6 className="fw-bold text-dark border-bottom pb-2 mb-3">Pricing & Inventory</h6>
+              <div className="mb-3">
+                <label className="form-label text-muted small fw-semibold">Price (PKR) *</label>
+                <input
+                  type="number"
+                  required
+                  value={price}
+                  onChange={(e) => setPrice(e.target.value)}
+                  className="form-control rounded-3"
+                  placeholder="Sales Price"
+                />
+              </div>
+
+              <div className="mb-3">
+                <label className="form-label text-muted small fw-semibold">Original Price (PKR)</label>
+                <input
+                  type="number"
+                  value={originalPrice}
+                  onChange={(e) => setOriginalPrice(e.target.value)}
+                  className="form-control rounded-3"
+                  placeholder="Compare price (Discount fallback)"
+                />
+              </div>
+
+              <div className="mb-3">
+                <label className="form-label text-muted small fw-semibold">Inventory Stock *</label>
+                <input
+                  type="number"
+                  required
+                  value={stock}
+                  onChange={(e) => setStock(e.target.value)}
+                  className="form-control rounded-3"
+                  placeholder="Quantity in warehouse"
+                />
+              </div>
+            </div>
+
+            {/* Media & Meta */}
+            <div className="card border-0 shadow-sm rounded-4 bg-white p-4 mb-4">
+              <h6 className="fw-bold text-dark border-bottom pb-2 mb-3">Category & Media</h6>
+              <div className="mb-3">
+                <label className="form-label text-muted small fw-semibold">Product Category *</label>
+                <select
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value)}
+                  className="form-select rounded-3 text-capitalize"
+                >
+                  {categories.length === 0 ? (
+                    <option value="">No categories defined</option>
+                  ) : (
+                    categories.map((cat) => (
+                      <option key={cat.id} value={cat.slug}>
+                        {cat.name}
+                      </option>
+                    ))
+                  )}
+                </select>
+              </div>
+
+              <div className="mb-3">
+                <label className="form-label text-muted small fw-semibold">Upload Image File</label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                  className="form-control rounded-3"
+                />
+                {uploading && (
+                  <div className="d-flex align-items-center gap-1.5 mt-1.5 text-primary small">
+                    <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true" />
+                    <span>Uploading image...</span>
+                  </div>
+                )}
+              </div>
+
+              <div className="mb-3">
+                <label className="form-label text-muted small fw-semibold">Or Provide Image URL</label>
+                <input
+                  type="text"
+                  value={image}
+                  onChange={(e) => setImage(e.target.value)}
+                  className="form-control rounded-3"
+                  placeholder="Path: /img/product-1.png or absolute URL"
+                />
+              </div>
+
+              <div className="bg-light p-3 rounded-3 text-center border mb-3">
+                <div style={{ height: '120px', display: 'flex', alignItems: 'center', justifyContent: 'center' }} className="position-relative w-100">
+                  <Image
+                    src={mainImageError ? 'https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=120' : (image || '/img/product-placeholder.png')}
+                    alt="Preview"
+                    fill
+                    sizes="120px"
+                    style={{ objectFit: 'contain' }}
+                    onError={() => setMainImageError(true)}
+                    unoptimized
+                  />
+                </div>
+                <div className="text-muted small mt-2">Image Preview</div>
+              </div>
+
+              {/* Product Gallery Section */}
+              <div className="border-top pt-3">
+                <h6 className="fw-bold text-dark mb-3">Product Gallery Images (Optional)</h6>
+                
+                <div className="mb-3">
+                  <label className="form-label text-muted small fw-semibold">Upload Gallery Image File</label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleGalleryFileChange}
+                    className="form-control rounded-3"
+                  />
+                  {galleryUploading && (
+                    <div className="d-flex align-items-center gap-1.5 mt-1.5 text-primary small">
+                      <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true" />
+                      <span>Uploading gallery image...</span>
+                    </div>
+                  )}
+                </div>
+
+                <div className="mb-3">
+                  <label className="form-label text-muted small fw-semibold">Or Add Gallery Image URL</label>
+                  <div className="input-group">
+                    <input
+                      type="text"
+                      value={galleryUrlInput}
+                      onChange={(e) => setGalleryUrlInput(e.target.value)}
+                      className="form-control rounded-start-3"
+                      placeholder="e.g. /img/product-gallery-1.png"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleAddGalleryUrl}
+                      className="btn btn-outline-secondary rounded-end-3"
+                    >
+                      Add Url
+                    </button>
+                  </div>
+                </div>
+
+                {images.length > 0 && (
+                  <div className="d-flex flex-column gap-2 mt-3">
+                    <label className="form-label text-muted small fw-semibold mb-0">Gallery Items ({images.length})</label>
+                    <div className="row g-2">
+                      {images.map((imgUrl, idx) => (
+                        <div key={idx} className="col-6">
+                          <div className="card p-2 border bg-light h-100 d-flex flex-column align-items-center justify-content-between text-center rounded-3">
+                            <div className="mb-2 position-relative w-100" style={{ height: '60px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                              <Image
+                                src={galleryImageErrors[idx] ? 'https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=100' : imgUrl}
+                                alt={`Gallery preview ${idx + 1}`}
+                                fill
+                                sizes="80px"
+                                style={{ objectFit: 'contain' }}
+                                onError={() => setGalleryImageErrors((prev) => ({ ...prev, [idx]: true }))}
+                                unoptimized
+                              />
+                            </div>
+                            <div className="d-flex gap-1 w-100 justify-content-center">
+                              <button
+                                type="button"
+                                onClick={() => handleSetMainImage(imgUrl)}
+                                className="btn btn-xs btn-outline-success py-1 px-1.5 rounded"
+                                title="Make Main Image"
+                                style={{ fontSize: '0.75rem' }}
+                              >
+                                <i className="fas fa-star small me-0.5" /> Main
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveGalleryImage(idx)}
+                                className="btn btn-xs btn-outline-danger py-1 px-1.5 rounded"
+                                title="Remove Image"
+                                style={{ fontSize: '0.75rem' }}
+                              >
+                                <i className="fas fa-trash small" />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Promotions & Flags */}
+            <div className="card border-0 shadow-sm rounded-4 bg-white p-4 mb-4">
+              <h6 className="fw-bold text-dark border-bottom pb-2 mb-3">Product Tags / Ribbons</h6>
+              <div className="form-check form-switch mb-2.5">
+                <input
+                  type="checkbox"
+                  checked={isNewArrival}
+                  onChange={(e) => setIsNewArrival(e.target.checked)}
+                  className="form-check-input"
+                  id="newArrivalSwitch"
+                />
+                <label className="form-check-label text-dark small" htmlFor="newArrivalSwitch">
+                  New Arrival Badge
+                </label>
+              </div>
+
+              <div className="form-check form-switch mb-2.5">
+                <input
+                  type="checkbox"
+                  checked={isFeatured}
+                  onChange={(e) => setIsFeatured(e.target.checked)}
+                  className="form-check-input"
+                  id="featuredSwitch"
+                />
+                <label className="form-check-label text-dark small" htmlFor="featuredSwitch">
+                  Featured Product
+                </label>
+              </div>
+
+              <div className="form-check form-switch mb-0">
+                <input
+                  type="checkbox"
+                  checked={isTopSelling}
+                  onChange={(e) => setIsTopSelling(e.target.checked)}
+                  className="form-check-input"
+                  id="topSellingSwitch"
+                />
+                <label className="form-check-label text-dark small" htmlFor="topSellingSwitch">
+                  Top Selling / Popular
+                </label>
+              </div>
+            </div>
+
+            {/* Submit Bar */}
+            <button
+              type="submit"
+              disabled={loading || uploading || galleryUploading}
+              className="btn btn-gradient w-100 py-2.5 fw-semibold border-0 text-white rounded-3 shadow"
+            >
+              {loading ? (
+                <>
+                  <span className="spinner-border spinner-border-sm me-2" /> Creating...
+                </>
+              ) : (
+                'Save Product'
+              )}
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  );
+}
