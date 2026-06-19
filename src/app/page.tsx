@@ -20,6 +20,8 @@ const HERO_SLIDES = [
     btnLabel: 'Shop Now',
     accent: 'var(--pd-primary)',
     bg: 'linear-gradient(135deg, var(--pd-hero-grad-start) 0%, color-mix(in srgb, var(--pd-hero-grad-start) 80%, #fff) 50%, var(--pd-hero-grad-end) 100%)',
+    productImage: '/img/product-1.png',
+    productImageAlt: 'Premium Headphones',
   },
   {
     badge: '⚡ Flash Sale',
@@ -30,6 +32,8 @@ const HERO_SLIDES = [
     btnLabel: 'Explore Deals',
     accent: 'var(--pd-accent)',
     bg: 'linear-gradient(135deg, color-mix(in srgb, var(--pd-accent) 10%, #fff) 0%, color-mix(in srgb, var(--pd-accent) 5%, #fff) 50%, #fff 100%)',
+    productImage: '/img/product-2.png',
+    productImageAlt: 'Smart Watch',
   },
 ];
 
@@ -175,60 +179,17 @@ export default function Home() {
 
       {/* ── Announcement Bar ─────────────────────────────── */}
       {theme.announcementBarEnabled && (
-        <div className="announcement-bar text-white text-center py-2 px-3">
-          {theme.announcementBarText}
+        <div className="announcement-bar text-white text-center py-2 px-3 overflow-hidden">
+          <span className="announcement-inner">
+            {theme.announcementBarText}
+          </span>
         </div>
       )}
 
       {/* ── Hero Slider ───────────────────────────────── */}
       <section aria-label="Featured Products Carousel">
-        <div className="container-fluid carousel bg-light px-0">
-          <div className="row g-0 justify-content-end">
-
-            {/* Main Slider */}
-            <div className="col-12 col-lg-7 col-xl-9">
-              <HeroSlider slides={HERO_SLIDES} autoPlayMs={5500} />
-            </div>
-
-            {/* Right Promo Banner */}
-            <div className="col-12 col-lg-5 col-xl-3">
-              <div className="carousel-header-banner h-100 position-relative" style={{ minHeight: '460px' }}>
-                <Image
-                  src="/img/header-img.jpg"
-                  alt="Apple iPad Mini G2356 — Special Offer PKR 105,000"
-                  width={400}
-                  height={460}
-                  className="img-fluid w-100 h-100"
-                  style={{ objectFit: 'cover', minHeight: '460px' }}
-                  priority
-                />
-                <div className="carousel-banner-offer">
-                  <p className="bg-primary text-white rounded fs-6 py-2 px-3 mb-0 me-2" style={{ fontSize: '0.82rem' }}>
-                    Save PKR 4,800
-                  </p>
-                  <p className="text-primary fs-5 fw-bold mb-0">Special Offer</p>
-                </div>
-                <div className="carousel-banner">
-                  <div className="carousel-banner-content text-center p-3">
-                    <span className="d-block mb-1 text-primary fw-bold" style={{ textTransform: 'uppercase', fontSize: '0.8rem', letterSpacing: '2px' }}>
-                      Smartphone
-                    </span>
-                    <span className="d-block text-white fw-bold mb-2" style={{ fontSize: '1.5rem', lineHeight: 1.2 }}>
-                      Apple iPad Mini <br /> G2356
-                    </span>
-                    <div className="d-flex align-items-center justify-content-center gap-2 mb-1">
-                      <del className="text-white-50" style={{ fontSize: '0.95rem' }}>PKR 125,000</del>
-                      <span className="text-primary fw-bold fs-5">PKR 105,000</span>
-                    </div>
-                  </div>
-                  <Link href="/shop" className="btn btn-gradient rounded-pill py-2 px-4 border-0 mt-2">
-                    Shop Now
-                  </Link>
-                </div>
-              </div>
-            </div>
-
-          </div>
+        <div className="container-fluid px-0">
+          <HeroSlider slides={HERO_SLIDES} autoPlayMs={5500} />
         </div>
       </section>
 

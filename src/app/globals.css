@@ -379,12 +379,35 @@ body {
 
 /* ---------- Announcement Bar ------------------------------ */
 .announcement-bar {
-  background: linear-gradient(90deg, #1e293b 0%, #0f172a 50%, #1e293b 100%);
-  background-size: 200% 100%;
-  animation: gradientShift 5s ease infinite;
+  background: linear-gradient(90deg, #ea580c 0%, #c2410c 30%, #9a3412 60%, #c2410c 80%, #ea580c 100%);
+  background-size: 300% 100%;
+  animation: gradientShift 6s ease infinite;
   font-size: 13px;
-  font-weight: 500;
-  letter-spacing: 0.3px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid rgba(255,255,255,0.15);
+  box-shadow: 0 2px 12px rgba(234, 88, 12, 0.35);
+}
+
+.announcement-bar a {
+  color: #fff !important;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  font-weight: 700;
+}
+
+/* Scrolling ticker on mobile */
+@media (max-width: 768px) {
+  .announcement-bar .announcement-inner {
+    display: inline-block;
+    white-space: nowrap;
+    animation: tickerScroll 18s linear infinite;
+  }
+}
+
+@keyframes tickerScroll {
+  0%   { transform: translateX(100vw); }
+  100% { transform: translateX(-100%); }
 }
 
 /* ---------- Navbar Enhancement ---------------------------- */
