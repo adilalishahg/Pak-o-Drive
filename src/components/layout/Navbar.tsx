@@ -711,7 +711,11 @@ export const Navbar: React.FC = () => {
               >
                 <ThemeIcon name="bars" className="text-white" />
               </button>
-              <div className={`collapse navbar-collapse ${mobileMenuOpen ? 'show' : ''}`} id="navbarCollapse">
+              <div
+                className={`navbar-collapse${mobileMenuOpen ? ' show' : ''}`}
+                id="navbarCollapse"
+                style={mobileMenuOpen ? { display: 'block' } : undefined}
+              >
                 <div className="navbar-nav ms-auto py-0">
                   {[
                     { href: '/',        label: 'Home'    },
