@@ -28,10 +28,17 @@ const OrderSchema = new Schema<IOrderDocument>(
     paymentMethod: { type: String, enum: ['COD'], default: 'COD', required: true },
     status: {
       type: String,
-      enum: ['Pending', 'Shipped', 'Delivered', 'Cancelled'],
+      enum: ['Pending', 'Processing', 'On the Way', 'Shipped', 'Delivered', 'Cancelled'],
       default: 'Pending',
       required: true,
     },
+    statusHistory: [
+      {
+        status: { type: String },
+        changedAt: { type: Date, default: Date.now },
+        note: { type: String },
+      },
+    ],
     whatsappSent: { type: Boolean, default: false },
     utmSource: { type: String },
     utmMedium: { type: String },

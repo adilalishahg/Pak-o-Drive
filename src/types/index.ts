@@ -52,7 +52,8 @@ export interface IOrder {
   items: IOrderItem[];
   totalAmount: number;
   paymentMethod: 'COD';
-  status: 'Pending' | 'Shipped' | 'Delivered' | 'Cancelled';
+  status: 'Pending' | 'Processing' | 'On the Way' | 'Shipped' | 'Delivered' | 'Cancelled';
+  statusHistory?: { status: string; changedAt: string | Date; note?: string }[];
   createdAt?: string | Date;
   whatsappSent: boolean;
   utmSource?: string;

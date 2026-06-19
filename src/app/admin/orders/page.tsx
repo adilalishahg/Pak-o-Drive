@@ -21,7 +21,8 @@ interface OrderData {
   }>;
   totalAmount: number;
   paymentMethod: string;
-  status: 'Pending' | 'Shipped' | 'Delivered' | 'Cancelled';
+  status: 'Pending' | 'Processing' | 'On the Way' | 'Shipped' | 'Delivered' | 'Cancelled';
+  statusHistory?: Array<{ status: string; changedAt: string; note?: string }>;
   createdAt: string;
   whatsappSent: boolean;
 }
@@ -102,7 +103,7 @@ export default function AdminOrdersPage() {
       <div className="card border-0 shadow-sm rounded-4 p-4 bg-white mb-4">
         <div className="d-flex align-items-center justify-content-between flex-wrap gap-3">
           <div className="d-flex gap-2">
-            {['All', 'Pending', 'Shipped', 'Delivered', 'Cancelled'].map((status) => (
+            {['All', 'Pending', 'Processing', 'On the Way', 'Shipped', 'Delivered', 'Cancelled'].map((status) => (
               <button
                 key={status}
                 onClick={() => setFilterStatus(status)}
@@ -157,6 +158,8 @@ export default function AdminOrdersPage() {
                 filteredOrders.map((order) => {
                   const isExpanded = expandedOrderId === order._id;
                   let badgeClass = 'bg-warning text-dark';
+                  if (order.status === 'Processing') badgeClass = 'bg-primary text-white';
+                  if (order.status === 'On the Way') badgeClass = 'bg-purple text-white';
                   if (order.status === 'Shipped') badgeClass = 'bg-info text-white';
                   if (order.status === 'Delivered') badgeClass = 'bg-success text-white';
                   if (order.status === 'Cancelled') badgeClass = 'bg-danger text-white';
@@ -283,10 +286,12 @@ export default function AdminOrdersPage() {
                                     className="form-select form-select-sm rounded-3"
                                     onClick={(e) => e.stopPropagation()}
                                   >
-                                    <option value="Pending">Pending</option>
-                                    <option value="Shipped">Shipped</option>
-                                    <option value="Delivered">Delivered</option>
-                                    <option value="Cancelled">Cancelled</option>
+                                    <option value="Pending">⏳ Pending</option>
+                                    <option value="Processing">⚙️ Processing</option>
+                                    <option value="On the Way">🚚 On the Way</option>
+                                    <option value="Shipped">📦 Shipped</option>
+                                    <option value="Delivered">✅ Delivered</option>
+                                    <option value="Cancelled">❌ Cancelled</option>
                                   </select>
                                 </div>
 

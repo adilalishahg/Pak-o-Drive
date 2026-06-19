@@ -718,10 +718,11 @@ export const Navbar: React.FC = () => {
               >
                 <div className="navbar-nav ms-auto py-0">
                   {[
-                    { href: '/',        label: 'Home'    },
-                    { href: '/shop',    label: 'Shop'    },
-                    { href: '/cart',    label: 'Cart'    },
-                    { href: '/contact', label: 'Contact' },
+                    { href: '/',             label: 'Home'        },
+                    { href: '/shop',         label: 'Shop'        },
+                    { href: '/track-order',  label: 'Track Order' },
+                    { href: '/cart',         label: 'Cart'        },
+                    { href: '/contact',      label: 'Contact'     },
                   ].map(link => (
                     <Link
                       key={link.href}
