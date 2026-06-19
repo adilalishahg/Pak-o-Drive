@@ -15,6 +15,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   const { addToCart } = useCart();
   const router = useRouter();
   const [adding, setAdding] = useState(false);
+  const [imgSrc, setImgSrc] = useState(product.image || '/img/product-placeholder.png');
   const formattedId = product._id ? product._id.toString() : '';
 
   const discountPercent =
@@ -63,12 +64,13 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
       <div className="position-relative overflow-hidden bg-light" style={{ height: '220px' }}>
         <div className="w-100 h-100 position-relative">
           <Image
-            src={product.image}
+            src={imgSrc}
             alt={product.name}
             fill
             sizes="(max-width: 768px) 50vw, 25vw"
             className="product-card-img"
             style={{ objectFit: 'contain', padding: '20px', transition: 'transform 0.4s ease' }}
+            onError={() => setImgSrc('/img/product-placeholder.png')}
             itemProp="image"
           />
         </div>
