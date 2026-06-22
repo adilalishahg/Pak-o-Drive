@@ -11,6 +11,19 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth <= 768) {
+        setSidebarOpen(false);
+      } else {
+        setSidebarOpen(true);
+      }
+    };
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  useEffect(() => {
     if (pathname === '/admin/login') {
       setAuthorized(true);
       return;
@@ -67,6 +80,50 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         fontFamily: "'Inter', sans-serif",
       }}
     >
+      <style dangerouslySetInnerHTML={{ __html: `
+        @media (max-width: 768px) {
+          .admin-sidebar {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100% !important;
+            height: 100vh !important;
+            z-index: 2000 !important;
+            transform: ${sidebarOpen ? 'translateY(0)' : 'translateY(-100%)'} !important;
+            opacity: ${sidebarOpen ? '1' : '0'} !important;
+            visibility: ${sidebarOpen ? 'visible' : 'hidden'} !important;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+            max-width: 100% !important;
+          }
+          .admin-sidebar-nav-container {
+            display: flex !important;
+            flex-direction: column !important;
+            justify-content: center !important;
+            align-items: center !important;
+          }
+          .admin-sidebar-nav {
+            align-items: center !important;
+            justify-content: center !important;
+            text-align: center !important;
+            width: 100% !important;
+            gap: 1.25rem !important;
+          }
+          .admin-sidebar-link {
+            justify-content: center !important;
+            width: 280px !important;
+            font-size: 1.15rem !important;
+            padding: 12px 20px !important;
+          }
+          .admin-header-title {
+            font-size: 1.1rem !important;
+            max-width: 150px !important;
+            white-space: nowrap !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+          }
+        }
+      `}} />
+
       {/* Sidebar */}
       <div
         style={{
@@ -81,7 +138,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           top: 0,
           height: '100vh',
         }}
-        className="d-flex flex-column"
+        className="d-flex flex-column admin-sidebar"
       >
         {/* Brand */}
         <div className="p-4 border-bottom border-secondary d-flex align-items-center justify-content-between">
@@ -100,21 +157,34 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               PAKODRIVE
             </span>
           </Link>
-          <span className="badge bg-secondary px-2 py-1 text-xs uppercase" style={{ fontSize: '0.65rem' }}>
+          <span className="badge bg-secondary px-2 py-1 text-xs uppercase d-none d-md-inline-block" style={{ fontSize: '0.65rem' }}>
             Admin
           </span>
+          <button
+            onClick={() => setSidebarOpen(false)}
+            className="btn btn-link text-white p-0 d-md-none border-0"
+            style={{ textDecoration: 'none' }}
+            aria-label="Close sidebar"
+          >
+            <i className="fas fa-times fs-4" />
+          </button>
         </div>
 
         {/* Navigation links */}
-        <div className="flex-grow-1 p-3 overflow-y-auto">
-          <ul className="nav flex-column gap-2">
+        <div className="flex-grow-1 p-3 overflow-y-auto admin-sidebar-nav-container">
+          <ul className="nav flex-column gap-2 admin-sidebar-nav">
             {menuItems.map((item) => {
               const isActive = pathname === item.path;
               return (
                 <li key={item.path} className="nav-item">
                   <Link
                     href={item.path}
-                    className="nav-link d-flex align-items-center gap-3 px-3 py-2.5 rounded-3 text-decoration-none transition-all"
+                    onClick={() => {
+                      if (window.innerWidth <= 768) {
+                        setSidebarOpen(false);
+                      }
+                    }}
+                    className="nav-link d-flex align-items-center gap-3 px-3 py-2.5 rounded-3 text-decoration-none transition-all admin-sidebar-link"
                     style={{
                       color: isActive ? '#ffffff' : '#94a3b8',
                       background: isActive ? 'linear-gradient(to right, #ea580c, #f97316)' : 'transparent',
@@ -160,7 +230,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             >
               <i className="fas fa-bars text-dark" />
             </button>
-            <h4 className="fw-bold mb-0 text-secondary" style={{ letterSpacing: '-0.3px' }}>
+            <h4 className="fw-bold mb-0 text-secondary admin-header-title" style={{ letterSpacing: '-0.3px' }}>
               {menuItems.find((item) => item.path === pathname)?.name || 'Admin Panel'}
             </h4>
           </div>
@@ -169,10 +239,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <Link
               href="/"
               target="_blank"
-              className="btn btn-outline-secondary btn-sm rounded-pill px-3"
+              className="btn btn-outline-secondary btn-sm rounded-pill px-3 d-flex align-items-center gap-1.5"
               style={{ fontWeight: 500 }}
             >
-              <i className="fas fa-external-link-alt me-1.5" /> View Storefront
+              <i className="fas fa-external-link-alt" />
+              <span className="d-none d-sm-inline">View Storefront</span>
             </Link>
             <div className="vr text-muted my-2" />
             <div className="d-flex align-items-center gap-2">

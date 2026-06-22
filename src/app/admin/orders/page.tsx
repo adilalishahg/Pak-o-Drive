@@ -99,15 +99,20 @@ export default function AdminOrdersPage() {
 
   return (
     <div className="fade-in">
+      <style dangerouslySetInnerHTML={{ __html: `
+        .admin-scroll-filters::-webkit-scrollbar {
+          display: none !important;
+        }
+      `}} />
       {/* Filter bar */}
       <div className="card border-0 shadow-sm rounded-4 p-4 bg-white mb-4">
         <div className="d-flex align-items-center justify-content-between flex-wrap gap-3">
-          <div className="d-flex gap-2">
+          <div className="d-flex gap-2 overflow-x-auto pb-1 w-100 flex-nowrap admin-scroll-filters" style={{ WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none' }}>
             {['All', 'Pending', 'Processing', 'On the Way', 'Shipped', 'Delivered', 'Cancelled'].map((status) => (
               <button
                 key={status}
                 onClick={() => setFilterStatus(status)}
-                className={`btn btn-sm rounded-pill px-3 ${
+                className={`btn btn-sm rounded-pill px-3 flex-shrink-0 ${
                   filterStatus === status ? 'btn-primary border-0' : 'btn-light border'
                 }`}
                 style={{
@@ -140,11 +145,11 @@ export default function AdminOrdersPage() {
                 <th style={{ width: '40px' }} />
                 <th>Order ID</th>
                 <th>Customer Name</th>
-                <th>City</th>
-                <th>Items Count</th>
+                <th className="d-none d-md-table-cell">City</th>
+                <th className="d-none d-md-table-cell">Items Count</th>
                 <th>Total amount</th>
                 <th>Status</th>
-                <th>Order Date</th>
+                <th className="d-none d-sm-table-cell">Order Date</th>
               </tr>
             </thead>
             <tbody>
@@ -178,13 +183,13 @@ export default function AdminOrdersPage() {
                         </td>
                         <td className="fw-bold text-secondary">#{orderIdShort}</td>
                         <td>{order.customerDetails.name}</td>
-                        <td>{order.customerDetails.city}</td>
-                        <td>{order.items.reduce((sum, item) => sum + item.quantity, 0)} items</td>
+                        <td className="d-none d-md-table-cell">{order.customerDetails.city}</td>
+                        <td className="d-none d-md-table-cell">{order.items.reduce((sum, item) => sum + item.quantity, 0)} items</td>
                         <td className="fw-bold text-dark">PKR {order.totalAmount.toLocaleString()}</td>
                         <td>
                           <span className={`badge rounded-pill px-2.5 py-1 ${badgeClass}`}>{order.status}</span>
                         </td>
-                        <td className="text-muted small">
+                        <td className="text-muted small d-none d-sm-table-cell">
                           {new Date(order.createdAt).toLocaleDateString('en-US', {
                             month: 'short',
                             day: 'numeric',

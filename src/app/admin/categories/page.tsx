@@ -160,7 +160,7 @@ export default function AdminCategoriesPage() {
                   <tr>
                     <th style={{ width: '60px' }}>Icon</th>
                     <th>Category Name</th>
-                    <th>Slug</th>
+                    <th className="d-none d-md-table-cell">Slug</th>
                     <th>Products Count</th>
                     <th className="text-end">Actions</th>
                   </tr>
@@ -192,7 +192,7 @@ export default function AdminCategoriesPage() {
                       <td>
                         <span className="fw-bold text-dark">{cat.name}</span>
                       </td>
-                      <td>
+                      <td className="d-none d-md-table-cell">
                         <code className="text-muted">{cat.slug}</code>
                       </td>
                       <td>

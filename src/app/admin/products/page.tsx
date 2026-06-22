@@ -94,6 +94,13 @@ export default function AdminProductsPage() {
 
   return (
     <div className="fade-in">
+      <style dangerouslySetInnerHTML={{ __html: `
+        @media (max-width: 576px) {
+          .admin-filter-input {
+            max-width: 100% !important;
+          }
+        }
+      `}} />
       {/* Search & Actions Header */}
       <div className="card border-0 shadow-sm rounded-4 p-4 bg-white mb-4">
         <div className="row g-3 align-items-center justify-content-between">
@@ -103,13 +110,13 @@ export default function AdminProductsPage() {
               placeholder="Search products..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="form-control rounded-pill px-3"
+              className="form-control rounded-pill px-3 admin-filter-input"
               style={{ maxWidth: '280px' }}
             />
             <select
               value={filterCategory}
               onChange={(e) => setFilterCategory(e.target.value)}
-              className="form-select rounded-pill px-3"
+              className="form-select rounded-pill px-3 admin-filter-input"
               style={{ maxWidth: '200px' }}
             >
               <option value="All">All Categories</option>
@@ -131,7 +138,7 @@ export default function AdminProductsPage() {
               </button>
             ) : null}
           </div>
-          <div className="col-12 col-md-4 text-md-end">
+          <div className="col-12 col-md-4 text-start text-md-end">
             <Link href="/admin/products/new" className="btn btn-gradient rounded-pill px-4 border-0">
               <i className="fas fa-plus me-1.5" /> Add New Product
             </Link>
@@ -153,9 +160,9 @@ export default function AdminProductsPage() {
               <tr>
                 <th style={{ width: '80px' }}>Image</th>
                 <th>Product Name</th>
-                <th>Category</th>
+                <th className="d-none d-sm-table-cell">Category</th>
                 <th>Price</th>
-                <th>Stock Status</th>
+                <th className="d-none d-md-table-cell">Stock Status</th>
                 <th className="text-end">Actions</th>
               </tr>
             </thead>
@@ -187,14 +194,30 @@ export default function AdminProductsPage() {
                       </div>
                     </td>
                     <td>
-                      <div className="fw-bold text-dark mb-0 style-truncate" style={{ maxWidth: '360px' }}>
+                      <div className="fw-bold text-dark mb-1 text-truncate" style={{ maxWidth: '240px' }}>
                         {product.name}
                       </div>
-                      <span className="text-muted" style={{ fontSize: '0.75rem' }}>
-                        ID: {product._id}
-                      </span>
+                      <div className="d-flex flex-wrap align-items-center gap-1.5">
+                        <span className="text-muted small" style={{ fontSize: '0.75rem' }}>
+                          ID: {product._id.substring(product._id.length - 8).toUpperCase()}
+                        </span>
+                        <span className="d-sm-none badge bg-light text-muted border text-capitalize" style={{ fontSize: '0.7rem' }}>
+                          {product.category}
+                        </span>
+                        {product.stock <= 0 ? (
+                          <span className="d-md-none badge bg-danger rounded-pill px-2 py-0.5" style={{ fontSize: '0.7rem' }}>Out of Stock</span>
+                        ) : product.stock <= 5 ? (
+                          <span className="d-md-none badge bg-warning text-dark rounded-pill px-2 py-0.5" style={{ fontSize: '0.7rem' }}>
+                            Low ({product.stock})
+                          </span>
+                        ) : (
+                          <span className="d-md-none badge bg-success rounded-pill px-2 py-0.5" style={{ fontSize: '0.7rem' }}>
+                            In Stock ({product.stock})
+                          </span>
+                        )}
+                      </div>
                     </td>
-                    <td className="text-capitalize">{product.category}</td>
+                    <td className="text-capitalize d-none d-sm-table-cell">{product.category}</td>
                     <td>
                       <div className="fw-bold text-dark">PKR {product.price.toLocaleString()}</div>
                       {product.originalPrice > product.price && (
@@ -203,7 +226,7 @@ export default function AdminProductsPage() {
                         </div>
                       )}
                     </td>
-                    <td>
+                    <td className="d-none d-md-table-cell">
                       {product.stock <= 0 ? (
                         <span className="badge bg-danger rounded-pill px-2.5 py-1">Out of Stock</span>
                       ) : product.stock <= 5 ? (

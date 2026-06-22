@@ -358,10 +358,10 @@ export default function AdminDashboardPage() {
                 <thead className="table-light text-muted small uppercase">
                   <tr>
                     <th>Order ID</th>
-                    <th>Customer</th>
+                    <th className="d-none d-sm-table-cell">Customer</th>
                     <th>Total</th>
                     <th>Status</th>
-                    <th>Date</th>
+                    <th className="d-none d-md-table-cell">Date</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -383,7 +383,7 @@ export default function AdminDashboardPage() {
                           <td className="fw-bold text-muted" style={{ fontSize: '0.85rem' }}>
                             #{order._id.substring(order._id.length - 8).toUpperCase()}
                           </td>
-                          <td>
+                          <td className="d-none d-sm-table-cell">
                             <div className="fw-semibold">{order.customerDetails.name}</div>
                             <div className="text-muted small">{order.customerDetails.phone}</div>
                           </td>
@@ -391,7 +391,7 @@ export default function AdminDashboardPage() {
                           <td>
                             <span className={`badge rounded-pill px-2.5 py-1 ${badgeClass}`}>{order.status}</span>
                           </td>
-                          <td className="text-muted small">
+                          <td className="text-muted small d-none d-md-table-cell">
                             {new Date(order.createdAt).toLocaleDateString('en-US', {
                               month: 'short',
                               day: 'numeric',
