@@ -14,238 +14,246 @@ export default function OrderConfirmationPage() {
   const [error, setError] = useState<string | null>(null);
   const whatsappNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '+923185205667';
 
-  // Fetch order details
   useEffect(() => {
     if (!id) return;
-    async function loadOrder() {
+    (async () => {
       try {
         setLoading(true);
         const res = await fetch(`/api/orders/${id}`);
         const data = await res.json();
         if (data.success) {
           setOrder(data.data);
-          // Confetti celebration!
-          confetti({
-            particleCount: 150,
-            spread: 80,
-            origin: { y: 0.6 },
-            colors: ['#F28B00', '#F92400', '#484848', '#25D366'],
-          });
+          confetti({ particleCount: 120, spread: 70, origin: { y: 0.5 } });
         } else {
           setError(data.error || 'Failed to load order.');
         }
-      } catch (err) {
-        console.error('Error loading order:', err);
+      } catch {
         setError('Connection failed. Please try again.');
       } finally {
         setLoading(false);
       }
-    }
-    loadOrder();
+    })();
   }, [id]);
 
-  const handleShareToWhatsApp = () => {
+  const handleWhatsApp = () => {
     if (!order) return;
-
-    const itemsText = order.items
-      .map((item) => `- ${item.quantity}x ${item.name} (PKR ${item.price.toLocaleString()})`)
-      .join('\n');
-
-    const message = `*New Order Confirmation - PAKODRIVE*\n` +
-      `*Order ID:* #${order._id}\n` +
-      `*Customer Name:* ${order.customerDetails.name}\n` +
-      `*Phone Number:* ${order.customerDetails.phone}\n` +
-      `*City:* ${order.customerDetails.city}\n` +
-      `*Shipping Address:* ${order.customerDetails.address}\n\n` +
-      `*Items Ordered:*\n${itemsText}\n\n` +
-      `*Total Amount:* PKR ${order.totalAmount.toLocaleString()}\n` +
-      `*Payment Method:* Cash on Delivery (COD)\n\n` +
-      `Please confirm my order and shipping coordinates. Thank you!`;
-
-    const encoded = encodeURIComponent(message);
-    window.open(`https://wa.me/${whatsappNumber.replace('+', '')}?text=${encoded}`, '_blank');
+    const items = order.items.map(i => `- ${i.quantity}x ${i.name} (PKR ${i.price.toLocaleString()})`).join('\n');
+    const msg = `*Order Confirmation*\nOrder ID: #${order._id?.slice(-8).toUpperCase()}\nName: ${order.customerDetails.name}\nPhone: ${order.customerDetails.phone}\nAddress: ${order.customerDetails.address}, ${order.customerDetails.city}\n\nItems:\n${items}\n\nTotal: PKR ${order.totalAmount.toLocaleString()}\nPayment: COD`;
+    window.open(`https://wa.me/${whatsappNumber.replace('+', '')}?text=${encodeURIComponent(msg)}`, '_blank');
   };
 
-  const handlePrint = () => {
-    window.print();
-  };
+  if (loading) return (
+    <div style={{ minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: '12px' }}>
+      <div className="spinner-border" style={{ color: 'var(--pd-primary)', width: '2.5rem', height: '2.5rem' }} />
+      <p style={{ color: '#94a3b8', fontSize: '0.9rem' }}>Loading your order…</p>
+    </div>
+  );
 
-  if (loading) {
-    return (
-      <div className="container py-5 text-center bg-white">
-        <div className="py-5">
-          <div className="spinner-border text-primary mb-3" style={{ width: '3rem', height: '3rem' }} role="status">
-            <span className="sr-only">Loading...</span>
-          </div>
-          <p className="text-muted font-weight-bold">Generating your order receipt...</p>
-        </div>
+  if (error || !order) return (
+    <div style={{ minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
+      <div style={{ textAlign: 'center', maxWidth: '400px' }}>
+        <i className="fas fa-exclamation-circle" style={{ fontSize: '2.5rem', color: '#ef4444', marginBottom: '16px', display: 'block' }} />
+        <h3 style={{ fontWeight: 700, color: '#111', marginBottom: '8px' }}>Order Not Found</h3>
+        <p style={{ color: '#6b7280', marginBottom: '20px' }}>{error}</p>
+        <Link href="/" className="btn-gradient" style={{ textDecoration: 'none', borderRadius: '8px', padding: '11px 24px', fontWeight: 700, fontSize: '0.9rem' }}>
+          Return to Home
+        </Link>
       </div>
-    );
-  }
+    </div>
+  );
 
-  if (error || !order) {
-    return (
-      <div className="container py-5 text-center bg-white">
-        <div className="py-5" style={{ maxWidth: '600px', margin: '0 auto' }}>
-          <h2 className="text-danger mb-4">Order Error</h2>
-          <p className="mb-4 text-muted">{error || 'Receipt generation failed.'}</p>
-          <Link href="/" className="btn btn-primary rounded-pill py-3 px-5 border-0">
-            Return to Home
-          </Link>
-        </div>
-      </div>
-    );
-  }
+  const shortId = order._id ? order._id.slice(-8).toUpperCase() : '';
 
   return (
-    <div className="bg-white">
-      {/* Single Page Header start */}
-      <div className="container-fluid page-header py-5">
-        <h1 className="text-center text-white display-6 wow fadeInUp" data-wow-delay="0.1s">
-          Order Confirmation
-        </h1>
-        <ol className="breadcrumb justify-content-center mb-0 wow fadeInUp" data-wow-delay="0.3s">
-          <li className="breadcrumb-item">
-            <Link href="/" className="text-white text-decoration-none">
-              Home
-            </Link>
-          </li>
-          <li className="breadcrumb-item active text-white">Confirmation</li>
-        </ol>
+    <div style={{ background: '#f4f4f4', minHeight: '100vh', paddingBottom: '32px' }}>
+      <style>{`
+        @media print {
+          .no-print { display: none !important; }
+          body { background: #fff !important; }
+        }
+        @media (max-width: 575px) {
+          .oc-invoice-header { flex-direction: column !important; gap: 12px !important; }
+          .oc-invoice-header .text-end { text-align: left !important; }
+          .oc-totals-table { width: 100% !important; }
+        }
+      `}</style>
+
+      {/* ── Success banner ── */}
+      <div className="no-print" style={{ background: 'linear-gradient(135deg, #16a34a, #15803d)', padding: '28px 20px 24px', textAlign: 'center' }}>
+        <div style={{
+          width: '64px', height: '64px', borderRadius: '50%',
+          background: 'rgba(255,255,255,0.2)', border: '2px solid rgba(255,255,255,0.4)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          margin: '0 auto 14px',
+        }}>
+          <i className="fas fa-check" style={{ fontSize: '1.6rem', color: '#fff' }} />
+        </div>
+        <h2 style={{ color: '#fff', fontWeight: 800, fontSize: '1.3rem', margin: '0 0 6px' }}>
+          Order Placed!
+        </h2>
+        <p style={{ color: 'rgba(255,255,255,0.85)', fontSize: '0.85rem', margin: '0 0 20px' }}>
+          Order #{shortId} · Thank you for shopping with us
+        </p>
+        {/* Action buttons */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxWidth: '360px', margin: '0 auto' }}>
+          <button onClick={handleWhatsApp} style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+            background: '#25D366', border: 'none', borderRadius: '8px',
+            padding: '13px 20px', color: '#fff', fontWeight: 700, fontSize: '0.9rem',
+            cursor: 'pointer', boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+          }}>
+            <i className="fab fa-whatsapp" style={{ fontSize: '1.1rem' }} />
+            Confirm Order on WhatsApp
+          </button>
+          <button onClick={() => window.print()} style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+            background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.3)',
+            borderRadius: '8px', padding: '12px 20px',
+            color: '#fff', fontWeight: 600, fontSize: '0.88rem', cursor: 'pointer',
+          }}>
+            <i className="fas fa-print" />
+            Print Invoice
+          </button>
+        </div>
       </div>
-      {/* Single Page Header End */}
 
-      <div className="container py-5">
-        <div className="row justify-content-center">
-          <div className="col-lg-8">
-            {/* Success alert message */}
-            <div className="text-center p-5 bg-light rounded border mb-5 print-none">
-              <div
-                className="rounded-circle bg-success d-flex align-items-center justify-content-center mb-4 mx-auto"
-                style={{ width: '80px', height: '80px' }}
-              >
-                <i className="fas fa-check fa-3x text-white"></i>
-              </div>
-              <h2 className="mb-3 text-dark">Order Placed Successfully!</h2>
-              <p className="mb-4 text-muted">
-                Thank you for shopping at PAKODRIVE. Your order has been placed successfully and is pending verification. Please click the button below to confirm your order details instantly via WhatsApp.
-              </p>
-              
-              <div className="d-flex flex-column flex-sm-row justify-content-center gap-3">
-                <button
-                  onClick={handleShareToWhatsApp}
-                  className="btn btn-primary rounded-pill py-3 px-4 border-0 d-flex align-items-center justify-content-center"
-                >
-                  <i className="fab fa-whatsapp fa-lg me-2"></i> Confirm Order on WhatsApp
-                </button>
-                <button
-                  onClick={handlePrint}
-                  className="btn btn-secondary rounded-pill py-3 px-4"
-                >
-                  <i className="fas fa-print me-2"></i> Print Invoice
-                </button>
-              </div>
-            </div>
+      {/* ── Invoice card ── */}
+      <div style={{ maxWidth: '640px', margin: '16px auto 0', padding: '0 12px' }}>
+        <div style={{ background: '#fff', borderRadius: '12px', overflow: 'hidden', boxShadow: '0 2px 12px rgba(0,0,0,0.07)' }}>
 
-            {/* Invoice Printable Section */}
-            <div className="p-5 border rounded bg-white shadow-sm position-relative" style={{ borderTop: '6px solid var(--bs-primary) !important' }}>
-              <div className="d-flex justify-content-between align-items-start border-bottom pb-4 mb-4">
-                <div>
-                  <h2 className="text-primary m-0"><i className="fas fa-shopping-bag text-secondary me-2"></i>Electro</h2>
-                  <p className="text-muted small mt-2">
-                    123 Street Karachi, Pakistan<br />
-                    support@pakodrive.com | +0123 456 7890
-                  </p>
+          {/* Invoice header */}
+          <div style={{ borderTop: '4px solid var(--pd-primary)', padding: '20px 20px 16px' }}>
+            <div className="oc-invoice-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '16px' }}>
+              {/* Brand */}
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+                  <div style={{
+                    width: '32px', height: '32px', borderRadius: '8px',
+                    background: 'linear-gradient(135deg, var(--pd-primary), #c2410c)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  }}>
+                    <i className="fas fa-shopping-bag" style={{ color: '#fff', fontSize: '14px' }} />
+                  </div>
+                  <span style={{ fontWeight: 800, fontSize: '1.1rem', color: 'var(--pd-primary)' }}>Electro</span>
                 </div>
-                <div className="text-end">
-                  <h4 className="text-dark uppercase tracking-wide m-0">Invoice Receipt</h4>
-                  <p className="text-muted small mt-2 font-weight-bold">
-                    Order ID: <span className="text-dark font-mono">#{order._id}</span><br />
-                    Placed On: {new Date(order.createdAt || '').toLocaleString()}
-                  </p>
-                </div>
+                <p style={{ margin: 0, fontSize: '0.72rem', color: '#6b7280', lineHeight: 1.6 }}>
+                  support@pakodrive.com<br />+0123 456 7890
+                </p>
               </div>
-
-              <div className="row mb-4">
-                <div className="col-md-6 mb-3">
-                  <h6 className="text-muted uppercase tracking-wider small font-weight-bold mb-2">Shipping Information</h6>
-                  <p className="m-0 font-weight-bold text-dark">{order.customerDetails.name}</p>
-                  <p className="text-muted mt-1 leading-normal">
-                    {order.customerDetails.address}<br />
-                    {order.customerDetails.city}, Pakistan
-                  </p>
-                </div>
-                <div className="col-md-6 mb-3 text-md-end">
-                  <h6 className="text-muted uppercase tracking-wider small font-weight-bold mb-2">Payment Details</h6>
-                  <p className="m-0 text-dark">
-                    Method: <strong className="text-primary">Cash on Delivery (COD)</strong>
-                  </p>
-                  <p className="text-muted mt-1">
-                    Contact: {order.customerDetails.phone}<br />
-                    {order.customerDetails.email && `Email: ${order.customerDetails.email}`}
-                  </p>
-                </div>
+              {/* Order meta */}
+              <div style={{ textAlign: 'right' }}>
+                <p style={{ margin: '0 0 4px', fontWeight: 800, fontSize: '0.85rem', color: '#111', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                  Invoice Receipt
+                </p>
+                <p style={{ margin: 0, fontSize: '0.72rem', color: '#6b7280', lineHeight: 1.6 }}>
+                  #{shortId}<br />
+                  {new Date(order.createdAt || '').toLocaleDateString('en-PK', { day: 'numeric', month: 'short', year: 'numeric' })}
+                </p>
               </div>
-
-              {/* Items Purchased List */}
-              <div className="border-bottom pb-4 mb-4">
-                <h6 className="text-muted uppercase tracking-wider small font-weight-bold mb-3">Purchased Items</h6>
-                <div className="table-responsive">
-                  <table className="table table-borderless align-middle m-0">
-                    <tbody>
-                      {order.items.map((item) => (
-                        <tr key={item.productId} className="border-bottom border-light">
-                          <td style={{ width: '60px' }}>
-                            <div className="position-relative bg-light rounded" style={{ width: '50px', height: '50px' }}>
-                              <Image src={item.image} alt={item.name} fill className="object-contain p-1" />
-                            </div>
-                          </td>
-                          <td>
-                            <p className="m-0 font-weight-bold text-dark">{item.name}</p>
-                            <span className="text-muted small">Qty: {item.quantity} × PKR {item.price.toLocaleString()}</span>
-                          </td>
-                          <td className="text-end font-weight-bold text-dark">
-                            PKR {(item.price * item.quantity).toLocaleString()}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-
-              {/* Summary Invoice totals */}
-              <div className="row justify-content-end">
-                <div className="col-md-5">
-                  <table className="table table-borderless m-0 text-dark small">
-                    <tbody>
-                      <tr>
-                        <td className="text-muted py-1 ps-0">Subtotal</td>
-                        <td className="text-end font-weight-bold py-1 pe-0">PKR {order.totalAmount.toLocaleString()}</td>
-                      </tr>
-                      <tr>
-                        <td className="text-muted py-1 ps-0">Delivery Charges</td>
-                        <td className="text-end text-success font-weight-bold py-1 pe-0 uppercase">Free Delivery</td>
-                      </tr>
-                      <tr className="border-top">
-                        <td className="font-weight-bold py-2 ps-0 text-uppercase">Grand Total</td>
-                        <td className="text-end font-weight-bold text-primary py-2 pe-0 fs-5">
-                          PKR {order.totalAmount.toLocaleString()}
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-
-            {/* Back Button */}
-            <div className="text-center mt-4 print-none">
-              <Link href="/" className="btn btn-secondary rounded-pill py-2 px-4">
-                <i className="fas fa-arrow-left me-2"></i> Return to Homepage
-              </Link>
             </div>
           </div>
+
+          <div style={{ height: '1px', background: '#f0f0f0' }} />
+
+          {/* Shipping + Payment */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0', padding: '0' }}>
+            <div style={{ padding: '16px 16px 16px', borderRight: '1px solid #f0f0f0' }}>
+              <p style={{ margin: '0 0 8px', fontSize: '0.65rem', fontWeight: 800, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                Shipping
+              </p>
+              <p style={{ margin: '0 0 3px', fontWeight: 700, fontSize: '0.82rem', color: '#111' }}>
+                {order.customerDetails.name}
+              </p>
+              <p style={{ margin: 0, fontSize: '0.76rem', color: '#6b7280', lineHeight: 1.55 }}>
+                {order.customerDetails.address}<br />
+                {order.customerDetails.city}, Pakistan
+              </p>
+            </div>
+            <div style={{ padding: '16px' }}>
+              <p style={{ margin: '0 0 8px', fontSize: '0.65rem', fontWeight: 800, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                Payment
+              </p>
+              <p style={{ margin: '0 0 3px', fontSize: '0.78rem', color: '#111' }}>
+                Method: <strong style={{ color: '#16a34a' }}>COD</strong>
+              </p>
+              <p style={{ margin: 0, fontSize: '0.75rem', color: '#6b7280', lineHeight: 1.55 }}>
+                {order.customerDetails.phone}
+                {order.customerDetails.email && <><br />{order.customerDetails.email}</>}
+              </p>
+            </div>
+          </div>
+
+          <div style={{ height: '1px', background: '#f0f0f0' }} />
+
+          {/* Items */}
+          <div style={{ padding: '16px' }}>
+            <p style={{ margin: '0 0 12px', fontSize: '0.65rem', fontWeight: 800, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '1px' }}>
+              Items Ordered
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              {order.items.map((item, idx) => (
+                <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <div style={{
+                    width: '44px', height: '44px', flexShrink: 0,
+                    borderRadius: '6px', background: '#f5f5f5',
+                    position: 'relative', overflow: 'hidden',
+                  }}>
+                    <Image
+                      src={item.image || '/img/product-placeholder.png'}
+                      alt={item.name}
+                      fill
+                      sizes="44px"
+                      style={{ objectFit: 'contain', padding: '4px' }}
+                      onError={(e) => { (e.target as HTMLImageElement).src = '/img/product-placeholder.png'; }}
+                    />
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <p style={{ margin: '0 0 2px', fontWeight: 600, fontSize: '0.8rem', color: '#111',
+                      overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {item.name}
+                    </p>
+                    <p style={{ margin: 0, fontSize: '0.72rem', color: '#9ca3af' }}>
+                      PKR {item.price.toLocaleString()} × {item.quantity}
+                    </p>
+                  </div>
+                  <span style={{ fontWeight: 700, fontSize: '0.82rem', color: '#111', flexShrink: 0 }}>
+                    PKR {(item.price * item.quantity).toLocaleString()}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div style={{ height: '1px', background: '#f0f0f0' }} />
+
+          {/* Totals */}
+          <div style={{ padding: '14px 16px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+              <span style={{ fontSize: '0.78rem', color: '#6b7280' }}>Subtotal</span>
+              <span style={{ fontSize: '0.78rem', fontWeight: 600, color: '#111' }}>PKR {order.totalAmount.toLocaleString()}</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+              <span style={{ fontSize: '0.78rem', color: '#6b7280' }}>Delivery</span>
+              <span style={{ fontSize: '0.78rem', fontWeight: 600, color: '#16a34a' }}>Free</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid #f0f0f0', paddingTop: '10px' }}>
+              <span style={{ fontSize: '0.9rem', fontWeight: 800, color: '#111' }}>Grand Total</span>
+              <span style={{ fontSize: '1.1rem', fontWeight: 900, color: 'var(--pd-primary)' }}>
+                PKR {order.totalAmount.toLocaleString()}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Back to home */}
+        <div className="no-print" style={{ textAlign: 'center', marginTop: '20px' }}>
+          <Link href="/" style={{
+            display: 'inline-flex', alignItems: 'center', gap: '6px',
+            textDecoration: 'none', color: '#6b7280', fontSize: '0.85rem', fontWeight: 600,
+          }}>
+            <i className="fas fa-arrow-left" style={{ fontSize: '12px' }} />
+            Continue Shopping
+          </Link>
         </div>
       </div>
     </div>
