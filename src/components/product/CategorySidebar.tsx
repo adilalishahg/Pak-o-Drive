@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 interface CategorySidebarProps {
   selectedCategory: string | null;
@@ -20,6 +20,9 @@ const DEFAULT_CATEGORIES = [
   { name: 'Mobile Accessories', slug: 'accessories', icon: 'fas fa-mobile-alt' },
 ];
 
+const PRICE_MAX = 150000;
+const PRICE_MIN = 0;
+
 export const CategorySidebar: React.FC<CategorySidebarProps> = ({
   selectedCategory,
   onSelectCategory,
@@ -30,7 +33,12 @@ export const CategorySidebar: React.FC<CategorySidebarProps> = ({
   onReset,
 }) => {
   const [categories, setCategories] = useState(DEFAULT_CATEGORIES);
-  const [maxPrice, setMaxPrice] = useState(priceRange.max);
+  const [localMin, setLocalMin] = useState(priceRange.min);
+  const [localMax, setLocalMax] = useState(priceRange.max);
+  const [minInput, setMinInput] = useState(String(priceRange.min));
+  const [maxInput, setMaxInput] = useState(String(priceRange.max));
+  const trackRef = useRef<HTMLDivElement>(null);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -38,172 +46,227 @@ export const CategorySidebar: React.FC<CategorySidebarProps> = ({
         const res = await fetch('/api/categories');
         const json = await res.json();
         if (json.success && json.data.length > 0) {
-          setCategories(json.data.map((c: any) => ({
-            name: c.name, slug: c.slug,
-            icon: 'fas fa-tag',
-          })));
+          setCategories(json.data.map((c: any) => ({ name: c.name, slug: c.slug, icon: 'fas fa-tag' })));
         }
       } catch {}
     })();
   }, []);
 
-  const hasActiveFilters = selectedCategory || selectedRating || priceRange.max < 150000;
+  // Sync if parent resets
+  useEffect(() => {
+    setLocalMin(priceRange.min);
+    setLocalMax(priceRange.max);
+    setMinInput(String(priceRange.min));
+    setMaxInput(String(priceRange.max));
+  }, [priceRange.min, priceRange.max]);
 
-  const sectionStyle: React.CSSProperties = {
-    background: '#fff',
-    borderRadius: '12px',
-    border: '1px solid #eef2f7',
-    padding: '16px',
-    marginBottom: '12px',
+  const applyRange = (min: number, max: number) => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      onPriceRangeChange(min, max);
+    }, 400);
   };
 
-  const sectionTitleStyle: React.CSSProperties = {
-    fontSize: '0.72rem',
-    fontWeight: 800,
-    color: '#64748b',
-    textTransform: 'uppercase',
-    letterSpacing: '1px',
-    marginBottom: '12px',
-    paddingBottom: '8px',
-    borderBottom: '1px solid #f1f5f9',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '6px',
+  const handleMinSlider = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const v = Math.min(Number(e.target.value), localMax - 500);
+    setLocalMin(v);
+    setMinInput(String(v));
+    applyRange(v, localMax);
   };
+
+  const handleMaxSlider = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const v = Math.max(Number(e.target.value), localMin + 500);
+    setLocalMax(v);
+    setMaxInput(String(v));
+    applyRange(localMin, v);
+  };
+
+  const handleMinInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setMinInput(e.target.value);
+    const v = parseInt(e.target.value) || 0;
+    if (!isNaN(v) && v >= PRICE_MIN && v < localMax) {
+      setLocalMin(v);
+      applyRange(v, localMax);
+    }
+  };
+
+  const handleMaxInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setMaxInput(e.target.value);
+    const v = parseInt(e.target.value) || 0;
+    if (!isNaN(v) && v <= PRICE_MAX && v > localMin) {
+      setLocalMax(v);
+      applyRange(localMin, v);
+    }
+  };
+
+  const minPct = ((localMin - PRICE_MIN) / (PRICE_MAX - PRICE_MIN)) * 100;
+  const maxPct = ((localMax - PRICE_MIN) / (PRICE_MAX - PRICE_MIN)) * 100;
+
+  const hasFilters = !!(selectedCategory || selectedRating || priceRange.max < PRICE_MAX || priceRange.min > PRICE_MIN);
+
+  const section = (children: React.ReactNode) => (
+    <div style={{ background: '#fff', borderRadius: '10px', padding: '14px', marginBottom: '10px', border: '1px solid #eef2f7' }}>
+      {children}
+    </div>
+  );
+
+  const sectionTitle = (icon: string, label: string) => (
+    <p style={{ margin: '0 0 12px', fontSize: '0.65rem', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '1px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+      <i className={icon} style={{ color: 'var(--pd-primary)', fontSize: '11px' }} />
+      {label}
+    </p>
+  );
 
   return (
     <div>
-      {/* Active filters + Reset */}
-      {hasActiveFilters && (
-        <div style={{ ...sectionStyle, background: 'rgba(var(--pd-primary-rgb,234,88,12),0.05)', border: '1px solid rgba(var(--pd-primary-rgb,234,88,12),0.15)' }}>
-          <div className="d-flex align-items-center justify-content-between mb-2">
-            <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--pd-primary)' }}>
-              <i className="fas fa-filter me-1" /> Active Filters
-            </span>
-            <button onClick={onReset} style={{
-              background: 'none', border: 'none', cursor: 'pointer',
-              fontSize: '0.72rem', color: 'var(--pd-primary)', fontWeight: 700, padding: 0,
-            }}>
-              <i className="fas fa-times me-1" />Clear All
-            </button>
-          </div>
-          <div className="d-flex flex-wrap gap-1">
-            {selectedCategory && (
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px',
-                background: 'var(--pd-primary)', color: '#fff', borderRadius: '20px',
-                padding: '3px 10px', fontSize: '0.7rem', fontWeight: 600 }}>
-                {categories.find(c => c.slug === selectedCategory)?.name || selectedCategory}
-                <i className="fas fa-times" style={{ cursor: 'pointer', fontSize: '9px' }} onClick={() => onSelectCategory(null)} />
-              </span>
-            )}
-            {selectedRating && (
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px',
-                background: 'var(--pd-primary)', color: '#fff', borderRadius: '20px',
-                padding: '3px 10px', fontSize: '0.7rem', fontWeight: 600 }}>
-                {selectedRating}★ & above
-                <i className="fas fa-times" style={{ cursor: 'pointer', fontSize: '9px' }} onClick={() => onSelectRating(null)} />
-              </span>
-            )}
-            {priceRange.max < 150000 && (
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px',
-                background: 'var(--pd-primary)', color: '#fff', borderRadius: '20px',
-                padding: '3px 10px', fontSize: '0.7rem', fontWeight: 600 }}>
-                Up to PKR {priceRange.max.toLocaleString()}
-                <i className="fas fa-times" style={{ cursor: 'pointer', fontSize: '9px' }} onClick={() => onPriceRangeChange(0, 150000)} />
-              </span>
-            )}
-          </div>
+      {/* Reset */}
+      {hasFilters && section(
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--pd-primary)' }}>
+            <i className="fas fa-filter me-1" /> Active Filters
+          </span>
+          <button onClick={onReset} style={{
+            background: 'none', border: 'none', cursor: 'pointer',
+            fontSize: '0.72rem', color: '#94a3b8', fontWeight: 700, padding: 0,
+            display: 'flex', alignItems: 'center', gap: '4px',
+          }}>
+            <i className="fas fa-times" style={{ fontSize: '10px' }} /> Clear All
+          </button>
         </div>
       )}
 
       {/* Categories */}
-      <div style={sectionStyle}>
-        <p style={sectionTitleStyle}>
-          <i className="fas fa-th-large" style={{ color: 'var(--pd-primary)' }} />
-          Categories
-        </p>
+      {section(<>
+        {sectionTitle('fas fa-th-large', 'Categories')}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-          {/* All */}
-          <button onClick={() => onSelectCategory(null)}
-            style={{
-              display: 'flex', alignItems: 'center', gap: '10px',
-              padding: '8px 10px', border: 'none', borderRadius: '8px', cursor: 'pointer',
-              background: selectedCategory === null ? 'rgba(var(--pd-primary-rgb,234,88,12),0.08)' : 'transparent',
-              textAlign: 'left', width: '100%', transition: 'background 0.15s',
-              borderLeft: selectedCategory === null ? '3px solid var(--pd-primary)' : '3px solid transparent',
-            }}
-            onMouseEnter={e => { if (selectedCategory !== null) (e.currentTarget as HTMLButtonElement).style.background = '#f8fafc'; }}
-            onMouseLeave={e => { if (selectedCategory !== null) (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; }}
-          >
-            <div style={{ width: '28px', height: '28px', borderRadius: '7px', flexShrink: 0,
-              background: selectedCategory === null ? 'var(--pd-primary)' : '#f1f5f9',
-              display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <i className="fas fa-border-all" style={{ fontSize: '11px', color: selectedCategory === null ? '#fff' : '#64748b' }} />
-            </div>
-            <span style={{ fontSize: '0.83rem', fontWeight: selectedCategory === null ? 700 : 500,
-              color: selectedCategory === null ? 'var(--pd-primary)' : '#374151' }}>
-              All Products
-            </span>
-          </button>
-
-          {categories.map(cat => (
-            <button key={cat.slug} onClick={() => onSelectCategory(cat.slug)}
-              style={{
-                display: 'flex', alignItems: 'center', gap: '10px',
-                padding: '8px 10px', border: 'none', borderRadius: '8px', cursor: 'pointer',
-                background: selectedCategory === cat.slug ? 'rgba(var(--pd-primary-rgb,234,88,12),0.08)' : 'transparent',
-                textAlign: 'left', width: '100%', transition: 'background 0.15s',
-                borderLeft: selectedCategory === cat.slug ? '3px solid var(--pd-primary)' : '3px solid transparent',
-              }}
-              onMouseEnter={e => { if (selectedCategory !== cat.slug) (e.currentTarget as HTMLButtonElement).style.background = '#f8fafc'; }}
-              onMouseLeave={e => { if (selectedCategory !== cat.slug) (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; }}
-            >
-              <div style={{ width: '28px', height: '28px', borderRadius: '7px', flexShrink: 0,
-                background: selectedCategory === cat.slug ? 'var(--pd-primary)' : '#f1f5f9',
-                display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <i className={cat.icon} style={{ fontSize: '11px', color: selectedCategory === cat.slug ? '#fff' : '#64748b' }} />
-              </div>
-              <span style={{ fontSize: '0.83rem', fontWeight: selectedCategory === cat.slug ? 700 : 500,
-                color: selectedCategory === cat.slug ? 'var(--pd-primary)' : '#374151',
-                overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>
-                {cat.name}
-              </span>
-            </button>
-          ))}
+          {[{ name: 'All Products', slug: '', icon: 'fas fa-border-all' }, ...categories].map(cat => {
+            const active = cat.slug === '' ? selectedCategory === null : selectedCategory === cat.slug;
+            return (
+              <button key={cat.slug || 'all'} onClick={() => onSelectCategory(cat.slug === '' ? null : cat.slug)}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: '9px',
+                  padding: '7px 10px', border: 'none', borderRadius: '7px', cursor: 'pointer',
+                  background: active ? 'rgba(var(--pd-primary-rgb,234,88,12),0.08)' : 'transparent',
+                  textAlign: 'left', width: '100%', transition: 'background 0.15s',
+                  borderLeft: active ? '3px solid var(--pd-primary)' : '3px solid transparent',
+                }}
+                onMouseEnter={e => { if (!active) (e.currentTarget as HTMLButtonElement).style.background = '#f8fafc'; }}
+                onMouseLeave={e => { if (!active) (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; }}
+              >
+                <div style={{
+                  width: '24px', height: '24px', borderRadius: '6px', flexShrink: 0,
+                  background: active ? 'var(--pd-primary)' : '#f1f5f9',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                  <i className={cat.icon} style={{ fontSize: '10px', color: active ? '#fff' : '#64748b' }} />
+                </div>
+                <span style={{ fontSize: '0.8rem', fontWeight: active ? 700 : 500, color: active ? 'var(--pd-primary)' : '#374151', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {cat.name}
+                </span>
+              </button>
+            );
+          })}
         </div>
-      </div>
+      </>)}
 
       {/* Price Range */}
-      <div style={sectionStyle}>
-        <p style={sectionTitleStyle}>
-          <i className="fas fa-tag" style={{ color: 'var(--pd-primary)' }} />
-          Price Range
-        </p>
-        <input type="range" className="form-range w-100" min="500" max="150000" step="500"
-          value={maxPrice}
-          onChange={e => { const v = parseInt(e.target.value); setMaxPrice(v); onPriceRangeChange(0, v); }}
-          style={{ accentColor: 'var(--pd-primary)' }}
-        />
-        <div className="d-flex justify-content-between mt-2">
-          <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#64748b' }}>PKR 0</span>
-          <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--pd-primary)' }}>
-            PKR {maxPrice.toLocaleString()}
-          </span>
-        </div>
-      </div>
+      {section(<>
+        {sectionTitle('fas fa-tag', 'Price Range')}
 
-      {/* Rating Filter */}
-      <div style={sectionStyle}>
-        <p style={sectionTitleStyle}>
-          <i className="fas fa-star" style={{ color: 'var(--pd-primary)' }} />
-          Rating
-        </p>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+        {/* Dual range track */}
+        <div ref={trackRef} style={{ position: 'relative', height: '32px', marginBottom: '10px' }}>
+          {/* Track background */}
+          <div style={{ position: 'absolute', top: '50%', left: 0, right: 0, height: '4px', background: '#e2e8f0', borderRadius: '2px', transform: 'translateY(-50%)' }} />
+          {/* Active range */}
+          <div style={{
+            position: 'absolute', top: '50%', height: '4px',
+            left: `${minPct}%`, width: `${maxPct - minPct}%`,
+            background: 'var(--pd-primary)', borderRadius: '2px', transform: 'translateY(-50%)',
+          }} />
+          {/* Min thumb */}
+          <input type="range" min={PRICE_MIN} max={PRICE_MAX} step={500} value={localMin}
+            onChange={handleMinSlider}
+            style={{
+              position: 'absolute', top: '50%', left: 0, right: 0, width: '100%',
+              transform: 'translateY(-50%)', appearance: 'none', background: 'transparent',
+              pointerEvents: 'none', height: '4px',
+            }}
+            className="pd-range-thumb"
+          />
+          {/* Max thumb */}
+          <input type="range" min={PRICE_MIN} max={PRICE_MAX} step={500} value={localMax}
+            onChange={handleMaxSlider}
+            style={{
+              position: 'absolute', top: '50%', left: 0, right: 0, width: '100%',
+              transform: 'translateY(-50%)', appearance: 'none', background: 'transparent',
+              pointerEvents: 'none', height: '4px',
+            }}
+            className="pd-range-thumb"
+          />
+        </div>
+
+        {/* Min/Max inputs */}
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: '0.6rem', color: '#94a3b8', fontWeight: 600, marginBottom: '3px' }}>MIN</div>
+            <input type="number" value={minInput} onChange={handleMinInput} min={PRICE_MIN} max={localMax - 500}
+              style={{
+                width: '100%', border: '1.5px solid #e2e8f0', borderRadius: '6px',
+                padding: '5px 8px', fontSize: '0.78rem', fontWeight: 600, color: '#374151',
+                outline: 'none', fontFamily: 'var(--pd-font)',
+              }}
+              onFocus={e => (e.target as HTMLInputElement).style.borderColor = 'var(--pd-primary)'}
+              onBlur={e => (e.target as HTMLInputElement).style.borderColor = '#e2e8f0'}
+            />
+          </div>
+          <div style={{ color: '#cbd5e1', fontWeight: 700, paddingTop: '14px' }}>—</div>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: '0.6rem', color: '#94a3b8', fontWeight: 600, marginBottom: '3px' }}>MAX</div>
+            <input type="number" value={maxInput} onChange={handleMaxInput} min={localMin + 500} max={PRICE_MAX}
+              style={{
+                width: '100%', border: '1.5px solid #e2e8f0', borderRadius: '6px',
+                padding: '5px 8px', fontSize: '0.78rem', fontWeight: 600, color: '#374151',
+                outline: 'none', fontFamily: 'var(--pd-font)',
+              }}
+              onFocus={e => (e.target as HTMLInputElement).style.borderColor = 'var(--pd-primary)'}
+              onBlur={e => (e.target as HTMLInputElement).style.borderColor = '#e2e8f0'}
+            />
+          </div>
+        </div>
+
+        <style>{`
+          .pd-range-thumb { pointer-events: none; }
+          .pd-range-thumb::-webkit-slider-thumb {
+            pointer-events: all;
+            -webkit-appearance: none;
+            width: 18px; height: 18px;
+            border-radius: 50%;
+            background: var(--pd-primary);
+            border: 2px solid #fff;
+            box-shadow: 0 2px 6px rgba(234,88,12,0.35);
+            cursor: pointer;
+          }
+          .pd-range-thumb::-moz-range-thumb {
+            pointer-events: all;
+            width: 16px; height: 16px;
+            border-radius: 50%;
+            background: var(--pd-primary);
+            border: 2px solid #fff;
+            box-shadow: 0 2px 6px rgba(234,88,12,0.35);
+            cursor: pointer;
+          }
+        `}</style>
+      </>)}
+
+      {/* Rating */}
+      {section(<>
+        {sectionTitle('fas fa-star', 'Rating')}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
           {[4, 3, 2].map(r => (
             <button key={r} onClick={() => onSelectRating(selectedRating === r ? null : r)}
               style={{
                 display: 'flex', alignItems: 'center', gap: '8px',
-                padding: '7px 10px', border: 'none', borderRadius: '8px', cursor: 'pointer',
+                padding: '7px 10px', border: 'none', borderRadius: '7px', cursor: 'pointer',
                 background: selectedRating === r ? 'rgba(var(--pd-primary-rgb,234,88,12),0.08)' : 'transparent',
                 textAlign: 'left', width: '100%', transition: 'background 0.15s',
                 borderLeft: selectedRating === r ? '3px solid var(--pd-primary)' : '3px solid transparent',
@@ -213,18 +276,16 @@ export const CategorySidebar: React.FC<CategorySidebarProps> = ({
             >
               <div style={{ display: 'flex', gap: '2px' }}>
                 {Array.from({ length: 5 }, (_, i) => (
-                  <i key={i} className={`fas fa-star`}
-                    style={{ fontSize: '11px', color: i < r ? '#fbbf24' : '#e2e8f0' }} />
+                  <i key={i} className="fas fa-star" style={{ fontSize: '11px', color: i < r ? '#f59e0b' : '#e2e8f0' }} />
                 ))}
               </div>
-              <span style={{ fontSize: '0.78rem', fontWeight: selectedRating === r ? 700 : 500,
-                color: selectedRating === r ? 'var(--pd-primary)' : '#64748b' }}>
+              <span style={{ fontSize: '0.78rem', fontWeight: selectedRating === r ? 700 : 500, color: selectedRating === r ? 'var(--pd-primary)' : '#6b7280' }}>
                 {r}★ & above
               </span>
             </button>
           ))}
         </div>
-      </div>
+      </>)}
     </div>
   );
 };

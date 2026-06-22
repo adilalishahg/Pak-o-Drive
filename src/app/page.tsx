@@ -197,11 +197,11 @@ export default function Home() {
           OUR PRODUCTS — immediately after hero
           so user sees products first thing
       ══════════════════════════════════════════════ */}
-      <section className="container-fluid py-3 py-lg-5 bg-white" aria-label="Our Products">
-        <div className="px-0 px-lg-4">
+      <section className="bg-white py-3 py-lg-4" aria-label="Our Products">
+        <div style={{ padding: '0 8px' }}>
 
           {/* Section header */}
-          <div className="mb-3 px-2 px-lg-0">
+          <div className="mb-3">
             <div className="d-flex align-items-center justify-content-between mb-3">
               <div>
                 <p className="text-uppercase fw-bold mb-1" style={{ fontSize: '0.72rem', letterSpacing: '2px', color: 'var(--pd-primary)' }}>
@@ -239,10 +239,10 @@ export default function Home() {
 
           {/* Grid */}
           {loading ? (
-            <div className="row g-3">
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px' }} className="products-grid">
               {[...Array(8)].map((_, i) => (
-                <div key={i} className="col-6 col-md-4 col-lg-3">
-                  <div className="skeleton" style={{ height: '300px', borderRadius: '12px' }} />
+                <div key={i}>
+                  <div className="skeleton" style={{ height: '280px', borderRadius: '10px' }} />
                 </div>
               ))}
             </div>
@@ -252,13 +252,19 @@ export default function Home() {
               <p className="text-muted">No products in this category.</p>
             </div>
           ) : (
-            <div className="row g-0" style={{ borderTop: '1px solid #f0f0f0', borderLeft: '1px solid #f0f0f0' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px' }}
+              className="products-grid">
+              <style>{`
+                @media (min-width: 768px) { .products-grid { grid-template-columns: repeat(3, 1fr) !important; } }
+                @media (min-width: 992px) { .products-grid { grid-template-columns: repeat(4, 1fr) !important; } }
+                @media (min-width: 1400px) { .products-grid { grid-template-columns: repeat(5, 1fr) !important; gap: 14px !important; } }
+              `}</style>
               {filtered.map(prod => (
-                <div key={prod._id} className="col-6 col-md-4 col-lg-3 animate-on-scroll"
-                  style={{ borderRight: '1px solid #f0f0f0', borderBottom: '1px solid #f0f0f0' }}>
+                <div key={prod._id} className="animate-on-scroll">
                   <ProductCard product={prod} />
                 </div>
-              ))}            </div>
+              ))}
+            </div>
           )}
 
           {/* View all */}

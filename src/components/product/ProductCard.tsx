@@ -39,6 +39,18 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
         display: 'flex',
         flexDirection: 'column',
         height: '100%',
+        borderRadius: '10px',
+        overflow: 'hidden',
+        boxShadow: '0 1px 6px rgba(0,0,0,0.07)',
+        transition: 'box-shadow 0.2s ease, transform 0.2s ease',
+      }}
+      onMouseEnter={e => {
+        (e.currentTarget as HTMLElement).style.boxShadow = '0 6px 20px rgba(0,0,0,0.12)';
+        (e.currentTarget as HTMLElement).style.transform = 'translateY(-2px)';
+      }}
+      onMouseLeave={e => {
+        (e.currentTarget as HTMLElement).style.boxShadow = '0 1px 6px rgba(0,0,0,0.07)';
+        (e.currentTarget as HTMLElement).style.transform = 'translateY(0)';
       }}
       itemScope
       itemType="https://schema.org/Product"

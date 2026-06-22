@@ -88,12 +88,10 @@ function ShopContent() {
         </div>
       </div>
 
-      <div className="container-fluid px-3 px-lg-4 py-4" style={{ maxWidth: '1400px', margin: '0 auto' }}>
-        <div className="row g-3">
+      <div style={{ display: 'flex', gap: '12px', padding: '16px 12px 24px', alignItems: 'flex-start' }}>
 
           {/* ── Sidebar (desktop) ── */}
-          <div className="col-lg-3 d-none d-lg-block">
-            <div style={{ position: 'sticky', top: '80px' }}>
+          <div className="d-none d-lg-block" style={{ width: '220px', flexShrink: 0, position: 'sticky', top: '80px' }}>
               <CategorySidebar
                 selectedCategory={selectedCategory}
                 onSelectCategory={setSelectedCategory}
@@ -103,11 +101,10 @@ function ShopContent() {
                 onSelectRating={setSelectedRating}
                 onReset={handleReset}
               />
-            </div>
           </div>
 
           {/* ── Products area ── */}
-          <div className="col-12 col-lg-9">
+          <div style={{ flex: 1, minWidth: 0 }}>
 
             {/* Toolbar */}
             <div style={{ background: '#fff', borderRadius: '12px', padding: '12px 16px',
@@ -209,16 +206,21 @@ function ShopContent() {
                 </button>
               </div>
             ) : (
-              <div className="row g-0" style={{ borderTop: '1px solid #f0f0f0', borderLeft: '1px solid #f0f0f0' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px' }} className="shop-grid">
+                <style>{`
+                  @media (min-width: 576px) { .shop-grid { grid-template-columns: repeat(2, 1fr) !important; } }
+                  @media (min-width: 768px) { .shop-grid { grid-template-columns: repeat(3, 1fr) !important; } }
+                  @media (min-width: 992px) { .shop-grid { grid-template-columns: repeat(4, 1fr) !important; } }
+                  @media (min-width: 1200px) { .shop-grid { grid-template-columns: repeat(4, 1fr) !important; gap: 12px !important; } }
+                `}</style>
                 {sorted.map(prod => (
-                  <div key={prod._id} className="col-6 col-md-4 col-xl-3"
-                    style={{ borderRight: '1px solid #f0f0f0', borderBottom: '1px solid #f0f0f0' }}>
+                  <div key={prod._id}>
                     <ProductCard product={prod} />
                   </div>
                 ))}
-              </div>            )}
+              </div>
+            )}
           </div>
-        </div>
       </div>
 
       {/* ── Mobile Filter Drawer ── */}
