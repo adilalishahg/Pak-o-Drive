@@ -127,6 +127,13 @@ export const ThemeIcon: React.FC<ThemeIconProps> = ({ name, className = '', styl
       remix: 'ri-menu-line',
       phosphor: 'ph ph-list',
     },
+    times: {
+      fontawesome: 'fas fa-xmark',
+      bootstrap: 'bi bi-x-lg',
+      material: 'close',
+      remix: 'ri-close-line',
+      phosphor: 'ph ph-x',
+    },
     'shopping-bag': {
       fontawesome: 'fas fa-shopping-bag',
       bootstrap: 'bi bi-bag-fill',

@@ -23,141 +23,121 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
       ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
       : 0;
 
-  const handleAddToCart = async (e: React.MouseEvent) => {
+  const handleAddToCart = (e: React.MouseEvent) => {
     e.stopPropagation();
     setAdding(true);
     addToCart(product, 1);
     setTimeout(() => setAdding(false), 900);
   };
 
-  const handleCardClick = () => {
-    router.push(`/product/${formattedId}`);
-  };
-
-  const renderStars = (rating: number) => {
-    return Array.from({ length: 5 }, (_, i) => (
-      <i
-        key={i}
+  const renderStars = (rating: number) =>
+    Array.from({ length: 5 }, (_, i) => (
+      <i key={i}
         className={`fas fa-star ${i < Math.floor(rating) ? 'text-warning' : 'text-muted'}`}
-        style={{ fontSize: '11px' }}
-      />
+        style={{ fontSize: '11px' }} />
     ));
-  };
 
   return (
     <article
-      className="product-item rounded bg-white overflow-hidden d-flex flex-column h-100"
-      onClick={handleCardClick}
-      style={{
-        border: '1px solid #f1f5f9',
-        boxShadow: 'var(--pd-card-shadow)',
-        transition: 'all 0.3s ease',
-        cursor: 'pointer',
-      }}
-      itemScope
-      itemType="https://schema.org/Product"
+      onClick={() => router.push(`/product/${formattedId}`)}
+      style={{ cursor: 'pointer', background: '#fff', display: 'flex', flexDirection: 'column' }}
+      itemScope itemType="https://schema.org/Product"
     >
       <meta itemProp="name" content={product.name} />
-      <meta itemProp="description" content={`${product.name} - ${product.category}`} />
 
-      {/* Image Container */}
-      <div className="position-relative overflow-hidden bg-light" style={{ height: '220px' }}>
-        <div className="w-100 h-100 position-relative">
-          <Image
-            src={imgSrc}
-            alt={product.name}
-            fill
-            sizes="(max-width: 768px) 50vw, 25vw"
-            className="product-card-img"
-            style={{ objectFit: 'contain', padding: '20px', transition: 'transform 0.4s ease' }}
-            onError={() => setImgSrc('/img/product-placeholder.png')}
-            itemProp="image"
-          />
-        </div>
+      {/* ── Image — full bleed, no padding, no radius ── */}
+      <div style={{ position: 'relative', width: '100%', aspectRatio: '1 / 1', overflow: 'hidden', background: '#f5f5f5', flexShrink: 0 }}>
+        <Image
+          src={imgSrc}
+          alt={product.name}
+          fill
+          sizes="(max-width: 575px) 50vw, (max-width: 991px) 33vw, 25vw"
+          style={{ objectFit: 'cover', transition: 'transform 0.3s ease' }}
+          onError={() => setImgSrc('/img/product-placeholder.png')}
+          onMouseEnter={e => (e.currentTarget as HTMLImageElement).style.transform = 'scale(1.04)'}
+          onMouseLeave={e => (e.currentTarget as HTMLImageElement).style.transform = 'scale(1)'}
+          itemProp="image"
+        />
 
-        {/* Badges */}
-        {product.isNewArrival && (
-          <span className="badge bg-danger position-absolute px-2.5 py-1.5 fw-bold rounded-pill" style={{ top: '12px', left: '12px', fontSize: '0.7rem', zIndex: 2 }}>
-            New
-          </span>
+        {/* Discount badge — red pill top-left */}
+        {discountPercent > 0 && (
+          <span style={{
+            position: 'absolute', top: '8px', left: '8px', zIndex: 2,
+            background: '#e00', color: '#fff',
+            fontSize: '0.65rem', fontWeight: 800,
+            padding: '3px 8px', borderRadius: '3px',
+            letterSpacing: '0.3px',
+          }}>-{discountPercent}% OFF</span>
         )}
-        {!product.isNewArrival && discountPercent > 0 && (
-          <span className="badge bg-primary position-absolute px-2.5 py-1.5 fw-bold rounded-pill" style={{ top: '12px', left: '12px', fontSize: '0.7rem', zIndex: 2 }}>
-            -{discountPercent}%
-          </span>
+        {product.isNewArrival && !discountPercent && (
+          <span style={{
+            position: 'absolute', top: '8px', left: '8px', zIndex: 2,
+            background: 'var(--pd-primary)', color: '#fff',
+            fontSize: '0.65rem', fontWeight: 800,
+            padding: '3px 8px', borderRadius: '3px',
+          }}>NEW</span>
         )}
-
-        {/* Hover Quick Actions */}
-        <div className="product-quick-actions position-absolute d-flex flex-column gap-2 opacity-0" style={{ top: '12px', right: '12px', transition: 'opacity 0.25s ease', zIndex: 2 }}>
-          <span
-            className="btn btn-sm btn-light rounded-circle shadow-sm d-flex align-items-center justify-content-center bg-white border border-light"
-            style={{ width: '36px', height: '36px', transition: 'all 0.2s ease' }}
-            title="View Details"
-          >
-            <i className="fa fa-eye text-secondary" style={{ fontSize: '13px' }} />
-          </span>
-        </div>
       </div>
 
-      {/* Product Content Details */}
-      <div className="p-3 d-flex flex-column flex-grow-1 text-center justify-content-between">
-        <div>
-          <Link
-            href={`/shop?category=${product.category}`}
-            onClick={(e) => e.stopPropagation()}
-            className="d-block text-uppercase text-muted fw-bold mb-1 text-truncate text-decoration-none"
-            style={{ fontSize: '0.65rem', letterSpacing: '1.2px' }}
-          >
-            {product.category}
-          </Link>
-          <span
-            className="d-block text-dark text-decoration-none fw-semibold mb-2"
-            style={{
-              fontSize: '0.88rem',
-              lineHeight: 1.45,
-              display: '-webkit-box',
-              WebkitLineClamp: 2,
-              WebkitBoxOrient: 'vertical',
-              overflow: 'hidden',
-              height: '42px',
-            }}
-          >
-            {product.name}
+      {/* ── Info below image ── */}
+      <div style={{ padding: '8px 4px 10px', display: 'flex', flexDirection: 'column', gap: '4px', flexGrow: 1 }}>
+
+        {/* Name — bold uppercase like reference */}
+        <p style={{
+          margin: 0,
+          fontSize: '0.72rem',
+          fontWeight: 700,
+          color: '#111',
+          lineHeight: 1.35,
+          textTransform: 'uppercase',
+          letterSpacing: '0.2px',
+          display: '-webkit-box',
+          WebkitLineClamp: 3,
+          WebkitBoxOrient: 'vertical',
+          overflow: 'hidden',
+        }}>
+          {product.name}
+        </p>
+
+        {/* Stars */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
+          {renderStars(product.rating)}
+          {product.reviewsCount > 0 && (
+            <span style={{ fontSize: '0.62rem', color: '#888', marginLeft: '2px' }}>({product.reviewsCount})</span>
+          )}
+        </div>
+
+        {/* Price */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1px', marginTop: '2px' }}>
+          {product.originalPrice > product.price && (
+            <del style={{ fontSize: '0.72rem', color: '#999', lineHeight: 1 }}>
+              PKR {product.originalPrice.toLocaleString()}
+            </del>
+          )}
+          <span style={{ fontSize: '0.9rem', fontWeight: 800, color: 'var(--pd-primary)', lineHeight: 1 }}>
+            PKR {product.price.toLocaleString()}
           </span>
-          
-          <div className="d-flex justify-content-center align-items-center gap-1 mb-2">
-            <div className="d-flex gap-0.5">
-              {renderStars(product.rating)}
-            </div>
-            <span style={{ fontSize: '0.72rem', color: '#94a3b8', marginLeft: '2px' }}>
-              ({product.rating?.toFixed(1)})
-            </span>
-          </div>
         </div>
 
-        <div>
-          <div className="d-flex align-items-center justify-content-center gap-2 mb-3">
-            {product.originalPrice > product.price && (
-              <del style={{ fontSize: '0.82rem', color: '#94a3b8' }}>
-                PKR {product.originalPrice.toLocaleString()}
-              </del>
-            )}
-            <span style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--pd-primary)' }}>
-              PKR {product.price.toLocaleString()}
-            </span>
-          </div>
-
-          {/* Action button */}
-          <button
-            onClick={handleAddToCart}
-            disabled={adding}
-            className="btn btn-gradient w-100 py-2.5 px-3 fw-semibold rounded-pill text-white border-0 shadow-sm"
-            style={{ fontSize: '0.85rem' }}
-          >
-            <i className={`fas ${adding ? 'fa-check' : 'fa-shopping-cart'} me-2`} />
-            {adding ? 'Added!' : 'Add to Cart'}
-          </button>
-        </div>
+        {/* Add to Cart */}
+        <button
+          onClick={handleAddToCart}
+          disabled={adding}
+          className="btn-gradient"
+          style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px',
+            border: 'none', borderRadius: '4px',
+            padding: '8px 6px',
+            fontSize: '0.72rem', fontWeight: 700,
+            width: '100%', cursor: adding ? 'default' : 'pointer',
+            whiteSpace: 'nowrap', lineHeight: 1,
+            marginTop: '6px',
+            opacity: adding ? 0.8 : 1,
+          }}
+        >
+          <i className={`fas ${adding ? 'fa-check' : 'fa-shopping-cart'}`} style={{ fontSize: '10px' }} />
+          {adding ? 'Added!' : 'Add to Cart'}
+        </button>
       </div>
     </article>
   );

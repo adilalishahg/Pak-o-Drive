@@ -39,12 +39,12 @@ const HERO_SLIDES = [
 
 /* ─── Service Items ────────────────────────────────────────── */
 const SERVICES = [
-  { icon: 'sync',             title: 'Free Return',    desc: '30-day money back guarantee', color: 'var(--pd-primary)' },
-  { icon: 'shipping',         title: 'Fast Shipping',  desc: 'Free on all orders',          color: 'var(--pd-accent)' },
-  { icon: 'headset',          title: 'Support 24/7',   desc: 'Online help around the clock',color: '#8b5cf6' },
-  { icon: 'gift',             title: 'Gift Cards',     desc: 'For orders above PKR 5,000',  color: '#ec4899' },
-  { icon: 'shield',           title: 'Secure Payment', desc: 'Your data is always safe',    color: 'var(--pd-success)' },
-  { icon: 'star',             title: 'Top Rated',      desc: '4.9★ average customer rating',color: '#eab308' },
+  { icon: 'sync', title: 'Free Return', desc: '30-day money back guarantee', color: 'var(--pd-primary)' },
+  { icon: 'shipping', title: 'Fast Shipping', desc: 'Free on all orders', color: 'var(--pd-accent)' },
+  { icon: 'headset', title: 'Support 24/7', desc: 'Online help around the clock', color: '#8b5cf6' },
+  { icon: 'gift', title: 'Gift Cards', desc: 'For orders above PKR 5,000', color: '#ec4899' },
+  { icon: 'shield', title: 'Secure Payment', desc: 'Your data is always safe', color: 'var(--pd-success)' },
+  { icon: 'star', title: 'Top Rated', desc: '4.9★ average customer rating', color: '#eab308' },
 ];
 
 /* ─── Offer Banners ────────────────────────────────────────── */
@@ -72,9 +72,9 @@ const OFFERS = [
 /* ─── Stats Counter ────────────────────────────────────────── */
 const STATS = [
   { value: 15000, label: 'Happy Customers', suffix: '+', icon: 'smile' },
-  { value: 500,   label: 'Products Listed', suffix: '+', icon: 'box' },
-  { value: 98,    label: 'Satisfaction Rate',suffix: '%', icon: 'star'  },
-  { value: 5,     label: 'Years in Business',suffix: '+', icon: 'award' },
+  { value: 500, label: 'Products Listed', suffix: '+', icon: 'box' },
+  { value: 98, label: 'Satisfaction Rate', suffix: '%', icon: 'star' },
+  { value: 5, label: 'Years in Business', suffix: '+', icon: 'award' },
 ];
 
 /* ─── Counter hook ─────────────────────────────────────────── */
@@ -160,18 +160,18 @@ export default function Home() {
 
   const filtered = (() => {
     switch (activeTab) {
-      case 'new':      return products.filter(p => p.isNewArrival);
+      case 'new': return products.filter(p => p.isNewArrival);
       case 'featured': return products.filter(p => p.isFeatured);
-      case 'selling':  return products.filter(p => p.isTopSelling);
-      default:         return products;
+      case 'selling': return products.filter(p => p.isTopSelling);
+      default: return products;
     }
   })();
 
   const tabs: { key: typeof activeTab; label: string }[] = [
-    { key: 'all',      label: 'All Products' },
-    { key: 'new',      label: 'New Arrivals' },
-    { key: 'featured', label: 'Featured'     },
-    { key: 'selling',  label: 'Top Selling'  },
+    { key: 'all', label: 'All Products' },
+    { key: 'new', label: 'New Arrivals' },
+    { key: 'featured', label: 'Featured' },
+    { key: 'selling', label: 'Top Selling' },
   ];
 
   return (
@@ -193,44 +193,122 @@ export default function Home() {
         </div>
       </section>
 
+      {/* ══════════════════════════════════════════════
+          OUR PRODUCTS — immediately after hero
+          so user sees products first thing
+      ══════════════════════════════════════════════ */}
+      <section className="container-fluid py-3 py-lg-5 bg-white" aria-label="Our Products">
+        <div className="px-0 px-lg-4">
+
+          {/* Section header */}
+          <div className="mb-3 px-2 px-lg-0">
+            <div className="d-flex align-items-center justify-content-between mb-3">
+              <div>
+                <p className="text-uppercase fw-bold mb-1" style={{ fontSize: '0.72rem', letterSpacing: '2px', color: 'var(--pd-primary)' }}>
+                  Handpicked For You
+                </p>
+                <h2 className="fw-bold text-dark mb-0" style={{ fontSize: 'clamp(1.3rem, 3vw, 2rem)', letterSpacing: '-0.3px' }}>
+                  Our Products
+                </h2>
+              </div>
+              <Link href="/shop" className="d-none d-md-inline-flex align-items-center gap-1 text-decoration-none fw-semibold"
+                style={{ fontSize: '0.85rem', color: 'var(--pd-primary)', whiteSpace: 'nowrap' }}>
+                View All
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
+                </svg>
+              </Link>
+            </div>
+            {/* Tabs — horizontal scroll on mobile, wrap on desktop */}
+            <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none' }}>
+              <div className="d-flex gap-2" style={{ flexWrap: 'nowrap', paddingBottom: '4px', minWidth: 'max-content' }}>
+                {tabs.map(t => (
+                  <button
+                    key={t.key}
+                    onClick={() => setActiveTab(t.key)}
+                    className={`tab-btn rounded-pill border-0 ${activeTab === t.key ? 'active' : 'bg-light text-dark'}`}
+                    style={{ fontSize: '0.82rem', padding: '8px 18px', whiteSpace: 'nowrap', flexShrink: 0 }}
+                    aria-pressed={activeTab === t.key}
+                  >
+                    {t.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Grid */}
+          {loading ? (
+            <div className="row g-3">
+              {[...Array(8)].map((_, i) => (
+                <div key={i} className="col-6 col-md-4 col-lg-3">
+                  <div className="skeleton" style={{ height: '300px', borderRadius: '12px' }} />
+                </div>
+              ))}
+            </div>
+          ) : filtered.length === 0 ? (
+            <div className="text-center py-5">
+              <i className="fas fa-box-open fa-3x text-muted mb-3 d-block" />
+              <p className="text-muted">No products in this category.</p>
+            </div>
+          ) : (
+            <div className="row g-0" style={{ borderTop: '1px solid #f0f0f0', borderLeft: '1px solid #f0f0f0' }}>
+              {filtered.map(prod => (
+                <div key={prod._id} className="col-6 col-md-4 col-lg-3 animate-on-scroll"
+                  style={{ borderRight: '1px solid #f0f0f0', borderBottom: '1px solid #f0f0f0' }}>
+                  <ProductCard product={prod} />
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* View all */}
+          {!loading && filtered.length > 0 && (
+            <div className="text-center mt-4 py-2">
+              <Link
+                href="/shop"
+                className="btn-gradient"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  textDecoration: 'none',
+                  padding: '11px 28px',
+                  borderRadius: '6px',
+                  fontWeight: 700,
+                  fontSize: '0.88rem',
+                  whiteSpace: 'nowrap',
+                  lineHeight: 1,
+                }}
+              >
+                View All Products
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                  <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
+                </svg>
+              </Link>
+            </div>
+          )}
+        </div>
+      </section>
+
       {/* ── Services Strip ───────────────────────────────── */}
-      <section className="container-fluid px-0 bg-white py-2" aria-label="Our Services">
+      <section className="container-fluid px-0 bg-white border-top border-bottom" aria-label="Our Services">
         <div className="row g-0">
           {SERVICES.map((s, i) => (
             <div key={i} className="col-6 col-md-4 col-lg-2 border-end animate-on-scroll">
               <div className="service-item p-3 p-xl-4 h-100">
                 <div className="d-flex align-items-center gap-3">
-                  <span
-                    className="service-icon"
-                    style={{ color: s.color, fontSize: '1.7rem', minWidth: '30px', display: 'flex', alignItems: 'center' }}
-                    aria-hidden="true"
-                  >
+                  <span className="service-icon" style={{ color: s.color, fontSize: '1.7rem', minWidth: '30px', display: 'flex', alignItems: 'center' }} aria-hidden="true">
                     <ThemeIcon name={s.icon} />
                   </span>
                   <div>
-                    <h6 className="text-uppercase mb-1 fw-bold" style={{ fontSize: '0.75rem', letterSpacing: '0.5px' }}>{s.title}</h6>
-                    <p className="mb-0 text-muted" style={{ fontSize: '0.72rem', lineHeight: 1.4 }}>{s.desc}</p>
+                    <h6 className="text-uppercase mb-1 fw-bold" style={{ fontSize: '0.72rem', letterSpacing: '0.5px' }}>{s.title}</h6>
+                    <p className="mb-0 text-muted" style={{ fontSize: '0.7rem', lineHeight: 1.4 }}>{s.desc}</p>
                   </div>
                 </div>
               </div>
             </div>
           ))}
-        </div>
-      </section>
-
-      {/* ── Stats Counter Strip ──────────────────────────── */}
-      <section
-        ref={statsRef}
-        className="container-fluid py-5"
-        style={{ background: 'linear-gradient(135deg, var(--pd-secondary) 0%, color-mix(in srgb, var(--pd-secondary) 70%, #000) 100%)' }}
-        aria-label="Company Statistics"
-      >
-        <div className="container">
-          <div className="row g-0">
-            {STATS.map((s, i) => (
-              <StatCounter key={i} {...s} trigger={statsVisible} />
-            ))}
-          </div>
         </div>
       </section>
 
@@ -255,7 +333,7 @@ export default function Home() {
                     </p>
                     <span className="d-inline-flex align-items-center mt-3 fw-semibold" style={{ color: 'var(--pd-primary)', fontSize: '0.9rem' }}>
                       Shop Collection
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="ms-2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="ms-2"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg>
                     </span>
                   </div>
                   <div className="position-relative flex-shrink-0" style={{ width: '130px', height: '130px' }}>
@@ -268,69 +346,18 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── Our Products ─────────────────────────────────── */}
-      <section className="container-fluid product py-5 bg-white" aria-label="Our Products">
-        <div className="container py-4">
-          <div className="tab-class">
-
-            {/* Header */}
-            <div className="row g-4 align-items-center mb-4">
-              <div className="col-lg-5 text-start">
-                <p className="text-uppercase text-muted fw-semibold mb-1" style={{ fontSize: '0.78rem', letterSpacing: '2px' }}>
-                  Handpicked For You
-                </p>
-                <h2 className="section-title fw-bold text-dark mb-0">Our Products</h2>
-              </div>
-              <div className="col-lg-7 d-flex justify-content-lg-end flex-wrap gap-2">
-                {tabs.map(t => (
-                  <button
-                    key={t.key}
-                    id={`tab-${t.key}`}
-                    onClick={() => setActiveTab(t.key)}
-                    className={`tab-btn rounded-pill border-0 py-2 px-4 ${activeTab === t.key ? 'active' : 'bg-light text-dark'}`}
-                    aria-pressed={activeTab === t.key}
-                  >
-                    {t.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Grid */}
-            <div className="tab-content">
-              {loading ? (
-                <div className="row g-4">
-                  {[...Array(8)].map((_, i) => (
-                    <div key={i} className="col-md-6 col-lg-4 col-xl-3">
-                      <div className="skeleton product-skeleton" />
-                    </div>
-                  ))}
-                </div>
-              ) : filtered.length === 0 ? (
-                <div className="text-center py-5">
-                  <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="mb-3 d-block mx-auto"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
-                  <p className="text-muted">No products available in this section.</p>
-                </div>
-              ) : (
-                <div className="row g-4">
-                  {filtered.map((prod) => (
-                    <div key={prod._id} className="col-md-6 col-lg-4 col-xl-3 animate-on-scroll">
-                      <ProductCard product={prod} />
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* View All CTA */}
-            {!loading && filtered.length > 0 && (
-              <div className="text-center mt-5">
-                <Link href="/shop" className="btn btn-gradient rounded-pill py-3 px-5" aria-label="View all products">
-                  View All Products
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="ms-2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-                </Link>
-              </div>
-            )}
+      {/* ── Stats Counter Strip ──────────────────────────── */}
+      <section
+        ref={statsRef}
+        className="container-fluid py-5"
+        style={{ background: 'linear-gradient(135deg, var(--pd-secondary) 0%, color-mix(in srgb, var(--pd-secondary) 70%, #000) 100%)' }}
+        aria-label="Company Statistics"
+      >
+        <div className="container">
+          <div className="row g-0">
+            {STATS.map((s, i) => (
+              <StatCounter key={i} {...s} trigger={statsVisible} />
+            ))}
           </div>
         </div>
       </section>
@@ -347,20 +374,20 @@ export default function Home() {
           <div className="row g-4 mt-2">
             {[
               {
-                svg: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></svg>,
-                title: 'Genuine Products',    desc: '100% authentic with warranty on all devices.',
+                svg: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="6" /><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11" /></svg>,
+                title: 'Genuine Products', desc: '100% authentic with warranty on all devices.',
               },
               {
-                svg: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>,
+                svg: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="3" width="15" height="13" /><polygon points="16 8 20 8 23 11 23 16 16 16 16 8" /><circle cx="5.5" cy="18.5" r="2.5" /><circle cx="18.5" cy="18.5" r="2.5" /></svg>,
                 title: 'Nationwide Delivery', desc: 'Delivering across all major cities in Pakistan.',
               },
               {
-                svg: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.5"/></svg>,
-                title: 'Easy Returns',        desc: 'No questions asked 30-day return policy.',
+                svg: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="1 4 1 10 7 10" /><path d="M3.51 15a9 9 0 1 0 .49-4.5" /></svg>,
+                title: 'Easy Returns', desc: 'No questions asked 30-day return policy.',
               },
               {
-                svg: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>,
-                title: 'Secure Shopping',     desc: 'SSL encrypted checkout and safe payments.',
+                svg: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg>,
+                title: 'Secure Shopping', desc: 'SSL encrypted checkout and safe payments.',
               },
             ].map((item, i) => (
               <div key={i} className="col-md-6 col-lg-3 animate-on-scroll">

@@ -8,182 +8,83 @@ import { logInteraction } from '../common/AnalyticsTracker';
 import { useSiteInfo } from '../common/SiteInfoProvider';
 import { ThemeIcon } from '../common/ThemeIcon';
 
-/* ─── Category icon map ──────────────────────────────────────── */
+/* ── Category maps ─────────────────────────────────────────── */
 const CAT_ICONS: Record<string, string> = {
-  headphones:   'fas fa-headphones-alt',
-  chargers:     'fas fa-bolt',
-  automotive:   'fas fa-car',
-  smartwatches: 'fas fa-clock',
-  accessories:  'fas fa-mobile-alt',
-  laptops:      'fas fa-laptop',
-  cameras:      'fas fa-camera',
-  gaming:       'fas fa-gamepad',
-  speakers:     'fas fa-volume-up',
-  tablets:      'fas fa-tablet-alt',
-  cables:       'fas fa-plug',
-  networking:   'fas fa-wifi',
+  headphones: 'fas fa-headphones-alt', chargers: 'fas fa-bolt',
+  automotive: 'fas fa-car', smartwatches: 'fas fa-clock',
+  accessories: 'fas fa-mobile-alt', laptops: 'fas fa-laptop',
+  cameras: 'fas fa-camera', gaming: 'fas fa-gamepad',
+  speakers: 'fas fa-volume-up', tablets: 'fas fa-tablet-alt',
+  cables: 'fas fa-plug', networking: 'fas fa-wifi',
 };
-
 const CAT_COLORS: Record<string, string> = {
-  headphones:   '#7c3aed',
-  chargers:     '#f59e0b',
-  automotive:   '#0891b2',
-  smartwatches: '#059669',
-  accessories:  '#db2777',
-  laptops:      '#2563eb',
-  cameras:      '#dc2626',
-  gaming:       '#7c3aed',
-  speakers:     '#0891b2',
-  tablets:      '#059669',
-  cables:       '#f59e0b',
-  networking:   '#2563eb',
+  headphones: '#7c3aed', chargers: '#f59e0b', automotive: '#0891b2',
+  smartwatches: '#059669', accessories: '#db2777', laptops: '#2563eb',
+  cameras: '#dc2626', gaming: '#7c3aed', speakers: '#0891b2',
+  tablets: '#059669', cables: '#f59e0b', networking: '#2563eb',
 };
+const getCatIcon  = (s: string) => CAT_ICONS[s]  ?? 'fas fa-tag';
+const getCatColor = (s: string) => CAT_COLORS[s] ?? 'var(--pd-primary)';
 
-function getCatIcon(slug: string) {
-  return CAT_ICONS[slug] ?? 'fas fa-tag';
-}
-function getCatColor(slug: string) {
-  return CAT_COLORS[slug] ?? 'var(--pd-primary)';
-}
-
-const DEFAULT_CATEGORIES = [
-  { name: 'Headphones',           slug: 'headphones'   },
-  { name: 'Chargers & Cables',    slug: 'chargers'     },
-  { name: 'Automotive Electronics', slug: 'automotive' },
-  { name: 'Smartwatches',         slug: 'smartwatches' },
-  { name: 'Mobile Accessories',   slug: 'accessories'  },
+const DEFAULT_CATS = [
+  { name: 'Headphones',             slug: 'headphones'   },
+  { name: 'Chargers & Cables',      slug: 'chargers'     },
+  { name: 'Automotive Electronics', slug: 'automotive'   },
+  { name: 'Smartwatches',           slug: 'smartwatches' },
+  { name: 'Mobile Accessories',     slug: 'accessories'  },
 ];
 
-/* ─── Premium Category Dropdown ─────────────────────────────── */
-function CategoriesDropdown({
-  categories,
-  open,
-  onClose,
-}: {
-  categories: { name: string; slug: string }[];
-  open: boolean;
-  onClose: () => void;
-}) {
-  /* Split into two columns */
-  const half = Math.ceil(categories.length / 2);
-  const col1 = categories.slice(0, half);
-  const col2 = categories.slice(half);
+const NAV_LINKS = [
+  { href: '/',            label: 'Home'        },
+  { href: '/shop',        label: 'Shop'        },
+  { href: '/track-order', label: 'Track Order' },
+  { href: '/contact',     label: 'Contact'     },
+];
 
+/* ── Categories Dropdown ───────────────────────────────────── */
+function CatDropdown({ cats, open, onClose }: { cats: { name: string; slug: string }[]; open: boolean; onClose: () => void }) {
   return (
     <>
-      {/* Backdrop */}
-      {open && (
-        <div
-          onClick={onClose}
-          style={{
-            position: 'fixed',
-            inset: 0,
-            zIndex: 1028,
-            background: 'transparent',
-          }}
-          aria-hidden="true"
-        />
-      )}
-
-      {/* Dropdown panel */}
-      <div
-        role="menu"
-        aria-label="Product categories"
-        style={{
-          position: 'absolute',
-          top: 'calc(100% + 6px)',
-          left: 0,
-          width: '480px',
-          zIndex: 1029,
-          borderRadius: '16px',
-          overflow: 'hidden',
-          boxShadow: '0 24px 60px rgba(15,23,42,0.18), 0 4px 16px rgba(15,23,42,0.08)',
-          border: '1px solid rgba(226,232,240,0.8)',
-          background: '#fff',
-          /* animate */
-          opacity: open ? 1 : 0,
-          transform: open ? 'translateY(0) scale(1)' : 'translateY(-12px) scale(0.97)',
-          transition: 'opacity 0.22s cubic-bezier(0.4,0,0.2,1), transform 0.22s cubic-bezier(0.4,0,0.2,1)',
-          pointerEvents: open ? 'auto' : 'none',
-        }}
-      >
-        {/* Header */}
-        <div
-          style={{
-            background: 'linear-gradient(135deg, var(--pd-secondary) 0%, color-mix(in srgb, var(--pd-secondary) 75%, #334155) 100%)',
-            padding: '14px 20px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <div
-              style={{
-                width: '32px', height: '32px',
-                borderRadius: '8px',
-                background: 'linear-gradient(135deg, var(--pd-primary), color-mix(in srgb, var(--pd-primary) 80%, #000))',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-              }}
-            >
-              <i className="fas fa-th-large" style={{ color: '#fff', fontSize: '13px' }} />
-            </div>
-            <span style={{ color: '#fff', fontWeight: 700, fontSize: '0.88rem', letterSpacing: '-0.2px' }}>
-              All Categories
-            </span>
-          </div>
-          <Link
-            href="/shop"
-            onClick={onClose}
-            style={{
-              color: 'rgba(255,255,255,0.7)',
-              fontSize: '0.72rem',
-              fontWeight: 500,
-              textDecoration: 'none',
-              display: 'flex', alignItems: 'center', gap: '4px',
-              transition: 'color 0.2s',
-            }}
-            onMouseEnter={e => (e.currentTarget.style.color = '#fff')}
-            onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.7)')}
-          >
-            View All <i className="fas fa-arrow-right" style={{ fontSize: '10px' }} />
-          </Link>
-        </div>
-
-        {/* Category grid */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0', padding: '10px' }}>
-          {[...col1, ...col2].map((cat) => (
-            <CategoryItem key={cat.slug} cat={cat} onClose={onClose} />
-          ))}
-        </div>
-
-        {/* Footer CTA */}
-        <div
-          style={{
-            borderTop: '1px solid #f1f5f9',
-            padding: '12px 20px',
-            background: '#f8fafc',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-          }}
-        >
-          <span style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: 500 }}>
-            <i className="fas fa-fire me-1" style={{ color: 'var(--pd-primary)' }} />
-            {categories.length} categories available
+      {open && <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 1040 }} aria-hidden="true" />}
+      <div style={{
+        position: 'absolute', top: 'calc(100% + 8px)', left: 0,
+        width: '340px', zIndex: 1041, background: '#fff',
+        borderRadius: '12px', border: '1px solid #e2e8f0',
+        boxShadow: '0 20px 50px rgba(15,23,42,0.15)',
+        opacity: open ? 1 : 0,
+        transform: open ? 'translateY(0) scale(1)' : 'translateY(-8px) scale(0.97)',
+        transition: 'opacity 0.18s ease, transform 0.18s ease',
+        pointerEvents: open ? 'auto' : 'none',
+        overflow: 'hidden',
+      }}>
+        <div style={{ background: 'linear-gradient(135deg,#0f172a,#1e293b)', padding: '10px 16px' }}>
+          <span style={{ color: '#fff', fontWeight: 700, fontSize: '0.82rem', letterSpacing: '0.3px' }}>
+            <i className="fas fa-th-large me-2" style={{ color: 'var(--pd-primary)' }} />Browse Categories
           </span>
-          <Link
-            href="/shop"
-            onClick={onClose}
-            style={{
-              fontSize: '0.75rem',
-              fontWeight: 700,
-              color: 'var(--pd-primary)',
-              textDecoration: 'none',
-              display: 'flex', alignItems: 'center', gap: '4px',
-            }}
-          >
-            Shop Everything <i className="fas fa-arrow-right" style={{ fontSize: '10px' }} />
+        </div>
+        {cats.map(cat => {
+          const color = getCatColor(cat.slug);
+          return (
+            <Link key={cat.slug} href={`/shop?category=${cat.slug}`} onClick={onClose}
+              style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '9px 16px',
+                textDecoration: 'none', color: '#374151', fontSize: '0.84rem', fontWeight: 500,
+                borderBottom: '1px solid #f8fafc', transition: 'background 0.15s' }}
+              onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.background = '#f8fafc'; (e.currentTarget as HTMLAnchorElement).style.color = color; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.background = 'transparent'; (e.currentTarget as HTMLAnchorElement).style.color = '#374151'; }}>
+              <div style={{ width: '28px', height: '28px', borderRadius: '7px', flexShrink: 0,
+                background: `color-mix(in srgb, ${color} 12%, #fff)`,
+                display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <i className={getCatIcon(cat.slug)} style={{ fontSize: '12px', color }} />
+              </div>
+              {cat.name}
+              <i className="fas fa-chevron-right ms-auto" style={{ fontSize: '9px', color: '#cbd5e1' }} />
+            </Link>
+          );
+        })}
+        <div style={{ padding: '10px 16px', background: '#f8fafc' }}>
+          <Link href="/shop" onClick={onClose} className="btn btn-gradient w-100 rounded-2 border-0 text-white text-decoration-none d-flex align-items-center justify-content-center gap-2"
+            style={{ fontSize: '0.8rem', fontWeight: 700, padding: '8px' }}>
+            <i className="fas fa-store" /> View All Products
           </Link>
         </div>
       </div>
@@ -191,603 +92,255 @@ function CategoriesDropdown({
   );
 }
 
-function CategoryItem({
-  cat,
-  onClose,
-}: {
-  cat: { name: string; slug: string };
-  onClose: () => void;
-}) {
-  const [hovered, setHovered] = useState(false);
-  const color = getCatColor(cat.slug);
-  const icon  = getCatIcon(cat.slug);
-
-  return (
-    <Link
-      href={`/shop?category=${cat.slug}`}
-      onClick={onClose}
-      role="menuitem"
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: '12px',
-        padding: '10px 12px',
-        borderRadius: '10px',
-        textDecoration: 'none',
-        background: hovered ? `color-mix(in srgb, ${color} 8%, #fff)` : 'transparent',
-        transition: 'background 0.18s ease',
-        cursor: 'pointer',
-      }}
-    >
-      {/* Icon bubble */}
-      <div
-        style={{
-          width: '36px',
-          height: '36px',
-          borderRadius: '9px',
-          background: hovered
-            ? `linear-gradient(135deg, ${color}, color-mix(in srgb, ${color} 80%, #000))`
-            : `color-mix(in srgb, ${color} 12%, #fff)`,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          flexShrink: 0,
-          transition: 'background 0.18s ease',
-          boxShadow: hovered ? `0 4px 12px color-mix(in srgb, ${color} 30%, transparent)` : 'none',
-        }}
-      >
-        <i
-          className={icon}
-          style={{
-            fontSize: '14px',
-            color: hovered ? '#fff' : color,
-            transition: 'color 0.18s ease',
-          }}
-        />
-      </div>
-
-      {/* Text */}
-      <div style={{ minWidth: 0 }}>
-        <p
-          style={{
-            margin: 0,
-            fontSize: '0.83rem',
-            fontWeight: 600,
-            color: hovered ? color : '#1e293b',
-            letterSpacing: '-0.1px',
-            whiteSpace: 'nowrap',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            transition: 'color 0.18s ease',
-          }}
-        >
-          {cat.name}
-        </p>
-        <p
-          style={{
-            margin: 0,
-            fontSize: '0.7rem',
-            color: '#94a3b8',
-            fontWeight: 400,
-          }}
-        >
-          Browse collection →
-        </p>
-      </div>
-    </Link>
-  );
-}
-
-/* ─── Main Navbar ────────────────────────────────────────────── */
+/* ── Main Navbar ───────────────────────────────────────────── */
 export const Navbar: React.FC = () => {
-  const pathname   = usePathname();
-  const router     = useRouter();
+  const pathname  = usePathname();
+  const router    = useRouter();
   const { cartCount, cartTotal } = useCart();
-  const { info } = useSiteInfo();
+  const { info }  = useSiteInfo();
 
-  const [categories, setCategories]     = useState(DEFAULT_CATEGORIES);
-  const [categoriesOpen, setCategoriesOpen] = useState(false);
-  const [searchCatOpen, setSearchCatOpen] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [searchQuery, setSearchQuery]   = useState('');
-  const [searchCategory, setSearchCategory] = useState('All Category');
-  const [scrolled, setScrolled]         = useState(false);
-  const [showBackTop, setShowBackTop]   = useState(false);
+  const [cats, setCats]             = useState(DEFAULT_CATS);
+  const [catOpen, setCatOpen]       = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [query, setQuery]           = useState('');
+  const [scrolled, setScrolled]     = useState(false);
+  const [showTop, setShowTop]       = useState(false);
   const catRef = useRef<HTMLDivElement>(null);
-  const searchCatRef = useRef<HTMLDivElement>(null);
 
-  /* close on route change */
-  useEffect(() => {
-    setCategoriesOpen(false);
-    setMobileMenuOpen(false);
-    setSearchCatOpen(false);
-  }, [pathname]);
+  useEffect(() => { setCatOpen(false); setMobileOpen(false); }, [pathname]);
 
-  /* load categories from API */
   useEffect(() => {
     (async () => {
       try {
-        const res  = await fetch('/api/categories');
-        const json = await res.json();
-        if (json.success && json.data.length > 0) {
-          setCategories(json.data.map((c: any) => ({ name: c.name, slug: c.slug })));
-        }
+        const r = await fetch('/api/categories');
+        const j = await r.json();
+        if (j.success && j.data.length > 0)
+          setCats(j.data.map((c: any) => ({ name: c.name, slug: c.slug })));
       } catch {}
     })();
   }, []);
 
-  /* scroll events */
   useEffect(() => {
-    const onScroll = () => {
-      setScrolled(window.scrollY > 45);
-      setShowBackTop(window.scrollY > 300);
-    };
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
+    const fn = () => { setScrolled(window.scrollY > 10); setShowTop(window.scrollY > 300); };
+    window.addEventListener('scroll', fn, { passive: true });
+    return () => window.removeEventListener('scroll', fn);
   }, []);
 
-  /* keyboard close */
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') { setCategoriesOpen(false); setSearchCatOpen(false); }
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, []);
-
-  const handleSearchSubmit = (e: React.FormEvent) => {
+  const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    let url = '/shop?';
-    if (searchQuery.trim()) {
-      url += `search=${encodeURIComponent(searchQuery.trim())}&`;
-      logInteraction('search_intent', window.location.pathname, { keyword: searchQuery.trim() });
+    if (query.trim()) {
+      logInteraction('search_intent', window.location.pathname, { keyword: query.trim() });
+      router.push(`/shop?search=${encodeURIComponent(query.trim())}`);
+    } else {
+      router.push('/shop');
     }
-    if (searchCategory !== 'All Category') {
-      const found = categories.find(c => c.name === searchCategory);
-      if (found) url += `category=${found.slug}&`;
-    }
-    router.push(url.endsWith('&') || url.endsWith('?') ? url.slice(0, -1) : url);
   };
 
-  const navLinkStyle = (path: string): React.CSSProperties => ({
-    borderBottom: pathname === path ? '3px solid rgba(255,255,255,0.9)' : '3px solid transparent',
-    transition: 'border-color 0.2s ease',
-    paddingBottom: '4px',
-  });
+  const isActive = (href: string) => pathname === href;
 
   return (
     <>
-      {/* Topbar removed */}
-
-      {/* ── Logo + Search ─────────────────────────────────── */}
-      <div className="container-fluid px-5 py-4 d-none d-lg-block bg-white">
-        <div className="row gx-0 align-items-center text-center">
-          <div className="col-md-4 col-lg-3 text-center text-lg-start">
-            <Link href="/" className="navbar-brand p-0" aria-label="PAKODRIVE Home">
-              <h1 className="display-5 m-0" style={{ fontWeight: 800, letterSpacing: '-1px' }}>
-                <ThemeIcon name="shopping-bag" className="me-2" style={{ color: 'var(--pd-primary)' }} />
-                <span style={{ color: 'var(--pd-primary)' }}>{info.logoText}</span>
-              </h1>
-            </Link>
-          </div>
-          <div className="col-md-4 col-lg-6 text-center">
-            <form onSubmit={handleSearchSubmit} className="position-relative ps-4" role="search" aria-label="Product search">
-              <div className="d-flex border rounded-pill" style={{ boxShadow: '0 2px 12px rgba(0,0,0,0.06)', position: 'relative' }}>
-                <input
-                  id="site-search"
-                  className="form-control border-0 rounded-pill w-100 py-3 px-4"
-                  type="search"
-                  placeholder="Search products..."
-                  value={searchQuery}
-                  onChange={e => setSearchQuery(e.target.value)}
-                  style={{ boxShadow: 'none', fontFamily: 'var(--pd-font)' }}
-                  aria-label="Search products"
-                />
-
-                {/* ── Premium Category Selector ── */}
-                <div ref={searchCatRef} style={{ position: 'relative', flexShrink: 0 }}>
-                  {/* Backdrop */}
-                  {searchCatOpen && (
-                    <div
-                      onClick={() => setSearchCatOpen(false)}
-                      style={{ position: 'fixed', inset: 0, zIndex: 1038 }}
-                      aria-hidden="true"
-                    />
-                  )}
-
-                  {/* Trigger */}
-                  <button
-                    type="button"
-                    onClick={() => setSearchCatOpen(o => !o)}
-                    aria-haspopup="listbox"
-                    aria-expanded={searchCatOpen}
-                    style={{
-                      height: '100%',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px',
-                      padding: '0 18px',
-                      background: searchCatOpen ? '#f1f5f9' : '#fff',
-                      border: 'none',
-                      borderLeft: '1px solid #e2e8f0',
-                      cursor: 'pointer',
-                      fontFamily: 'var(--pd-font)',
-                      fontSize: '0.84rem',
-                      fontWeight: 600,
-                      color: '#374151',
-                      whiteSpace: 'nowrap',
-                      minWidth: '160px',
-                      transition: 'background 0.18s',
-                      outline: 'none',
-                    }}
-                  >
-                    <ThemeIcon
-                      name="categories"
-                      style={{ fontSize: '11px', color: 'var(--pd-primary)', flexShrink: 0 }}
-                    />
-                    <span style={{ flex: 1, textAlign: 'left', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                      {searchCategory === 'All Category' ? 'All Categories' : searchCategory}
-                    </span>
-                    <ThemeIcon
-                      name="chevron-down"
-                      style={{
-                        fontSize: '10px',
-                        color: '#94a3b8',
-                        transform: searchCatOpen ? 'rotate(180deg)' : 'rotate(0deg)',
-                        transition: 'transform 0.2s ease',
-                        flexShrink: 0,
-                      }}
-                    />
-                  </button>
-
-                  {/* Dropdown panel */}
-                  <div
-                    role="listbox"
-                    aria-label="Select category"
-                    style={{
-                      position: 'absolute',
-                      top: 'calc(100% + 8px)',
-                      right: 0,
-                      width: '240px',
-                      zIndex: 1039,
-                      background: '#fff',
-                      borderRadius: '14px',
-                      boxShadow: '0 20px 50px rgba(15,23,42,0.16), 0 4px 14px rgba(15,23,42,0.07)',
-                      border: '1px solid rgba(226,232,240,0.9)',
-                      overflow: 'hidden',
-                      opacity: searchCatOpen ? 1 : 0,
-                      transform: searchCatOpen ? 'translateY(0) scale(1)' : 'translateY(-10px) scale(0.97)',
-                      transition: 'opacity 0.2s ease, transform 0.2s ease',
-                      pointerEvents: searchCatOpen ? 'auto' : 'none',
-                    }}
-                  >
-                    {/* Header */}
-                    <div
-                      style={{
-                        padding: '10px 14px 8px',
-                        borderBottom: '1px solid #f1f5f9',
-                        background: 'linear-gradient(135deg, #f8fafc, #fff)',
-                      }}
-                    >
-                      <span style={{ fontSize: '0.72rem', fontWeight: 700, color: '#64748b', letterSpacing: '0.5px', textTransform: 'uppercase' }}>
-                        Browse by Category
-                      </span>
-                    </div>
-
-                    {/* Options */}
-                    <div style={{ maxHeight: '280px', overflowY: 'auto', padding: '6px' }}>
-                      {/* All Categories option */}
-                      {[{ name: 'All Categories', slug: '' }, ...categories].map((cat) => {
-                        const isAll = cat.slug === '';
-                        const isActive = isAll
-                          ? searchCategory === 'All Category'
-                          : searchCategory === cat.name;
-                        const color = isAll ? 'var(--pd-primary)' : getCatColor(cat.slug);
-                        const icon  = isAll ? 'fas fa-th-large' : getCatIcon(cat.slug);
-
-                        return (
-                          <button
-                            key={cat.slug || 'all'}
-                            type="button"
-                            role="option"
-                            aria-selected={isActive}
-                            onClick={() => {
-                              setSearchCategory(isAll ? 'All Category' : cat.name);
-                              setSearchCatOpen(false);
-                            }}
-                            style={{
-                              width: '100%',
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '10px',
-                              padding: '8px 10px',
-                              border: 'none',
-                              borderRadius: '9px',
-                              background: isActive ? `color-mix(in srgb, ${color} 10%, #fff)` : 'transparent',
-                              cursor: 'pointer',
-                              textAlign: 'left',
-                              transition: 'background 0.15s ease',
-                              fontFamily: 'var(--pd-font)',
-                            }}
-                            onMouseEnter={e => {
-                              if (!isActive) (e.currentTarget as HTMLButtonElement).style.background = `color-mix(in srgb, ${color} 6%, #f8fafc)`;
-                            }}
-                            onMouseLeave={e => {
-                              if (!isActive) (e.currentTarget as HTMLButtonElement).style.background = 'transparent';
-                            }}
-                          >
-                            {/* Icon bubble */}
-                            <div
-                              style={{
-                                width: '30px', height: '30px',
-                                borderRadius: '8px',
-                                background: isActive
-                                  ? `linear-gradient(135deg, ${color}, color-mix(in srgb, ${color} 80%, #000))`
-                                  : `color-mix(in srgb, ${color} 12%, #fff)`,
-                                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                flexShrink: 0,
-                                transition: 'background 0.15s ease',
-                              }}
-                            >
-                              <i
-                                className={icon}
-                                style={{
-                                  fontSize: '12px',
-                                  color: isActive ? '#fff' : color,
-                                  transition: 'color 0.15s ease',
-                                }}
-                              />
-                            </div>
-                            <span
-                              style={{
-                                fontSize: '0.82rem',
-                                fontWeight: isActive ? 700 : 500,
-                                color: isActive ? color : '#374151',
-                                transition: 'color 0.15s ease',
-                              }}
-                            >
-                              {cat.name}
-                            </span>
-                            {isActive && (
-                              <i
-                                className="fas fa-check ms-auto"
-                                style={{ fontSize: '11px', color: color, flexShrink: 0 }}
-                              />
-                            )}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                </div>
-
-                <button
-                  type="submit"
-                  className="btn btn-gradient rounded-pill py-3 px-5 border-0"
-                  aria-label="Search"
-                >
-                  <ThemeIcon name="search" style={{ fontSize: '18px' }} />
-                </button>
-              </div>
-            </form>
-          </div>
-          <div className="col-md-4 col-lg-3 text-center text-lg-end">
-            <div className="d-inline-flex align-items-center gap-3">
-              <Link href="/shop" className="text-muted d-flex align-items-center justify-content-center" aria-label="Compare">
-                <span className="rounded-circle btn-md-square border" style={{ transition: 'all 0.2s' }}>
-                  <ThemeIcon name="random" style={{ fontSize: '19px' }} />
-                </span>
-              </Link>
-              <Link href="/shop" className="text-muted d-flex align-items-center justify-content-center" aria-label="Wishlist">
-                <span className="rounded-circle btn-md-square border" style={{ transition: 'all 0.2s' }}>
-                  <ThemeIcon name="heart" style={{ fontSize: '19px' }} />
-                </span>
-              </Link>
-              <Link href="/cart" className="text-dark d-flex align-items-center justify-content-center gap-2" aria-label={`Cart — ${cartCount} items`}>
-                <span className="rounded-circle btn-md-square border position-relative" style={{ transition: 'all 0.2s' }}>
-                  <ThemeIcon name="cart" style={{ fontSize: '19px' }} />
-                  {cartCount > 0 && (
-                    <span
-                      className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger cart-badge-pulse"
-                      style={{ fontSize: '10px', padding: '3px 6px' }}
-                    >
-                      {cartCount}
-                    </span>
-                  )}
-                </span>
-                <span className="fw-semibold" style={{ fontSize: '0.88rem' }}>PKR {cartTotal.toLocaleString()}</span>
-              </Link>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* ── Nav Bar ───────────────────────────────────────── */}
-      <div
-        className="container-fluid nav-bar p-0"
+      {/* ════════════════════════════════════════════
+          SINGLE NAVBAR ROW
+      ════════════════════════════════════════════ */}
+      <header
         style={{
-          boxShadow: scrolled ? '0 4px 20px rgba(0,0,0,0.12)' : 'none',
+          background: scrolled
+            ? 'rgba(255,255,255,0.97)'
+            : '#fff',
+          borderBottom: '1px solid #e8edf2',
+          boxShadow: scrolled ? '0 2px 16px rgba(0,0,0,0.08)' : '0 1px 4px rgba(0,0,0,0.04)',
           position: 'sticky',
           top: 0,
           zIndex: 1030,
-          transition: 'box-shadow 0.3s ease',
+          transition: 'box-shadow 0.3s ease, background 0.3s ease',
         }}
       >
-        <div className="row gx-0 bg-primary px-5 align-items-center">
+        <div className="container-fluid px-3 px-lg-4" style={{ maxWidth: '1440px', margin: '0 auto' }}>
+          <div className="d-flex align-items-center gap-2 gap-lg-3" style={{ height: '64px' }}>
 
-          {/* ── Premium Categories Toggle ─────────────────── */}
-          <div className="col-lg-3 d-none d-lg-block">
-            <div ref={catRef} style={{ position: 'relative', width: '260px' }}>
-
-              {/* Trigger button */}
-              <button
-                type="button"
-                onClick={() => setCategoriesOpen(o => !o)}
-                aria-haspopup="true"
-                aria-expanded={categoriesOpen}
-                aria-controls="categories-dropdown"
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '10px',
-                  background: categoriesOpen
-                    ? 'rgba(255,255,255,0.15)'
-                    : 'rgba(255,255,255,0.08)',
-                  border: '1px solid rgba(255,255,255,0.18)',
-                  borderRadius: '10px',
-                  padding: '10px 16px',
-                  width: '100%',
-                  cursor: 'pointer',
-                  color: '#fff',
-                  transition: 'background 0.2s ease',
-                  outline: 'none',
-                  /* my-2 equivalent */
-                  margin: '10px 0',
-                }}
-                onMouseEnter={e => {
-                  if (!categoriesOpen)
-                    (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.13)';
-                }}
-                onMouseLeave={e => {
-                  if (!categoriesOpen)
-                    (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.08)';
-                }}
-              >
-                {/* Hamburger icon box */}
-                <div
-                  style={{
-                    width: '28px', height: '28px',
-                    borderRadius: '7px',
-                    background: 'linear-gradient(135deg, var(--pd-primary), color-mix(in srgb, var(--pd-primary) 80%, #000))',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    flexShrink: 0,
-                  }}
-                >
-                  <ThemeIcon name="bars" style={{ fontSize: '12px', color: '#fff' }} />
+            {/* 1. LOGO */}
+            <Link href="/" className="text-decoration-none flex-shrink-0" style={{ minWidth: '130px' }}>
+              <div className="d-flex align-items-center gap-2">
+                <div style={{
+                  width: '34px', height: '34px',
+                  background: 'linear-gradient(135deg, var(--pd-primary), #c2410c)',
+                  borderRadius: '9px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  boxShadow: '0 3px 10px rgba(234,88,12,0.28)', flexShrink: 0,
+                }}>
+                  <ThemeIcon name="shopping-bag" style={{ color: '#fff', fontSize: '16px' }} />
                 </div>
-
-                <span style={{ fontWeight: 700, fontSize: '0.9rem', flex: 1, textAlign: 'left', letterSpacing: '-0.2px' }}>
-                  All Categories
+                <span style={{ fontWeight: 800, fontSize: '1.3rem', color: 'var(--pd-primary)', letterSpacing: '-0.5px', lineHeight: 1 }}>
+                  {info.logoText}
                 </span>
+              </div>
+            </Link>
 
-                {/* Chevron */}
-                <ThemeIcon
-                  name="chevron-down"
-                  style={{
-                    fontSize: '11px',
-                    color: 'rgba(255,255,255,0.7)',
-                    transform: categoriesOpen ? 'rotate(180deg)' : 'rotate(0deg)',
-                    transition: 'transform 0.25s ease',
-                  }}
-                />
+            {/* 2. SEARCH BAR — flex-grow */}
+            <form onSubmit={handleSearch} className="flex-grow-1 d-none d-md-flex"
+              style={{ maxWidth: '520px', position: 'relative' }} role="search">
+              <div style={{
+                display: 'flex', width: '100%',
+                border: '1.5px solid var(--pd-primary)',
+                borderRadius: '8px', overflow: 'hidden',
+                boxShadow: '0 2px 8px rgba(234,88,12,0.10)',
+              }}>
+                <input type="search" placeholder="Search products..."
+                  value={query} onChange={e => setQuery(e.target.value)}
+                  style={{ flex: 1, border: 'none', outline: 'none', padding: '9px 14px',
+                    fontSize: '0.88rem', fontFamily: 'var(--pd-font)', background: 'transparent', minWidth: 0 }} />
+                <button type="submit" style={{
+                  background: 'linear-gradient(135deg, var(--pd-primary), #c2410c)',
+                  border: 'none', padding: '0 18px', cursor: 'pointer',
+                  color: '#fff', display: 'flex', alignItems: 'center', gap: '6px',
+                  fontSize: '0.85rem', fontWeight: 700, flexShrink: 0,
+                }}>
+                  <ThemeIcon name="search" style={{ fontSize: '15px' }} />
+                  <span className="d-none d-lg-inline">Search</span>
+                </button>
+              </div>
+            </form>
+
+            {/* 3. CATEGORIES BUTTON */}
+            <div ref={catRef} className="d-none d-lg-block" style={{ position: 'relative', flexShrink: 0 }}>
+              <button onClick={() => setCatOpen(o => !o)}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: '7px',
+                  background: catOpen ? '#0f172a' : '#0f172a',
+                  border: 'none', borderRadius: '8px', padding: '8px 14px',
+                  cursor: 'pointer', color: '#fff', fontWeight: 600, fontSize: '0.84rem',
+                  whiteSpace: 'nowrap', transition: 'opacity 0.2s',
+                }}
+                onMouseEnter={e => (e.currentTarget as HTMLButtonElement).style.opacity = '0.88'}
+                onMouseLeave={e => (e.currentTarget as HTMLButtonElement).style.opacity = '1'}
+                aria-expanded={catOpen} aria-haspopup="true">
+                <i className="fas fa-th-large" style={{ fontSize: '12px', color: 'var(--pd-primary)' }} />
+                Categories
+                <i className="fas fa-chevron-down" style={{ fontSize: '9px', opacity: 0.7, transform: catOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
               </button>
-
-              {/* Dropdown panel */}
-              <CategoriesDropdown
-                categories={categories}
-                open={categoriesOpen}
-                onClose={() => setCategoriesOpen(false)}
-              />
+              <CatDropdown cats={cats} open={catOpen} onClose={() => setCatOpen(false)} />
             </div>
-          </div>
 
-          {/* ── Nav Links ─────────────────────────────────── */}
-          <div className="col-12 col-lg-9">
-            <nav className="navbar navbar-expand-lg navbar-light bg-primary py-3 py-lg-0" aria-label="Main navigation">
-              <Link href="/" className="navbar-brand d-block d-lg-none" aria-label="PAKODRIVE Home">
-                <h1 className="display-5 text-secondary m-0">
-                  <ThemeIcon name="shopping-bag" className="text-white me-2" />{info.logoText}
-                </h1>
+            {/* 4. NAV LINKS */}
+            <nav className="d-none d-lg-flex align-items-center gap-1" aria-label="Main navigation">
+              {NAV_LINKS.map(link => (
+                <Link key={link.href} href={link.href} className="text-decoration-none px-3 py-2 rounded-2"
+                  style={{
+                    color: isActive(link.href) ? 'var(--pd-primary)' : '#374151',
+                    fontWeight: isActive(link.href) ? 700 : 500,
+                    fontSize: '0.86rem',
+                    background: isActive(link.href) ? 'rgba(234,88,12,0.08)' : 'transparent',
+                    transition: 'all 0.18s',
+                    whiteSpace: 'nowrap',
+                  }}
+                  onMouseEnter={e => { if (!isActive(link.href)) { (e.currentTarget as HTMLAnchorElement).style.color = 'var(--pd-primary)'; (e.currentTarget as HTMLAnchorElement).style.background = 'rgba(234,88,12,0.06)'; } }}
+                  onMouseLeave={e => { if (!isActive(link.href)) { (e.currentTarget as HTMLAnchorElement).style.color = '#374151'; (e.currentTarget as HTMLAnchorElement).style.background = 'transparent'; } }}>
+                  {link.label}
+                </Link>
+              ))}
+            </nav>
+
+            {/* 5. ICONS — wishlist, cart */}
+            <div className="d-flex align-items-center gap-2 ms-auto flex-shrink-0">
+
+              {/* Wishlist */}
+              <Link href="/shop" aria-label="Wishlist" className="d-none d-lg-flex"
+                style={{ width: '36px', height: '36px', borderRadius: '8px', background: '#f8fafc',
+                  border: '1px solid #e2e8f0', alignItems: 'center', justifyContent: 'center',
+                  color: '#64748b', textDecoration: 'none', transition: 'all 0.2s', flexShrink: 0 }}
+                onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.borderColor = 'var(--pd-primary)'; (e.currentTarget as HTMLAnchorElement).style.color = 'var(--pd-primary)'; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.borderColor = '#e2e8f0'; (e.currentTarget as HTMLAnchorElement).style.color = '#64748b'; }}>
+                <i className="fas fa-heart" style={{ fontSize: '14px' }} />
               </Link>
-              <button
-                onClick={() => setMobileMenuOpen(o => !o)}
-                className="navbar-toggler ms-auto text-white border-white"
-                type="button"
-                aria-expanded={mobileMenuOpen}
-                aria-controls="navbarCollapse"
-                aria-label="Toggle navigation"
-              >
-                <ThemeIcon name="bars" className="text-white" />
-              </button>
-              <div
-                className={`navbar-collapse${mobileMenuOpen ? ' show' : ''}`}
-                id="navbarCollapse"
-                style={mobileMenuOpen ? { display: 'block' } : undefined}
-              >
-                <div className="navbar-nav ms-auto py-0">
-                  {[
-                    { href: '/',             label: 'Home'        },
-                    { href: '/shop',         label: 'Shop'        },
-                    { href: '/track-order',  label: 'Track Order' },
-                    { href: '/cart',         label: 'Cart'        },
-                    { href: '/contact',      label: 'Contact'     },
-                  ].map(link => (
-                    <Link
-                      key={link.href}
-                      href={link.href}
-                      className={`nav-item nav-link text-white fw-500 position-relative${pathname === link.href ? ' active' : ''}`}
-                      style={navLinkStyle(link.href)}
-                    >
-                      {link.label}
-                    </Link>
-                  ))}
-                </div>
 
-                {/* Mobile categories accordion */}
-                <div className="d-lg-none px-3 pb-2">
-                  <p className="text-white-50 small fw-semibold mb-2 mt-3" style={{ letterSpacing: '0.5px' }}>CATEGORIES</p>
-                  <div className="d-flex flex-wrap gap-2">
-                    {categories.map(cat => (
-                      <Link
-                        key={cat.slug}
-                        href={`/shop?category=${cat.slug}`}
-                        className="text-decoration-none"
-                        style={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '6px',
-                          background: 'rgba(255,255,255,0.1)',
-                          border: '1px solid rgba(255,255,255,0.15)',
-                          borderRadius: '20px',
-                          padding: '5px 12px',
-                          fontSize: '0.78rem',
-                          color: '#fff',
-                          fontWeight: 500,
-                        }}
-                      >
-                        <i className={getCatIcon(cat.slug)} style={{ fontSize: '11px' }} />
-                        {cat.name}
-                      </Link>
-                    ))}
+              {/* Cart */}
+              <Link href="/cart" aria-label={`Cart — ${cartCount} items`}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: '8px', textDecoration: 'none',
+                  background: cartCount > 0 ? 'linear-gradient(135deg,var(--pd-primary),#c2410c)' : '#f8fafc',
+                  border: cartCount > 0 ? 'none' : '1px solid #e2e8f0',
+                  borderRadius: '8px', padding: '7px 12px', transition: 'all 0.2s', flexShrink: 0,
+                }}
+                onMouseEnter={e => { if (!cartCount) { (e.currentTarget as HTMLAnchorElement).style.borderColor = 'var(--pd-primary)'; } }}
+                onMouseLeave={e => { if (!cartCount) { (e.currentTarget as HTMLAnchorElement).style.borderColor = '#e2e8f0'; } }}>
+                <div style={{ position: 'relative' }}>
+                  <i className="fas fa-shopping-cart" style={{ fontSize: '16px', color: cartCount > 0 ? '#fff' : '#374151' }} />
+                  {cartCount > 0 && (
+                    <span style={{ position: 'absolute', top: '-8px', right: '-8px',
+                      background: '#fff', color: 'var(--pd-primary)', borderRadius: '10px',
+                      fontSize: '9px', fontWeight: 800, padding: '1px 5px', lineHeight: 1.5 }}>
+                      {cartCount}
+                    </span>
+                  )}
+                </div>
+                <div className="d-none d-md-block">
+                  <div style={{ fontSize: '10px', color: cartCount > 0 ? 'rgba(255,255,255,0.75)' : '#94a3b8', lineHeight: 1 }}>Cart</div>
+                  <div style={{ fontSize: '0.82rem', fontWeight: 700, color: cartCount > 0 ? '#fff' : '#1e293b', lineHeight: 1.4 }}>
+                    PKR {cartTotal.toLocaleString()}
                   </div>
                 </div>
+              </Link>
 
-                <div className="d-flex align-items-center ms-lg-4 mb-3 mb-lg-0">
-                  <a
-                    href={`tel:${info.phone}`}
-                    className="btn btn-secondary rounded-pill py-2 px-4 text-white"
-                    style={{ fontWeight: 600, fontSize: '0.875rem' }}
-                  >
-                    <ThemeIcon name="phone" className="me-2" /> {info.phone}
-                  </a>
-                </div>
-              </div>
-            </nav>
+              {/* Mobile hamburger */}
+              <button onClick={() => setMobileOpen(o => !o)} className="d-flex d-lg-none"
+                style={{ width: '36px', height: '36px', borderRadius: '8px', background: '#0f172a',
+                  border: 'none', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#fff' }}
+                aria-label="Toggle menu" aria-expanded={mobileOpen}>
+                <i className={`fas ${mobileOpen ? 'fa-times' : 'fa-bars'}`} style={{ fontSize: '15px' }} />
+              </button>
+            </div>
           </div>
-
         </div>
-      </div>
 
-      {/* ── Back to Top ───────────────────────────────────── */}
-      {showBackTop && (
-        <button
-          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-          className="back-to-top"
-          aria-label="Back to top"
-          title="Back to top"
-        >
+        {/* ── MOBILE MENU ── */}
+        {mobileOpen && (
+          <div style={{ background: '#0f172a', borderTop: '1px solid rgba(255,255,255,0.08)', padding: '12px 16px 16px' }}>
+            {/* Mobile search */}
+            <form onSubmit={e => { handleSearch(e); setMobileOpen(false); }} className="mb-3">
+              <div style={{ display: 'flex', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '8px', overflow: 'hidden' }}>
+                <input type="search" placeholder="Search products..." value={query} onChange={e => setQuery(e.target.value)}
+                  style={{ flex: 1, background: 'rgba(255,255,255,0.07)', border: 'none', padding: '10px 14px',
+                    color: '#fff', fontSize: '0.88rem', outline: 'none', fontFamily: 'var(--pd-font)' }} />
+                <button type="submit" style={{ background: 'var(--pd-primary)', border: 'none', padding: '0 16px', color: '#fff', cursor: 'pointer' }}>
+                  <i className="fas fa-search" style={{ fontSize: '14px' }} />
+                </button>
+              </div>
+            </form>
+            {/* Mobile nav links */}
+            {NAV_LINKS.map(link => (
+              <Link key={link.href} href={link.href} onClick={() => setMobileOpen(false)}
+                style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 12px', borderRadius: '8px',
+                  textDecoration: 'none', color: isActive(link.href) ? 'var(--pd-primary)' : 'rgba(255,255,255,0.85)',
+                  background: isActive(link.href) ? 'rgba(234,88,12,0.15)' : 'transparent',
+                  fontWeight: isActive(link.href) ? 700 : 500, fontSize: '0.9rem', marginBottom: '2px' }}>
+                {link.label}
+                {link.href === '/cart' && cartCount > 0 && (
+                  <span style={{ marginLeft: 'auto', background: 'var(--pd-primary)', color: '#fff', borderRadius: '12px', padding: '2px 8px', fontSize: '11px', fontWeight: 700 }}>{cartCount}</span>
+                )}
+              </Link>
+            ))}
+            {/* Mobile categories */}
+            <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', marginTop: '8px', paddingTop: '10px' }}>
+              <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '8px' }}>Categories</p>
+              <div className="d-flex flex-wrap gap-2">
+                {cats.map(cat => (
+                  <Link key={cat.slug} href={`/shop?category=${cat.slug}`} onClick={() => setMobileOpen(false)}
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: '5px',
+                      background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)',
+                      borderRadius: '20px', padding: '5px 12px', fontSize: '0.75rem', color: '#fff', textDecoration: 'none', fontWeight: 500 }}>
+                    <i className={getCatIcon(cat.slug)} style={{ fontSize: '10px', color: getCatColor(cat.slug) }} />
+                    {cat.name}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+      </header>
+
+      {/* Back to Top */}
+      {showTop && (
+        <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="back-to-top" aria-label="Back to top">
           <i className="fas fa-arrow-up" />
         </button>
       )}
