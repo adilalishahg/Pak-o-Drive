@@ -71,31 +71,28 @@ export default function TrackOrderPage() {
   };
 
   return (
-    <div className="bg-white">
-      {/* Page Header */}
-      <div className="container-fluid page-header py-5">
-        <h1 className="text-center text-white display-6">Track Your Order</h1>
-        <ol className="breadcrumb justify-content-center mb-0">
-          <li className="breadcrumb-item">
-            <Link href="/" className="text-white text-decoration-none">Home</Link>
-          </li>
-          <li className="breadcrumb-item active text-white">Track Order</li>
-        </ol>
+    <div style={{ background: '#f4f4f4', minHeight: '100vh', paddingBottom: '32px' }}>
+
+      {/* Breadcrumb */}
+      <div style={{ background: '#fff', borderBottom: '1px solid #f0f0f0', padding: '10px 0' }}>
+        <div className="container-fluid px-3">
+          <ol className="breadcrumb mb-0" style={{ fontSize: '0.78rem' }}>
+            <li className="breadcrumb-item"><Link href="/" className="text-decoration-none text-muted">Home</Link></li>
+            <li className="breadcrumb-item active fw-semibold" style={{ color: '#111' }}>Track Order</li>
+          </ol>
+        </div>
       </div>
 
-      <div className="container py-5" style={{ maxWidth: '780px' }}>
+      <div style={{ maxWidth: '680px', margin: '16px auto 0', padding: '0 12px' }}>
 
         {/* Search Card */}
-        <div className="card border-0 shadow-sm rounded-4 p-4 mb-5">
-          <div className="text-center mb-4">
-            <div
-              className="d-inline-flex align-items-center justify-content-center rounded-circle mb-3"
-              style={{ width: '64px', height: '64px', background: 'linear-gradient(135deg, #f97316, #ea580c)' }}
-            >
-              <i className="fas fa-search text-white fs-4" />
+        <div style={{ background: '#fff', borderRadius: '12px', padding: '20px', marginBottom: '16px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
+          <div style={{ textAlign: 'center', marginBottom: '18px' }}>
+            <div style={{ width: '52px', height: '52px', borderRadius: '50%', background: 'linear-gradient(135deg, var(--pd-primary), #c2410c)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px' }}>
+              <i className="fas fa-search" style={{ color: '#fff', fontSize: '1.1rem' }} />
             </div>
-            <h4 className="fw-bold text-dark mb-1">Find Your Orders</h4>
-            <p className="text-muted small">Enter your email or phone number used during checkout</p>
+            <h4 style={{ fontWeight: 800, color: '#111', marginBottom: '4px', fontSize: '1.1rem' }}>Track Your Order</h4>
+            <p style={{ color: '#6b7280', fontSize: '0.82rem', margin: 0 }}>Enter email or phone used at checkout</p>
           </div>
 
           <form onSubmit={handleSearch}>
@@ -119,26 +116,50 @@ export default function TrackOrderPage() {
               </button>
             </div>
 
-            <div className="input-group input-group-lg">
-              <span className="input-group-text bg-light border-end-0">
-                <i className={`fas ${searchType === 'email' ? 'fa-envelope' : 'fa-phone'} text-muted`} />
-              </span>
-              <input
-                type={searchType === 'email' ? 'email' : 'tel'}
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-                placeholder={searchType === 'email' ? 'your@email.com' : '+923001234567'}
-                className="form-control border-start-0"
-                style={{ boxShadow: 'none' }}
-                required
-              />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              {/* Input row */}
+              <div style={{
+                display: 'flex', border: '1.5px solid #e5e7eb', borderRadius: '8px',
+                overflow: 'hidden', background: '#fff',
+              }}>
+                <span style={{
+                  display: 'flex', alignItems: 'center', padding: '0 12px',
+                  background: '#f9fafb', borderRight: '1px solid #e5e7eb', flexShrink: 0,
+                }}>
+                  <i className={`fas ${searchType === 'email' ? 'fa-envelope' : 'fa-phone'}`}
+                    style={{ color: '#9ca3af', fontSize: '14px' }} />
+                </span>
+                <input
+                  type={searchType === 'email' ? 'email' : 'tel'}
+                  value={inputValue}
+                  onChange={(e) => setInputValue(e.target.value)}
+                  placeholder={searchType === 'email' ? 'your@email.com' : '+923001234567'}
+                  style={{
+                    flex: 1, border: 'none', outline: 'none',
+                    padding: '13px 14px', fontSize: '0.9rem',
+                    color: '#111', background: 'transparent',
+                    fontFamily: 'var(--pd-font)',
+                    minWidth: 0,
+                  }}
+                  required
+                />
+              </div>
+
+              {/* Track button — full width below */}
               <button
                 type="submit"
                 disabled={loading}
-                className="btn btn-primary border-0 px-4 fw-semibold"
-                style={{ background: 'linear-gradient(to right, #ea580c, #f97316)' }}
+                className="btn-gradient"
+                style={{
+                  border: 'none', borderRadius: '8px',
+                  padding: '13px', fontWeight: 700, fontSize: '0.9rem',
+                  width: '100%', cursor: loading ? 'not-allowed' : 'pointer',
+                }}
               >
-                {loading ? <span className="spinner-border spinner-border-sm" /> : <><i className="fas fa-search me-2" />Track</>}
+                {loading
+                  ? <><span className="spinner-border spinner-border-sm me-2" />Searching…</>
+                  : <><i className="fas fa-search me-2" />Track Order</>
+                }
               </button>
             </div>
 

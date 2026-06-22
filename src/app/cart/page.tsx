@@ -10,188 +10,147 @@ export default function CartPage() {
 
   if (cart.length === 0) {
     return (
-      <div className="bg-white">
-        {/* Page Header */}
-        <div className="container-fluid page-header py-5">
-          <h1 className="text-center text-white display-6 wow fadeInUp animate-fade-in" data-wow-delay="0.1s">
-            Cart Page
-          </h1>
-          <ol className="breadcrumb justify-content-center mb-0 wow fadeInUp" data-wow-delay="0.3s">
-            <li className="breadcrumb-item">
-              <Link href="/" className="text-white text-decoration-none">
-                Home
-              </Link>
-            </li>
-            <li className="breadcrumb-item active text-white">Cart Page</li>
-          </ol>
-        </div>
-
-        {/* Empty state content */}
-        <div className="container py-5 text-center text-dark py-5 my-5">
-          <i className="fas fa-shopping-bag fa-4x text-muted mb-4"></i>
-          <h2 className="font-weight-bold mb-3">Your Cart is Empty</h2>
-          <p className="text-muted mb-4">Explore our high-performance electronic products to start shopping.</p>
-          <Link href="/shop" className="btn btn-primary rounded-pill py-3 px-5 border-0 text-white">
-            Start Shopping
-          </Link>
-        </div>
+      <div style={{ minHeight: '60vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px 20px', background: '#f9fafb' }}>
+        <i className="fas fa-shopping-cart" style={{ fontSize: '3rem', color: '#d1d5db', marginBottom: '16px' }} />
+        <h2 style={{ fontWeight: 800, color: '#111', marginBottom: '8px', fontSize: '1.3rem' }}>Your Cart is Empty</h2>
+        <p style={{ color: '#6b7280', marginBottom: '24px', textAlign: 'center', fontSize: '0.9rem' }}>
+          Add some products to your cart and come back here.
+        </p>
+        <Link href="/shop" className="btn-gradient" style={{ textDecoration: 'none', borderRadius: '8px', padding: '12px 28px', fontWeight: 700, fontSize: '0.9rem' }}>
+          Start Shopping
+        </Link>
       </div>
     );
   }
 
   return (
-    <div className="bg-white">
-      {/* Page Header */}
-      <div className="container-fluid page-header py-5">
-        <h1 className="text-center text-white display-6 wow fadeInUp animate-fade-in" data-wow-delay="0.1s">
-          Cart Page
-        </h1>
-        <ol className="breadcrumb justify-content-center mb-0 wow fadeInUp" data-wow-delay="0.3s">
-          <li className="breadcrumb-item">
-            <Link href="/" className="text-white text-decoration-none">
-              Home
-            </Link>
-          </li>
-          <li className="breadcrumb-item active text-white">Cart Page</li>
-        </ol>
+    <div style={{ background: '#f4f4f4', minHeight: '100vh', paddingBottom: '32px' }}>
+
+      {/* Breadcrumb */}
+      <div style={{ background: '#fff', borderBottom: '1px solid #f0f0f0', padding: '10px 0' }}>
+        <div className="container-fluid px-3">
+          <nav aria-label="breadcrumb">
+            <ol className="breadcrumb mb-0" style={{ fontSize: '0.78rem' }}>
+              <li className="breadcrumb-item"><Link href="/" className="text-decoration-none text-muted">Home</Link></li>
+              <li className="breadcrumb-item active fw-semibold" style={{ color: '#111' }}>Cart</li>
+            </ol>
+          </nav>
+        </div>
       </div>
 
-      {/* Cart Page Start */}
-      <div className="container-fluid py-5">
-        <div className="container py-5">
-          {/* Table container */}
-          <div className="table-responsive">
-            <table className="table">
-              <thead>
-                <tr>
-                  <th scope="col">Product</th>
-                  <th scope="col">Name</th>
-                  <th scope="col">Price</th>
-                  <th scope="col">Quantity</th>
-                  <th scope="col">Total</th>
-                  <th scope="col">Handle</th>
-                </tr>
-              </thead>
-              <tbody>
-                {cart.map((item) => {
-                  const prod = item.product;
-                  const formattedId = prod._id ? prod._id.toString() : '';
-                  return (
-                    <tr key={formattedId}>
-                      <th scope="row" className="align-middle">
-                        <div className="relative" style={{ width: '80px', height: '80px', position: 'relative' }}>
-                          <Image
-                            src={prod.image}
-                            alt={prod.name}
-                            fill
-                            className="img-fluid rounded object-contain p-1"
-                          />
-                        </div>
-                      </th>
-                      <td className="align-middle">
-                        <Link
-                          href={`/product/${formattedId}`}
-                          className="mb-0 text-dark text-decoration-none font-weight-bold"
-                        >
-                          {prod.name}
-                        </Link>
-                      </td>
-                      <td className="align-middle">
-                        <p className="mb-0 py-4 font-weight-bold">PKR {prod.price.toLocaleString()}</p>
-                      </td>
-                      <td className="align-middle">
-                        <div className="input-group quantity py-4" style={{ width: '120px' }}>
-                          <div className="input-group-btn">
-                            <button
-                              type="button"
-                              onClick={() => updateQuantity(formattedId, item.quantity - 1)}
-                              className="btn btn-sm btn-minus rounded-circle bg-light border"
-                            >
-                              <i className="fa fa-minus"></i>
-                            </button>
-                          </div>
-                          <input
-                            type="text"
-                            readOnly
-                            className="form-control form-control-sm text-center border-0 bg-transparent font-weight-bold"
-                            value={item.quantity}
-                            style={{ width: '35px', boxShadow: 'none' }}
-                          />
-                          <div className="input-group-btn">
-                            <button
-                              type="button"
-                              onClick={() => updateQuantity(formattedId, item.quantity + 1)}
-                              disabled={item.quantity >= prod.stock}
-                              className="btn btn-sm btn-plus rounded-circle bg-light border"
-                            >
-                              <i className="fa fa-plus"></i>
-                            </button>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="align-middle">
-                        <p className="mb-0 py-4 font-weight-bold">
-                          PKR {(prod.price * item.quantity).toLocaleString()}
-                        </p>
-                      </td>
-                      <td className="align-middle">
-                        <button
-                          onClick={() => removeFromCart(formattedId)}
-                          className="btn btn-md rounded-circle bg-light border"
-                        >
-                          <i className="fa fa-times text-danger"></i>
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+      <div style={{ maxWidth: '900px', margin: '12px auto 0', padding: '0 12px' }}>
+        <h2 style={{ fontWeight: 800, fontSize: '1.2rem', color: '#111', marginBottom: '12px', padding: '0 2px' }}>
+          Cart <span style={{ color: '#6b7280', fontWeight: 400 }}>({cart.length} items)</span>
+        </h2>
+
+        {/* Cart items */}
+        <div style={{ background: '#fff', borderRadius: '12px', overflow: 'hidden', marginBottom: '12px' }}>
+          {cart.map((item, idx) => {
+            const prod = item.product;
+            const id = prod._id ? prod._id.toString() : '';
+            return (
+              <div key={id} style={{
+                display: 'flex', gap: '12px', padding: '14px',
+                borderBottom: idx < cart.length - 1 ? '1px solid #f0f0f0' : 'none',
+                alignItems: 'flex-start',
+              }}>
+                {/* Image */}
+                <Link href={`/product/${id}`} style={{ flexShrink: 0, display: 'block' }}>
+                  <div style={{ width: '80px', height: '80px', borderRadius: '8px', background: '#f5f5f5', position: 'relative', overflow: 'hidden' }}>
+                    <Image src={prod.image || '/img/product-placeholder.png'} alt={prod.name} fill
+                      sizes="80px" style={{ objectFit: 'contain', padding: '4px' }}
+                      onError={(e) => { (e.target as HTMLImageElement).src = '/img/product-placeholder.png'; }} />
+                  </div>
+                </Link>
+
+                {/* Details */}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <Link href={`/product/${id}`} style={{ textDecoration: 'none' }}>
+                    <p style={{ margin: '0 0 4px', fontWeight: 700, fontSize: '0.85rem', color: '#111',
+                      overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {prod.name}
+                    </p>
+                  </Link>
+                  <p style={{ margin: '0 0 10px', fontSize: '0.9rem', fontWeight: 800, color: 'var(--pd-primary)' }}>
+                    PKR {(prod.price * item.quantity).toLocaleString()}
+                  </p>
+                  <p style={{ margin: '0 0 8px', fontSize: '0.72rem', color: '#9ca3af' }}>
+                    PKR {prod.price.toLocaleString()} each
+                  </p>
+
+                  {/* Qty controls */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0' }}>
+                    <button onClick={() => updateQuantity(id, item.quantity - 1)} disabled={item.quantity <= 1}
+                      style={{
+                        width: '32px', height: '32px', border: '1px solid #e5e7eb',
+                        borderRadius: '6px 0 0 6px', background: '#f9fafb',
+                        cursor: item.quantity <= 1 ? 'not-allowed' : 'pointer',
+                        fontSize: '1rem', color: '#374151', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      }}>−</button>
+                    <span style={{
+                      width: '40px', height: '32px', border: '1px solid #e5e7eb', borderLeft: 'none', borderRight: 'none',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      fontSize: '0.88rem', fontWeight: 700, color: '#111',
+                    }}>{item.quantity}</span>
+                    <button onClick={() => updateQuantity(id, item.quantity + 1)} disabled={item.quantity >= prod.stock}
+                      style={{
+                        width: '32px', height: '32px', border: '1px solid #e5e7eb',
+                        borderRadius: '0 6px 6px 0', background: '#f9fafb',
+                        cursor: item.quantity >= prod.stock ? 'not-allowed' : 'pointer',
+                        fontSize: '1rem', color: '#374151', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      }}>+</button>
+                  </div>
+                </div>
+
+                {/* Remove */}
+                <button onClick={() => removeFromCart(id)}
+                  style={{ flexShrink: 0, background: 'none', border: 'none', cursor: 'pointer', padding: '4px', color: '#ef4444', marginTop: '2px' }}>
+                  <i className="fas fa-trash-alt" style={{ fontSize: '15px' }} />
+                </button>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Order summary */}
+        <div style={{ background: '#fff', borderRadius: '12px', overflow: 'hidden' }}>
+          <div style={{ padding: '16px 16px 0' }}>
+            <h4 style={{ fontWeight: 800, fontSize: '1rem', color: '#111', margin: '0 0 14px' }}>Order Summary</h4>
+          </div>
+          <div style={{ padding: '0 16px 16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.88rem', color: '#6b7280' }}>
+              <span>Subtotal ({cart.reduce((s, i) => s + i.quantity, 0)} items)</span>
+              <span style={{ fontWeight: 600, color: '#111' }}>PKR {cartTotal.toLocaleString()}</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.88rem', color: '#6b7280' }}>
+              <span>Delivery</span>
+              <span style={{ fontWeight: 700, color: '#16a34a' }}>FREE</span>
+            </div>
+            <div style={{ height: '1px', background: '#f0f0f0' }} />
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1rem' }}>
+              <span style={{ fontWeight: 800, color: '#111' }}>Total</span>
+              <span style={{ fontWeight: 900, color: 'var(--pd-primary)', fontSize: '1.1rem' }}>PKR {cartTotal.toLocaleString()}</span>
+            </div>
           </div>
 
-          {/* Cart Subtotal & Checkout links */}
-          <div className="row g-4 justify-content-end mt-5">
-            <div className="col-lg-8"></div>
-            <div className="col-sm-8 col-md-7 col-lg-6 col-xl-4">
-              <div className="bg-light rounded">
-                <div className="p-4">
-                  <h1 className="display-6 mb-4">
-                    Cart <span className="fw-normal">Total</span>
-                  </h1>
-                  <div className="d-flex justify-content-between mb-4">
-                    <h5 className="mb-0 me-4">Subtotal:</h5>
-                    <p className="mb-0 font-weight-bold text-dark">PKR {cartTotal.toLocaleString()}</p>
-                  </div>
-                  <div className="d-flex justify-content-between">
-                    <h5 className="mb-0 me-4">Shipping:</h5>
-                    <div>
-                      <p className="mb-0 text-success font-weight-bold uppercase small">Free Delivery</p>
-                    </div>
-                  </div>
-                </div>
-                <div className="py-4 mb-4 border-top border-bottom d-flex justify-content-between">
-                  <h5 className="mb-0 ps-4 me-4">Total:</h5>
-                  <p className="mb-0 pe-4 font-weight-bold text-primary">PKR {cartTotal.toLocaleString()}</p>
-                </div>
-                
-                <div className="px-4 mb-3">
-                  <div className="alert alert-warning py-2 small m-0" role="alert">
-                    Note: We support <strong>Cash on Delivery (COD)</strong>. You can verify your package before paying cash.
-                  </div>
-                </div>
+          {/* COD note */}
+          <div style={{ margin: '0 16px 12px', background: '#fef3c7', borderRadius: '8px', padding: '10px 12px', fontSize: '0.78rem', color: '#92400e', display: 'flex', gap: '8px' }}>
+            <i className="fas fa-info-circle" style={{ marginTop: '2px', flexShrink: 0 }} />
+            <span>We support <strong>Cash on Delivery (COD)</strong>. Verify your package before paying.</span>
+          </div>
 
-                <Link
-                  href="/checkout"
-                  className="btn btn-primary rounded-pill px-4 py-3 text-uppercase mb-4 ms-4 border-0 text-white font-weight-bold"
-                >
-                  Proceed Checkout
-                </Link>
-              </div>
-            </div>
+          <div style={{ padding: '0 16px 16px' }}>
+            <Link href="/checkout" className="btn-gradient" style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+              textDecoration: 'none', borderRadius: '8px', padding: '14px',
+              fontWeight: 800, fontSize: '0.95rem', width: '100%',
+            }}>
+              <i className="fas fa-lock" style={{ fontSize: '13px' }} />
+              Proceed to Checkout
+            </Link>
           </div>
         </div>
       </div>
-      {/* Cart Page End */}
     </div>
   );
 }

@@ -6,13 +6,23 @@ import { useCart } from '../../context/CartContext';
 import Link from 'next/link';
 import { logInteraction } from '../../components/common/AnalyticsTracker';
 
+const inputStyle: React.CSSProperties = {
+  width: '100%', border: '1.5px solid #e5e7eb', borderRadius: '8px',
+  padding: '11px 14px', fontSize: '0.9rem', outline: 'none',
+  fontFamily: 'var(--pd-font)', color: '#111', background: '#fff',
+  transition: 'border-color 0.15s',
+};
+
+const labelStyle: React.CSSProperties = {
+  display: 'block', fontSize: '0.78rem', fontWeight: 700,
+  color: '#374151', marginBottom: '5px',
+};
+
 export default function CheckoutPage() {
   const router = useRouter();
   const { cart, cartTotal, clearCart } = useCart();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  // Form States (Matches original template field styles)
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [address, setAddress] = useState('');
@@ -23,308 +33,189 @@ export default function CheckoutPage() {
 
   if (cart.length === 0) {
     return (
-      <div className="container py-5 text-center bg-white">
-        <div className="py-5" style={{ maxWidth: '600px', margin: '0 auto' }}>
-          <h2 className="mb-4">Your Cart is Empty</h2>
-          <p className="mb-4 text-muted">Add products to your cart before proceeding to checkout.</p>
-          <Link href="/shop" className="btn btn-primary rounded-pill py-3 px-5 border-0">
-            Go to Shop
-          </Link>
-        </div>
+      <div style={{ minHeight: '60vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px 20px' }}>
+        <i className="fas fa-shopping-cart" style={{ fontSize: '2.5rem', color: '#d1d5db', marginBottom: '14px' }} />
+        <h3 style={{ fontWeight: 700, color: '#111', marginBottom: '8px' }}>Cart is Empty</h3>
+        <Link href="/shop" className="btn-gradient" style={{ textDecoration: 'none', borderRadius: '8px', padding: '11px 24px', fontWeight: 700, fontSize: '0.9rem', marginTop: '12px' }}>
+          Go to Shop
+        </Link>
       </div>
     );
   }
 
-  const handleCheckoutSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-
     const name = `${firstName} ${lastName}`.trim();
     if (!name || !phone.trim() || !address.trim() || !city.trim()) {
-      setError('Please fill in all mandatory shipping information.');
+      setError('Please fill in all required fields.');
       return;
     }
-
     try {
       setLoading(true);
-
       const utmSource = sessionStorage.getItem('utm_source') || '';
       const utmMedium = sessionStorage.getItem('utm_medium') || '';
       const utmCampaign = sessionStorage.getItem('utm_campaign') || '';
-
-      const orderPayload = {
-        customerDetails: {
-          name,
-          email: email.trim() || undefined,
-          phone: phone.trim(),
-          address: address.trim(),
-          city: city.trim(),
-          notes: orderNotes.trim() || undefined,
-        },
-        items: cart.map((item) => ({
-          productId: item.product._id,
-          quantity: item.quantity,
-        })),
-        utmSource: utmSource || undefined,
-        utmMedium: utmMedium || undefined,
-        utmCampaign: utmCampaign || undefined,
-      };
-
-      const response = await fetch('/api/orders', {
+      const res = await fetch('/api/orders', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(orderPayload),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          customerDetails: { name, email: email.trim() || undefined, phone: phone.trim(), address: address.trim(), city: city.trim(), notes: orderNotes.trim() || undefined },
+          items: cart.map(i => ({ productId: i.product._id, quantity: i.quantity })),
+          utmSource: utmSource || undefined, utmMedium: utmMedium || undefined, utmCampaign: utmCampaign || undefined,
+        }),
       });
-
-      const data = await response.json();
-
-      if (!response.ok || !data.success) {
-        throw new Error(data.error || 'An error occurred while creating your order.');
-      }
-
-      // Log tracking checkout success interaction
-      logInteraction('checkout_success', window.location.pathname, {
-        orderId: data.orderId,
-        amount: cartTotal,
-        itemsCount: cart.length,
-      });
-
+      const data = await res.json();
+      if (!res.ok || !data.success) throw new Error(data.error || 'Something went wrong.');
+      logInteraction('checkout_success', window.location.pathname, { orderId: data.orderId, amount: cartTotal, itemsCount: cart.length });
       clearCart();
       router.push(`/order-confirmation/${data.orderId}`);
     } catch (err: any) {
-      console.error('Checkout error:', err);
-      setError(err.message || 'Server connection failed. Please try again.');
+      setError(err.message || 'Connection failed. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="bg-white">
-      {/* Single Page Header start */}
-      <div className="container-fluid page-header py-5">
-        <h1 className="text-center text-white display-6 wow fadeInUp" data-wow-delay="0.1s">
-          Checkout
-        </h1>
-        <ol className="breadcrumb justify-content-center mb-0 wow fadeInUp" data-wow-delay="0.3s">
-          <li className="breadcrumb-item">
-            <Link href="/" className="text-white text-decoration-none">
-              Home
-            </Link>
-          </li>
-          <li className="breadcrumb-item active text-white">Checkout</li>
-        </ol>
-      </div>
-      {/* Single Page Header End */}
+    <div style={{ background: '#f4f4f4', minHeight: '100vh', paddingBottom: '40px' }}>
 
-      {/* Checkout Page Start */}
-      <div className="container-fluid bg-light overflow-hidden py-5">
-        <div className="container py-5">
-          <h1 className="mb-4 wow fadeInUp" data-wow-delay="0.1s">
-            Billing details
-          </h1>
-          {error && (
-            <div className="alert alert-danger rounded mb-4 py-3 px-4" role="alert">
-              ⚠ {error}
-            </div>
-          )}
-          <form onSubmit={handleCheckoutSubmit}>
-            <div className="row g-5">
-              <div className="col-md-12 col-lg-6 col-xl-6 wow fadeInUp" data-wow-delay="0.1s">
-                <div className="row">
-                  <div className="col-md-12 col-lg-6">
-                    <div className="form-item w-100">
-                      <label className="form-label my-3">First Name<sup>*</sup></label>
-                      <input
-                        type="text"
-                        required
-                        value={firstName}
-                        onChange={(e) => setFirstName(e.target.value)}
-                        className="form-control"
-                      />
-                    </div>
-                  </div>
-                  <div className="col-md-12 col-lg-6">
-                    <div className="form-item w-100">
-                      <label className="form-label my-3">Last Name<sup>*</sup></label>
-                      <input
-                        type="text"
-                        required
-                        value={lastName}
-                        onChange={(e) => setLastName(e.target.value)}
-                        className="form-control"
-                      />
-                    </div>
-                  </div>
-                </div>
-                <div className="form-item">
-                  <label className="form-label my-3">Address <sup>*</sup></label>
-                  <input
-                    type="text"
-                    required
-                    value={address}
-                    onChange={(e) => setAddress(e.target.value)}
-                    className="form-control"
-                    placeholder="House Number Street Name"
-                  />
-                </div>
-                <div className="form-item">
-                  <label className="form-label my-3">Town/City<sup>*</sup></label>
-                  <input
-                    type="text"
-                    required
-                    value={city}
-                    onChange={(e) => setCity(e.target.value)}
-                    className="form-control"
-                  />
-                </div>
-                <div className="form-item">
-                  <label className="form-label my-3">Mobile<sup>*</sup></label>
-                  <input
-                    type="tel"
-                    required
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    className="form-control"
-                    placeholder="e.g. +923001234567"
-                  />
-                </div>
-                <div className="form-item">
-                  <label className="form-label my-3">Email Address</label>
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="form-control"
-                    placeholder="e.g. email@example.com (optional)"
-                  />
-                </div>
-                <div className="form-item mt-4">
-                  <textarea
-                    value={orderNotes}
-                    onChange={(e) => setOrderNotes(e.target.value)}
-                    className="form-control"
-                    spellCheck="false"
-                    cols={30}
-                    rows={11}
-                    placeholder="Order Notes (Optional)"
-                  ></textarea>
-                </div>
-              </div>
-              
-              <div className="col-md-12 col-lg-6 col-xl-6 wow fadeInUp" data-wow-delay="0.3s">
-                <div className="table-responsive">
-                  <table className="table">
-                    <thead>
-                      <tr className="text-center">
-                        <th scope="col" className="text-start">Name</th>
-                        <th scope="col">Price</th>
-                        <th scope="col">Quantity</th>
-                        <th scope="col">Total</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {cart.map((item) => (
-                        <tr key={item.product._id} className="text-center">
-                          <th scope="row" className="text-start py-4 font-weight-normal">
-                            {item.product.name}
-                          </th>
-                          <td className="py-4">PKR {item.product.price.toLocaleString()}</td>
-                          <td className="py-4">{item.quantity}</td>
-                          <td className="py-4">PKR {(item.product.price * item.quantity).toLocaleString()}</td>
-                        </tr>
-                      ))}
-                      <tr>
-                        <th scope="row"></th>
-                        <td className="py-4"></td>
-                        <td className="py-4">
-                          <p className="mb-0 text-dark py-2 font-weight-bold">Subtotal</p>
-                        </td>
-                        <td className="py-4">
-                          <div className="py-2 text-center border-bottom border-top">
-                            <p className="mb-0 text-dark font-weight-bold">PKR {cartTotal.toLocaleString()}</p>
-                          </div>
-                        </td>
-                      </tr>
-                      <tr>
-                        <th scope="row"></th>
-                        <td className="py-4">
-                          <p className="mb-0 text-dark py-4 font-weight-bold">Shipping</p>
-                        </td>
-                        <td colSpan={2} className="py-4">
-                          <div className="form-check text-start my-2">
-                            <input
-                              type="radio"
-                              className="form-check-input bg-primary border-0"
-                              id="Shipping-1"
-                              name="Shipping-1"
-                              checked
-                              readOnly
-                            />
-                            <label className="form-check-label" htmlFor="Shipping-1">
-                              Free Shipping
-                            </label>
-                          </div>
-                        </td>
-                      </tr>
-                      <tr>
-                        <th scope="row"></th>
-                        <td className="py-4">
-                          <p className="mb-0 text-dark text-uppercase py-2 font-weight-bold">TOTAL</p>
-                        </td>
-                        <td className="py-4"></td>
-                        <td className="py-4">
-                          <div className="py-2 text-center border-bottom border-top">
-                            <p className="mb-0 text-dark font-weight-bold text-primary">PKR {cartTotal.toLocaleString()}</p>
-                          </div>
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-                
-                <div className="row g-0 text-center align-items-center justify-content-center border-bottom py-2 mt-4">
-                  <div className="col-12">
-                    <div className="form-check text-start my-2">
-                      <input
-                        type="radio"
-                        className="form-check-input bg-primary border-0"
-                        id="Delivery-1"
-                        name="Delivery"
-                        checked
-                        readOnly
-                      />
-                      <label className="form-check-label font-weight-bold" htmlFor="Delivery-1">
-                        Cash On Delivery (COD)
-                      </label>
-                    </div>
-                    <p className="text-start text-muted small">
-                      Pay with cash upon delivery of your items to your shipping address.
-                    </p>
-                  </div>
-                </div>
-                
-                <div className="row g-4 text-center align-items-center justify-content-center pt-4">
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    className="btn btn-primary border-secondary py-3 px-4 text-uppercase w-100 border-0"
-                  >
-                    {loading ? (
-                      <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                    ) : (
-                      'Place Order'
-                    )}
-                  </button>
-                </div>
-              </div>
-            </div>
-          </form>
+      {/* Breadcrumb */}
+      <div style={{ background: '#fff', borderBottom: '1px solid #f0f0f0', padding: '10px 0' }}>
+        <div className="container-fluid px-3">
+          <ol className="breadcrumb mb-0" style={{ fontSize: '0.78rem' }}>
+            <li className="breadcrumb-item"><Link href="/" className="text-decoration-none text-muted">Home</Link></li>
+            <li className="breadcrumb-item"><Link href="/cart" className="text-decoration-none text-muted">Cart</Link></li>
+            <li className="breadcrumb-item active fw-semibold" style={{ color: '#111' }}>Checkout</li>
+          </ol>
         </div>
       </div>
-      {/* Checkout Page End */}
+
+      <div style={{ maxWidth: '900px', margin: '12px auto 0', padding: '0 12px' }}>
+        <h2 style={{ fontWeight: 800, fontSize: '1.2rem', color: '#111', marginBottom: '14px', padding: '0 2px' }}>Checkout</h2>
+
+        {error && (
+          <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '8px', padding: '12px 14px', marginBottom: '14px', fontSize: '0.85rem', color: '#dc2626', display: 'flex', gap: '8px' }}>
+            <i className="fas fa-exclamation-circle" style={{ marginTop: '2px', flexShrink: 0 }} />
+            {error}
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit}>
+          <div className="row g-3">
+
+            {/* LEFT — Shipping form */}
+            <div className="col-12 col-lg-7">
+              <div style={{ background: '#fff', borderRadius: '12px', padding: '18px' }}>
+                <h4 style={{ fontWeight: 800, fontSize: '0.95rem', color: '#111', marginBottom: '16px', paddingBottom: '10px', borderBottom: '1px solid #f0f0f0' }}>
+                  <i className="fas fa-map-marker-alt me-2" style={{ color: 'var(--pd-primary)', fontSize: '14px' }} />
+                  Shipping Information
+                </h4>
+
+                <div className="row g-3">
+                  <div className="col-6">
+                    <label style={labelStyle}>First Name <span style={{ color: '#ef4444' }}>*</span></label>
+                    <input type="text" required value={firstName} onChange={e => setFirstName(e.target.value)} style={inputStyle}
+                      onFocus={e => (e.target as HTMLInputElement).style.borderColor = 'var(--pd-primary)'}
+                      onBlur={e => (e.target as HTMLInputElement).style.borderColor = '#e5e7eb'} />
+                  </div>
+                  <div className="col-6">
+                    <label style={labelStyle}>Last Name <span style={{ color: '#ef4444' }}>*</span></label>
+                    <input type="text" required value={lastName} onChange={e => setLastName(e.target.value)} style={inputStyle}
+                      onFocus={e => (e.target as HTMLInputElement).style.borderColor = 'var(--pd-primary)'}
+                      onBlur={e => (e.target as HTMLInputElement).style.borderColor = '#e5e7eb'} />
+                  </div>
+                  <div className="col-12">
+                    <label style={labelStyle}>Address <span style={{ color: '#ef4444' }}>*</span></label>
+                    <input type="text" required value={address} onChange={e => setAddress(e.target.value)} placeholder="House No, Street Name" style={inputStyle}
+                      onFocus={e => (e.target as HTMLInputElement).style.borderColor = 'var(--pd-primary)'}
+                      onBlur={e => (e.target as HTMLInputElement).style.borderColor = '#e5e7eb'} />
+                  </div>
+                  <div className="col-12">
+                    <label style={labelStyle}>City <span style={{ color: '#ef4444' }}>*</span></label>
+                    <input type="text" required value={city} onChange={e => setCity(e.target.value)} style={inputStyle}
+                      onFocus={e => (e.target as HTMLInputElement).style.borderColor = 'var(--pd-primary)'}
+                      onBlur={e => (e.target as HTMLInputElement).style.borderColor = '#e5e7eb'} />
+                  </div>
+                  <div className="col-12">
+                    <label style={labelStyle}>Phone <span style={{ color: '#ef4444' }}>*</span></label>
+                    <input type="tel" required value={phone} onChange={e => setPhone(e.target.value)} placeholder="+923001234567" style={inputStyle}
+                      onFocus={e => (e.target as HTMLInputElement).style.borderColor = 'var(--pd-primary)'}
+                      onBlur={e => (e.target as HTMLInputElement).style.borderColor = '#e5e7eb'} />
+                  </div>
+                  <div className="col-12">
+                    <label style={labelStyle}>Email <span style={{ color: '#9ca3af', fontWeight: 400 }}>(optional)</span></label>
+                    <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="your@email.com" style={inputStyle}
+                      onFocus={e => (e.target as HTMLInputElement).style.borderColor = 'var(--pd-primary)'}
+                      onBlur={e => (e.target as HTMLInputElement).style.borderColor = '#e5e7eb'} />
+                  </div>
+                  <div className="col-12">
+                    <label style={labelStyle}>Order Notes <span style={{ color: '#9ca3af', fontWeight: 400 }}>(optional)</span></label>
+                    <textarea value={orderNotes} onChange={e => setOrderNotes(e.target.value)} rows={3} placeholder="Any special instructions..." style={{ ...inputStyle, resize: 'vertical' as const }}
+                      onFocus={e => (e.target as HTMLTextAreaElement).style.borderColor = 'var(--pd-primary)'}
+                      onBlur={e => (e.target as HTMLTextAreaElement).style.borderColor = '#e5e7eb'} />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* RIGHT — Order summary */}
+            <div className="col-12 col-lg-5">
+              <div style={{ background: '#fff', borderRadius: '12px', padding: '18px', position: 'sticky', top: '80px' }}>
+                <h4 style={{ fontWeight: 800, fontSize: '0.95rem', color: '#111', marginBottom: '14px', paddingBottom: '10px', borderBottom: '1px solid #f0f0f0' }}>
+                  <i className="fas fa-receipt me-2" style={{ color: 'var(--pd-primary)', fontSize: '14px' }} />
+                  Order Summary
+                </h4>
+
+                {/* Items */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '14px' }}>
+                  {cart.map(item => (
+                    <div key={item.product._id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.82rem', alignItems: 'center' }}>
+                      <span style={{ color: '#374151', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginRight: '8px' }}>
+                        {item.product.name} <span style={{ color: '#9ca3af' }}>×{item.quantity}</span>
+                      </span>
+                      <span style={{ fontWeight: 600, color: '#111', flexShrink: 0 }}>PKR {(item.product.price * item.quantity).toLocaleString()}</span>
+                    </div>
+                  ))}
+                </div>
+
+                <div style={{ height: '1px', background: '#f0f0f0', marginBottom: '12px' }} />
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem' }}>
+                    <span style={{ color: '#6b7280' }}>Subtotal</span>
+                    <span style={{ fontWeight: 600, color: '#111' }}>PKR {cartTotal.toLocaleString()}</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem' }}>
+                    <span style={{ color: '#6b7280' }}>Delivery</span>
+                    <span style={{ fontWeight: 700, color: '#16a34a' }}>FREE</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1rem', paddingTop: '8px', borderTop: '1px solid #f0f0f0' }}>
+                    <span style={{ fontWeight: 800, color: '#111' }}>Total</span>
+                    <span style={{ fontWeight: 900, color: 'var(--pd-primary)' }}>PKR {cartTotal.toLocaleString()}</span>
+                  </div>
+                </div>
+
+                {/* COD badge */}
+                <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '8px', padding: '10px 12px', marginBottom: '14px', fontSize: '0.78rem', color: '#166534', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <i className="fas fa-money-bill-wave" style={{ flexShrink: 0 }} />
+                  <span><strong>Cash on Delivery (COD)</strong> — Pay when you receive</span>
+                </div>
+
+                <button type="submit" disabled={loading} className="btn-gradient"
+                  style={{ border: 'none', borderRadius: '8px', padding: '14px', fontWeight: 800, fontSize: '0.95rem', width: '100%', cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.8 : 1 }}>
+                  {loading ? (
+                    <><span className="spinner-border spinner-border-sm me-2" />Placing Order…</>
+                  ) : (
+                    <><i className="fas fa-check-circle me-2" />Place Order</>
+                  )}
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </form>
+      </div>
     </div>
   );
 }

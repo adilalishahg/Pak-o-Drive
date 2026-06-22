@@ -68,13 +68,33 @@ export default function OrderConfirmationPage() {
     <div style={{ background: '#f4f4f4', minHeight: '100vh', paddingBottom: '32px' }}>
       <style>{`
         @media print {
-          .no-print { display: none !important; }
-          body { background: #fff !important; }
+          /* Hide everything */
+          body * { visibility: hidden !important; }
+          /* Show only invoice card */
+          #invoice-print-area,
+          #invoice-print-area * { visibility: visible !important; }
+          /* Position invoice at top */
+          #invoice-print-area {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100% !important;
+            margin: 0 !important;
+            padding: 20px !important;
+            background: #fff !important;
+            box-shadow: none !important;
+            border-radius: 0 !important;
+          }
+          /* Hide navbar, footer, whatsapp etc */
+          header, nav, footer, .no-print,
+          [class*="navbar"], [class*="footer"],
+          [class*="whatsapp"], [class*="back-to-top"],
+          [class*="chat"] { display: none !important; }
+          @page { margin: 10mm; size: A4; }
         }
         @media (max-width: 575px) {
           .oc-invoice-header { flex-direction: column !important; gap: 12px !important; }
           .oc-invoice-header .text-end { text-align: left !important; }
-          .oc-totals-table { width: 100% !important; }
         }
       `}</style>
 
@@ -118,7 +138,7 @@ export default function OrderConfirmationPage() {
       </div>
 
       {/* ── Invoice card ── */}
-      <div style={{ maxWidth: '640px', margin: '16px auto 0', padding: '0 12px' }}>
+      <div id="invoice-print-area" style={{ maxWidth: '640px', margin: '16px auto 0', padding: '0 12px' }}>
         <div style={{ background: '#fff', borderRadius: '12px', overflow: 'hidden', boxShadow: '0 2px 12px rgba(0,0,0,0.07)' }}>
 
           {/* Invoice header */}
