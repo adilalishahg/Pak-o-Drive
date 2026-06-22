@@ -9,267 +9,261 @@ import { ProductCard } from '../../../components/product/ProductCard';
 import { ProductImageGallery } from '../../../components/product/ProductImageGallery';
 import { ProductViewLogger } from '../../../components/common/ProductViewLogger';
 
-interface PageProps {
-  params: Promise<{ id: string }>;
-}
+interface PageProps { params: Promise<{ id: string }> }
 
-export async function generateMetadata(
-  { params }: PageProps
-): Promise<Metadata> {
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   await dbConnect();
   const { id } = await params;
-
-  let productObj;
-  try {
-    productObj = await Product.findById(id).lean();
-  } catch (error) {
-    return { title: 'Product Not Found | PAKODRIVE' };
-  }
-
-  if (!productObj) {
-    return { title: 'Product Not Found | PAKODRIVE' };
-  }
-
-  const name = String(productObj.name || 'Product');
-  const description = String(productObj.description || 'Shop premium electronics at PAKODRIVE.');
-  const category = String(productObj.category || 'electronics');
-  const image = String(productObj.image || '/img/product-placeholder.png');
-
+  let p: any;
+  try { p = await Product.findById(id).lean(); } catch { return { title: 'Product Not Found' }; }
+  if (!p) return { title: 'Product Not Found' };
   return {
-    title: `${name} — Buy Online in Pakistan | PAKODRIVE`,
-    description: `${description.substring(0, 160)}... Buy premium ${category} at PAKODRIVE with Free Shipping & COD.`,
-    openGraph: {
-      title: name,
-      description: description.substring(0, 160),
-      images: [{ url: image }],
-      type: 'article',
-      url: `https://pakodrive.com/product/${id}`,
-    },
-    twitter: {
-      card: 'summary_large_image',
-      title: name,
-      description: description.substring(0, 160),
-      images: [image],
-    },
+    title: `${p.name} | Electro`,
+    description: String(p.description || '').substring(0, 160),
+    openGraph: { title: String(p.name), images: [{ url: String(p.image || '') }] },
   };
 }
 
 export default async function ProductDetailPage({ params }: PageProps) {
   await dbConnect();
   const { id } = await params;
-
-  let productObj;
-  try {
-    productObj = await Product.findById(id);
-  } catch (error) {
-    console.error('Invalid product ID parsed:', error);
-    return notFound();
-  }
-
-  if (!productObj) {
-    return notFound();
-  }
+  let productObj: any;
+  try { productObj = await Product.findById(id); } catch { return notFound(); }
+  if (!productObj) return notFound();
 
   const product = JSON.parse(JSON.stringify(productObj));
-
-  // Fetch up to 4 related products in the same category
-  const relatedObj = await Product.find({
-    category: product.category,
-    _id: { $ne: product._id },
-  }).limit(4);
-
+  const relatedObj = await Product.find({ category: product.category, _id: { $ne: product._id } }).limit(6);
   const relatedProducts = JSON.parse(JSON.stringify(relatedObj));
 
-  const renderStars = (rating: number) => {
-    const stars = [];
-    const floorRating = Math.floor(rating);
-    for (let i = 1; i <= 5; i++) {
-      if (i <= floorRating) {
-        stars.push(<i key={i} className="fas fa-star text-secondary"></i>);
-      } else {
-        stars.push(<i key={i} className="fas fa-star text-muted"></i>);
-      }
-    }
-    return stars;
-  };
-
   const discountPercent = product.originalPrice > product.price
-    ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
-    : 0;
+    ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100) : 0;
 
-  // JSON-LD Structured Data Schema for Rich Snippets
-  const jsonLd = {
-    '@context': 'https://schema.org',
-    '@type': 'Product',
-    name: product.name,
-    image: product.image,
-    description: product.description,
-    sku: `PAK-${product._id?.substring(18).toUpperCase() || 'SKU'}`,
-    brand: {
-      '@type': 'Brand',
-      name: product.specifications?.Brand || 'PAKODRIVE',
-    },
-    offers: {
-      '@type': 'Offer',
-      url: `https://pakodrive.com/product/${product._id}`,
-      priceCurrency: 'PKR',
-      price: product.price,
-      priceValidUntil: '2029-12-31',
-      itemCondition: 'https://schema.org/NewCondition',
-      availability: product.stock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
-    },
-    aggregateRating: {
-      '@type': 'AggregateRating',
-      ratingValue: product.rating || 5.0,
-      reviewCount: product.reviewsCount || 1,
-    }
-  };
+  const specs = product.specifications
+    ? Object.entries(product.specifications as Record<string, unknown>) : [];
 
   return (
-    <div className="bg-white">
-      {/* Schema Rich Snippet Tag */}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
-      <ProductViewLogger id={product._id} name={product.name} category={product.category} price={product.price} />
-      
-      {/* Premium Breadcrumb Section */}
-      <div className="container mt-4 mb-2">
-        <nav aria-label="breadcrumb">
-          <ol className="breadcrumb bg-transparent p-0 m-0 small" style={{ fontSize: '0.82rem' }}>
-            <li className="breadcrumb-item">
-              <Link href="/" className="text-muted text-decoration-none fw-medium">
-                Home
-              </Link>
-            </li>
-            <li className="breadcrumb-item">
-              <Link href="/shop" className="text-muted text-decoration-none fw-medium">
-                Shop
-              </Link>
-            </li>
-            <li className="breadcrumb-item text-capitalize">
-              <Link href={`/shop?category=${product.category}`} className="text-muted text-decoration-none fw-medium">
-                {product.category}
-              </Link>
-            </li>
-            <li className="breadcrumb-item active text-dark fw-semibold text-truncate" aria-current="page" style={{ maxWidth: '280px' }}>
-              {product.name}
-            </li>
-          </ol>
-        </nav>
-      </div>
+    <>
+      <style>{`
+        .pd-detail-page { background: #f4f4f4; min-height: 100vh; }
+        .pd-card { background: #fff; }
+        @media (max-width: 767px) {
+          .pd-detail-right { padding: 14px 14px 20px !important; }
+          .pd-detail-title { font-size: 1.1rem !important; }
+          .pd-detail-price-num { font-size: 1.5rem !important; }
+        }
+      `}</style>
 
-      {/* Main Content Layout */}
-      <div className="container py-4">
-        <div className="row g-5">
-          {/* Left Column: Image Gallery Slider & Magnifier */}
-          <div className="col-12 col-lg-6">
-            <ProductImageGallery 
-              image={product.image} 
-              images={product.images || []} 
-              name={product.name} 
-            />
+      <div className="pd-detail-page">
+        <ProductViewLogger id={product._id} name={product.name} category={product.category} price={product.price} />
+
+        {/* ── Breadcrumb ── */}
+        <div style={{ background: '#fff', borderBottom: '1px solid #eee', padding: '8px 0' }}>
+          <div className="container-fluid px-3">
+            <nav aria-label="breadcrumb">
+              <ol className="breadcrumb mb-0" style={{ fontSize: '0.75rem', flexWrap: 'nowrap', overflow: 'hidden' }}>
+                <li className="breadcrumb-item flex-shrink-0">
+                  <Link href="/" className="text-decoration-none text-muted">Home</Link>
+                </li>
+                <li className="breadcrumb-item flex-shrink-0">
+                  <Link href="/shop" className="text-decoration-none text-muted">Shop</Link>
+                </li>
+                <li className="breadcrumb-item flex-shrink-0">
+                  <Link href={`/shop?category=${product.category}`}
+                    className="text-decoration-none text-muted text-capitalize">
+                    {product.category}
+                  </Link>
+                </li>
+                <li className="breadcrumb-item active text-dark fw-semibold"
+                  style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {product.name}
+                </li>
+              </ol>
+            </nav>
           </div>
+        </div>
 
-          {/* Right Column: Product Meta and Options */}
-          <div className="col-12 col-lg-6">
-            <div className="ps-lg-3">
-              <span className="badge bg-light text-primary text-uppercase px-2.5 py-1.5 fw-semibold mb-3 border border-primary-subtle text-capitalize">
-                {product.category}
-              </span>
-              
-              <h2 className="fw-bold text-dark mb-3 lh-sm" style={{ fontSize: '2rem', letterSpacing: '-0.5px' }}>
-                {product.name}
-              </h2>
+        {/* ── Main section ── */}
+        <div style={{ maxWidth: '1100px', margin: '12px auto 0', padding: '0' }}>
 
-              <div className="d-flex align-items-center mb-4 gap-1">
-                <div className="d-flex text-warning gap-0.5">
-                  {renderStars(product.rating)}
-                </div>
-                <span className="text-muted small ms-2">({product.reviewsCount} verified customer reviews)</span>
+          {/* Top card: image + info */}
+          <div className="pd-card">
+            <div className="row g-0">
+
+              {/* Image col */}
+              <div className="col-12 col-md-5" style={{ borderBottom: '1px solid #f0f0f0' }}>
+                <ProductImageGallery image={product.image} images={product.images || []} name={product.name} />
               </div>
 
-              <div className="p-3 bg-light rounded-3 mb-4 border d-inline-flex flex-column gap-1 min-w-200">
-                {product.originalPrice > product.price && (
-                  <div className="d-flex align-items-center gap-2">
-                    <del className="text-muted fs-6">PKR {product.originalPrice.toLocaleString()}</del>
-                    <span className="badge bg-danger rounded-pill px-2 py-0.5" style={{ fontSize: '0.75rem' }}>
-                      Save {discountPercent}%
+              {/* Info col */}
+              <div className="col-12 col-md-7">
+                <div className="pd-detail-right" style={{ padding: '20px 20px 24px' }}>
+
+                  {/* Category */}
+                  <Link href={`/shop?category=${product.category}`} style={{
+                    display: 'inline-block', textDecoration: 'none',
+                    background: 'rgba(var(--pd-primary-rgb,234,88,12),0.08)',
+                    color: 'var(--pd-primary)', fontSize: '0.65rem', fontWeight: 700,
+                    padding: '3px 10px', borderRadius: '20px', textTransform: 'uppercase',
+                    letterSpacing: '0.5px', marginBottom: '8px',
+                  }}>{product.category}</Link>
+
+                  {/* Name */}
+                  <h1 className="pd-detail-title" style={{
+                    fontSize: '1.35rem', fontWeight: 800, color: '#111',
+                    lineHeight: 1.3, margin: '0 0 10px',
+                  }}>{product.name}</h1>
+
+                  {/* Stars + review count */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '14px' }}>
+                    <div style={{ display: 'flex', gap: '2px' }}>
+                      {Array.from({ length: 5 }, (_, i) => (
+                        <i key={i} className="fas fa-star" style={{
+                          fontSize: '13px',
+                          color: i < Math.floor(product.rating) ? '#f59e0b' : '#d1d5db',
+                        }} />
+                      ))}
+                    </div>
+                    <span style={{ fontSize: '0.75rem', color: '#6b7280' }}>
+                      {product.rating?.toFixed(1)} · {product.reviewsCount} reviews
                     </span>
                   </div>
-                )}
-                <div className="d-flex align-items-baseline gap-1.5">
-                  <span className="text-muted small fw-semibold">PKR</span>
-                  <span className="fs-3 fw-extrabold text-primary">
-                    {product.price.toLocaleString()}
-                  </span>
+
+                  {/* Price box */}
+                  <div style={{
+                    background: '#fafafa', border: '1px solid #eee',
+                    borderRadius: '8px', padding: '12px 14px', marginBottom: '14px',
+                  }}>
+                    {product.originalPrice > product.price && (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                        <del style={{ fontSize: '0.82rem', color: '#9ca3af' }}>
+                          PKR {product.originalPrice.toLocaleString()}
+                        </del>
+                        <span style={{
+                          background: '#dc2626', color: '#fff',
+                          fontSize: '0.62rem', fontWeight: 800,
+                          padding: '2px 7px', borderRadius: '3px',
+                        }}>-{discountPercent}% OFF</span>
+                      </div>
+                    )}
+                    <div style={{ display: 'flex', alignItems: 'baseline', gap: '3px' }}>
+                      <span style={{ fontSize: '0.8rem', color: '#6b7280' }}>PKR</span>
+                      <span className="pd-detail-price-num" style={{
+                        fontSize: '1.8rem', fontWeight: 900, color: 'var(--pd-primary)', lineHeight: 1,
+                      }}>{product.price.toLocaleString()}</span>
+                    </div>
+                  </div>
+
+                  {/* Meta */}
+                  <div style={{ fontSize: '0.78rem', marginBottom: '14px', display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                    <div>
+                      <span style={{ color: '#9ca3af' }}>Availability: </span>
+                      <span style={{ fontWeight: 700, color: product.stock > 0 ? '#16a34a' : '#dc2626' }}>
+                        {product.stock > 0 ? `In Stock (${product.stock})` : 'Out of Stock'}
+                      </span>
+                    </div>
+                    <div>
+                      <span style={{ color: '#9ca3af' }}>SKU: </span>
+                      <span style={{ fontWeight: 600, color: '#374151' }}>
+                        PAK-{product._id?.substring(18).toUpperCase()}
+                      </span>
+                    </div>
+                    <div>
+                      <span style={{ color: '#9ca3af' }}>Shipping: </span>
+                      <span style={{ fontWeight: 600, color: '#16a34a' }}>Free above PKR 5,000</span>
+                    </div>
+                  </div>
+
+                  {/* Description */}
+                  {product.description && (
+                    <p style={{
+                      fontSize: '0.82rem', color: '#6b7280', lineHeight: 1.65,
+                      marginBottom: '16px', borderTop: '1px solid #f0f0f0', paddingTop: '12px',
+                    }}>{product.description}</p>
+                  )}
+
+                  {/* Actions */}
+                  <ProductActions product={product} />
+
+                  {/* Trust row */}
+                  <div style={{
+                    display: 'grid', gridTemplateColumns: '1fr 1fr',
+                    gap: '8px', marginTop: '16px',
+                    paddingTop: '14px', borderTop: '1px solid #f0f0f0',
+                  }}>
+                    {[
+                      { icon: 'fas fa-shield-alt', text: '100% Genuine' },
+                      { icon: 'fas fa-undo', text: '30-Day Return' },
+                      { icon: 'fas fa-truck', text: 'Fast Delivery' },
+                      { icon: 'fas fa-lock', text: 'Secure COD' },
+                    ].map((b, i) => (
+                      <div key={i} style={{
+                        display: 'flex', alignItems: 'center', gap: '6px',
+                        background: '#fafafa', borderRadius: '6px', padding: '8px 10px',
+                        border: '1px solid #f0f0f0',
+                        fontSize: '0.72rem', color: '#374151', fontWeight: 600,
+                      }}>
+                        <i className={b.icon} style={{ color: 'var(--pd-primary)', fontSize: '13px', flexShrink: 0 }} />
+                        {b.text}
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
-
-              <div className="d-flex flex-column gap-1 mb-4 text-muted small fw-medium">
-                <div>Availability: <span className={product.stock > 0 ? "text-success fw-bold" : "text-danger fw-bold"}>
-                  {product.stock > 0 ? `In Stock (${product.stock} items)` : 'Out of Stock'}
-                </span></div>
-                <div>SKU: <span className="text-dark">PAK-{product._id?.substring(18).toUpperCase() || 'N/A'}</span></div>
-                <div>Shipping: <span className="text-success">Free Delivery</span> above PKR 5,000</div>
-              </div>
-
-              <hr className="my-4 text-secondary-subtle" />
-
-              <p className="mb-4 leading-relaxed text-secondary" style={{ fontSize: '0.95rem' }}>
-                {product.description}
-              </p>
-
-              <hr className="my-4 text-secondary-subtle" />
-
-              <ProductActions product={product} />
             </div>
           </div>
-        </div>
 
-        {/* Specifications Tab sheet */}
-        <div className="row mt-5">
-          <div className="col-12">
-            <h4 className="fw-bold text-dark border-bottom pb-2.5 mb-4">Technical Specifications</h4>
-            {product.specifications && Object.keys(product.specifications).length > 0 ? (
-              <div className="card border-0 shadow-sm rounded-4 overflow-hidden max-w-xl">
-                <table className="table table-striped table-hover align-middle mb-0 border">
-                  <tbody>
-                    {Object.entries(product.specifications).map(([key, val]) => (
-                      <tr key={key}>
-                        <td className="fw-bold text-dark w-40 ps-4 py-3" style={{ fontSize: '0.9rem' }}>{key}</td>
-                        <td className="text-secondary py-3" style={{ fontSize: '0.9rem' }}>{String(val)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+          {/* Specs */}
+          {specs.length > 0 && (
+            <div className="pd-card" style={{ marginTop: '8px' }}>
+              <div style={{ padding: '16px 16px 20px' }}>
+                <h4 style={{
+                  fontSize: '0.95rem', fontWeight: 800, color: '#111',
+                  marginBottom: '12px', paddingBottom: '8px',
+                  borderBottom: '2px solid var(--pd-primary)', display: 'inline-block',
+                }}>Technical Specifications</h4>
+                <div style={{ overflowX: 'auto' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem' }}>
+                    <tbody>
+                      {specs.map(([key, val], i) => (
+                        <tr key={key} style={{ background: i % 2 === 0 ? '#fafafa' : '#fff' }}>
+                          <td style={{
+                            padding: '9px 12px', fontWeight: 700, color: '#374151',
+                            width: '45%', borderBottom: '1px solid #f0f0f0',
+                          }}>{key}</td>
+                          <td style={{ padding: '9px 12px', color: '#6b7280', borderBottom: '1px solid #f0f0f0' }}>
+                            {String(val)}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
-            ) : (
-              <p className="text-muted">No technical specifications provided for this product.</p>
-            )}
-          </div>
+            </div>
+          )}
+
+          {/* Related Products */}
+          {relatedProducts.length > 0 && (
+            <div className="pd-card" style={{ marginTop: '8px', marginBottom: '16px' }}>
+              <div style={{ padding: '16px 16px 0' }}>
+                <h4 style={{
+                  fontSize: '0.95rem', fontWeight: 800, color: '#111',
+                  marginBottom: '12px', paddingBottom: '8px',
+                  borderBottom: '2px solid var(--pd-primary)', display: 'inline-block',
+                }}>Related Products</h4>
+              </div>
+              <div className="row g-0" style={{ borderTop: '1px solid #f0f0f0', borderLeft: '1px solid #f0f0f0' }}>
+                {relatedProducts.map((prod: any) => (
+                  <div key={prod._id} className="col-6 col-md-4 col-lg-3"
+                    style={{ borderRight: '1px solid #f0f0f0', borderBottom: '1px solid #f0f0f0' }}>
+                    <ProductCard product={prod} />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
-
-      {/* Related Products Section */}
-      {relatedProducts.length > 0 && (
-        <div className="container-fluid related-product py-5 bg-light border-top mt-5">
-          <div className="container">
-            <div className="text-center pb-4">
-              <h4 className="fw-bold text-dark mb-2">Related Products</h4>
-              <p className="text-muted small">Explore other electronics in the same collection.</p>
-            </div>
-            <div className="row g-4 product justify-content-center">
-              {relatedProducts.map((prod: any) => (
-                <div key={prod._id} className="col-12 col-md-6 col-lg-3">
-                  <ProductCard product={prod} />
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
+    </>
   );
 }
