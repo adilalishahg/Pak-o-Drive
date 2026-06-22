@@ -216,8 +216,7 @@ function ShopContent() {
                     <ProductCard product={prod} />
                   </div>
                 ))}
-              </div>
-            )}
+              </div>            )}
           </div>
         </div>
       </div>

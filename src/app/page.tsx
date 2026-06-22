@@ -258,8 +258,7 @@ export default function Home() {
                   style={{ borderRight: '1px solid #f0f0f0', borderBottom: '1px solid #f0f0f0' }}>
                   <ProductCard product={prod} />
                 </div>
-              ))}
-            </div>
+              ))}            </div>
           )}
 
           {/* View all */}
