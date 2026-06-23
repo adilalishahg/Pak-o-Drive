@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import dbConnect from '../../../lib/mongodb';
 import Product from '../../../models/Product';
+import SiteInfo from '../../../models/SiteInfo';
 import { ProductCard } from '../../../components/product/ProductCard';
 import { ProductDetailInteractive } from '../../../components/product/ProductDetailInteractive';
 
@@ -15,10 +16,28 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   let p: any;
   try { p = await Product.findById(id).lean(); } catch { return { title: 'Product Not Found' }; }
   if (!p) return { title: 'Product Not Found' };
+
+  let siteLogoText = 'Electro';
+  try {
+    const siteInfo = await SiteInfo.findOne({}).lean();
+    if (siteInfo && siteInfo.logoText) {
+      siteLogoText = siteInfo.logoText;
+    }
+  } catch {}
+
+  const metaTitle = p.seoTitle || `${p.name} | ${siteLogoText}`;
+  const metaDesc = p.seoDescription || String(p.description || '').substring(0, 160);
+  const keywords = p.seoKeywords ? p.seoKeywords.split(',').map((k: string) => k.trim()).filter(Boolean) : undefined;
+
   return {
-    title: `${p.name} | Electro`,
-    description: String(p.description || '').substring(0, 160),
-    openGraph: { title: String(p.name), images: [{ url: String(p.image || '') }] },
+    title: metaTitle,
+    description: metaDesc,
+    keywords,
+    openGraph: {
+      title: metaTitle,
+      description: metaDesc,
+      images: [{ url: String(p.image || '') }],
+    },
   };
 }
 

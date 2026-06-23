@@ -40,9 +40,9 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, error: 'No file uploaded.' }, { status: 400 });
     }
 
-    // Verify file type is an image
-    if (!file.type.startsWith('image/')) {
-      return NextResponse.json({ success: false, error: 'Only image files are allowed.' }, { status: 400 });
+    // Verify file type is an image or video
+    if (!file.type.startsWith('image/') && !file.type.startsWith('video/')) {
+      return NextResponse.json({ success: false, error: 'Only image and video files are allowed.' }, { status: 400 });
     }
 
     const bytes = await file.arrayBuffer();

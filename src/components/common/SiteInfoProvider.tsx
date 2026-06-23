@@ -6,6 +6,11 @@ export interface SiteInfo {
   siteName: string;
   siteTagline: string;
   logoText: string;
+  logoIcon: string;
+  favicon: string;
+  seoTitle: string;
+  seoDescription: string;
+  seoKeywords: string;
   address: string;
   city: string;
   country: string;
@@ -33,6 +38,11 @@ export const DEFAULT_SITE_INFO: SiteInfo = {
   siteName: 'PAKODRIVE',
   siteTagline: "Pakistan's Trusted Electronics Store",
   logoText: 'Electro',
+  logoIcon: 'shopping-bag',
+  favicon: '/favicon.ico',
+  seoTitle: 'PAKODRIVE Electronics — Best Electronics Store in Pakistan',
+  seoDescription: "PAKODRIVE — Pakistan's trusted electronics store. Shop headphones, chargers, smartwatches, automotive electronics & more with free shipping and 30-day returns.",
+  seoKeywords: 'electronics Pakistan, buy headphones Pakistan, smartwatches online, chargers cables Pakistan, automotive electronics, PAKODRIVE, online shopping Pakistan',
   address: '123 Street Karachi, Pakistan',
   city: 'Karachi',
   country: 'Pakistan',

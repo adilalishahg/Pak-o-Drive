@@ -17,6 +17,10 @@ export interface IProduct {
   category: string;
   image: string;
   images?: string[];
+  video?: string;
+  seoTitle?: string;
+  seoDescription?: string;
+  seoKeywords?: string;
   rating: number;
   reviewsCount: number;
   isNewArrival: boolean;

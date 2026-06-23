@@ -6,6 +6,11 @@ interface SiteInfo {
   siteName: string;
   siteTagline: string;
   logoText: string;
+  logoIcon: string;
+  favicon: string;
+  seoTitle: string;
+  seoDescription: string;
+  seoKeywords: string;
   address: string;
   city: string;
   country: string;
@@ -33,6 +38,11 @@ const DEFAULT_INFO: SiteInfo = {
   siteName: '',
   siteTagline: '',
   logoText: '',
+  logoIcon: 'shopping-bag',
+  favicon: '/favicon.ico',
+  seoTitle: '',
+  seoDescription: '',
+  seoKeywords: '',
   address: '',
   city: '',
   country: '',
@@ -56,7 +66,7 @@ const DEFAULT_INFO: SiteInfo = {
   copyrightText: '',
 };
 
-type ActiveTab = 'general' | 'contact' | 'social' | 'policies';
+type ActiveTab = 'general' | 'contact' | 'social' | 'policies' | 'seo';
 
 export default function AdminSiteInfoPage() {
   const [info, setInfo] = useState<SiteInfo>(DEFAULT_INFO);
@@ -88,7 +98,7 @@ export default function AdminSiteInfoPage() {
     }
   }
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setInfo((prev) => ({ ...prev, [name]: value }));
   };
@@ -163,6 +173,14 @@ export default function AdminSiteInfoPage() {
             >
               <i className="fas fa-sliders-h" />
               <span>General Settings</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('seo')}
+              className={`list-group-item list-group-item-action border-0 rounded-3 py-2.5 px-3 mb-1 d-flex align-items-center gap-2.5 ${activeTab === 'seo' ? 'active bg-primary' : 'text-secondary'}`}
+              style={{ fontWeight: 500 }}
+            >
+              <i className="fas fa-globe" />
+              <span>SEO & Site Icons</span>
             </button>
             <button
               onClick={() => setActiveTab('contact')}
@@ -252,6 +270,103 @@ export default function AdminSiteInfoPage() {
                       className="form-control rounded-3"
                       placeholder="e.g. © 2026 PAKODRIVE. All rights reserved."
                     />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'seo' && (
+              <div className="fade-in">
+                <h6 className="fw-bold text-dark border-bottom pb-2 mb-3">SEO & Browser Tab Icons Settings</h6>
+                
+                <div className="row g-3 mb-4">
+                  <div className="col-12 col-md-6">
+                    <label className="form-label text-muted small fw-semibold">Site Header Logo Icon</label>
+                    <select
+                      name="logoIcon"
+                      value={info.logoIcon}
+                      onChange={handleChange}
+                      className="form-select rounded-3"
+                    >
+                      <option value="shopping-bag">Shopping Bag (Default)</option>
+                      <option value="shopping-cart">Shopping Cart</option>
+                      <option value="laptop">Laptop / PC</option>
+                      <option value="mobile">Mobile Phone</option>
+                      <option value="headset">Headset</option>
+                      <option value="plug">Power Plug</option>
+                      <option value="bolt">Flash / Bolt</option>
+                      <option value="fire">Fire / Hot</option>
+                      <option value="heart">Heart</option>
+                    </select>
+                    <div className="form-text small">Choose the icon displayed next to your brand logo in the navigation header.</div>
+                  </div>
+
+                  <div className="col-12 col-md-6">
+                    <label className="form-label text-muted small fw-semibold">Custom Icon Class (Optional)</label>
+                    <input
+                      type="text"
+                      name="logoIcon"
+                      value={info.logoIcon}
+                      onChange={handleChange}
+                      className="form-control rounded-3"
+                      placeholder="e.g. fas fa-desktop"
+                    />
+                    <div className="form-text small">Or type any FontAwesome icon class name. Overrides dropdown selection.</div>
+                  </div>
+
+                  <div className="col-12">
+                    <label className="form-label text-muted small fw-semibold">Website Favicon URL</label>
+                    <input
+                      type="text"
+                      name="favicon"
+                      value={info.favicon}
+                      onChange={handleChange}
+                      className="form-control rounded-3"
+                      placeholder="e.g. /favicon.ico"
+                    />
+                    <div className="form-text small">The URL of the tab icon. You can use standard `/favicon.ico` or any uploaded image URL.</div>
+                  </div>
+                </div>
+
+                <h6 className="fw-bold text-dark border-bottom pb-2 mb-3 mt-4">Search Engine Optimization (SEO) Metadata</h6>
+                <div className="row g-3">
+                  <div className="col-12">
+                    <label className="form-label text-muted small fw-semibold">Default Browser Tab Meta Title</label>
+                    <input
+                      type="text"
+                      name="seoTitle"
+                      value={info.seoTitle}
+                      onChange={handleChange}
+                      className="form-control rounded-3"
+                      placeholder="e.g. PAKODRIVE Electronics — Best Electronics Store in Pakistan"
+                    />
+                    <div className="form-text small">This is the title search engines show. Recommended: 50-60 characters.</div>
+                  </div>
+
+                  <div className="col-12">
+                    <label className="form-label text-muted small fw-semibold">Default Meta Description</label>
+                    <textarea
+                      name="seoDescription"
+                      value={info.seoDescription}
+                      onChange={handleChange}
+                      className="form-control rounded-3"
+                      rows={3}
+                      placeholder="Enter a brief summary of your online electronics store..."
+                    />
+                    <div className="form-text small">Summarize your shop details for search engine listing snippets. Recommended: 150-160 characters.</div>
+                  </div>
+
+                  <div className="col-12">
+                    <label className="form-label text-muted small fw-semibold">Default Meta Keywords (Comma separated)</label>
+                    <input
+                      type="text"
+                      name="seoKeywords"
+                      value={info.seoKeywords}
+                      onChange={handleChange}
+                      className="form-control rounded-3"
+                      placeholder="e.g. electronics, headphones, online shopping pakistan"
+                    />
+                    <div className="form-text small">Provide search phrases separated by commas.</div>
                   </div>
                 </div>
               </div>

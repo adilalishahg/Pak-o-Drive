@@ -6,15 +6,25 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useCart } from '../../context/CartContext';
 import { IProduct } from '../../types';
+import { useSiteTheme } from '../common/DynamicThemeProvider';
 
 interface Props { product: IProduct }
 
 export const ProductCardClassic: React.FC<Props> = ({ product }) => {
-  const { addToCart } = useCart();
+  const { addToCart, cartCount } = useCart();
   const router = useRouter();
   const [adding, setAdding] = useState(false);
   const [imgSrc, setImgSrc] = useState(product.image || '/img/product-placeholder.png');
   const id = product._id?.toString() || '';
+  const { theme } = useSiteTheme();
+
+  const isModernGreen = theme.layoutTheme === 'modern-green';
+  const isCleanWhite = theme.layoutTheme === 'theme1';
+
+  const primaryColor = isModernGreen ? '#d4af37' : (isCleanWhite ? theme.primaryColor : 'var(--pd-primary, #ea580c)');
+  const buttonBg = adding
+    ? '#10b981'
+    : `linear-gradient(135deg, ${primaryColor}, color-mix(in srgb, ${primaryColor} 82%, #000))`;
 
   const discount = product.originalPrice > product.price
     ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100) : 0;
@@ -30,6 +40,7 @@ export const ProductCardClassic: React.FC<Props> = ({ product }) => {
 
   return (
     <div
+      className="product-card-container product-card-classic-container"
       style={{
         background: '#fff',
         borderRadius: '12px',
@@ -52,33 +63,63 @@ export const ProductCardClassic: React.FC<Props> = ({ product }) => {
       onClick={() => router.push(`/product/${id}`)}
     >
       {/* Image area */}
-      <div style={{ position: 'relative', width: '100%', aspectRatio: '1/1', background: '#f8fafc', overflow: 'hidden' }}>
-        <Image
-          src={imgSrc}
-          alt={product.name}
-          fill
-          sizes="(max-width: 575px) 50vw, (max-width: 992px) 33vw, 25vw"
-          style={{ objectFit: 'contain', padding: '14px', transition: 'transform 0.4s ease' }}
-          onError={() => setImgSrc('/img/product-placeholder.png')}
-        />
+      <div 
+        className="product-image-container product-card-image-wrapper"
+        style={{ position: 'relative', width: '100%', aspectRatio: '1/1', background: '#f8fafc', overflow: 'hidden' }}
+        onMouseEnter={e => {
+          const img = e.currentTarget.querySelector('img');
+          if (img) img.style.transform = 'scale(1.06)';
+        }}
+        onMouseLeave={e => {
+          const img = e.currentTarget.querySelector('img');
+          if (img) img.style.transform = 'scale(1)';
+        }}
+      >
+        {product.video ? (
+          <video
+            src={product.video}
+            autoPlay
+            loop
+            muted
+            playsInline
+            style={{
+              position: 'absolute',
+              inset: 0,
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+            }}
+          />
+        ) : (
+          <Image
+            src={imgSrc}
+            alt={product.name}
+            fill
+            sizes="(max-width: 575px) 50vw, (max-width: 992px) 33vw, 25vw"
+            style={{ objectFit: 'cover', transition: 'transform 0.4s ease' }}
+            onError={() => setImgSrc('/img/product-placeholder.png')}
+          />
+        )}
 
         {/* Badge */}
         {discount > 0 && (
-          <span style={{
+          <span className="product-card-badge" style={{
             position: 'absolute', top: '10px', left: '10px',
             background: 'var(--bs-primary, #ea580c)', color: '#fff',
             borderRadius: '6px', fontSize: '0.7rem', fontWeight: 700,
             padding: '3px 8px', letterSpacing: '0.3px',
+            zIndex: 2,
           }}>
             -{discount}%
           </span>
         )}
         {product.isNewArrival && !discount && (
-          <span style={{
+          <span className="product-card-badge" style={{
             position: 'absolute', top: '10px', left: '10px',
             background: '#10b981', color: '#fff',
             borderRadius: '6px', fontSize: '0.7rem', fontWeight: 700,
             padding: '3px 8px',
+            zIndex: 2,
           }}>
             New
           </span>
@@ -110,11 +151,12 @@ export const ProductCardClassic: React.FC<Props> = ({ product }) => {
       </div>
 
       {/* Product info */}
-      <div style={{ padding: '12px 14px', flex: 1, display: 'flex', flexDirection: 'column', gap: '4px' }}>
+      <div className="product-card-content" style={{ padding: '12px 14px', flex: 1, display: 'flex', flexDirection: 'column', gap: '4px' }}>
         {/* Category */}
         <Link
           href={`/shop?category=${product.category}`}
           onClick={e => e.stopPropagation()}
+          className="product-card-category"
           style={{
             fontSize: '0.72rem', color: '#94a3b8', textDecoration: 'none',
             textTransform: 'capitalize', fontWeight: 500, letterSpacing: '0.3px',
@@ -127,6 +169,7 @@ export const ProductCardClassic: React.FC<Props> = ({ product }) => {
         <Link
           href={`/product/${id}`}
           onClick={e => e.stopPropagation()}
+          className="product-card-title"
           style={{
             fontSize: '0.9rem', fontWeight: 600, color: '#1e293b',
             textDecoration: 'none', lineHeight: 1.4,
@@ -138,19 +181,19 @@ export const ProductCardClassic: React.FC<Props> = ({ product }) => {
         </Link>
 
         {/* Price row */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}>
-          <span style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--bs-primary, #ea580c)' }}>
+        <div className="product-card-price-container" style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}>
+          <span className="product-card-price-current" style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--bs-primary, #ea580c)' }}>
             PKR {product.price.toLocaleString()}
           </span>
           {product.originalPrice > product.price && (
-            <del style={{ fontSize: '0.78rem', color: '#94a3b8' }}>
+            <del className="product-card-price-original" style={{ fontSize: '0.78rem', color: '#94a3b8' }}>
               PKR {product.originalPrice.toLocaleString()}
             </del>
           )}
         </div>
 
         {/* Stars */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '2px', marginTop: '2px' }}>
+        <div className="product-card-stars" style={{ display: 'flex', alignItems: 'center', gap: '2px', marginTop: '2px' }}>
           {Array.from({ length: 5 }, (_, i) => (
             <i
               key={i}
@@ -159,33 +202,60 @@ export const ProductCardClassic: React.FC<Props> = ({ product }) => {
             />
           ))}
           {product.rating > 0 && (
-            <span style={{ fontSize: '0.72rem', color: '#94a3b8', marginLeft: '4px' }}>
+            <span className="product-card-rating-text" style={{ fontSize: '0.72rem', color: '#94a3b8', marginLeft: '4px' }}>
               ({product.rating.toFixed(1)})
             </span>
           )}
         </div>
       </div>
 
-      {/* Add to cart button */}
-      <div style={{ padding: '0 14px 14px' }}>
+      {/* Add to cart button and Checkout button */}
+      <div className="product-card-actions" style={{ padding: '0 14px 14px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
         <button
           onClick={handleAdd}
           disabled={adding}
+          className="product-card-btn"
           style={{
             width: '100%', border: 'none', borderRadius: '8px',
             padding: '9px 0', fontSize: '0.82rem', fontWeight: 700,
             cursor: adding ? 'default' : 'pointer', transition: 'all 0.2s',
-            background: adding
-              ? '#10b981'
-              : 'linear-gradient(135deg, var(--bs-primary, #ea580c), #c2410c)',
-            color: '#fff',
+            background: buttonBg,
+            color: isModernGreen ? '#0d231d' : '#fff',
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '7px',
-            boxShadow: adding ? '0 3px 10px rgba(16,185,129,0.3)' : '0 3px 10px rgba(234,88,12,0.25)',
+            boxShadow: adding 
+              ? '0 3px 10px rgba(16,185,129,0.3)' 
+              : `0 3px 10px color-mix(in srgb, ${primaryColor} 20%, transparent)`,
           }}
         >
           <i className={`fas ${adding ? 'fa-check' : 'fa-shopping-cart'}`} style={{ fontSize: '12px' }} />
           {adding ? 'Added to Cart!' : 'Add to Cart'}
         </button>
+
+        {cartCount > 0 && (
+          <Link
+            href="/cart"
+            onClick={e => e.stopPropagation()}
+            className="d-flex align-items-center justify-content-center product-card-btn"
+            style={{
+              width: '100%', border: '1.5px solid #111', borderRadius: '8px',
+              padding: '8px 0', fontSize: '0.78rem', fontWeight: 800,
+              textDecoration: 'none', color: '#111', background: '#fff',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
+              transition: 'all 0.2s',
+            }}
+            onMouseEnter={e => {
+              (e.currentTarget as HTMLElement).style.background = '#111';
+              (e.currentTarget as HTMLElement).style.color = '#fff';
+            }}
+            onMouseLeave={e => {
+              (e.currentTarget as HTMLElement).style.background = '#fff';
+              (e.currentTarget as HTMLElement).style.color = '#111';
+            }}
+          >
+            <i className="fas fa-lock" style={{ fontSize: '10px' }} />
+            Checkout
+          </Link>
+        )}
       </div>
 
       <style>{`

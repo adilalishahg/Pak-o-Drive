@@ -15,20 +15,18 @@ import { DynamicThemeProvider } from '../components/common/DynamicThemeProvider'
 import { SiteInfoProvider } from '../components/common/SiteInfoProvider';
 import dbConnect from '../lib/mongodb';
 import SiteSettings from '../models/SiteSettings';
+import SiteInfo from '../models/SiteInfo';
 
 const SITE_URL = 'https://pakodrive.com';
 const SITE_NAME = 'PAKODRIVE Electronics';
 const SITE_DESC =
   'PAKODRIVE — Pakistan\'s trusted electronics store. Shop headphones, chargers, smartwatches, automotive electronics & more with free shipping and 30-day returns.';
 
-export const metadata: Metadata = {
-  metadataBase: new URL(SITE_URL),
-  title: {
-    default: `${SITE_NAME} — Best Electronics Store in Pakistan`,
-    template: `%s | ${SITE_NAME}`,
-  },
-  description: SITE_DESC,
-  keywords: [
+export async function generateMetadata(): Promise<Metadata> {
+  let siteName = SITE_NAME;
+  let defaultTitle = `${SITE_NAME} — Best Electronics Store in Pakistan`;
+  let description = SITE_DESC;
+  let keywords = [
     'electronics Pakistan',
     'buy headphones Pakistan',
     'smartwatches online',
@@ -36,42 +34,82 @@ export const metadata: Metadata = {
     'automotive electronics',
     'PAKODRIVE',
     'online shopping Pakistan',
-  ],
-  authors: [{ name: 'PAKODRIVE', url: SITE_URL }],
-  creator: 'PAKODRIVE',
-  publisher: 'PAKODRIVE',
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: { index: true, follow: true, 'max-image-preview': 'large' },
-  },
-  openGraph: {
-    type: 'website',
-    locale: 'en_PK',
-    url: SITE_URL,
-    siteName: SITE_NAME,
-    title: `${SITE_NAME} — Best Electronics Store in Pakistan`,
-    description: SITE_DESC,
-    images: [{ url: '/img/carousel-1.png', width: 1200, height: 630, alt: SITE_NAME }],
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: `${SITE_NAME} — Best Electronics Store in Pakistan`,
-    description: SITE_DESC,
-    images: ['/img/carousel-1.png'],
-    creator: '@pakodrive',
-  },
-  alternates: {
-    canonical: SITE_URL,
-  },
-  icons: {
-    icon: '/favicon.ico',
-    apple: '/favicon.ico',
-  },
-  verification: {
-    google: 'google-site-verification-token',
-  },
-};
+  ];
+  let siteUrl = SITE_URL;
+  let favicon = '/favicon.ico';
+
+  try {
+    await dbConnect();
+    const info = await SiteInfo.findOne({}).lean();
+    if (info) {
+      if (info.siteName) siteName = info.siteName;
+      if (info.seoTitle) {
+        defaultTitle = info.seoTitle;
+      } else if (info.siteName && info.siteTagline) {
+        defaultTitle = `${info.siteName} — ${info.siteTagline}`;
+      }
+      if (info.seoDescription) {
+        description = info.seoDescription;
+      } else if (info.siteTagline) {
+        description = info.siteTagline;
+      }
+      if (info.seoKeywords) {
+        keywords = info.seoKeywords.split(',').map((k: string) => k.trim()).filter(Boolean);
+      }
+      if (info.website) {
+        siteUrl = info.website.startsWith('http') ? info.website : `https://${info.website}`;
+      }
+      if (info.favicon) {
+        favicon = info.favicon;
+      }
+    }
+  } catch (err) {
+    console.error('Error generating dynamic layout metadata:', err);
+  }
+
+  return {
+    metadataBase: new URL(siteUrl),
+    title: {
+      default: defaultTitle,
+      template: `%s | ${siteName}`,
+    },
+    description,
+    keywords,
+    authors: [{ name: siteName, url: siteUrl }],
+    creator: siteName,
+    publisher: siteName,
+    robots: {
+      index: true,
+      follow: true,
+      googleBot: { index: true, follow: true, 'max-image-preview': 'large' },
+    },
+    openGraph: {
+      type: 'website',
+      locale: 'en_PK',
+      url: siteUrl,
+      siteName: siteName,
+      title: defaultTitle,
+      description,
+      images: [{ url: '/img/carousel-1.png', width: 1200, height: 630, alt: siteName }],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: defaultTitle,
+      description,
+      images: ['/img/carousel-1.png'],
+    },
+    alternates: {
+      canonical: siteUrl,
+    },
+    icons: {
+      icon: favicon,
+      apple: favicon,
+    },
+    verification: {
+      google: 'google-site-verification-token',
+    },
+  };
+}
 
 const organizationSchema = {
   '@context': 'https://schema.org',

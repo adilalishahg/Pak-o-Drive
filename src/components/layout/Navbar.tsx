@@ -237,7 +237,9 @@ export const Navbar: React.FC = () => {
               {/* Logo */}
               <div className="flex-shrink-0 flex items-center">
                 <Link href="/" className="text-2xl font-extrabold tracking-wider text-slate-900 flex items-center gap-2 text-decoration-none">
-                  <span className="theme1-logo-badge w-8 h-8 rounded-lg flex items-center justify-center text-white text-base font-black">{firstLetter}</span>
+                  <span className="theme1-logo-badge w-8 h-8 rounded-lg flex items-center justify-center text-white text-base font-black">
+                    <ThemeIcon name={info.logoIcon || 'shopping-bag'} style={{ color: '#fff', fontSize: '15px' }} />
+                  </span>
                   {info.logoText || 'ALPHA'}
                 </Link>
               </div>
@@ -485,7 +487,7 @@ export const Navbar: React.FC = () => {
                   borderRadius: '9px', display: 'flex', alignItems: 'center', justifyContent: 'center',
                   boxShadow: isModernGreen ? '0 3px 10px rgba(212,175,55,0.2)' : (isCleanWhite ? `0 3px 10px color-mix(in srgb, ${theme.primaryColor} 20%, transparent)` : '0 3px 10px rgba(234,88,12,0.28)'), flexShrink: 0,
                 }}>
-                  <ThemeIcon name="shopping-bag" style={{ color: isModernGreen ? '#0d231d' : '#fff', fontSize: '16px' }} />
+                  <ThemeIcon name={info.logoIcon || 'shopping-bag'} style={{ color: isModernGreen ? '#0d231d' : '#fff', fontSize: '16px' }} />
                 </div>
                 <span style={{ fontWeight: 800, fontSize: '1.3rem', color: isModernGreen ? '#d4af37' : (isCleanWhite ? theme.primaryColor : 'var(--pd-primary)'), letterSpacing: '-0.5px', lineHeight: 1 }}>
                   {info.logoText}

@@ -7,12 +7,27 @@ interface ProductImageGalleryProps {
   image: string;
   images: string[];
   name: string;
+  video?: string;
 }
 
-export const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({ image, images, name }) => {
+export const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({ image, images, name, video }) => {
+  // Construct a list of media items: video goes first
+  const mediaItems: { type: 'video' | 'image'; url: string }[] = [];
+  if (video) {
+    mediaItems.push({ type: 'video', url: video });
+  }
   const allImages = Array.from(new Set([image, ...(images || [])])).filter(Boolean);
-  const [activeImage, setActiveImage] = useState(allImages[0] || image);
-  const [mainImgSrc, setMainImgSrc] = useState(activeImage || '/img/product-placeholder.png');
+  allImages.forEach(img => {
+    mediaItems.push({ type: 'image', url: img });
+  });
+
+  // Start on video if available, otherwise the main image
+  const initialItem = mediaItems[0] || { type: 'image' as const, url: image };
+  const [activeItem, setActiveItem] = useState<{ type: 'video' | 'image'; url: string }>(initialItem);
+
+  const [mainImgSrc, setMainImgSrc] = useState(
+    initialItem.type === 'image' ? initialItem.url : '/img/product-placeholder.png'
+  );
   const [thumbnailErrors, setThumbnailErrors] = useState<Record<number, boolean>>({});
 
   // Zoom + pan state
@@ -27,15 +42,28 @@ export const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({ image,
   const touchStartPos = useRef({ x: 0, y: 0 });
   const touchMoved = useRef(false);
 
+  // Track first mount: on first render don't override the video with image
+  const isFirstMount = useRef(true);
+
+  // Only reset to the new variant image when the user explicitly picks a variant
+  // (skip the first mount so the video stays active on initial load)
   useEffect(() => {
-    setActiveImage(image);
+    if (isFirstMount.current) {
+      isFirstMount.current = false;
+      return;
+    }
+    if (image) {
+      setActiveItem({ type: 'image', url: image });
+    }
   }, [image]);
 
   useEffect(() => {
-    setMainImgSrc(activeImage || '/img/product-placeholder.png');
+    if (activeItem.type === 'image') {
+      setMainImgSrc(activeItem.url || '/img/product-placeholder.png');
+    }
     setZoomed(false);
     setPan({ x: 0, y: 0 });
-  }, [activeImage]);
+  }, [activeItem]);
 
   /* ── Desktop mouse ── */
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -116,49 +144,69 @@ export const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({ image,
     : 'scale(1)';
 
   const imgTransformOrigin = zoomed ? `${zoomOrigin.x}% ${zoomOrigin.y}%` : '50% 50%';
+  const isImage = activeItem.type === 'image';
 
   return (
     <div style={{ width: '100%' }}>
-      {/* Main image */}
+      {/* Main viewer */}
       <div
         ref={containerRef}
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={() => { setZoomed(false); setPan({ x: 0, y: 0 }); }}
-        onMouseMove={handleMouseMove}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
+        onMouseEnter={isImage ? handleMouseEnter : undefined}
+        onMouseLeave={isImage ? () => { setZoomed(false); setPan({ x: 0, y: 0 }); } : undefined}
+        onMouseMove={isImage ? handleMouseMove : undefined}
+        onTouchStart={isImage ? handleTouchStart : undefined}
+        onTouchMove={isImage ? handleTouchMove : undefined}
+        onTouchEnd={isImage ? handleTouchEnd : undefined}
         style={{
           position: 'relative',
           width: '100%',
           aspectRatio: '1 / 1',
           background: '#f5f5f5',
           overflow: 'hidden',
-          cursor: zoomed ? 'zoom-out' : 'zoom-in',
-          touchAction: zoomed ? 'none' : 'auto', // block scroll only when zoomed
+          cursor: isImage ? (zoomed ? 'zoom-out' : 'zoom-in') : 'default',
+          touchAction: (isImage && zoomed) ? 'none' : 'auto',
         }}
       >
-        <Image
-          src={mainImgSrc}
-          alt={name}
-          fill
-          sizes="(max-width: 768px) 100vw, 50vw"
-          style={{
-            objectFit: 'contain',
-            padding: '12px',
-            transition: zoomed ? 'none' : 'transform 0.3s ease',
-            transform: imgTransform,
-            transformOrigin: imgTransformOrigin,
-            pointerEvents: 'none',
-            userSelect: 'none',
-          }}
-          onError={() => setMainImgSrc('/img/product-placeholder.png')}
-          priority
-          draggable={false}
-        />
+        {!isImage ? (
+          <video
+            src={activeItem.url}
+            autoPlay
+            loop
+            muted
+            playsInline
+            controls
+            style={{
+              position: 'absolute',
+              inset: 0,
+              width: '100%',
+              height: '100%',
+              objectFit: 'contain',
+              padding: '12px',
+            }}
+          />
+        ) : (
+          <Image
+            src={mainImgSrc}
+            alt={name}
+            fill
+            sizes="(max-width: 768px) 100vw, 50vw"
+            style={{
+              objectFit: 'contain',
+              padding: '12px',
+              transition: zoomed ? 'none' : 'transform 0.3s ease',
+              transform: imgTransform,
+              transformOrigin: imgTransformOrigin,
+              pointerEvents: 'none',
+              userSelect: 'none',
+            }}
+            onError={() => setMainImgSrc('/img/product-placeholder.png')}
+            priority
+            draggable={false}
+          />
+        )}
 
         {/* Hint badge */}
-        {!zoomed && (
+        {isImage && !zoomed && (
           <span style={{
             position: 'absolute', bottom: '10px', right: '10px',
             background: 'rgba(0,0,0,0.4)', color: '#fff',
@@ -174,7 +222,7 @@ export const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({ image,
         )}
 
         {/* Mobile close hint */}
-        {zoomed && (
+        {isImage && zoomed && (
           <span style={{
             position: 'absolute', top: '8px', right: '8px',
             background: 'rgba(0,0,0,0.4)', color: '#fff',
@@ -191,36 +239,47 @@ export const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({ image,
       </div>
 
       {/* Thumbnails */}
-      {allImages.length > 1 && (
+      {mediaItems.length > 1 && (
         <div style={{
-          display: 'flex', gap: '6px', padding: '10px 12px',
+          display: 'flex', gap: '8px', padding: '10px 12px',
           overflowX: 'auto', background: '#fafafa',
           borderTop: '1px solid #f0f0f0',
           scrollbarWidth: 'none',
         }}>
-          {allImages.map((imgUrl, idx) => {
-            const isActive = activeImage === imgUrl;
-            const src = thumbnailErrors[idx] ? '/img/product-placeholder.png' : imgUrl;
+          {mediaItems.map((item, idx) => {
+            const isActive = activeItem.url === item.url;
             return (
               <button
                 key={idx}
-                onClick={() => setActiveImage(imgUrl)}
+                onClick={() => setActiveItem(item)}
                 style={{
                   width: '62px', height: '62px', flexShrink: 0,
                   border: isActive ? '2px solid var(--pd-primary)' : '2px solid #e5e7eb',
                   borderRadius: '6px', background: '#fff', padding: 0,
                   cursor: 'pointer', overflow: 'hidden', position: 'relative',
-                  transition: 'border-color 0.15s', outline: 'none',
+                  transition: 'all 0.15s ease', outline: 'none',
                 }}
               >
-                <Image
-                  src={src}
-                  alt={`${name} ${idx + 1}`}
-                  fill
-                  sizes="62px"
-                  style={{ objectFit: 'contain', padding: '4px' }}
-                  onError={() => setThumbnailErrors(p => ({ ...p, [idx]: true }))}
-                />
+                {item.type === 'video' ? (
+                  <div style={{
+                    width: '100%', height: '100%',
+                    display: 'flex', flexDirection: 'column',
+                    alignItems: 'center', justifyContent: 'center',
+                    background: '#f1f5f9', color: '#475569'
+                  }}>
+                    <i className="fas fa-play" style={{ fontSize: '15px', color: 'var(--pd-primary)' }} />
+                    <span style={{ fontSize: '8px', fontWeight: 800, marginTop: '2px', letterSpacing: '0.5px' }}>VIDEO</span>
+                  </div>
+                ) : (
+                  <Image
+                    src={thumbnailErrors[idx] ? '/img/product-placeholder.png' : item.url}
+                    alt={`${name} ${idx + 1}`}
+                    fill
+                    sizes="62px"
+                    style={{ objectFit: 'contain', padding: '4px' }}
+                    onError={() => setThumbnailErrors(p => ({ ...p, [idx]: true }))}
+                  />
+                )}
               </button>
             );
           })}

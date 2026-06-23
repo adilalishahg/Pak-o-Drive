@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useCart } from '../../context/CartContext';
 import { useSiteInfo } from '../common/SiteInfoProvider';
+import { ThemeIcon } from '../common/ThemeIcon';
 
 const DEFAULT_CATS = [
   { name: 'Headphones', slug: 'headphones' },
@@ -82,7 +83,7 @@ export const NavbarClassic: React.FC = () => {
               borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center',
               boxShadow: '0 3px 10px rgba(234,88,12,0.28)', flexShrink: 0,
             }}>
-              <i className="fas fa-shopping-bag" style={{ color: '#fff', fontSize: '14px' }} />
+              <ThemeIcon name={info.logoIcon || 'shopping-bag'} style={{ color: '#fff', fontSize: '14px' }} />
             </div>
             <span style={{ fontWeight: 800, fontSize: '1.2rem', color: 'var(--bs-primary, #ea580c)', letterSpacing: '-0.5px', lineHeight: 1 }}>
               {info.logoText}

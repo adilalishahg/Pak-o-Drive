@@ -71,7 +71,7 @@ function ShopContent() {
 
       {/* ── Breadcrumb bar ── */}
       <div style={{ background: '#fff', borderBottom: '1px solid #eef2f7', padding: '10px 0' }}>
-        <div className="container-fluid px-3 px-lg-4">
+        <div className="container-fluid px-3 px-lg-4" style={{ maxWidth: '1440px', margin: '0 auto' }}>
           <div className="d-flex align-items-center justify-content-between flex-wrap gap-2">
             <nav aria-label="breadcrumb">
               <ol className="breadcrumb mb-0" style={{ fontSize: '0.8rem' }}>
@@ -93,10 +93,18 @@ function ShopContent() {
         </div>
       </div>
 
-      <div style={{ display: 'flex', gap: '12px', padding: '16px 12px 24px', alignItems: 'flex-start' }}>
+      <div style={{ 
+        maxWidth: '1440px', 
+        margin: '0 auto', 
+        width: '100%', 
+        display: 'flex', 
+        gap: '24px', 
+        padding: '16px 12px 24px', 
+        alignItems: 'flex-start' 
+      }}>
 
         {/* ── Sidebar (desktop) ── */}
-        <div className="d-none d-lg-block" style={{ width: '220px', flexShrink: 0, position: 'sticky', top: '80px' }}>
+        <div className="d-none d-lg-block" style={{ width: '260px', flexShrink: 0, position: 'sticky', top: '80px' }}>
           <CategorySidebar
             selectedCategory={selectedCategory}
             onSelectCategory={setSelectedCategory}
@@ -115,7 +123,8 @@ function ShopContent() {
           <div style={{
             background: '#fff', borderRadius: '12px', padding: '12px 16px',
             border: '1px solid #eef2f7', marginBottom: '16px',
-            display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap'
+            display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap',
+            boxShadow: '0 4px 20px rgba(15, 23, 42, 0.04)'
           }}>
 
             {/* Mobile filter button */}
@@ -134,8 +143,13 @@ function ShopContent() {
             <form onSubmit={e => { e.preventDefault(); setSearchQuery(keywords.trim() || null); }}
               style={{
                 flex: 1, minWidth: '180px', display: 'flex',
-                border: '1.5px solid #e2e8f0', borderRadius: '8px', overflow: 'hidden'
-              }}>
+                border: '1.5px solid #e2e8f0', borderRadius: '8px', overflow: 'hidden',
+                transition: 'all 0.2s ease',
+                boxShadow: '0 1px 2px rgba(0,0,0,0.02)'
+              }}
+              onFocusCapture={e => { e.currentTarget.style.borderColor = 'var(--pd-primary)'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(234, 88, 12, 0.15)'; }}
+              onBlurCapture={e => { e.currentTarget.style.borderColor = '#e2e8f0'; e.currentTarget.style.boxShadow = 'none'; }}
+            >
               <input type="search" placeholder="Search products..."
                 value={keywords} onChange={e => setKeywords(e.target.value)}
                 style={{
@@ -153,8 +167,12 @@ function ShopContent() {
                 border: '1.5px solid #e2e8f0', borderRadius: '8px',
                 padding: '8px 12px', fontSize: '0.82rem', fontFamily: 'var(--pd-font)',
                 fontWeight: 500, outline: 'none', cursor: 'pointer', color: '#374151',
-                background: '#fff', flexShrink: 0
-              }}>
+                background: '#fff', flexShrink: 0,
+                transition: 'all 0.2s ease',
+              }}
+              onFocus={e => { e.currentTarget.style.borderColor = 'var(--pd-primary)'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(234, 88, 12, 0.15)'; }}
+              onBlur={e => { e.currentTarget.style.borderColor = '#e2e8f0'; e.currentTarget.style.boxShadow = 'none'; }}
+            >
               <option value="default">Default Sorting</option>
               <option value="price-asc">Price: Low to High</option>
               <option value="price-desc">Price: High to Low</option>

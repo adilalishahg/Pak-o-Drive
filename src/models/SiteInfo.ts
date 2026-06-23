@@ -5,6 +5,11 @@ export interface ISiteInfo {
   siteName: string;
   siteTagline: string;
   logoText: string;
+  logoIcon: string;
+  favicon: string;
+  seoTitle: string;
+  seoDescription: string;
+  seoKeywords: string;
   // Contact
   address: string;
   city: string;
@@ -42,6 +47,11 @@ const SiteInfoSchema = new Schema<ISiteInfoDocument>(
     siteName:       { type: String, default: 'PAKODRIVE' },
     siteTagline:    { type: String, default: "Pakistan's Trusted Electronics Store" },
     logoText:       { type: String, default: 'Electro' },
+    logoIcon:       { type: String, default: 'shopping-bag' },
+    favicon:        { type: String, default: '/favicon.ico' },
+    seoTitle:       { type: String, default: 'PAKODRIVE Electronics — Best Electronics Store in Pakistan' },
+    seoDescription: { type: String, default: "PAKODRIVE — Pakistan's trusted electronics store. Shop headphones, chargers, smartwatches, automotive electronics & more with free shipping and 30-day returns." },
+    seoKeywords:    { type: String, default: 'electronics Pakistan, buy headphones Pakistan, smartwatches online, chargers cables Pakistan, automotive electronics, PAKODRIVE, online shopping Pakistan' },
     address:        { type: String, default: '123 Street Karachi, Pakistan' },
     city:           { type: String, default: 'Karachi' },
     country:        { type: String, default: 'Pakistan' },
@@ -91,6 +101,10 @@ const SiteInfoSchema = new Schema<ISiteInfoDocument>(
   },
   { timestamps: true }
 );
+
+if (mongoose.models && mongoose.models.SiteInfo) {
+  delete mongoose.models.SiteInfo;
+}
 
 export default mongoose.models.SiteInfo ||
   mongoose.model<ISiteInfoDocument>('SiteInfo', SiteInfoSchema);

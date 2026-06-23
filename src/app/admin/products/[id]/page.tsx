@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useAdminUpload } from '../../../../context/AdminUploadContext';
 
 export default function AdminEditProductPage() {
   const router = useRouter();
@@ -18,6 +19,9 @@ export default function AdminEditProductPage() {
   const [category, setCategory] = useState('');
   const [image, setImage] = useState('');
   const [uploading, setUploading] = useState(false);
+  const [video, setVideo] = useState('');
+  const { tasks, startVideoUpload, associateProductWithUpload } = useAdminUpload();
+  const [pendingVideoUploadId, setPendingVideoUploadId] = useState('');
   const [images, setImages] = useState<string[]>([]);
   const [galleryUploading, setGalleryUploading] = useState(false);
   const [galleryUrlInput, setGalleryUrlInput] = useState('');
@@ -169,10 +173,27 @@ export default function AdminEditProductPage() {
       setUploading(false);
     }
   };
+
+  const handleVideoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setError('');
+    try {
+      const tempId = startVideoUpload(file, name || 'Edit Product', id);
+      setPendingVideoUploadId(tempId);
+    } catch (err: any) {
+      console.error(err);
+      setError(err.message || 'Error starting background video upload.');
+    }
+  };
   const [stock, setStock] = useState('');
   const [isFeatured, setIsFeatured] = useState(false);
   const [isNewArrival, setIsNewArrival] = useState(false);
   const [isTopSelling, setIsTopSelling] = useState(false);
+  const [seoTitle, setSeoTitle] = useState('');
+  const [seoDescription, setSeoDescription] = useState('');
+  const [seoKeywords, setSeoKeywords] = useState('');
 
   // Specifications
   const [specs, setSpecs] = useState<Array<{ key: string; value: string }>>([]);
@@ -206,10 +227,14 @@ export default function AdminEditProductPage() {
           setCategory(p.category);
           setImage(p.image);
           setImages(p.images || []);
+          setVideo(p.video || '');
           setStock(p.stock.toString());
           setIsFeatured(!!p.isFeatured);
           setIsNewArrival(!!p.isNewArrival);
           setIsTopSelling(!!p.isTopSelling);
+          setSeoTitle(p.seoTitle || '');
+          setSeoDescription(p.seoDescription || '');
+          setSeoKeywords(p.seoKeywords || '');
 
           // Convert specifications Map to key-value array
           if (p.specifications) {
@@ -248,6 +273,19 @@ export default function AdminEditProductPage() {
 
     if (id) loadData();
   }, [id]);
+
+  useEffect(() => {
+    if (pendingVideoUploadId) {
+      const task = tasks.find(t => t.id === pendingVideoUploadId);
+      if (task) {
+        if (task.status === 'completed' && task.url) {
+          setVideo(task.url);
+        } else if (task.status === 'failed') {
+          setError(task.error || 'Video upload failed in background.');
+        }
+      }
+    }
+  }, [tasks, pendingVideoUploadId]);
 
   const handleAddSpecRow = () => {
     setSpecs([...specs, { key: '', value: '' }]);
@@ -291,6 +329,10 @@ export default function AdminEditProductPage() {
       category,
       image,
       images,
+      video,
+      seoTitle,
+      seoDescription,
+      seoKeywords,
       stock: Number(stock),
       isFeatured,
       isNewArrival,
@@ -315,6 +357,9 @@ export default function AdminEditProductPage() {
 
       const json = await res.json();
       if (json.success) {
+        if (pendingVideoUploadId && id) {
+          associateProductWithUpload(pendingVideoUploadId, id);
+        }
         router.push('/admin/products');
       } else {
         throw new Error(json.error || 'Failed to update product');
@@ -333,6 +378,9 @@ export default function AdminEditProductPage() {
       </div>
     );
   }
+
+  const currentTask = tasks.find((t) => t.id === pendingVideoUploadId);
+  const isVideoUploading = currentTask ? currentTask.status === 'uploading' : false;
 
   return (
     <div className="fade-in">
@@ -548,6 +596,48 @@ export default function AdminEditProductPage() {
                 </div>
               )}
             </div>
+
+            {/* SEO Configurations Card */}
+            <div className="card border-0 shadow-sm rounded-4 bg-white p-4 mt-4">
+              <h6 className="fw-bold text-dark border-bottom pb-2 mb-3">SEO Configurations (Optional)</h6>
+              <p className="text-muted small mb-3">Add custom SEO meta tags to override default parameters. Leaving these blank will dynamically generate metadata based on the product name and description.</p>
+              
+              <div className="mb-3">
+                <label className="form-label text-muted small fw-semibold">SEO Meta Title</label>
+                <input
+                  type="text"
+                  value={seoTitle}
+                  onChange={(e) => setSeoTitle(e.target.value)}
+                  className="form-control rounded-3"
+                  placeholder="e.g. Sony WH-1000XM5 Wireless Headphones | Best Price in Pakistan"
+                />
+                <div className="form-text small">Recommended length: 50-60 characters.</div>
+              </div>
+
+              <div className="mb-3">
+                <label className="form-label text-muted small fw-semibold">SEO Meta Description</label>
+                <textarea
+                  value={seoDescription}
+                  onChange={(e) => setSeoDescription(e.target.value)}
+                  className="form-control rounded-3"
+                  rows={3}
+                  placeholder="e.g. Buy original Sony WH-1000XM5 wireless headphones in Pakistan with 30-day returns, free delivery, and official warranty. Order today!"
+                />
+                <div className="form-text small">Recommended length: 150-160 characters.</div>
+              </div>
+
+              <div className="mb-3">
+                <label className="form-label text-muted small fw-semibold">SEO Meta Keywords</label>
+                <input
+                  type="text"
+                  value={seoKeywords}
+                  onChange={(e) => setSeoKeywords(e.target.value)}
+                  className="form-control rounded-3"
+                  placeholder="e.g. sony wh-1000xm5, wireless headphones, bluetooth headset"
+                />
+                <div className="form-text small">Comma separated search phrases.</div>
+              </div>
+            </div>
           </div>
 
           {/* Sidebar Settings */}
@@ -646,6 +736,62 @@ export default function AdminEditProductPage() {
                   />
                 </div>
                 <div className="text-muted small mt-2">Image Preview</div>
+              </div>
+
+              {/* Product Video Section */}
+              <div className="border-top pt-3 mb-3">
+                <div className="mb-3">
+                  <label className="form-label text-muted small fw-semibold">Upload Product Video</label>
+                  <input
+                    type="file"
+                    accept="video/*"
+                    onChange={handleVideoChange}
+                    className="form-control rounded-3"
+                  />
+                  {isVideoUploading && (
+                    <div className="d-flex align-items-center gap-1.5 mt-1.5 text-primary small">
+                      <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true" />
+                      <span>Uploading video ({currentTask?.progress || 0}%)...</span>
+                    </div>
+                  )}
+                </div>
+
+                <div className="mb-3">
+                  <label className="form-label text-muted small fw-semibold">Or Provide Video URL</label>
+                  <input
+                    type="text"
+                    value={video}
+                    onChange={(e) => setVideo(e.target.value)}
+                    className="form-control rounded-3"
+                    placeholder="Path: /img/product-video.mp4 or absolute URL"
+                  />
+                </div>
+
+                {video && (
+                  <div className="bg-light p-3 rounded-3 text-center border mb-3">
+                    <div style={{ height: '120px', display: 'flex', alignItems: 'center', justifyContent: 'center' }} className="w-100">
+                      <video
+                        src={video}
+                        autoPlay
+                        loop
+                        muted
+                        playsInline
+                        style={{ height: '100%', maxWidth: '100%', objectFit: 'contain' }}
+                      />
+                    </div>
+                    <div className="text-muted small mt-2 d-flex justify-content-between align-items-center px-2">
+                      <span>Video Preview</span>
+                      <button
+                        type="button"
+                        onClick={() => setVideo('')}
+                        className="btn btn-xs btn-outline-danger py-0.5 px-1.5 rounded"
+                        style={{ fontSize: '0.72rem' }}
+                      >
+                        Remove Video
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Product Gallery Section */}

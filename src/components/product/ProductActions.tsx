@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { useCart } from '../../context/CartContext';
 import { IProduct, IProductVariant } from '../../types';
 
@@ -10,7 +11,7 @@ interface ProductActionsProps {
 }
 
 export const ProductActions: React.FC<ProductActionsProps> = ({ product, selectedVariant }) => {
-  const { addToCart } = useCart();
+  const { addToCart, cartCount } = useCart();
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
   const whatsappNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '+923001234567';
@@ -95,6 +96,28 @@ export const ProductActions: React.FC<ProductActionsProps> = ({ product, selecte
           <i className="fab fa-whatsapp" style={{ fontSize: '1.1rem' }} />
           Order via WhatsApp
         </button>
+
+        {cartCount > 0 && (
+          <Link href="/cart" className="btn btn-outline-dark"
+            style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+              border: '2px solid #111', borderRadius: '8px', padding: '12px 20px',
+              fontSize: '0.88rem', fontWeight: 800, width: '100%', textDecoration: 'none',
+              background: '#fff', color: '#111', transition: 'all 0.2s',
+            }}
+            onMouseEnter={e => {
+              (e.currentTarget as HTMLElement).style.background = '#111';
+              (e.currentTarget as HTMLElement).style.color = '#fff';
+            }}
+            onMouseLeave={e => {
+              (e.currentTarget as HTMLElement).style.background = '#fff';
+              (e.currentTarget as HTMLElement).style.color = '#111';
+            }}
+          >
+            <i className="fas fa-lock" style={{ fontSize: '12px' }} />
+            Proceed to Checkout
+          </Link>
+        )}
       </div>
     </div>
   );

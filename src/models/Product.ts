@@ -15,6 +15,10 @@ const ProductSchema = new Schema<IProductDocument>(
     category: { type: String, required: true, index: true },
     image: { type: String, required: true },
     images: { type: [String], default: [] },
+    video: { type: String, default: '' },
+    seoTitle: { type: String, default: '' },
+    seoDescription: { type: String, default: '' },
+    seoKeywords: { type: String, default: '' },
     rating: { type: Number, required: true, default: 5 },
     reviewsCount: { type: Number, required: true, default: 0 },
     isNewArrival: { type: Boolean, default: false },
@@ -37,5 +41,9 @@ const ProductSchema = new Schema<IProductDocument>(
     timestamps: true,
   }
 );
+
+if (mongoose.models && mongoose.models.Product) {
+  delete mongoose.models.Product;
+}
 
 export default mongoose.models.Product || mongoose.model<IProductDocument>('Product', ProductSchema);

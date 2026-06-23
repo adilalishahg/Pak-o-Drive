@@ -7,6 +7,7 @@ import { NavbarClassic } from './NavbarClassic';
 import { Footer } from './Footer';
 import { FooterClassic } from './FooterClassic';
 import { WhatsAppSupport } from '../common/WhatsAppSupport';
+import { FloatingCartButton } from '../common/FloatingCartButton';
 
 export function LayoutWrapper({ children }: { children: React.ReactNode }) {
   const { theme } = useSiteTheme();
@@ -18,6 +19,7 @@ export function LayoutWrapper({ children }: { children: React.ReactNode }) {
       {children}
       {isClassic ? <FooterClassic /> : <Footer />}
       <WhatsAppSupport />
+      <FloatingCartButton />
     </>
   );
 }
