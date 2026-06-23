@@ -1,3 +1,13 @@
+export interface IProductVariant {
+  _id?: string;
+  name: string;
+  description?: string;
+  price: number;
+  originalPrice?: number;
+  stock: number;
+  image?: string;
+}
+
 export interface IProduct {
   _id?: string;
   name: string;
@@ -14,6 +24,7 @@ export interface IProduct {
   isTopSelling: boolean;
   stock: number;
   specifications: Record<string, string>;
+  variants?: IProductVariant[];
 }
 
 export interface ICategory {
@@ -23,11 +34,13 @@ export interface ICategory {
   icon: string;
   image?: string;
   productCount: number;
+  parentCategory?: string;
 }
 
 export interface ICartItem {
   product: IProduct;
   quantity: number;
+  variant?: IProductVariant;
 }
 
 export interface ICustomerDetails {
@@ -44,6 +57,8 @@ export interface IOrderItem {
   price: number;
   quantity: number;
   image: string;
+  variantName?: string;
+  variantId?: string;
 }
 
 export interface IOrder {
@@ -60,3 +75,4 @@ export interface IOrder {
   utmMedium?: string;
   utmCampaign?: string;
 }
+

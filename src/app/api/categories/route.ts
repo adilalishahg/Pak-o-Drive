@@ -29,7 +29,7 @@ export async function POST(request: Request) {
   try {
     await dbConnect();
     const body = await request.json();
-    const { name, slug, icon, image } = body;
+    const { name, slug, icon, image, parentCategory } = body;
 
     if (!name || !slug) {
       return NextResponse.json({ success: false, error: 'Please provide category name and slug.' }, { status: 400 });
@@ -51,6 +51,7 @@ export async function POST(request: Request) {
       icon: icon || 'fas fa-tag',
       image: image || '',
       productCount,
+      parentCategory: parentCategory || '',
     });
 
     const saved = await newCategory.save();

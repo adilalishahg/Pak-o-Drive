@@ -61,7 +61,12 @@ export default function CheckoutPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           customerDetails: { name, email: email.trim() || undefined, phone: phone.trim(), address: address.trim(), city: city.trim(), notes: orderNotes.trim() || undefined },
-          items: cart.map(i => ({ productId: i.product._id, quantity: i.quantity })),
+          items: cart.map(i => ({
+            productId: i.product._id,
+            quantity: i.quantity,
+            variantName: i.variant?.name,
+            variantId: i.variant?._id,
+          })),
           utmSource: utmSource || undefined, utmMedium: utmMedium || undefined, utmCampaign: utmCampaign || undefined,
         }),
       });
@@ -169,14 +174,24 @@ export default function CheckoutPage() {
 
                 {/* Items */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '14px' }}>
-                  {cart.map(item => (
-                    <div key={item.product._id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.82rem', alignItems: 'center' }}>
-                      <span style={{ color: '#374151', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginRight: '8px' }}>
-                        {item.product.name} <span style={{ color: '#9ca3af' }}>×{item.quantity}</span>
-                      </span>
-                      <span style={{ fontWeight: 600, color: '#111', flexShrink: 0 }}>PKR {(item.product.price * item.quantity).toLocaleString()}</span>
-                    </div>
-                  ))}
+                  {cart.map(item => {
+                    const price = item.variant ? item.variant.price : item.product.price;
+                    const variantId = item.variant?._id || '';
+                    return (
+                      <div key={`${item.product._id}_${variantId}`} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.82rem', alignItems: 'center' }}>
+                        <span style={{ color: '#374151', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginRight: '8px' }}>
+                          {item.product.name}
+                          {item.variant && (
+                            <span className="text-secondary ms-1 fw-semibold" style={{ fontSize: '0.78rem' }}>
+                              ({item.variant.name})
+                            </span>
+                          )}
+                          <span style={{ color: '#9ca3af' }}> ×{item.quantity}</span>
+                        </span>
+                        <span style={{ fontWeight: 600, color: '#111', flexShrink: 0 }}>PKR {(price * item.quantity).toLocaleString()}</span>
+                      </div>
+                    );
+                  })}
                 </div>
 
                 <div style={{ height: '1px', background: '#f0f0f0', marginBottom: '12px' }} />

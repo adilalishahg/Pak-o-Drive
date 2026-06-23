@@ -25,6 +25,62 @@ export default function AdminEditProductPage() {
   const [mainImageError, setMainImageError] = useState(false);
   const [galleryImageErrors, setGalleryImageErrors] = useState<Record<number, boolean>>({});
 
+  interface VariantInput {
+    name: string;
+    price: string;
+    originalPrice: string;
+    stock: string;
+    image: string;
+    description: string;
+  }
+
+  const [variants, setVariants] = useState<VariantInput[]>([]);
+  const [variantUploading, setVariantUploading] = useState<Record<number, boolean>>({});
+
+  const handleAddVariant = () => {
+    setVariants([...variants, { name: '', price: '', originalPrice: '', stock: '10', image: '', description: '' }]);
+  };
+
+  const handleRemoveVariant = (index: number) => {
+    setVariants(variants.filter((_, idx) => idx !== index));
+  };
+
+  const handleVariantChange = (index: number, field: keyof VariantInput, value: string) => {
+    const updated = [...variants];
+    updated[index][field] = value;
+    setVariants(updated);
+  };
+
+  const handleVariantFileChange = async (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setVariantUploading((prev) => ({ ...prev, [index]: true }));
+    setError('');
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const json = await res.json();
+      if (json.success) {
+        handleVariantChange(index, 'image', json.url);
+      } else {
+        throw new Error(json.error || 'Failed to upload variant image.');
+      }
+    } catch (err: any) {
+      console.error(err);
+      setError(err.message || 'Error uploading variant file.');
+    } finally {
+      setVariantUploading((prev) => ({ ...prev, [index]: false }));
+    }
+  };
+
   useEffect(() => {
     setMainImageError(false);
   }, [image]);
@@ -165,6 +221,20 @@ export default function AdminEditProductPage() {
           } else {
             setSpecs([{ key: 'Brand', value: '' }]);
           }
+
+          if (p.variants) {
+            const tempVariants = p.variants.map((v: any) => ({
+              name: v.name,
+              price: v.price.toString(),
+              originalPrice: v.originalPrice ? v.originalPrice.toString() : '',
+              stock: v.stock.toString(),
+              image: v.image || '',
+              description: v.description || '',
+            }));
+            setVariants(tempVariants);
+          } else {
+            setVariants([]);
+          }
         } else {
           throw new Error(prodJson.error || 'Failed to retrieve product details');
         }
@@ -226,6 +296,14 @@ export default function AdminEditProductPage() {
       isNewArrival,
       isTopSelling,
       specifications,
+      variants: variants.map(v => ({
+        name: v.name,
+        price: Number(v.price),
+        originalPrice: v.originalPrice ? Number(v.originalPrice) : undefined,
+        stock: Number(v.stock),
+        image: v.image,
+        description: v.description,
+      })),
     };
 
     try {
@@ -346,6 +424,129 @@ export default function AdminEditProductPage() {
                   </div>
                 ))}
               </div>
+            </div>
+
+            {/* Variants Card */}
+            <div className="card border-0 shadow-sm rounded-4 bg-white p-4 mt-4">
+              <div className="d-flex align-items-center justify-content-between border-bottom pb-2 mb-3">
+                <h6 className="fw-bold text-dark mb-0">Product Variants</h6>
+                <button
+                  type="button"
+                  onClick={handleAddVariant}
+                  className="btn btn-sm btn-outline-primary rounded-pill px-2.5"
+                >
+                  <i className="fas fa-plus me-1" /> Add Variant
+                </button>
+              </div>
+
+              {variants.length === 0 ? (
+                <div className="text-center py-4 text-muted small">
+                  No variants added yet. Add variants if you have different colors, models, or types for this product.
+                </div>
+              ) : (
+                <div className="d-flex flex-column gap-4">
+                  {variants.map((v, idx) => (
+                    <div key={idx} className="border rounded-4 p-3 bg-light position-relative">
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveVariant(idx)}
+                        className="btn btn-sm btn-outline-danger border-0 rounded-circle position-absolute top-0 end-0 m-2"
+                        title="Remove Variant"
+                        style={{ width: '30px', height: '30px', padding: 0 }}
+                      >
+                        <i className="fas fa-times" />
+                      </button>
+                      <h6 className="fw-bold text-secondary mb-3">Variant #{idx + 1}</h6>
+                      <div className="row g-3">
+                        <div className="col-12 col-md-6">
+                          <label className="form-label text-muted small fw-semibold">Variant Name *</label>
+                          <input
+                            type="text"
+                            required
+                            value={v.name}
+                            onChange={(e) => handleVariantChange(idx, 'name', e.target.value)}
+                            placeholder="e.g. White Color / Simple Bluetooth"
+                            className="form-control rounded-3"
+                          />
+                        </div>
+                        <div className="col-6 col-md-3">
+                          <label className="form-label text-muted small fw-semibold">Price (PKR) *</label>
+                          <input
+                            type="number"
+                            required
+                            value={v.price}
+                            onChange={(e) => handleVariantChange(idx, 'price', e.target.value)}
+                            placeholder="Price"
+                            className="form-control rounded-3"
+                          />
+                        </div>
+                        <div className="col-6 col-md-3">
+                          <label className="form-label text-muted small fw-semibold">Original Price (PKR)</label>
+                          <input
+                            type="number"
+                            value={v.originalPrice}
+                            onChange={(e) => handleVariantChange(idx, 'originalPrice', e.target.value)}
+                            placeholder="Original Price"
+                            className="form-control rounded-3"
+                          />
+                        </div>
+                        <div className="col-12 col-md-6">
+                          <label className="form-label text-muted small fw-semibold">Upload Image OR URL</label>
+                          <div className="input-group mb-2">
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={(e) => handleVariantFileChange(idx, e)}
+                              className="form-control rounded-start-3"
+                            />
+                            {variantUploading[idx] && (
+                              <span className="input-group-text bg-white">
+                                <span className="spinner-border spinner-border-sm text-primary" />
+                              </span>
+                            )}
+                          </div>
+                          <input
+                            type="text"
+                            value={v.image}
+                            onChange={(e) => handleVariantChange(idx, 'image', e.target.value)}
+                            placeholder="Or enter image URL directly"
+                            className="form-control rounded-3"
+                          />
+                          {v.image && (
+                            <div className="mt-2 text-center border rounded bg-white p-2 position-relative" style={{ height: '80px', width: '80px' }}>
+                              <Image
+                                src={v.image}
+                                alt={`Variant ${idx + 1} preview`}
+                                fill
+                                style={{ objectFit: 'contain' }}
+                                unoptimized
+                              />
+                            </div>
+                          )}
+                        </div>
+                        <div className="col-12 col-md-6">
+                          <label className="form-label text-muted small fw-semibold">Stock & Description</label>
+                          <input
+                            type="number"
+                            required
+                            value={v.stock}
+                            onChange={(e) => handleVariantChange(idx, 'stock', e.target.value)}
+                            placeholder="Stock Quantity"
+                            className="form-control rounded-3 mb-2"
+                          />
+                          <textarea
+                            value={v.description}
+                            onChange={(e) => handleVariantChange(idx, 'description', e.target.value)}
+                            placeholder="Variant description (Optional)"
+                            className="form-control rounded-3"
+                            rows={2}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 

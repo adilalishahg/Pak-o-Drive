@@ -18,6 +18,7 @@ interface OrderData {
     price: number;
     quantity: number;
     image: string;
+    variantName?: string;
   }>;
   totalAmount: number;
   paymentMethod: string;
@@ -264,8 +265,13 @@ export default function AdminOrdersPage() {
                                           />
                                         </div>
                                       <div className="min-w-0" style={{ flex: 1 }}>
-                                        <p className="mb-0 fw-semibold text-dark small text-truncate" style={{ maxWidth: '180px' }}>
+                                        <p className="mb-0 fw-semibold text-dark small text-truncate" style={{ maxWidth: '180px' }} title={item.variantName ? `${item.name} (${item.variantName})` : item.name}>
                                           {item.name}
+                                          {item.variantName && (
+                                            <span className="text-secondary ms-1 fw-bold">
+                                              ({item.variantName})
+                                            </span>
+                                          )}
                                         </p>
                                         <span className="text-muted small">
                                           PKR {item.price.toLocaleString()} x {item.quantity}

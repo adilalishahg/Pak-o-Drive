@@ -12,12 +12,20 @@ interface CategorySidebarProps {
   onReset: () => void;
 }
 
-const DEFAULT_CATEGORIES = [
-  { name: 'Headphones', slug: 'headphones', icon: 'fas fa-headphones-alt' },
-  { name: 'Chargers & Cables', slug: 'chargers', icon: 'fas fa-bolt' },
-  { name: 'Automotive', slug: 'automotive', icon: 'fas fa-car' },
-  { name: 'Smartwatches', slug: 'smartwatches', icon: 'fas fa-clock' },
-  { name: 'Mobile Accessories', slug: 'accessories', icon: 'fas fa-mobile-alt' },
+interface SidebarCategory {
+  name: string;
+  slug: string;
+  icon: string;
+  parentCategory?: string;
+  image?: string;
+}
+
+const DEFAULT_CATEGORIES: SidebarCategory[] = [
+  { name: 'Headphones', slug: 'headphones', icon: 'fas fa-headphones-alt', parentCategory: '' },
+  { name: 'Chargers & Cables', slug: 'chargers', icon: 'fas fa-bolt', parentCategory: '' },
+  { name: 'Automotive', slug: 'automotive', icon: 'fas fa-car', parentCategory: '' },
+  { name: 'Smartwatches', slug: 'smartwatches', icon: 'fas fa-clock', parentCategory: '' },
+  { name: 'Mobile Accessories', slug: 'accessories', icon: 'fas fa-mobile-alt', parentCategory: '' },
 ];
 
 const PRICE_MAX = 150000;
@@ -32,7 +40,7 @@ export const CategorySidebar: React.FC<CategorySidebarProps> = ({
   onSelectRating,
   onReset,
 }) => {
-  const [categories, setCategories] = useState(DEFAULT_CATEGORIES);
+  const [categories, setCategories] = useState<SidebarCategory[]>(DEFAULT_CATEGORIES);
   const [localMin, setLocalMin] = useState(priceRange.min);
   const [localMax, setLocalMax] = useState(priceRange.max);
   const [minInput, setMinInput] = useState(String(priceRange.min));
@@ -46,7 +54,13 @@ export const CategorySidebar: React.FC<CategorySidebarProps> = ({
         const res = await fetch('/api/categories');
         const json = await res.json();
         if (json.success && json.data.length > 0) {
-          setCategories(json.data.map((c: any) => ({ name: c.name, slug: c.slug, icon: 'fas fa-tag' })));
+          setCategories(json.data.map((c: any) => ({
+            name: c.name,
+            slug: c.slug,
+            icon: c.icon || 'fas fa-tag',
+            parentCategory: c.parentCategory || '',
+            image: c.image || ''
+          })));
         }
       } catch {}
     })();
@@ -139,10 +153,11 @@ export const CategorySidebar: React.FC<CategorySidebarProps> = ({
       {section(<>
         {sectionTitle('fas fa-th-large', 'Categories')}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-          {[{ name: 'All Products', slug: '', icon: 'fas fa-border-all' }, ...categories].map(cat => {
-            const active = cat.slug === '' ? selectedCategory === null : selectedCategory === cat.slug;
+          {/* Render All Products first */}
+          {(() => {
+            const active = selectedCategory === null;
             return (
-              <button key={cat.slug || 'all'} onClick={() => onSelectCategory(cat.slug === '' ? null : cat.slug)}
+              <button onClick={() => onSelectCategory(null)}
                 style={{
                   display: 'flex', alignItems: 'center', gap: '9px',
                   padding: '7px 10px', border: 'none', borderRadius: '7px', cursor: 'pointer',
@@ -158,14 +173,83 @@ export const CategorySidebar: React.FC<CategorySidebarProps> = ({
                   background: active ? 'var(--pd-primary)' : '#f1f5f9',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                 }}>
-                  <i className={cat.icon} style={{ fontSize: '10px', color: active ? '#fff' : '#64748b' }} />
+                  <i className="fas fa-border-all" style={{ fontSize: '10px', color: active ? '#fff' : '#64748b' }} />
                 </div>
-                <span style={{ fontSize: '0.8rem', fontWeight: active ? 700 : 500, color: active ? 'var(--pd-primary)' : '#374151', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {cat.name}
+                <span style={{ fontSize: '0.8rem', fontWeight: active ? 700 : 500, color: active ? 'var(--pd-primary)' : '#374151' }}>
+                  All Products
                 </span>
               </button>
             );
-          })}
+          })()}
+
+          {/* Render Root Categories and their Sub-categories */}
+          {categories
+            .filter(c => !c.parentCategory)
+            .map(root => {
+              const rootActive = selectedCategory === root.slug;
+              const subcats = categories.filter(c => c.parentCategory === root.slug);
+
+              return (
+                <div key={root.slug} style={{ display: 'flex', flexDirection: 'column' }}>
+                  {/* Root Category */}
+                  <button onClick={() => onSelectCategory(root.slug)}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: '9px',
+                      padding: '7px 10px', border: 'none', borderRadius: '7px', cursor: 'pointer',
+                      background: rootActive ? 'rgba(var(--pd-primary-rgb,234,88,12),0.08)' : 'transparent',
+                      textAlign: 'left', width: '100%', transition: 'background 0.15s',
+                      borderLeft: rootActive ? '3px solid var(--pd-primary)' : '3px solid transparent',
+                    }}
+                    onMouseEnter={e => { if (!rootActive) (e.currentTarget as HTMLButtonElement).style.background = '#f8fafc'; }}
+                    onMouseLeave={e => { if (!rootActive) (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; }}
+                  >
+                    <div style={{
+                      width: '24px', height: '24px', borderRadius: '6px', flexShrink: 0,
+                      background: rootActive ? 'var(--pd-primary)' : '#f1f5f9',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      overflow: 'hidden', position: 'relative'
+                    }}>
+                      {root.image ? (
+                        <img
+                          src={root.image}
+                          alt={root.name}
+                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                        />
+                      ) : (
+                        <i className={root.icon || 'fas fa-tag'} style={{ fontSize: '10px', color: rootActive ? '#fff' : '#64748b' }} />
+                      )}
+                    </div>
+                    <span style={{ fontSize: '0.8rem', fontWeight: rootActive ? 700 : 500, color: rootActive ? 'var(--pd-primary)' : '#374151', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {root.name}
+                    </span>
+                  </button>
+
+                  {/* Sub-categories */}
+                  {subcats.map(sub => {
+                    const subActive = selectedCategory === sub.slug;
+                    return (
+                      <button key={sub.slug} onClick={() => onSelectCategory(sub.slug)}
+                        style={{
+                          display: 'flex', alignItems: 'center', gap: '8px',
+                          padding: '5px 10px 5px 28px', border: 'none', borderRadius: '7px', cursor: 'pointer',
+                          background: subActive ? 'rgba(var(--pd-primary-rgb,234,88,12),0.05)' : 'transparent',
+                          textAlign: 'left', width: '100%', transition: 'background 0.15s',
+                          borderLeft: subActive ? '2.5px solid var(--pd-primary)' : '2.5px solid transparent',
+                          marginTop: '1px',
+                        }}
+                        onMouseEnter={e => { if (!subActive) (e.currentTarget as HTMLButtonElement).style.background = '#f8fafc'; }}
+                        onMouseLeave={e => { if (!subActive) (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; }}
+                      >
+                        <i className="fas fa-level-up-alt fa-rotate-90 text-muted me-1" style={{ fontSize: '9px', opacity: 0.6 }} />
+                        <span style={{ fontSize: '0.76rem', fontWeight: subActive ? 700 : 500, color: subActive ? 'var(--pd-primary)' : '#4b5563', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {sub.name}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              );
+            })}
         </div>
       </>)}
 

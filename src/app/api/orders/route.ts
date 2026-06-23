@@ -50,30 +50,61 @@ export async function POST(request: Request) {
         );
       }
 
+      let resolvedPrice = dbProduct.price;
+      let resolvedImage = dbProduct.image;
+      let stockLimit = dbProduct.stock;
+      let matchedVariant: any = null;
+
+      if (dbProduct.variants && dbProduct.variants.length > 0) {
+        if (cartItem.variantId) {
+          matchedVariant = dbProduct.variants.find(
+            (v: any) => v._id?.toString() === cartItem.variantId.toString()
+          );
+        }
+        if (!matchedVariant && cartItem.variantName) {
+          matchedVariant = dbProduct.variants.find(
+            (v: any) => v.name === cartItem.variantName
+          );
+        }
+      }
+
+      if (matchedVariant) {
+        resolvedPrice = matchedVariant.price;
+        resolvedImage = matchedVariant.image || dbProduct.image;
+        stockLimit = matchedVariant.stock;
+      }
+
       // Check stock
-      if (dbProduct.stock < cartItem.quantity) {
+      if (stockLimit < cartItem.quantity) {
         return NextResponse.json(
           {
             success: false,
-            error: `Insufficient stock for "${dbProduct.name}". Only ${dbProduct.stock} items remaining.`,
+            error: `Insufficient stock for "${dbProduct.name}${matchedVariant ? ` (${matchedVariant.name})` : ''}". Only ${stockLimit} items remaining.`,
           },
           { status: 400 }
         );
       }
 
-      const itemTotal = dbProduct.price * cartItem.quantity;
+      const itemTotal = resolvedPrice * cartItem.quantity;
       calculatedTotal += itemTotal;
 
       resolvedItems.push({
         productId: dbProduct._id.toString(),
         name: dbProduct.name,
-        price: dbProduct.price,
+        price: resolvedPrice,
         quantity: cartItem.quantity,
-        image: dbProduct.image,
+        image: resolvedImage,
+        variantName: matchedVariant ? matchedVariant.name : undefined,
+        variantId: matchedVariant ? matchedVariant._id?.toString() : undefined,
       });
 
       // Decrement stock
-      dbProduct.stock -= cartItem.quantity;
+      if (matchedVariant) {
+        matchedVariant.stock -= cartItem.quantity;
+        dbProduct.markModified('variants');
+      } else {
+        dbProduct.stock -= cartItem.quantity;
+      }
       await dbProduct.save();
     }
 

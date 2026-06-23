@@ -22,6 +22,16 @@ const ProductSchema = new Schema<IProductDocument>(
     isTopSelling: { type: Boolean, default: false },
     stock: { type: Number, required: true, default: 10 },
     specifications: { type: Map, of: String, default: {} },
+    variants: [
+      {
+        name: { type: String, required: true },
+        description: { type: String, default: '' },
+        price: { type: Number, required: true },
+        originalPrice: { type: Number },
+        stock: { type: Number, default: 10 },
+        image: { type: String, default: '' },
+      }
+    ],
   },
   {
     timestamps: true,

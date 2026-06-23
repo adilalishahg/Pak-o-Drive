@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useCart } from '../../context/CartContext';
 import { IProduct } from '../../types';
+import { useSiteTheme } from '../common/DynamicThemeProvider';
 
 interface ProductCardProps {
   product: IProduct;
@@ -17,6 +18,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   const [adding, setAdding] = useState(false);
   const [imgSrc, setImgSrc] = useState(product.image || '/img/product-placeholder.png');
   const formattedId = product._id ? product._id.toString() : '';
+  const { theme } = useSiteTheme();
+  const isCleanWhite = theme.layoutTheme === 'theme1';
 
   const discountPercent =
     product.originalPrice > product.price
@@ -30,9 +33,72 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
     setTimeout(() => setAdding(false), 900);
   };
 
+  if (isCleanWhite) {
+    return (
+      <article
+        onClick={() => router.push(`/product/${formattedId}`)}
+        className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm hover:shadow-md hover:border-slate-200 transition-all flex flex-col justify-between group relative h-100 cursor-pointer"
+        itemScope
+        itemType="https://schema.org/Product"
+      >
+        <meta itemProp="name" content={product.name} />
+        {discountPercent > 0 ? (
+          <span className="absolute top-3 left-3 bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider z-10">
+            -{discountPercent}%
+          </span>
+        ) : product.isNewArrival ? (
+          <span className="absolute top-3 left-3 text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider z-10" style={{ backgroundColor: theme.primaryColor }}>
+            New
+          </span>
+        ) : null}
+
+        <div className="aspect-square w-full bg-slate-50 rounded-xl overflow-hidden mb-4 flex items-center justify-center p-2 relative">
+          <Image
+            src={imgSrc}
+            alt={product.name}
+            fill
+            sizes="(max-width: 575px) 50vw, (max-width: 991px) 33vw, 25vw"
+            className="max-h-full object-contain mix-blend-multiply group-hover:scale-105 transition-transform duration-300"
+            onError={() => setImgSrc('/img/product-placeholder.png')}
+            itemProp="image"
+          />
+        </div>
+
+        <div className="flex flex-col flex-grow justify-between">
+          <div>
+            <h3 className="text-xs font-semibold text-slate-800 line-clamp-2 mb-1 theme1-product-title">
+              <Link href={`/product/${formattedId}`} onClick={e => e.stopPropagation()}>
+                {product.name}
+              </Link>
+            </h3>
+            <div className="flex items-center gap-1 mb-2">
+              <span className="text-yellow-400 text-xs">&#9733;</span>
+              <span className="text-[10px] font-medium text-slate-500">{product.rating ? product.rating.toFixed(1) : '5.0'}</span>
+            </div>
+            <div className="flex items-baseline gap-1.5">
+              <span className="text-sm font-bold text-slate-900">Rs. {product.price.toLocaleString()}</span>
+              {product.originalPrice > product.price && (
+                <span className="text-[10px] text-slate-400 line-through">Rs. {product.originalPrice.toLocaleString()}</span>
+              )}
+            </div>
+          </div>
+          <button
+            onClick={handleAddToCart}
+            disabled={adding}
+            className="w-full mt-4 text-xs font-medium py-2 rounded-lg transition-colors flex items-center justify-center gap-1.5 theme1-product-btn"
+          >
+            <i className={`fas ${adding ? 'fa-check' : 'fa-shopping-cart'}`} style={{ fontSize: '11px' }} />
+            {adding ? 'Added!' : 'Add to Cart'}
+          </button>
+        </div>
+      </article>
+    );
+  }
+
   return (
     <article
       onClick={() => router.push(`/product/${formattedId}`)}
+      className="pd-card product-item"
       style={{
         cursor: 'pointer',
         background: '#fff',

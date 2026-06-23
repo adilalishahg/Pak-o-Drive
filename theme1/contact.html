@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contact Us - ALPHA</title>
+  <meta name="description" content="Get in touch with the ALPHA team. We are here to assist you with products and orders.">
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Outfit', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#f0f7ff',
+              100: '#e0effe',
+              500: '#3b82f6',
+              600: '#2563eb',
+              700: '#1d4ed8',
+              900: '#1e3a8a',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* Premium custom scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+  </style>
+</head>
+<body class="bg-[#fafafa] text-slate-800 font-sans antialiased min-h-screen flex flex-col">
+
+  <!-- Header -->
+  <header class="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-slate-100 transition-all duration-300">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-20">
+        
+        <!-- Logo -->
+        <div class="flex-shrink-0 flex items-center">
+          <a href="index.html" class="text-2xl font-extrabold tracking-wider text-slate-900 flex items-center gap-2">
+            <span class="w-8 h-8 rounded-lg bg-brand-600 flex items-center justify-center text-white text-base font-black">A</span>
+            ALPHA
+          </a>
+        </div>
+
+        <!-- Navigation Links -->
+        <nav class="hidden md:flex space-x-8 text-sm font-medium">
+          <a href="index.html" class="text-slate-600 hover:text-slate-900 transition-colors py-2 border-b-2 border-transparent hover:border-slate-300">Home</a>
+          <a href="shop.html" class="text-slate-600 hover:text-slate-900 transition-colors py-2 border-b-2 border-transparent hover:border-slate-300">Shop</a>
+          <a href="shop.html?category=smartwatches" class="text-slate-600 hover:text-slate-900 transition-colors py-2 border-b-2 border-transparent hover:border-slate-300">Smart Watches</a>
+          <a href="shop.html?category=smartphones" class="text-slate-600 hover:text-slate-900 transition-colors py-2 border-b-2 border-transparent hover:border-slate-300">Smart Phones</a>
+          <a href="#" class="text-slate-600 hover:text-slate-900 transition-colors py-2 border-b-2 border-transparent hover:border-slate-300">About Us</a>
+          <a href="contact.html" class="text-brand-600 hover:text-brand-700 transition-colors py-2 border-b-2 border-brand-600">Contact Us</a>
+        </nav>
+
+        <!-- Right Icons -->
+        <div class="flex items-center space-x-4">
+          <!-- Search Toggle -->
+          <button id="search-toggle-btn" class="p-2 text-slate-500 hover:text-slate-900 rounded-full hover:bg-slate-50 transition-all" aria-label="Search">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.604 10.604z" />
+            </svg>
+          </button>
+          
+          <!-- User / Profile -->
+          <a href="#" class="p-2 text-slate-500 hover:text-slate-900 rounded-full hover:bg-slate-50 transition-all" aria-label="Account">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+            </svg>
+          </a>
+
+          <!-- Cart Button -->
+          <button id="cart-btn" class="p-2 text-slate-500 hover:text-slate-900 rounded-full hover:bg-slate-50 transition-all relative" aria-label="Shopping Cart">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+            </svg>
+            <span id="cart-badge" class="absolute -top-1 -right-1 bg-brand-600 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">0</span>
+          </button>
+
+          <!-- Mobile menu button -->
+          <button id="mobile-menu-btn" class="md:hidden p-2 text-slate-500 hover:text-slate-900 rounded-full hover:bg-slate-50 transition-all">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Search Overlay Form -->
+    <div id="search-bar" class="hidden border-t border-slate-100 bg-slate-50 px-4 py-3 transition-all duration-300">
+      <form action="shop.html" method="GET" class="max-w-3xl mx-auto flex items-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5 text-slate-400">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.604 10.604z" />
+        </svg>
+        <input type="text" name="search" placeholder="Search for products..." class="w-full bg-transparent border-0 outline-none text-slate-800 placeholder-slate-400 text-sm py-1">
+        <button type="button" id="search-close-btn" class="text-xs font-semibold text-slate-400 hover:text-slate-600">Close</button>
+      </form>
+    </div>
+
+    <!-- Mobile Navigation Drawer -->
+    <div id="mobile-menu" class="hidden md:hidden border-t border-slate-100 bg-white px-4 pt-2 pb-4 space-y-1">
+      <a href="index.html" class="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:text-slate-900 hover:bg-slate-50">Home</a>
+      <a href="shop.html" class="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:text-slate-900 hover:bg-slate-50">Shop</a>
+      <a href="shop.html?category=smartwatches" class="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:text-slate-900 hover:bg-slate-50">Smart Watches</a>
+      <a href="shop.html?category=smartphones" class="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:text-slate-900 hover:bg-slate-50">Smart Phones</a>
+      <a href="#" class="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:text-slate-900 hover:bg-slate-50">About Us</a>
+      <a href="contact.html" class="block px-3 py-2 rounded-md text-base font-medium text-brand-600 bg-brand-50">Contact Us</a>
+    </div>
+  </header>
+
+  <!-- Page Content -->
+  <main class="flex-grow max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-16">
+    
+    <!-- Header banner details -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
+      
+      <!-- Left side: Contact information info details -->
+      <div class="space-y-8">
+        <div class="space-y-4">
+          <span class="text-xs font-bold text-brand-600 uppercase tracking-widest block">Connect With Us</span>
+          <h1 class="text-4xl font-extrabold text-slate-900 tracking-tight leading-tight">Get in Touch!</h1>
+          <p class="text-slate-500 text-sm sm:text-base leading-relaxed max-w-lg">
+            We are here to help you accelerate your digital transformation. Whether you have a question about our products, need technical assistance, or want to explore collaboration opportunities, our team is ready to assist you.
+          </p>
+        </div>
+
+        <div class="space-y-4 text-sm sm:text-base">
+          <!-- Address -->
+          <div class="flex items-start gap-4">
+            <div class="w-10 h-10 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center text-brand-600 flex-shrink-0">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
+              </svg>
+            </div>
+            <div>
+              <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Address</h4>
+              <p class="text-slate-700 font-semibold mt-0.5 text-sm">786 Commercial Plaza, Karachi, Pakistan</p>
+            </div>
+          </div>
+
+          <!-- Phone -->
+          <div class="flex items-start gap-4">
+            <div class="w-10 h-10 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center text-brand-600 flex-shrink-0">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-2.824-1.502-5.184-3.864-6.687-6.687l1.293-.97c.362-.272.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
+              </svg>
+            </div>
+            <div>
+              <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Phone</h4>
+              <p class="text-slate-700 font-semibold mt-0.5 text-sm">+92-300-1234567</p>
+            </div>
+          </div>
+
+          <!-- Email -->
+          <div class="flex items-start gap-4">
+            <div class="w-10 h-10 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center text-brand-600 flex-shrink-0">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
+              </svg>
+            </div>
+            <div>
+              <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Email</h4>
+              <p class="text-slate-700 font-semibold mt-0.5 text-sm">info@alpha-demo.co</p>
+            </div>
+          </div>
+
+          <!-- Working Hours -->
+          <div class="flex items-start gap-4">
+            <div class="w-10 h-10 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center text-brand-600 flex-shrink-0">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <div>
+              <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Support Hours</h4>
+              <p class="text-slate-700 font-semibold mt-0.5 text-sm">24/7 Available Services</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Social Icons group -->
+        <div class="border-t border-slate-100 pt-6">
+          <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Follow us online</h4>
+          <div class="flex items-center gap-3">
+            <a href="#" class="w-8 h-8 rounded-lg bg-slate-100 hover:bg-brand-600 hover:text-white flex items-center justify-center transition-colors text-slate-500">
+              f
+            </a>
+            <a href="#" class="w-8 h-8 rounded-lg bg-slate-100 hover:bg-brand-600 hover:text-white flex items-center justify-center transition-colors text-slate-500">
+              ig
+            </a>
+            <a href="#" class="w-8 h-8 rounded-lg bg-slate-100 hover:bg-brand-600 hover:text-white flex items-center justify-center transition-colors text-slate-500">
+              yt
+            </a>
+            <a href="#" class="w-8 h-8 rounded-lg bg-slate-100 hover:bg-brand-600 hover:text-white flex items-center justify-center transition-colors text-slate-500">
+              X
+            </a>
+            <a href="#" class="w-8 h-8 rounded-lg bg-slate-100 hover:bg-brand-600 hover:text-white flex items-center justify-center transition-colors text-slate-500">
+              in
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right side: Contact form card -->
+      <div class="bg-white border border-slate-100 rounded-3xl p-6 sm:p-10 shadow-sm">
+        <form class="space-y-6" onsubmit="event.preventDefault(); alert('Message sent successfully! We will get back to you shortly.'); this.reset();">
+          
+          <!-- Name -->
+          <div>
+            <label for="name" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Full Name</label>
+            <input type="text" id="name" required placeholder="Enter full name" class="w-full bg-[#fafafa] border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:bg-white transition-all text-slate-800">
+          </div>
+
+          <!-- Email -->
+          <div>
+            <label for="email" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Email Address</label>
+            <input type="email" id="email" required placeholder="Enter your email" class="w-full bg-[#fafafa] border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:bg-white transition-all text-slate-800">
+          </div>
+
+          <!-- Phone Number -->
+          <div>
+            <label for="phone" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Phone Number</label>
+            <input type="tel" id="phone" placeholder="Enter your phone number" class="w-full bg-[#fafafa] border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:bg-white transition-all text-slate-800">
+          </div>
+
+          <!-- Category Subject -->
+          <div>
+            <label for="subject" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Category Subject</label>
+            <select id="subject" class="w-full bg-[#fafafa] border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:bg-white transition-all text-slate-600 font-medium">
+              <option value="general">General Support</option>
+              <option value="order">Order Tracking & Status</option>
+              <option value="defect">Product Return or Defect</option>
+              <option value="partnership">Business Partnership</option>
+            </select>
+          </div>
+
+          <!-- Subject Title text -->
+          <div>
+            <label for="title" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Subject</label>
+            <input type="text" id="title" placeholder="Summary topic" class="w-full bg-[#fafafa] border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:bg-white transition-all text-slate-800">
+          </div>
+
+          <!-- Message -->
+          <div>
+            <label for="message" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Comment/Message</label>
+            <textarea id="message" rows="5" required placeholder="Write your message here..." class="w-full bg-[#fafafa] border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:bg-white transition-all text-slate-800"></textarea>
+          </div>
+
+          <!-- Mock recaptcha -->
+          <div class="flex items-center gap-3 bg-slate-50 p-4 border border-slate-100 rounded-xl">
+            <input type="checkbox" required id="recaptcha" class="rounded border-slate-300 text-brand-600 focus:ring-brand-500 w-5 h-5 cursor-pointer">
+            <label for="recaptcha" class="text-xs font-semibold text-slate-500 cursor-pointer select-none">
+              I certify that I am a human user.
+            </label>
+          </div>
+
+          <!-- Submit -->
+          <button type="submit" class="w-full py-3.5 bg-slate-900 hover:bg-brand-600 text-white font-bold text-sm rounded-xl transition-all shadow-md uppercase tracking-wider">
+            Send
+          </button>
+        </form>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-slate-900 text-slate-300 border-t border-slate-800 mt-20">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
+        <div>
+          <a href="index.html" class="text-2xl font-extrabold tracking-wider text-white flex items-center gap-2 mb-6">
+            <span class="w-8 h-8 rounded-lg bg-brand-600 flex items-center justify-center text-white text-base font-black">A</span>
+            ALPHA
+          </a>
+          <p class="text-slate-400 text-xs sm:text-sm leading-relaxed mb-6">
+            Premium electronics, smart home accessories, and wearable technology tailored to elevate your digital lifestyle.
+          </p>
+          <div class="space-y-3 text-xs sm:text-sm text-slate-400">
+            <p class="flex items-start gap-2.5">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4 text-brand-500 mt-0.5 flex-shrink-0">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
+              </svg>
+              786 Commercial Plaza, Karachi, Pakistan
+            </p>
+            <p class="flex items-center gap-2.5">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4 text-brand-500 flex-shrink-0">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-2.824-1.502-5.184-3.864-6.687-6.687l1.293-.97c.362-.272.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
+              </svg>
+              +92-300-1234567
+            </p>
+            <p class="flex items-center gap-2.5">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4 text-brand-500 flex-shrink-0">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
+              </svg>
+              info@alpha-demo.co
+            </p>
+          </div>
+        </div>
+
+        <div>
+          <h3 class="text-white text-sm font-bold uppercase tracking-wider mb-6">Information</h3>
+          <ul class="space-y-3.5 text-xs sm:text-sm">
+            <li><a href="contact.html" class="text-slate-400 hover:text-white transition-colors">Contact Us</a></li>
+            <li><a href="#" class="text-slate-400 hover:text-white transition-colors">About Us</a></li>
+            <li><a href="#" class="text-slate-400 hover:text-white transition-colors">FAQs</a></li>
+            <li><a href="#" class="text-slate-400 hover:text-white transition-colors">Return Policy</a></li>
+            <li><a href="#" class="text-slate-400 hover:text-white transition-colors">Shipping Info</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <h3 class="text-white text-sm font-bold uppercase tracking-wider mb-6">Quick Links</h3>
+          <ul class="space-y-3.5 text-xs sm:text-sm">
+            <li><a href="#" class="text-slate-400 hover:text-white transition-colors">Help Center</a></li>
+            <li><a href="#" onclick="toggleCartDrawer(true)" class="text-slate-400 hover:text-white transition-colors">Shopping Cart</a></li>
+            <li><a href="shop.html" class="text-slate-400 hover:text-white transition-colors">Shop</a></li>
+            <li><a href="#" class="text-slate-400 hover:text-white transition-colors">Privacy Policy</a></li>
+            <li><a href="#" class="text-slate-400 hover:text-white transition-colors">Terms of Service</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <h3 class="text-white text-sm font-bold uppercase tracking-wider mb-6">Newsletter Sign up</h3>
+          <p class="text-slate-400 text-xs sm:text-sm mb-4 leading-relaxed">
+            Receive updates about free deals, new arrivals, and special promotions.
+          </p>
+          <form class="space-y-3" onsubmit="event.preventDefault(); alert('Subscribed successfully!');">
+            <div class="relative">
+              <input type="email" placeholder="Your email address" class="w-full bg-slate-800 text-white placeholder-slate-500 rounded-xl px-4 py-3 text-xs focus:outline-none focus:ring-2 focus:ring-brand-500 border border-slate-700">
+            </div>
+            <button type="submit" class="w-full py-3 bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold rounded-xl transition-all shadow-md uppercase tracking-wider">
+              Subscribe
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <div class="mt-16 pt-8 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <p class="text-xs text-slate-500">
+          &copy; 2026 Alpha Electronics Agency. All rights reserved.
+        </p>
+        <div class="flex items-center gap-2">
+          <span class="text-[10px] text-slate-500 font-medium mr-2">Secure checkout via</span>
+          <div class="flex items-center gap-1.5 bg-slate-800 rounded-md px-2.5 py-1 text-white font-bold text-[10px]">
+            <span class="text-sky-400">PayPal</span>
+          </div>
+          <div class="flex items-center gap-1.5 bg-slate-800 rounded-md px-2.5 py-1 text-white font-bold text-[10px]">
+            <span class="text-red-400 font-extrabold">MasterCard</span>
+          </div>
+          <div class="flex items-center gap-1.5 bg-slate-800 rounded-md px-2.5 py-1 text-white font-bold text-[10px]">
+            <span class="text-orange-400">Visa</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Shopping Cart Slide-over Drawer Backdrop -->
+  <div id="cart-drawer-backdrop" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden opacity-0 transition-opacity duration-300"></div>
+
+  <!-- Shopping Cart Drawer Content -->
+  <div id="cart-drawer" class="fixed top-0 right-0 h-full w-full max-w-md bg-white shadow-2xl z-50 transform translate-x-full transition-transform duration-300 flex flex-col justify-between">
+    <div class="p-6 border-b border-slate-100 flex items-center justify-between">
+      <h3 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5 text-slate-500">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+        </svg>
+        Shopping Cart
+      </h3>
+      <button id="cart-close-btn" class="p-2 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-50 transition-colors">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+
+    <div id="cart-drawer-body" class="flex-grow overflow-y-auto p-6 space-y-4">
+      <div id="cart-empty-state" class="flex flex-col items-center justify-center py-20 text-center">
+        <div class="w-20 h-20 rounded-full bg-slate-50 flex items-center justify-center text-slate-300 mb-6">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-10 h-10">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+          </svg>
+        </div>
+        <h4 class="text-sm font-bold text-slate-800 mb-1">Your shopping cart is empty</h4>
+        <p class="text-xs text-slate-400 max-w-xs mb-6">Add items from the store to get started with your purchase.</p>
+        <button id="cart-continue-btn" class="px-5 py-2.5 rounded-xl bg-slate-900 text-white font-semibold text-xs hover:bg-brand-600 transition-colors uppercase tracking-wider">
+          Continue Shopping
+        </button>
+      </div>
+
+      <div id="cart-items-list" class="hidden space-y-4"></div>
+    </div>
+
+    <div id="cart-drawer-footer" class="p-6 border-t border-slate-100 bg-slate-50 space-y-4 hidden">
+      <div class="flex items-center justify-between text-sm font-bold text-slate-900">
+        <span>Subtotal</span>
+        <span id="cart-subtotal">Rs. 0</span>
+      </div>
+      <p class="text-[10px] text-slate-400 leading-normal">
+        Shipping charges and discounts will be calculated at checkout.
+      </p>
+      <div class="grid grid-cols-2 gap-4">
+        <a href="#" onclick="alert('Checkout process initiated!')" class="w-full py-3 bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs rounded-xl transition-all shadow-md shadow-brand-500/20 text-center uppercase tracking-wider flex items-center justify-center">
+          Checkout
+        </a>
+        <a href="#" onclick="clearCart()" class="w-full py-3 border border-slate-200 hover:bg-slate-100 text-slate-600 font-bold text-xs rounded-xl transition-colors text-center uppercase tracking-wider flex items-center justify-center">
+          Clear All
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Shared Cart and Navigation Control Script -->
+  <script>
+    // State management for Cart
+    let cart = [];
+
+    function loadCart() {
+      const stored = localStorage.getItem('alpha_cart');
+      if (stored) {
+        try {
+          cart = JSON.parse(stored);
+        } catch(e) {
+          cart = [];
+        }
+      }
+      updateCartUI();
+    }
+
+    function saveCart() {
+      localStorage.setItem('alpha_cart', JSON.stringify(cart));
+    }
+
+    function toggleCartDrawer(open) {
+      const backdrop = document.getElementById('cart-drawer-backdrop');
+      const drawer = document.getElementById('cart-drawer');
+      
+      if (open) {
+        backdrop.classList.remove('hidden');
+        setTimeout(() => backdrop.classList.add('opacity-100'), 10);
+        drawer.classList.remove('translate-x-full');
+      } else {
+        backdrop.classList.remove('opacity-100');
+        drawer.classList.add('translate-x-full');
+        setTimeout(() => backdrop.classList.add('hidden'), 300);
+      }
+    }
+
+    function addToCart(name, price, img) {
+      const existing = cart.find(item => item.name === name);
+      if (existing) {
+        existing.quantity += 1;
+      } else {
+        cart.push({ name, price, img, quantity: 1 });
+      }
+      saveCart();
+      updateCartUI();
+      toggleCartDrawer(true);
+    }
+
+    function removeFromCart(name) {
+      cart = cart.filter(item => item.name !== name);
+      saveCart();
+      updateCartUI();
+    }
+
+    function changeQuantity(name, amt) {
+      const item = cart.find(item => item.name === name);
+      if (item) {
+        item.quantity += amt;
+        if (item.quantity <= 0) {
+          removeFromCart(name);
+        } else {
+          saveCart();
+          updateCartUI();
+        }
+      }
+    }
+
+    function clearCart() {
+      cart = [];
+      saveCart();
+      updateCartUI();
+    }
+
+    function updateCartUI() {
+      const badge = document.getElementById('cart-badge');
+      const emptyState = document.getElementById('cart-empty-state');
+      const itemsList = document.getElementById('cart-items-list');
+      const footer = document.getElementById('cart-drawer-footer');
+      const subtotalEl = document.getElementById('cart-subtotal');
+
+      const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+      badge.textContent = totalItems;
+      
+      if (cart.length === 0) {
+        emptyState.classList.remove('hidden');
+        itemsList.classList.add('hidden');
+        footer.classList.add('hidden');
+      } else {
+        emptyState.classList.add('hidden');
+        itemsList.classList.remove('hidden');
+        footer.classList.remove('hidden');
+
+        itemsList.innerHTML = '';
+        let subtotal = 0;
+        cart.forEach(item => {
+          subtotal += item.price * item.quantity;
+          const itemHtml = `
+            <div class="flex items-center gap-4 bg-slate-50 p-3 rounded-xl border border-slate-100">
+              <img src="${item.img}" alt="${item.name}" class="w-14 h-14 rounded-lg object-contain bg-white border border-slate-100 flex-shrink-0 p-1">
+              <div class="flex-grow">
+                <h5 class="text-xs font-bold text-slate-800 line-clamp-1">${item.name}</h5>
+                <span class="text-xs font-semibold text-slate-900 block mt-0.5">Rs. ${item.price.toLocaleString()}</span>
+                <div class="flex items-center gap-2 mt-2">
+                  <button onclick="changeQuantity('${item.name}', -1)" class="w-5 h-5 rounded bg-white hover:bg-slate-200 border border-slate-200 flex items-center justify-center text-xs font-bold">-</button>
+                  <span class="text-xs font-medium text-slate-700 w-4 text-center">${item.quantity}</span>
+                  <button onclick="changeQuantity('${item.name}', 1)" class="w-5 h-5 rounded bg-white hover:bg-slate-200 border border-slate-200 flex items-center justify-center text-xs font-bold">+</button>
+                </div>
+              </div>
+              <button onclick="removeFromCart('${item.name}')" class="p-1 text-slate-400 hover:text-red-500 rounded-full transition-colors flex-shrink-0">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+          `;
+          itemsList.innerHTML += itemHtml;
+        });
+        subtotalEl.textContent = `Rs. ${subtotal.toLocaleString()}`;
+      }
+    }
+
+    // Initialize Event Listeners
+    document.addEventListener('DOMContentLoaded', () => {
+      loadCart();
+
+      // Cart buttons
+      document.getElementById('cart-btn').addEventListener('click', () => toggleCartDrawer(true));
+      document.getElementById('cart-close-btn').addEventListener('click', () => toggleCartDrawer(false));
+      document.getElementById('cart-drawer-backdrop').addEventListener('click', () => toggleCartDrawer(false));
+      document.getElementById('cart-continue-btn').addEventListener('click', () => toggleCartDrawer(false));
+
+      // Mobile Menu
+      const mobileBtn = document.getElementById('mobile-menu-btn');
+      const mobileNav = document.getElementById('mobile-menu');
+      mobileBtn.addEventListener('click', () => {
+        mobileNav.classList.toggle('hidden');
+      });
+
+      // Search bar
+      const searchToggle = document.getElementById('search-toggle-btn');
+      const searchBar = document.getElementById('search-bar');
+      const searchClose = document.getElementById('search-close-btn');
+
+      searchToggle.addEventListener('click', () => {
+        searchBar.classList.toggle('hidden');
+      });
+      searchClose.addEventListener('click', () => {
+        searchBar.classList.add('hidden');
+      });
+    });
+  </script>
+</body>
+</html>

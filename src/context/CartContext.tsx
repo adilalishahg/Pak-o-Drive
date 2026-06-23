@@ -1,14 +1,14 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { IProduct, ICartItem } from '../types';
+import { IProduct, ICartItem, IProductVariant } from '../types';
 import { logInteraction } from '../components/common/AnalyticsTracker';
 
 interface CartContextType {
   cart: ICartItem[];
-  addToCart: (product: IProduct, quantity?: number) => void;
-  removeFromCart: (productId: string) => void;
-  updateQuantity: (productId: string, quantity: number) => void;
+  addToCart: (product: IProduct, quantity?: number, variant?: IProductVariant) => void;
+  removeFromCart: (productId: string, variantId?: string) => void;
+  updateQuantity: (productId: string, quantity: number, variantId?: string) => void;
   clearCart: () => void;
   cartCount: number;
   cartTotal: number;
@@ -40,39 +40,56 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [cart, isHydrated]);
 
-  const addToCart = (product: IProduct, quantity = 1) => {
+  const addToCart = (product: IProduct, quantity = 1, variant?: IProductVariant) => {
     if (!product._id) return;
+
+    const finalPrice = variant ? variant.price : product.price;
 
     // Log tracking interaction
     logInteraction('add_to_cart', window.location.pathname, {
       productId: product._id,
       name: product.name,
-      price: product.price,
+      variantName: variant?.name,
+      price: finalPrice,
       quantity,
     });
 
     setCart((prevCart) => {
-      const existingItemIndex = prevCart.findIndex((item) => item.product._id === product._id);
+      const existingItemIndex = prevCart.findIndex(
+        (item) => item.product._id === product._id && item.variant?._id === variant?._id
+      );
       if (existingItemIndex > -1) {
         const newCart = [...prevCart];
         newCart[existingItemIndex].quantity += quantity;
         return newCart;
       }
-      return [...prevCart, { product, quantity }];
+      return [...prevCart, { product, quantity, variant }];
     });
   };
 
-  const removeFromCart = (productId: string) => {
-    setCart((prevCart) => prevCart.filter((item) => item.product._id !== productId));
+  const removeFromCart = (productId: string, variantId?: string) => {
+    const targetVariantId = variantId || undefined;
+    setCart((prevCart) =>
+      prevCart.filter((item) => {
+        const itemVariantId = item.variant?._id || undefined;
+        return !(item.product._id === productId && itemVariantId === targetVariantId);
+      })
+    );
   };
 
-  const updateQuantity = (productId: string, quantity: number) => {
+  const updateQuantity = (productId: string, quantity: number, variantId?: string) => {
+    const targetVariantId = variantId || undefined;
     if (quantity <= 0) {
-      removeFromCart(productId);
+      removeFromCart(productId, targetVariantId);
       return;
     }
     setCart((prevCart) =>
-      prevCart.map((item) => (item.product._id === productId ? { ...item, quantity } : item))
+      prevCart.map((item) => {
+        const itemVariantId = item.variant?._id || undefined;
+        return item.product._id === productId && itemVariantId === targetVariantId
+          ? { ...item, quantity }
+          : item;
+      })
     );
   };
 
@@ -81,7 +98,10 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const cartCount = cart.reduce((total, item) => total + item.quantity, 0);
-  const cartTotal = cart.reduce((total, item) => total + item.product.price * item.quantity, 0);
+  const cartTotal = cart.reduce((total, item) => {
+    const price = item.variant ? item.variant.price : item.product.price;
+    return total + price * item.quantity;
+  }, 0);
 
   return (
     <CartContext.Provider

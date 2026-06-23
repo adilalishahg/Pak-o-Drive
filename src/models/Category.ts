@@ -13,6 +13,7 @@ const CategorySchema = new Schema<ICategoryDocument>(
     icon: { type: String, default: 'fas fa-tag' },
     image: { type: String, default: '' },
     productCount: { type: Number, default: 0 },
+    parentCategory: { type: String, default: '', index: true },
   },
   {
     timestamps: true,

@@ -48,8 +48,13 @@ export default function CartPage() {
           {cart.map((item, idx) => {
             const prod = item.product;
             const id = prod._id ? prod._id.toString() : '';
+            const variantId = item.variant?._id;
+            const itemPrice = item.variant ? item.variant.price : prod.price;
+            const itemImage = item.variant?.image || prod.image || '/img/product-placeholder.png';
+            const stockLimit = item.variant !== undefined ? item.variant.stock : prod.stock;
+
             return (
-              <div key={id} style={{
+              <div key={`${id}_${variantId || ''}`} style={{
                 display: 'flex', gap: '12px', padding: '14px',
                 borderBottom: idx < cart.length - 1 ? '1px solid #f0f0f0' : 'none',
                 alignItems: 'flex-start',
@@ -57,9 +62,10 @@ export default function CartPage() {
                 {/* Image */}
                 <Link href={`/product/${id}`} style={{ flexShrink: 0, display: 'block' }}>
                   <div style={{ width: '80px', height: '80px', borderRadius: '8px', background: '#f5f5f5', position: 'relative', overflow: 'hidden' }}>
-                    <Image src={prod.image || '/img/product-placeholder.png'} alt={prod.name} fill
+                    <Image src={itemImage} alt={prod.name} fill
                       sizes="80px" style={{ objectFit: 'contain', padding: '4px' }}
-                      onError={(e) => { (e.target as HTMLImageElement).src = '/img/product-placeholder.png'; }} />
+                      onError={(e) => { (e.target as HTMLImageElement).src = '/img/product-placeholder.png'; }}
+                      unoptimized />
                   </div>
                 </Link>
 
@@ -69,18 +75,23 @@ export default function CartPage() {
                     <p style={{ margin: '0 0 4px', fontWeight: 700, fontSize: '0.85rem', color: '#111',
                       overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {prod.name}
+                      {item.variant && (
+                        <span className="text-secondary ms-1 fw-semibold" style={{ fontSize: '0.78rem' }}>
+                          ({item.variant.name})
+                        </span>
+                      )}
                     </p>
                   </Link>
                   <p style={{ margin: '0 0 10px', fontSize: '0.9rem', fontWeight: 800, color: 'var(--pd-primary)' }}>
-                    PKR {(prod.price * item.quantity).toLocaleString()}
+                    PKR {(itemPrice * item.quantity).toLocaleString()}
                   </p>
                   <p style={{ margin: '0 0 8px', fontSize: '0.72rem', color: '#9ca3af' }}>
-                    PKR {prod.price.toLocaleString()} each
+                    PKR {itemPrice.toLocaleString()} each
                   </p>
 
                   {/* Qty controls */}
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0' }}>
-                    <button onClick={() => updateQuantity(id, item.quantity - 1)} disabled={item.quantity <= 1}
+                    <button onClick={() => updateQuantity(id, item.quantity - 1, variantId)} disabled={item.quantity <= 1}
                       style={{
                         width: '32px', height: '32px', border: '1px solid #e5e7eb',
                         borderRadius: '6px 0 0 6px', background: '#f9fafb',
@@ -92,18 +103,18 @@ export default function CartPage() {
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                       fontSize: '0.88rem', fontWeight: 700, color: '#111',
                     }}>{item.quantity}</span>
-                    <button onClick={() => updateQuantity(id, item.quantity + 1)} disabled={item.quantity >= prod.stock}
+                    <button onClick={() => updateQuantity(id, item.quantity + 1, variantId)} disabled={item.quantity >= stockLimit}
                       style={{
                         width: '32px', height: '32px', border: '1px solid #e5e7eb',
                         borderRadius: '0 6px 6px 0', background: '#f9fafb',
-                        cursor: item.quantity >= prod.stock ? 'not-allowed' : 'pointer',
+                        cursor: item.quantity >= stockLimit ? 'not-allowed' : 'pointer',
                         fontSize: '1rem', color: '#374151', display: 'flex', alignItems: 'center', justifyContent: 'center',
                       }}>+</button>
                   </div>
                 </div>
 
                 {/* Remove */}
-                <button onClick={() => removeFromCart(id)}
+                <button onClick={() => removeFromCart(id, variantId)}
                   style={{ flexShrink: 0, background: 'none', border: 'none', cursor: 'pointer', padding: '4px', color: '#ef4444', marginTop: '2px' }}>
                   <i className="fas fa-trash-alt" style={{ fontSize: '15px' }} />
                 </button>

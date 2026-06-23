@@ -1,34 +1,43 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useCart } from '../../context/CartContext';
-import { IProduct } from '../../types';
+import { IProduct, IProductVariant } from '../../types';
 
 interface ProductActionsProps {
   product: IProduct;
+  selectedVariant?: IProductVariant;
 }
 
-export const ProductActions: React.FC<ProductActionsProps> = ({ product }) => {
+export const ProductActions: React.FC<ProductActionsProps> = ({ product, selectedVariant }) => {
   const { addToCart } = useCart();
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
   const whatsappNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '+923001234567';
 
+  const stockLimit = selectedVariant !== undefined ? selectedVariant.stock : product.stock;
+  const outOfStock = stockLimit <= 0;
+
+  // Reset quantity to 1 if the selected variant changes
+  useEffect(() => {
+    setQuantity(1);
+  }, [selectedVariant]);
+
   const handleAdd = () => {
-    addToCart(product, quantity);
+    addToCart(product, quantity, selectedVariant);
     setAdded(true);
     setTimeout(() => setAdded(false), 1500);
   };
 
   const handleWhatsApp = () => {
     const url = typeof window !== 'undefined' ? window.location.href : '';
+    const finalPrice = selectedVariant ? selectedVariant.price : product.price;
+    const displayName = selectedVariant ? `${product.name} (${selectedVariant.name})` : product.name;
     const text = encodeURIComponent(
-      `Hi, I want to order "${product.name}" — PKR ${product.price.toLocaleString()}\n${url}`
+      `Hi, I want to order "${displayName}" — PKR ${finalPrice.toLocaleString()}\n${url}`
     );
     window.open(`https://wa.me/${whatsappNumber.replace('+', '')}?text=${text}`, '_blank');
   };
-
-  const outOfStock = product.stock <= 0;
 
   return (
     <div>
@@ -39,25 +48,25 @@ export const ProductActions: React.FC<ProductActionsProps> = ({ product }) => {
           display: 'flex', alignItems: 'center',
           border: '1.5px solid #e5e7eb', borderRadius: '8px', overflow: 'hidden',
         }}>
-          <button onClick={() => setQuantity(q => Math.max(1, q - 1))} disabled={quantity <= 1}
+          <button onClick={() => setQuantity(q => Math.max(1, q - 1))} disabled={quantity <= 1 || outOfStock}
             style={{ width: '36px', height: '36px', border: 'none', background: '#f9fafb',
-              cursor: quantity <= 1 ? 'not-allowed' : 'pointer', fontSize: '1rem',
+              cursor: (quantity <= 1 || outOfStock) ? 'not-allowed' : 'pointer', fontSize: '1rem',
               color: '#374151', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             −
           </button>
           <span style={{ width: '40px', textAlign: 'center', fontWeight: 700, fontSize: '0.95rem', color: '#111' }}>
-            {quantity}
+            {outOfStock ? 0 : quantity}
           </span>
-          <button onClick={() => setQuantity(q => Math.min(product.stock, q + 1))} disabled={quantity >= product.stock}
+          <button onClick={() => setQuantity(q => Math.min(stockLimit, q + 1))} disabled={quantity >= stockLimit || outOfStock}
             style={{ width: '36px', height: '36px', border: 'none', background: '#f9fafb',
-              cursor: quantity >= product.stock ? 'not-allowed' : 'pointer', fontSize: '1rem',
+              cursor: (quantity >= stockLimit || outOfStock) ? 'not-allowed' : 'pointer', fontSize: '1rem',
               color: '#374151', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             +
           </button>
         </div>
-        {product.stock <= 5 && product.stock > 0 && (
+        {stockLimit <= 5 && stockLimit > 0 && (
           <span style={{ fontSize: '0.75rem', color: '#ef4444', fontWeight: 600 }}>
-            Only {product.stock} left!
+            Only {stockLimit} left!
           </span>
         )}
       </div>

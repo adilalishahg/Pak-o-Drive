@@ -26,6 +26,17 @@ export interface SiteTheme {
   siteTagline: string;
   announcementBarText: string;
   announcementBarEnabled: boolean;
+  layoutTheme: 'classic' | 'modern-green' | 'theme1';
+  homepageSections: {
+    heroBig:          { enabled: boolean; badge: string; title: string; subtitle: string; buttonText: string; buttonLink: string; imageUrl: string };
+    heroSmall:        { enabled: boolean; badge: string; title: string; highlight: string; imageUrl: string };
+    trendingProducts: { enabled: boolean; title: string; limit: number };
+    collections:      { enabled: boolean; title: string };
+    weeklyDeal:       { enabled: boolean; label: string; title: string; description: string; buttonText: string; buttonLink: string; imageUrl: string };
+    moreDeals:        { enabled: boolean; title: string; limit: number };
+    featuredSection:  { enabled: boolean; title: string; limit: number };
+    valueProps:       { enabled: boolean };
+  };
 }
 
 export const DEFAULT_THEME: SiteTheme = {
@@ -49,6 +60,39 @@ export const DEFAULT_THEME: SiteTheme = {
   siteTagline: "Pakistan's Trusted Electronics Store",
   announcementBarText: '🎉 Free Shipping on orders above PKR 5,000 | 📦 30-Day Easy Returns | Shop Now →',
   announcementBarEnabled: true,
+  layoutTheme: 'classic',
+  homepageSections: {
+    heroBig: {
+      enabled: true,
+      badge: 'Featured Product',
+      title: 'Smart Speakers With Google Assistant',
+      subtitle: 'Experience room-filling sound and intelligent voice assistance. Control your smart home with ease.',
+      buttonText: 'Shop Now',
+      buttonLink: '/shop',
+      imageUrl: 'https://images.unsplash.com/photo-1543512214-318c7553f230?auto=format&fit=crop&w=600&q=80',
+    },
+    heroSmall: {
+      enabled: true,
+      badge: 'Special Discount',
+      title: 'TWS Earbuds',
+      highlight: '50% Off',
+      imageUrl: 'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?auto=format&fit=crop&w=400&q=80',
+    },
+    trendingProducts: { enabled: true, title: 'Trending Products', limit: 4 },
+    collections:      { enabled: true, title: 'The Top Collections' },
+    weeklyDeal: {
+      enabled: true,
+      label: 'The Big Deal This Week',
+      title: 'Apple iPhone 12 Pro Max 128GB Blue Edition',
+      description: 'Get the ultimate photography and performance package. Limited stock available at a special discount.',
+      buttonText: 'Shop Now',
+      buttonLink: '/shop',
+      imageUrl: 'https://images.unsplash.com/photo-1605787020600-b9ebd5df1d07?auto=format&fit=crop&w=500&q=80',
+    },
+    moreDeals:  { enabled: true, title: 'More Active Deals', limit: 4 },
+    featuredSection: { enabled: true, title: 'Featured Products', limit: 8 },
+    valueProps: { enabled: true },
+  },
 };
 
 /* ─── Helpers ─────────────────────────────────────────────────── */
@@ -279,6 +323,407 @@ a.text-primary, .text-primary { color: ${theme.primaryColor} !important; }
 .back-to-top:hover {
   box-shadow: 0 8px 24px rgba(${primaryRgb}, 0.55) !important;
 }
+
+${theme.layoutTheme === 'modern-green' ? `
+body {
+  background-color: #f7f5ed !important;
+}
+/* Warm dark green topbar and navbar */
+header, .announcement-bar {
+  background: #0d231d !important;
+  border-bottom: 1px solid #1a3c32 !important;
+}
+header a, header button, header span, header input {
+  color: #f7f5ed !important;
+}
+header input::placeholder {
+  color: rgba(247, 245, 237, 0.6) !important;
+}
+/* Search container */
+header form div {
+  border-color: #d4af37 !important;
+  background: rgba(255,255,255,0.05) !important;
+}
+header form button {
+  background: #d4af37 !important;
+  color: #0d231d !important;
+}
+/* Gold accent on active links */
+header nav a {
+  color: #f7f5ed !important;
+}
+header nav a:hover, header nav a.active {
+  color: #d4af37 !important;
+  background: rgba(212, 175, 55, 0.1) !important;
+}
+/* Categories menu button in navbar */
+header button {
+  background: #14352c !important;
+  color: #d4af37 !important;
+}
+/* Logo */
+header span {
+  color: #d4af37 !important;
+}
+header div[style*="background"] {
+  background: #d4af37 !important;
+}
+
+/* Announcement Bar */
+.announcement-bar {
+  background: #d4af37 !important;
+  color: #0d231d !important;
+  font-weight: 700 !important;
+}
+
+/* Product Card styling */
+.product-item, .pd-card {
+  background-color: #fbfaf7 !important;
+  border: 1.5px solid #d4af3740 !important;
+  border-radius: var(--pd-card-radius) !important;
+  box-shadow: 0 4px 15px rgba(13, 35, 29, 0.05) !important;
+  transition: transform 0.2s ease, border-color 0.2s ease !important;
+}
+.product-item:hover, .pd-card:hover {
+  border-color: #d4af37 !important;
+  transform: translateY(-4px) !important;
+  box-shadow: 0 10px 25px rgba(13, 35, 29, 0.12) !important;
+}
+.product-item p, .product-item span, .product-item h3, .product-item h4 {
+  color: #0d231d !important;
+}
+.product-item .btn-gradient, .pd-card .btn-gradient {
+  background: #0d231d !important;
+  color: #f7f5ed !important;
+  border-radius: 8px !important;
+  border: 1px solid #14352c !important;
+  box-shadow: none !important;
+}
+.product-item .btn-gradient:hover, .pd-card .btn-gradient:hover {
+  background: #d4af37 !important;
+  color: #0d231d !important;
+}
+
+/* Tabs */
+.tab-btn {
+  background-color: #eae7db !important;
+  color: #0d231d !important;
+  border: 1px solid #d1cbba !important;
+}
+.tab-btn.active {
+  background: #0d231d !important;
+  color: #d4af37 !important;
+  border-color: #0d231d !important;
+  box-shadow: none !important;
+}
+
+/* Category pills on main page */
+.category-pill-item {
+  background: #0d231d !important;
+  color: #d4af37 !important;
+  border: 2px solid #d4af37 !important;
+  font-weight: 700 !important;
+}
+
+/* USP Stats circles */
+.usp-circle {
+  border: 3px solid #d4af37 !important;
+  border-radius: 50% !important;
+  width: 100px !important;
+  height: 100px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin: 0 auto !important;
+  background: #fbfaf7 !important;
+  color: #0d231d !important;
+}
+
+/* Why Choose Us Cards */
+.why-us-card {
+  background: #0d231d !important;
+  color: #f7f5ed !important;
+  border-radius: var(--pd-card-radius) !important;
+  border: 1px solid #1a3c32 !important;
+}
+.why-us-card h5, .why-us-card p {
+  color: #f7f5ed !important;
+}
+.why-us-icon-container {
+  background: #d4af37 !important;
+}
+
+/* Footer styling */
+footer, .footer {
+  background: #0d231d !important;
+  color: #eae7db !important;
+  border-top: 1px solid #14352c !important;
+}
+footer h5, footer h4, footer a, .footer a {
+  color: #f7f5ed !important;
+}
+footer a:hover, .footer a:hover {
+  color: #d4af37 !important;
+}
+.copyright {
+  background: #091714 !important;
+  border-top: 1px solid #0d231d !important;
+  color: #94a3b8 !important;
+}
+` : ''}
+
+${theme.layoutTheme === 'theme1' ? `
+body {
+  background-color: #f8fafc !important;
+}
+/* Clean white topbar and navbar */
+header, .announcement-bar {
+  background: #ffffff !important;
+  border-bottom: 1px solid #e2e8f0 !important;
+}
+header a, header button, header span, header input {
+  color: ${theme.secondaryColor} !important;
+}
+header input::placeholder {
+  color: color-mix(in srgb, ${theme.secondaryColor} 60%, transparent) !important;
+}
+/* Search container */
+header form div {
+  border-color: ${theme.primaryColor} !important;
+  background: #ffffff !important;
+}
+header form button {
+  background: ${theme.primaryColor} !important;
+  color: #ffffff !important;
+}
+/* Active link styling */
+header nav a {
+  color: ${theme.secondaryColor} !important;
+}
+header nav a:hover, header nav a.active {
+  color: ${theme.primaryColor} !important;
+  background: color-mix(in srgb, ${theme.primaryColor} 8%, transparent) !important;
+}
+/* Categories menu button in navbar */
+header button {
+  background: color-mix(in srgb, ${theme.secondaryColor} 5%, transparent) !important;
+  color: ${theme.primaryColor} !important;
+}
+/* Logo */
+header span {
+  color: ${theme.primaryColor} !important;
+}
+
+
+/* Announcement Bar */
+.announcement-bar {
+  background: color-mix(in srgb, ${theme.secondaryColor} 4%, transparent) !important;
+  color: ${theme.secondaryColor} !important;
+  font-weight: 600 !important;
+  border-bottom: 1px solid #e2e8f0 !important;
+}
+
+/* Product Card styling */
+.product-item, .pd-card {
+  background-color: #ffffff !important;
+  border: 1.5px solid #e2e8f0 !important;
+  border-radius: var(--pd-card-radius) !important;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03) !important;
+  transition: transform 0.2s ease, border-color 0.2s ease !important;
+}
+.product-item:hover, .pd-card:hover {
+  border-color: ${theme.primaryColor} !important;
+  transform: translateY(-4px) !important;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.07) !important;
+}
+.product-item p, .product-item span, .product-item h3, .product-item h4 {
+  color: ${theme.secondaryColor} !important;
+}
+.product-item .btn-gradient, .pd-card .btn-gradient {
+  background: ${theme.primaryColor} !important;
+  color: #ffffff !important;
+  border-radius: var(--pd-btn-radius) !important;
+  border: 1px solid color-mix(in srgb, ${theme.primaryColor} 85%, #000) !important;
+  box-shadow: none !important;
+}
+.product-item .btn-gradient:hover, .pd-card .btn-gradient:hover {
+  background: color-mix(in srgb, ${theme.primaryColor} 85%, #000) !important;
+}
+
+/* Tabs */
+.tab-btn {
+  background-color: color-mix(in srgb, ${theme.secondaryColor} 4%, transparent) !important;
+  color: ${theme.secondaryColor} !important;
+  border: 1px solid #e2e8f0 !important;
+}
+.tab-btn.active {
+  background: ${theme.primaryColor} !important;
+  color: #ffffff !important;
+  border-color: ${theme.primaryColor} !important;
+  box-shadow: none !important;
+}
+
+/* Category pills on main page */
+.category-pill-item {
+  background: #ffffff !important;
+  color: ${theme.secondaryColor} !important;
+  border: 1.5px solid #e2e8f0 !important;
+  font-weight: 700 !important;
+}
+
+/* USP Stats circles */
+.usp-circle {
+  border: 3px solid ${theme.primaryColor} !important;
+  border-radius: 50% !important;
+  width: 100px !important;
+  height: 100px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin: 0 auto !important;
+  background: #ffffff !important;
+  color: ${theme.secondaryColor} !important;
+}
+
+/* Why Choose Us Cards */
+.why-us-card {
+  background: #ffffff !important;
+  color: ${theme.secondaryColor} !important;
+  border-radius: var(--pd-card-radius) !important;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02) !important;
+}
+.why-us-card h5, .why-us-card p {
+  color: ${theme.secondaryColor} !important;
+}
+.why-us-icon-container {
+  background: ${theme.primaryColor} !important;
+}
+
+/* Footer styling */
+footer, .footer {
+  background: #f8fafc !important;
+  color: #475569 !important;
+  border-top: 1px solid #e2e8f0 !important;
+}
+footer h5, footer h4, footer a, .footer a {
+  color: ${theme.secondaryColor} !important;
+}
+footer a:hover, .footer a:hover {
+  color: ${theme.primaryColor} !important;
+}
+.copyright {
+  background: color-mix(in srgb, ${theme.secondaryColor} 4%, transparent) !important;
+  border-top: 1px solid #e2e8f0 !important;
+  color: #64748b !important;
+}
+
+/* Custom classes for Theme 1 Navbar and general elements */
+.theme1-logo-badge {
+  background-color: ${theme.primaryColor} !important;
+  color: #ffffff !important;
+}
+.theme1-nav-link {
+  color: #475569 !important;
+  border-bottom: 2px solid transparent !important;
+  transition: all 0.2s ease-in-out;
+  background: transparent !important;
+}
+.theme1-nav-link:hover {
+  color: ${theme.primaryColor} !important;
+  border-bottom-color: color-mix(in srgb, ${theme.primaryColor} 40%, transparent) !important;
+}
+.theme1-nav-link.active {
+  color: ${theme.primaryColor} !important;
+  border-bottom-color: ${theme.primaryColor} !important;
+}
+.theme1-dropdown-header {
+  background: #f1f5f9 !important;
+  border-bottom: 1px solid #e2e8f0 !important;
+}
+.theme1-dropdown-header span {
+  color: #1e293b !important;
+}
+.theme1-dropdown-header p {
+  color: #64748b !important;
+}
+.theme1-dropdown-footer-btn {
+  background: ${theme.primaryColor} !important;
+  color: #ffffff !important;
+  transition: all 0.2s ease-in-out !important;
+  box-shadow: 0 4px 14px rgba(${primaryRgb}, 0.3) !important;
+}
+.theme1-dropdown-footer-btn:hover {
+  background: color-mix(in srgb, ${theme.primaryColor} 85%, #000) !important;
+  color: #ffffff !important;
+  box-shadow: 0 6px 20px rgba(${primaryRgb}, 0.45) !important;
+}
+.theme1-cart-badge {
+  background-color: ${theme.primaryColor} !important;
+  color: #ffffff !important;
+}
+.theme1-track-order-btn {
+  font-size: 0.8rem !important;
+  font-weight: 600 !important;
+  color: #475569 !important;
+  background: transparent !important;
+  border: 1px solid #e2e8f0 !important;
+  transition: all 0.2s ease-in-out;
+}
+.theme1-track-order-btn:hover {
+  color: ${theme.primaryColor} !important;
+  border-color: color-mix(in srgb, ${theme.primaryColor} 30%, transparent) !important;
+  background: color-mix(in srgb, ${theme.primaryColor} 5%, transparent) !important;
+}
+.theme1-track-order-btn.active {
+  color: ${theme.primaryColor} !important;
+  background: color-mix(in srgb, ${theme.primaryColor} 10%, transparent) !important;
+  border-color: color-mix(in srgb, ${theme.primaryColor} 30%, transparent) !important;
+}
+.theme1-mobile-nav-link {
+  color: #374151 !important;
+  background: transparent !important;
+  transition: all 0.2s ease-in-out;
+}
+.theme1-mobile-nav-link:hover {
+  background: #f8fafc !important;
+  color: #1e293b !important;
+}
+.theme1-mobile-nav-link.active {
+  color: ${theme.primaryColor} !important;
+  background: color-mix(in srgb, ${theme.primaryColor} 10%, transparent) !important;
+}
+.theme1-mobile-sub-link {
+  color: #475569 !important;
+  transition: all 0.15s ease-in-out;
+}
+.theme1-mobile-sub-link:hover {
+  color: ${theme.primaryColor} !important;
+  background: color-mix(in srgb, ${theme.primaryColor} 8%, transparent) !important;
+}
+.theme1-collection-item:hover .theme1-collection-circle {
+  border-color: ${theme.primaryColor} !important;
+  box-shadow: 0 4px 12px color-mix(in srgb, ${theme.primaryColor} 15%, transparent) !important;
+}
+.theme1-collection-item:hover .theme1-collection-text {
+  color: ${theme.primaryColor} !important;
+}
+.theme1-product-title:hover {
+  color: ${theme.primaryColor} !important;
+}
+.theme1-product-btn {
+  background-color: #f8fafc !important;
+  color: #1e293b !important;
+  border: 1px solid #e2e8f0 !important;
+}
+.theme1-product-btn:hover {
+  background-color: ${theme.primaryColor} !important;
+  color: #ffffff !important;
+  border-color: ${theme.primaryColor} !important;
+}
+` : ''}
   `.trim();
 }
 
@@ -342,8 +787,13 @@ export function DynamicThemeProvider({ children, initialTheme }: ProviderProps) 
     fetchAndApply();
   }, [fetchAndApply]);
 
-  const css = generateThemeCss(theme);
-  const fontName = theme.fontFamily.replace(/ /g, '+');
+  // For layoutTheme 'theme1' (Clean White), if the font is default 'Inter' or empty, use 'Plus Jakarta Sans' as a more aesthetic default.
+  const activeFontFamily = theme.layoutTheme === 'theme1' && (theme.fontFamily === 'Inter' || !theme.fontFamily)
+    ? 'Plus Jakarta Sans'
+    : theme.fontFamily;
+
+  const css = generateThemeCss({ ...theme, fontFamily: activeFontFamily });
+  const fontName = activeFontFamily.replace(/ /g, '+');
   const fontUrl = `https://fonts.googleapis.com/css2?family=${fontName}:wght@300;400;500;600;700;800&display=swap`;
   const wantedLib = theme.iconLibrary ?? 'fontawesome';
   const iconUrl = ICON_CDNS[wantedLib];

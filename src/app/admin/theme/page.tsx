@@ -177,14 +177,26 @@ function LivePreview({ theme }: { theme: SiteTheme }) {
     .map((h) => parseInt(h, 16))
     .join(', ');
 
-  const navBg =
-    theme.navbarStyle === 'light'
-      ? '#fff'
-      : theme.navbarStyle === 'gradient'
-      ? `linear-gradient(135deg, ${theme.primaryColor}, ${theme.secondaryColor})`
-      : `linear-gradient(135deg, ${theme.secondaryColor} 0%, ${theme.secondaryColor}cc 100%)`;
+  const isModernGreen = theme.layoutTheme === 'modern-green';
+  const isCleanWhite = theme.layoutTheme === 'theme1';
 
-  const footerBg = theme.footerStyle === 'light' ? '#f8fafc' : theme.secondaryColor;
+  const navBg = isModernGreen
+    ? '#0d231d'
+    : isCleanWhite
+      ? '#ffffff'
+      : theme.navbarStyle === 'light'
+        ? '#fff'
+        : theme.navbarStyle === 'gradient'
+        ? `linear-gradient(135deg, ${theme.primaryColor}, ${theme.secondaryColor})`
+        : `linear-gradient(135deg, ${theme.secondaryColor} 0%, ${theme.secondaryColor}cc 100%)`;
+
+  const footerBg = isModernGreen ? '#0d231d' : isCleanWhite ? '#f8fafc' : theme.footerStyle === 'light' ? '#f8fafc' : theme.secondaryColor;
+  const bodyBg = isModernGreen ? '#f7f5ed' : isCleanWhite ? '#f8fafc' : '#f8fafc';
+  const cardBg = isModernGreen ? '#fbfaf7' : isCleanWhite ? '#ffffff' : (theme.glassmorphismEnabled ? 'rgba(255,255,255,0.85)' : '#fff');
+  const cardBorder = isModernGreen ? '1px solid #d4af3740' : isCleanWhite ? '1px solid #e2e8f0' : '1px solid #f1f5f9';
+  const logoColor = isModernGreen ? '#d4af37' : isCleanWhite ? '#2563eb' : (theme.navbarStyle === 'light' ? theme.secondaryColor : '#fff');
+  const textColor = isModernGreen ? '#d4af37' : isCleanWhite ? '#1e293b' : (theme.navbarStyle === 'light' ? '#64748b' : 'rgba(255,255,255,0.8)');
+  const itemTextColor = isModernGreen ? '#0d231d' : isCleanWhite ? '#1e293b' : theme.secondaryColor;
 
   const cardShadow =
     theme.shadowIntensity === 'none' ? 'none'
@@ -200,7 +212,7 @@ function LivePreview({ theme }: { theme: SiteTheme }) {
       {/* Announcement Bar */}
       {theme.announcementBarEnabled && (
         <div
-          style={{ background: theme.secondaryColor, color: '#fff', fontSize: '11px', padding: '6px 12px', textAlign: 'center' }}
+          style={{ background: isModernGreen ? '#d4af37' : theme.secondaryColor, color: isModernGreen ? '#0d231d' : '#fff', fontSize: '11px', padding: '6px 12px', textAlign: 'center', fontWeight: isModernGreen ? 700 : 500 }}
         >
           {theme.announcementBarText}
         </div>
@@ -218,7 +230,7 @@ function LivePreview({ theme }: { theme: SiteTheme }) {
       >
         <span
           style={{
-            color: theme.navbarStyle === 'light' ? theme.secondaryColor : '#fff',
+            color: logoColor,
             fontWeight: 800,
             fontSize: '0.9rem',
           }}
@@ -230,7 +242,7 @@ function LivePreview({ theme }: { theme: SiteTheme }) {
             <span
               key={l}
               style={{
-                color: theme.navbarStyle === 'light' ? '#64748b' : 'rgba(255,255,255,0.8)',
+                color: textColor,
                 fontSize: '0.75rem',
                 fontWeight: 500,
               }}
@@ -244,15 +256,15 @@ function LivePreview({ theme }: { theme: SiteTheme }) {
       {/* Hero */}
       <div
         style={{
-          background: `linear-gradient(135deg, ${theme.heroGradientStart} 0%, ${theme.heroGradientEnd} 100%)`,
+          background: isModernGreen ? '#0d231d' : `linear-gradient(135deg, ${theme.heroGradientStart} 0%, ${theme.heroGradientEnd} 100%)`,
           padding: '20px 16px',
         }}
       >
         <div
           style={{
             display: 'inline-block',
-            background: `linear-gradient(135deg, ${theme.primaryColor}, ${theme.primaryColor}cc)`,
-            color: '#fff',
+            background: isModernGreen ? '#d4af37' : `linear-gradient(135deg, ${theme.primaryColor}, ${theme.primaryColor}cc)`,
+            color: isModernGreen ? '#0d231d' : '#fff',
             fontSize: '10px',
             fontWeight: 700,
             padding: '3px 10px',
@@ -263,23 +275,23 @@ function LivePreview({ theme }: { theme: SiteTheme }) {
         >
           🔥 Limited Time Deal
         </div>
-        <p style={{ color: theme.primaryColor, fontWeight: 800, fontSize: '0.75rem', margin: '0 0 4px', letterSpacing: '2px' }}>
+        <p style={{ color: isModernGreen ? '#d4af37' : theme.primaryColor, fontWeight: 800, fontSize: '0.75rem', margin: '0 0 4px', letterSpacing: '2px' }}>
           Save Up To PKR 15,000
         </p>
-        <h2 style={{ color: theme.secondaryColor, fontWeight: 800, fontSize: '1.1rem', margin: '0 0 10px' }}>
+        <h2 style={{ color: isModernGreen ? '#f7f5ed' : theme.secondaryColor, fontWeight: 800, fontSize: '1.1rem', margin: '0 0 10px' }}>
           Premium Electronics
         </h2>
         <button
           style={{
-            background: `linear-gradient(135deg, ${theme.primaryColor}, ${theme.primaryColor}cc)`,
-            color: '#fff',
+            background: isModernGreen ? '#d4af37' : `linear-gradient(135deg, ${theme.primaryColor}, ${theme.primaryColor}cc)`,
+            color: isModernGreen ? '#0d231d' : '#fff',
             border: 'none',
             borderRadius: theme.buttonRadius,
             padding: '8px 20px',
             fontWeight: 600,
             fontSize: '0.78rem',
             cursor: 'pointer',
-            boxShadow: `0 4px 14px rgba(${primaryRgb}, 0.35)`,
+            boxShadow: isModernGreen ? 'none' : `0 4px 14px rgba(${primaryRgb}, 0.35)`,
           }}
         >
           Shop Now →
@@ -287,23 +299,23 @@ function LivePreview({ theme }: { theme: SiteTheme }) {
       </div>
 
       {/* Product Cards */}
-      <div style={{ background: '#f8fafc', padding: '16px', display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+      <div style={{ background: bodyBg, padding: '16px', display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
         {['Headphones', 'Smartwatch', 'Charger'].map((p, i) => (
           <div
             key={i}
             style={{
-              background: theme.glassmorphismEnabled ? 'rgba(255,255,255,0.85)' : '#fff',
+              background: cardBg,
               borderRadius: theme.cardRadius,
               padding: '12px',
               flex: '1 1 80px',
               boxShadow: cardShadow,
-              border: '1px solid #f1f5f9',
-              backdropFilter: theme.glassmorphismEnabled ? 'blur(8px)' : 'none',
+              border: cardBorder,
+              backdropFilter: !isModernGreen && theme.glassmorphismEnabled ? 'blur(8px)' : 'none',
             }}
           >
-            <div style={{ height: '40px', background: '#f1f5f9', borderRadius: '8px', marginBottom: '8px' }} />
-            <p style={{ fontSize: '0.72rem', fontWeight: 700, margin: '0 0 2px', color: theme.secondaryColor }}>{p}</p>
-            <p style={{ fontSize: '0.68rem', color: theme.primaryColor, fontWeight: 600, margin: 0 }}>PKR 12,000</p>
+            <div style={{ height: '40px', background: isModernGreen ? '#eae7db' : '#f1f5f9', borderRadius: '8px', marginBottom: '8px' }} />
+            <p style={{ fontSize: '0.72rem', fontWeight: 700, margin: '0 0 2px', color: itemTextColor }}>{p}</p>
+            <p style={{ fontSize: '0.68rem', color: isModernGreen ? '#d4af37' : theme.primaryColor, fontWeight: 600, margin: 0 }}>PKR 12,000</p>
           </div>
         ))}
       </div>
@@ -312,7 +324,7 @@ function LivePreview({ theme }: { theme: SiteTheme }) {
       <div
         style={{
           background: footerBg,
-          color: theme.footerStyle === 'light' ? '#64748b' : '#94a3b8',
+          color: isModernGreen ? '#eae7db' : (theme.footerStyle === 'light' ? '#64748b' : '#94a3b8'),
           padding: '10px 16px',
           fontSize: '0.7rem',
           textAlign: 'center',
@@ -351,6 +363,59 @@ export default function ThemeSettingsPage() {
   const set = useCallback(<K extends keyof SiteTheme>(key: K, val: SiteTheme[K]) => {
     setForm((prev) => ({ ...prev, [key]: val }));
   }, []);
+
+  const applyPreset = (presetName: 'classic' | 'modern-green' | 'theme1') => {
+    if (presetName === 'classic') {
+      setForm((prev) => ({
+        ...prev,
+        layoutTheme: 'classic',
+        primaryColor: '#ea580c',
+        secondaryColor: '#0f172a',
+        accentColor: '#3b82f6',
+        successColor: '#10b981',
+        heroGradientStart: '#fff7ed',
+        heroGradientEnd: '#ffffff',
+        navbarStyle: 'dark',
+        footerStyle: 'dark',
+        cardRadius: '16px',
+        borderRadius: '16px',
+        buttonRadius: '50px',
+      }));
+    } else if (presetName === 'modern-green') {
+      setForm((prev) => ({
+        ...prev,
+        layoutTheme: 'modern-green',
+        primaryColor: '#0d231d',
+        secondaryColor: '#0d231d',
+        accentColor: '#d4af37',
+        successColor: '#16a34a',
+        heroGradientStart: '#0d231d',
+        heroGradientEnd: '#0d231d',
+        navbarStyle: 'dark',
+        footerStyle: 'dark',
+        cardRadius: '24px',
+        borderRadius: '24px',
+        buttonRadius: '10px',
+      }));
+    } else {
+      setForm((prev) => ({
+        ...prev,
+        layoutTheme: 'theme1',
+        primaryColor: '#2563eb',
+        secondaryColor: '#1e293b',
+        accentColor: '#2563eb',
+        successColor: '#10b981',
+        heroGradientStart: '#ffffff',
+        heroGradientEnd: '#f8fafc',
+        navbarStyle: 'light',
+        footerStyle: 'light',
+        cardRadius: '12px',
+        borderRadius: '12px',
+        buttonRadius: '8px',
+        fontFamily: 'Outfit',
+      }));
+    }
+  };
 
   const handleSave = async () => {
     setSaving(true);
@@ -458,6 +523,89 @@ export default function ThemeSettingsPage() {
       <div className="row g-4">
         {/* ── LEFT COLUMN — Controls ───────────────────────── */}
         <div className="col-12 col-xl-7">
+
+          {/* Active Layout Switcher preset card */}
+          <SectionCard title="Active Layout Theme" icon="fas fa-layer-group">
+            <p className="text-muted mb-3" style={{ fontSize: '0.82rem' }}>
+              Choose your active storefront layout. Applying a layout automatically updates the color palette, borders, and footer style parameters.
+            </p>
+            <div className="row g-3">
+              <div className="col-12 col-md-4">
+                <div 
+                  onClick={() => applyPreset('classic')}
+                  className="card p-3 cursor-pointer text-center h-100 transition-all"
+                  style={{
+                    cursor: 'pointer',
+                    border: form.layoutTheme === 'classic' ? '2.5px solid var(--pd-primary, #ea580c)' : '1.5px solid #e2e8f0',
+                    background: form.layoutTheme === 'classic' ? 'rgba(234,88,12,0.04)' : '#fff',
+                    borderRadius: '16px',
+                    transition: 'all 0.2s',
+                  }}
+                >
+                  <div className="d-flex align-items-center justify-content-center mb-2 flex-wrap gap-1">
+                    <span className="badge bg-warning text-dark">Orange Accent</span>
+                    <span className="badge bg-dark text-white">Classic</span>
+                  </div>
+                  <h6 className="fw-bold mb-1" style={{ color: form.layoutTheme === 'classic' ? 'var(--pd-primary)' : '#1e293b' }}>
+                    Classic Storefront
+                  </h6>
+                  <p className="mb-0 text-muted small" style={{ fontSize: '0.72rem' }}>
+                    Bright orange elements, dark footer, sharp cards, and slate background overlays.
+                  </p>
+                </div>
+              </div>
+
+              <div className="col-12 col-md-4">
+                <div 
+                  onClick={() => applyPreset('modern-green')}
+                  className="card p-3 cursor-pointer text-center h-100 transition-all"
+                  style={{
+                    cursor: 'pointer',
+                    border: form.layoutTheme === 'modern-green' ? '2.5px solid #d4af37' : '1.5px solid #e2e8f0',
+                    background: form.layoutTheme === 'modern-green' ? 'rgba(212,175,55,0.05)' : '#fff',
+                    borderRadius: '16px',
+                    transition: 'all 0.2s',
+                  }}
+                >
+                  <div className="d-flex align-items-center justify-content-center mb-2 flex-wrap gap-1">
+                    <span className="badge text-dark" style={{ background: '#d4af37' }}>Gold Accent</span>
+                    <span className="badge text-white" style={{ background: '#0d231d' }}>Dark Green</span>
+                  </div>
+                  <h6 className="fw-bold mb-1" style={{ color: form.layoutTheme === 'modern-green' ? '#0d231d' : '#1e293b' }}>
+                    Premium Modern Green
+                  </h6>
+                  <p className="mb-0 text-muted small" style={{ fontSize: '0.72rem' }}>
+                    Dark green topbar/navbar, warm off-white body background, gold highlights, and rounded cards.
+                  </p>
+                </div>
+              </div>
+
+              <div className="col-12 col-md-4">
+                <div 
+                  onClick={() => applyPreset('theme1')}
+                  className="card p-3 cursor-pointer text-center h-100 transition-all"
+                  style={{
+                    cursor: 'pointer',
+                    border: form.layoutTheme === 'theme1' ? '2.5px solid #2563eb' : '1.5px solid #e2e8f0',
+                    background: form.layoutTheme === 'theme1' ? 'rgba(37,99,235,0.04)' : '#fff',
+                    borderRadius: '16px',
+                    transition: 'all 0.2s',
+                  }}
+                >
+                  <div className="d-flex align-items-center justify-content-center mb-2 flex-wrap gap-1">
+                    <span className="badge bg-primary text-white">Blue Accent</span>
+                    <span className="badge bg-secondary text-white">Theme 1</span>
+                  </div>
+                  <h6 className="fw-bold mb-1" style={{ color: form.layoutTheme === 'theme1' ? '#2563eb' : '#1e293b' }}>
+                    Theme 1 (Clean White)
+                  </h6>
+                  <p className="mb-0 text-muted small" style={{ fontSize: '0.72rem' }}>
+                    Theme 1 layout with clean white background, dynamic blue accents, light card borders, and minimalistic structure.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </SectionCard>
 
           {/* Colors */}
           <SectionCard title="Color Palette" icon="fas fa-fill-drip">
@@ -741,6 +889,209 @@ export default function ThemeSettingsPage() {
               </label>
             </div>
           </SectionCard>
+
+          {/* Homepage Sections */}
+          <SectionCard title="Homepage Sections & Content" icon="fas fa-th-large">
+              <p className="text-muted mb-4" style={{ fontSize: '0.82rem' }}>
+                Toggle each homepage section on/off and edit its content. Changes are applied after saving.
+              </p>
+              {(() => {
+                const hs = (form as any).homepageSections ?? {};
+                const setHs = (section: string, field: string, val: any) => {
+                  setForm((prev: any) => ({
+                    ...prev,
+                    homepageSections: {
+                      ...prev.homepageSections,
+                      [section]: { ...(prev.homepageSections?.[section] ?? {}), [field]: val },
+                    },
+                  }));
+                };
+                const Toggle = ({ s, label, icon }: { s: string; label: string; icon: string }) => (
+                  <div className="d-flex align-items-center justify-content-between py-2">
+                    <div className="d-flex align-items-center gap-2">
+                      <i className={`${icon} text-primary`} style={{ fontSize: '0.85rem', width: '16px' }} />
+                      <span className="fw-semibold" style={{ fontSize: '0.88rem' }}>{label}</span>
+                    </div>
+                    <div className="form-check form-switch mb-0">
+                      <input className="form-check-input" type="checkbox" role="switch"
+                        checked={hs[s]?.enabled ?? true}
+                        onChange={(e) => setHs(s, 'enabled', e.target.checked)} />
+                    </div>
+                  </div>
+                );
+                const Txt = ({ s, f, label, ph }: { s: string; f: string; label: string; ph?: string }) => (
+                  <div className="mb-2">
+                    <label className="form-label mb-1" style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600 }}>{label}</label>
+                    <input type="text" className="form-control form-control-sm" value={hs[s]?.[f] ?? ''} onChange={(e) => setHs(s, f, e.target.value)} placeholder={ph} style={{ fontSize: '0.82rem' }} />
+                  </div>
+                );
+                const ImageUpload = ({ s, f, label }: { s: string; f: string; label: string }) => {
+                  const [up, setUp] = useState(false);
+                  const imageUrl = hs[s]?.[f] ?? '';
+
+                  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+
+                    setUp(true);
+                    const formData = new FormData();
+                    formData.append('file', file);
+
+                    try {
+                      const res = await fetch('/api/upload', {
+                        method: 'POST',
+                        body: formData,
+                      });
+                      const json = await res.json();
+                      if (json.success) {
+                        setHs(s, f, json.url);
+                      } else {
+                        alert(json.error || 'Failed to upload image.');
+                      }
+                    } catch (err) {
+                      console.error('Upload error:', err);
+                      alert('Error uploading image.');
+                    } finally {
+                      setUp(false);
+                    }
+                  };
+
+                  return (
+                    <div className="mb-2">
+                      <label className="form-label mb-1" style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600 }}>{label}</label>
+                      <div className="d-flex align-items-center gap-2">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleUpload}
+                          className="form-control form-control-sm"
+                          style={{ fontSize: '0.82rem' }}
+                          disabled={up}
+                        />
+                        {up && (
+                          <div className="spinner-border spinner-border-sm text-primary" role="status" />
+                        )}
+                      </div>
+                      {imageUrl && (
+                        <div className="mt-2 border rounded bg-white p-1" style={{ width: '80px', height: '80px', position: 'relative', overflow: 'hidden' }}>
+                          <img
+                            src={imageUrl}
+                            alt="preview"
+                            style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  );
+                };
+                const Num = ({ s, f, label, min, max }: { s: string; f: string; label: string; min: number; max: number }) => (
+                  <div className="mb-2">
+                    <label className="form-label mb-1" style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600 }}>{label}: <strong>{hs[s]?.[f] ?? 4}</strong> cards</label>
+                    <input type="range" className="form-range" min={min} max={max} value={hs[s]?.[f] ?? 4} onChange={(e) => setHs(s, f, Number(e.target.value))} style={{ accentColor: '#2563eb' }} />
+                  </div>
+                );
+                const sections = [
+                  {
+                    key: 'heroBig', label: 'Hero Banner (Large)', icon: 'fas fa-image',
+                    fields: [
+                      { f: 'badge', label: 'Badge', ph: 'Featured Product' },
+                      { f: 'title', label: 'Heading', ph: 'Smart Speakers With Google Assistant' },
+                      { f: 'subtitle', label: 'Subtitle', ph: 'Experience room-filling sound...' },
+                      { f: 'buttonText', label: 'Button Text', ph: 'Shop Now' },
+                      { f: 'buttonLink', label: 'Button Link', ph: '/shop' },
+                      { f: 'imageUrl', label: 'Banner Image', isImage: true },
+                    ],
+                  },
+                  {
+                    key: 'heroSmall', label: 'Hero Banner (Small)', icon: 'fas fa-image',
+                    fields: [
+                      { f: 'badge', label: 'Badge', ph: 'Special Discount' },
+                      { f: 'title', label: 'Product Name', ph: 'TWS Earbuds' },
+                      { f: 'highlight', label: 'Highlight (e.g. 50% Off)', ph: '50% Off' },
+                      { f: 'imageUrl', label: 'Product Image', isImage: true },
+                    ],
+                  },
+                  {
+                    key: 'weeklyDeal', label: 'Weekly Big Deal Banner', icon: 'fas fa-tags',
+                    fields: [
+                      { f: 'label', label: 'Label', ph: 'The Big Deal This Week' },
+                      { f: 'title', label: 'Product Heading', ph: 'Apple iPhone 12 Pro Max...' },
+                      { f: 'description', label: 'Description', ph: 'Get the ultimate package...' },
+                      { f: 'buttonText', label: 'Button Text', ph: 'Shop Now' },
+                      { f: 'buttonLink', label: 'Button Link', ph: '/shop' },
+                      { f: 'imageUrl', label: 'Deal Image', isImage: true },
+                    ],
+                  },
+                ];
+                return (
+                  <div className="d-flex flex-column gap-3">
+                    {sections.map(sec => (
+                      <div key={sec.key} className="border rounded-3 overflow-hidden">
+                        <div className="px-3 pt-2 pb-1 bg-white"><Toggle s={sec.key} label={sec.label} icon={sec.icon} /></div>
+                        {(hs[sec.key]?.enabled ?? true) && (
+                          <div className="p-3 bg-light border-top">
+                            <div className="row g-2">
+                              {sec.fields.map(({ f, label, ph, isImage }) => (
+                                <div key={f} className={f === 'title' || f === 'subtitle' || f === 'description' ? 'col-12' : 'col-md-6'}>
+                                  {isImage ? (
+                                    <ImageUpload s={sec.key} f={f} label={label} />
+                                  ) : (
+                                    <Txt s={sec.key} f={f} label={label} ph={ph} />
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                    {/* Trending Products */}
+                    <div className="border rounded-3 overflow-hidden">
+                      <div className="px-3 pt-2 pb-1 bg-white"><Toggle s="trendingProducts" label="Trending Products Section" icon="fas fa-fire" /></div>
+                      {(hs.trendingProducts?.enabled ?? true) && (
+                        <div className="p-3 bg-light border-top">
+                          <Txt s="trendingProducts" f="title" label="Section Title" ph="Trending Products" />
+                          <Num s="trendingProducts" f="limit" label="Products to show" min={2} max={8} />
+                        </div>
+                      )}
+                    </div>
+                    {/* Collections */}
+                    <div className="border rounded-3 overflow-hidden">
+                      <div className="px-3 pt-2 pb-1 bg-white"><Toggle s="collections" label="Top Collections Section" icon="fas fa-th" /></div>
+                      {(hs.collections?.enabled ?? true) && (
+                        <div className="p-3 bg-light border-top">
+                          <Txt s="collections" f="title" label="Section Title" ph="The Top Collections" />
+                        </div>
+                      )}
+                    </div>
+                    {/* More Deals */}
+                    <div className="border rounded-3 overflow-hidden">
+                      <div className="px-3 pt-2 pb-1 bg-white"><Toggle s="moreDeals" label="More Active Deals Section" icon="fas fa-bolt" /></div>
+                      {(hs.moreDeals?.enabled ?? true) && (
+                        <div className="p-3 bg-light border-top">
+                          <Txt s="moreDeals" f="title" label="Section Title" ph="More Active Deals" />
+                          <Num s="moreDeals" f="limit" label="Products to show" min={2} max={8} />
+                        </div>
+                      )}
+                    </div>
+                    {/* Featured Products Section */}
+                    <div className="border rounded-3 overflow-hidden">
+                      <div className="px-3 pt-2 pb-1 bg-white"><Toggle s="featuredSection" label="Featured Products Section" icon="fas fa-star" /></div>
+                      {(hs.featuredSection?.enabled ?? true) && (
+                        <div className="p-3 bg-light border-top">
+                          <Txt s="featuredSection" f="title" label="Section Title" ph="Featured Products" />
+                          <Num s="featuredSection" f="limit" label="Products to show" min={2} max={12} />
+                        </div>
+                      )}
+                    </div>
+                    {/* Value Props */}
+                    <div className="border rounded-3 overflow-hidden">
+                      <div className="px-3 pt-2 pb-1 bg-white"><Toggle s="valueProps" label="Value Propositions Strip" icon="fas fa-award" /></div>
+                    </div>
+                  </div>
+                );
+              })()}
+            </SectionCard>
 
         </div>
 

@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>All Products - ALPHA</title>
+  <meta name="description" content="Browse our collections of premium electronics, smartwatches, smartphones and more at ALPHA.">
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Outfit', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#f0f7ff',
+              100: '#e0effe',
+              500: '#3b82f6',
+              600: '#2563eb',
+              700: '#1d4ed8',
+              900: '#1e3a8a',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* Premium custom scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+  </style>
+</head>
+<body class="bg-[#fafafa] text-slate-800 font-sans antialiased min-h-screen flex flex-col">
+
+  <!-- Header -->
+  <header class="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-slate-100 transition-all duration-300">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-20">
+        
+        <!-- Logo -->
+        <div class="flex-shrink-0 flex items-center">
+          <a href="index.html" class="text-2xl font-extrabold tracking-wider text-slate-900 flex items-center gap-2">
+            <span class="w-8 h-8 rounded-lg bg-brand-600 flex items-center justify-center text-white text-base font-black">A</span>
+            ALPHA
+          </a>
+        </div>
+
+        <!-- Navigation Links -->
+        <nav class="hidden md:flex space-x-8 text-sm font-medium">
+          <a href="index.html" class="text-slate-600 hover:text-slate-900 transition-colors py-2 border-b-2 border-transparent hover:border-slate-300">Home</a>
+          <a href="shop.html" class="text-brand-600 hover:text-brand-700 transition-colors py-2 border-b-2 border-brand-600">Shop</a>
+          <a href="shop.html?category=smartwatches" class="text-slate-600 hover:text-slate-900 transition-colors py-2 border-b-2 border-transparent hover:border-slate-300">Smart Watches</a>
+          <a href="shop.html?category=smartphones" class="text-slate-600 hover:text-slate-900 transition-colors py-2 border-b-2 border-transparent hover:border-slate-300">Smart Phones</a>
+          <a href="#" class="text-slate-600 hover:text-slate-900 transition-colors py-2 border-b-2 border-transparent hover:border-slate-300">About Us</a>
+          <a href="contact.html" class="text-slate-600 hover:text-slate-900 transition-colors py-2 border-b-2 border-transparent hover:border-slate-300">Contact Us</a>
+        </nav>
+
+        <!-- Right Icons -->
+        <div class="flex items-center space-x-4">
+          <!-- Search Toggle -->
+          <button id="search-toggle-btn" class="p-2 text-slate-500 hover:text-slate-900 rounded-full hover:bg-slate-50 transition-all" aria-label="Search">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.604 10.604z" />
+            </svg>
+          </button>
+          
+          <!-- User / Profile -->
+          <a href="#" class="p-2 text-slate-500 hover:text-slate-900 rounded-full hover:bg-slate-50 transition-all" aria-label="Account">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+            </svg>
+          </a>
+
+          <!-- Cart Button -->
+          <button id="cart-btn" class="p-2 text-slate-500 hover:text-slate-900 rounded-full hover:bg-slate-50 transition-all relative" aria-label="Shopping Cart">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+            </svg>
+            <span id="cart-badge" class="absolute -top-1 -right-1 bg-brand-600 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">0</span>
+          </button>
+
+          <!-- Mobile menu button -->
+          <button id="mobile-menu-btn" class="md:hidden p-2 text-slate-500 hover:text-slate-900 rounded-full hover:bg-slate-50 transition-all">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Search Overlay Form -->
+    <div id="search-bar" class="hidden border-t border-slate-100 bg-slate-50 px-4 py-3 transition-all duration-300">
+      <div class="max-w-3xl mx-auto flex items-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5 text-slate-400">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.604 10.604z" />
+        </svg>
+        <input type="text" id="search-input" placeholder="Search for products..." class="w-full bg-transparent border-0 outline-none text-slate-800 placeholder-slate-400 text-sm py-1">
+        <button id="search-close-btn" class="text-xs font-semibold text-slate-400 hover:text-slate-600">Close</button>
+      </div>
+    </div>
+
+    <!-- Mobile Navigation Drawer -->
+    <div id="mobile-menu" class="hidden md:hidden border-t border-slate-100 bg-white px-4 pt-2 pb-4 space-y-1">
+      <a href="index.html" class="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:text-slate-900 hover:bg-slate-50">Home</a>
+      <a href="shop.html" class="block px-3 py-2 rounded-md text-base font-medium text-brand-600 bg-brand-50">Shop</a>
+      <a href="shop.html?category=smartwatches" class="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:text-slate-900 hover:bg-slate-50">Smart Watches</a>
+      <a href="shop.html?category=smartphones" class="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:text-slate-900 hover:bg-slate-50">Smart Phones</a>
+      <a href="#" class="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:text-slate-900 hover:bg-slate-50">About Us</a>
+      <a href="contact.html" class="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:text-slate-900 hover:bg-slate-50">Contact Us</a>
+    </div>
+  </header>
+
+  <!-- Page Content -->
+  <main class="flex-grow max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
+    
+    <!-- Breadcrumbs -->
+    <nav class="flex text-xs text-slate-400 mb-6 gap-1" aria-label="Breadcrumb">
+      <a href="index.html" class="hover:text-slate-600">Home</a>
+      <span>&rsaquo;</span>
+      <span class="text-slate-600 font-medium">All Products</span>
+    </nav>
+
+    <div class="flex flex-col lg:flex-row gap-8">
+      
+      <!-- Filters Sidebar (Desktop sticky) -->
+      <aside class="w-full lg:w-64 flex-shrink-0 space-y-8 bg-white p-6 rounded-2xl border border-slate-100 h-fit lg:sticky lg:top-28">
+        
+        <!-- Header -->
+        <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+          <h2 class="text-sm font-bold text-slate-900 uppercase tracking-wider">Filters</h2>
+          <button onclick="clearFilters()" class="text-xs text-brand-600 hover:text-brand-700 font-semibold">Clear All</button>
+        </div>
+
+        <!-- Categories List -->
+        <div>
+          <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider mb-4">Categories</h3>
+          <ul class="space-y-2 text-xs font-medium text-slate-600">
+            <li>
+              <button onclick="filterCategory('all')" class="w-full text-left py-1 hover:text-brand-600 flex items-center justify-between transition-colors text-brand-600" id="cat-btn-all">
+                <span>All Categories</span>
+              </button>
+            </li>
+            <li>
+              <button onclick="filterCategory('smartwatches')" class="w-full text-left py-1 hover:text-brand-600 flex items-center justify-between transition-colors" id="cat-btn-smartwatches">
+                <span>Smart Watches</span>
+              </button>
+            </li>
+            <li>
+              <button onclick="filterCategory('speakers')" class="w-full text-left py-1 hover:text-brand-600 flex items-center justify-between transition-colors" id="cat-btn-speakers">
+                <span>Smart Speakers</span>
+              </button>
+            </li>
+            <li>
+              <button onclick="filterCategory('headphones')" class="w-full text-left py-1 hover:text-brand-600 flex items-center justify-between transition-colors" id="cat-btn-headphones">
+                <span>Headphones</span>
+              </button>
+            </li>
+            <li>
+              <button onclick="filterCategory('smartphones')" class="w-full text-left py-1 hover:text-brand-600 flex items-center justify-between transition-colors" id="cat-btn-smartphones">
+                <span>Smart Phones</span>
+              </button>
+            </li>
+            <li>
+              <button onclick="filterCategory('cameras')" class="w-full text-left py-1 hover:text-brand-600 flex items-center justify-between transition-colors" id="cat-btn-cameras">
+                <span>Smart Security</span>
+              </button>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Price Range Slider -->
+        <div class="border-t border-slate-100 pt-6">
+          <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider mb-4">Price Range</h3>
+          
+          <input type="range" id="price-slider" min="5000" max="250000" step="5000" value="250000" class="w-full h-1 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-brand-600" oninput="updatePriceLimit(this.value)">
+          
+          <div class="flex items-center justify-between mt-4 gap-3">
+            <div class="w-full bg-slate-50 border border-slate-200 rounded-lg px-2 py-1.5 text-center">
+              <span class="text-[9px] text-slate-400 block font-semibold uppercase">Min</span>
+              <span class="text-xs font-bold text-slate-700">Rs. 5,000</span>
+            </div>
+            <div class="w-full bg-slate-50 border border-slate-200 rounded-lg px-2 py-1.5 text-center">
+              <span class="text-[9px] text-slate-400 block font-semibold uppercase">Max</span>
+              <span id="price-limit-display" class="text-xs font-bold text-slate-700">Rs. 250,000</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Brand selection checkboxes -->
+        <div class="border-t border-slate-100 pt-6">
+          <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider mb-4">Brand</h3>
+          <div class="space-y-2.5">
+            <label class="flex items-center gap-2 text-xs font-medium text-slate-600 cursor-pointer">
+              <input type="checkbox" name="brand" value="apple" onclick="applyFilters()" class="rounded border-slate-300 text-brand-600 focus:ring-brand-500 w-4 h-4">
+              <span>Apple</span>
+            </label>
+            <label class="flex items-center gap-2 text-xs font-medium text-slate-600 cursor-pointer">
+              <input type="checkbox" name="brand" value="google" onclick="applyFilters()" class="rounded border-slate-300 text-brand-600 focus:ring-brand-500 w-4 h-4">
+              <span>Google</span>
+            </label>
+            <label class="flex items-center gap-2 text-xs font-medium text-slate-600 cursor-pointer">
+              <input type="checkbox" name="brand" value="samsung" onclick="applyFilters()" class="rounded border-slate-300 text-brand-600 focus:ring-brand-500 w-4 h-4">
+              <span>Samsung</span>
+            </label>
+            <label class="flex items-center gap-2 text-xs font-medium text-slate-600 cursor-pointer">
+              <input type="checkbox" name="brand" value="sony" onclick="applyFilters()" class="rounded border-slate-300 text-brand-600 focus:ring-brand-500 w-4 h-4">
+              <span>Sony</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Availability -->
+        <div class="border-t border-slate-100 pt-6">
+          <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider mb-4">Availability</h3>
+          <div class="space-y-2.5">
+            <label class="flex items-center gap-2 text-xs font-medium text-slate-600 cursor-pointer">
+              <input type="checkbox" name="availability" value="instock" checked onclick="applyFilters()" class="rounded border-slate-300 text-brand-600 focus:ring-brand-500 w-4 h-4">
+              <span>In Stock</span>
+            </label>
+            <label class="flex items-center gap-2 text-xs font-medium text-slate-600 cursor-pointer">
+              <input type="checkbox" name="availability" value="outofstock" onclick="applyFilters()" class="rounded border-slate-300 text-brand-600 focus:ring-brand-500 w-4 h-4">
+              <span>Out of Stock</span>
+            </label>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Products Feed -->
+      <section class="flex-grow space-y-6">
+        
+        <!-- Toolbar -->
+        <div class="bg-white p-4 rounded-2xl border border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm">
+          <div>
+            <h1 class="text-base font-bold text-slate-900">All Products</h1>
+            <span id="product-count" class="text-xs text-slate-400 font-medium">Showing 10 products</span>
+          </div>
+
+          <div class="flex items-center gap-4 w-full sm:w-auto justify-end">
+            <!-- Sort dropdown -->
+            <select id="sort-select" onchange="applyFilters()" class="bg-slate-50 border border-slate-200 text-slate-600 text-xs font-semibold rounded-xl px-3.5 py-2.5 outline-none focus:ring-2 focus:ring-brand-500">
+              <option value="popular">Popularity</option>
+              <option value="lowhigh">Price: Low to High</option>
+              <option value="highlow">Price: High to Low</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Products Grid -->
+        <div id="shop-products-grid" class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-6">
+          <!-- Dynamic loading -->
+        </div>
+
+        <!-- Empty Results state -->
+        <div id="shop-empty-state" class="hidden flex-col items-center justify-center py-20 text-center bg-white border border-slate-100 rounded-3xl">
+          <div class="w-16 h-16 rounded-full bg-slate-50 flex items-center justify-center text-slate-300 mb-4">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.604 10.604z" />
+            </svg>
+          </div>
+          <h3 class="text-sm font-bold text-slate-800 mb-1">No products found</h3>
+          <p class="text-xs text-slate-400 max-w-xs">Try adjusting your filters or search keywords to find what you are looking for.</p>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-slate-900 text-slate-300 border-t border-slate-800 mt-20">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
+        <div>
+          <a href="index.html" class="text-2xl font-extrabold tracking-wider text-white flex items-center gap-2 mb-6">
+            <span class="w-8 h-8 rounded-lg bg-brand-600 flex items-center justify-center text-white text-base font-black">A</span>
+            ALPHA
+          </a>
+          <p class="text-slate-400 text-xs sm:text-sm leading-relaxed mb-6">
+            Premium electronics, smart home accessories, and wearable technology tailored to elevate your digital lifestyle.
+          </p>
+          <div class="space-y-3 text-xs sm:text-sm text-slate-400">
+            <p class="flex items-start gap-2.5">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4 text-brand-500 mt-0.5 flex-shrink-0">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
+              </svg>
+              786 Commercial Plaza, Karachi, Pakistan
+            </p>
+            <p class="flex items-center gap-2.5">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4 text-brand-500 flex-shrink-0">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-2.824-1.502-5.184-3.864-6.687-6.687l1.293-.97c.362-.272.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
+              </svg>
+              +92-300-1234567
+            </p>
+            <p class="flex items-center gap-2.5">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4 text-brand-500 flex-shrink-0">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
+              </svg>
+              info@alpha-demo.co
+            </p>
+          </div>
+        </div>
+
+        <div>
+          <h3 class="text-white text-sm font-bold uppercase tracking-wider mb-6">Information</h3>
+          <ul class="space-y-3.5 text-xs sm:text-sm">
+            <li><a href="contact.html" class="text-slate-400 hover:text-white transition-colors">Contact Us</a></li>
+            <li><a href="#" class="text-slate-400 hover:text-white transition-colors">About Us</a></li>
+            <li><a href="#" class="text-slate-400 hover:text-white transition-colors">FAQs</a></li>
+            <li><a href="#" class="text-slate-400 hover:text-white transition-colors">Return Policy</a></li>
+            <li><a href="#" class="text-slate-400 hover:text-white transition-colors">Shipping Info</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <h3 class="text-white text-sm font-bold uppercase tracking-wider mb-6">Quick Links</h3>
+          <ul class="space-y-3.5 text-xs sm:text-sm">
+            <li><a href="#" class="text-slate-400 hover:text-white transition-colors">Help Center</a></li>
+            <li><a href="#" onclick="toggleCartDrawer(true)" class="text-slate-400 hover:text-white transition-colors">Shopping Cart</a></li>
+            <li><a href="shop.html" class="text-slate-400 hover:text-white transition-colors">Shop</a></li>
+            <li><a href="#" class="text-slate-400 hover:text-white transition-colors">Privacy Policy</a></li>
+            <li><a href="#" class="text-slate-400 hover:text-white transition-colors">Terms of Service</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <h3 class="text-white text-sm font-bold uppercase tracking-wider mb-6">Newsletter Sign up</h3>
+          <p class="text-slate-400 text-xs sm:text-sm mb-4 leading-relaxed">
+            Receive updates about free deals, new arrivals, and special promotions.
+          </p>
+          <form class="space-y-3" onsubmit="event.preventDefault(); alert('Subscribed successfully!');">
+            <div class="relative">
+              <input type="email" placeholder="Your email address" class="w-full bg-slate-800 text-white placeholder-slate-500 rounded-xl px-4 py-3 text-xs focus:outline-none focus:ring-2 focus:ring-brand-500 border border-slate-700">
+            </div>
+            <button type="submit" class="w-full py-3 bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold rounded-xl transition-all shadow-md uppercase tracking-wider">
+              Subscribe
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <div class="mt-16 pt-8 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <p class="text-xs text-slate-500">
+          &copy; 2026 Alpha Electronics Agency. All rights reserved.
+        </p>
+        <div class="flex items-center gap-2">
+          <span class="text-[10px] text-slate-500 font-medium mr-2">Secure checkout via</span>
+          <div class="flex items-center gap-1.5 bg-slate-800 rounded-md px-2.5 py-1 text-white font-bold text-[10px]">
+            <span class="text-sky-400">PayPal</span>
+          </div>
+          <div class="flex items-center gap-1.5 bg-slate-800 rounded-md px-2.5 py-1 text-white font-bold text-[10px]">
+            <span class="text-red-400 font-extrabold">MasterCard</span>
+          </div>
+          <div class="flex items-center gap-1.5 bg-slate-800 rounded-md px-2.5 py-1 text-white font-bold text-[10px]">
+            <span class="text-orange-400">Visa</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Shopping Cart Slide-over Drawer Backdrop -->
+  <div id="cart-drawer-backdrop" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden opacity-0 transition-opacity duration-300"></div>
+
+  <!-- Shopping Cart Drawer Content -->
+  <div id="cart-drawer" class="fixed top-0 right-0 h-full w-full max-w-md bg-white shadow-2xl z-50 transform translate-x-full transition-transform duration-300 flex flex-col justify-between">
+    <div class="p-6 border-b border-slate-100 flex items-center justify-between">
+      <h3 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5 text-slate-500">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+        </svg>
+        Shopping Cart
+      </h3>
+      <button id="cart-close-btn" class="p-2 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-50 transition-colors">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+
+    <div id="cart-drawer-body" class="flex-grow overflow-y-auto p-6 space-y-4">
+      <div id="cart-empty-state" class="flex flex-col items-center justify-center py-20 text-center">
+        <div class="w-20 h-20 rounded-full bg-slate-50 flex items-center justify-center text-slate-300 mb-6">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-10 h-10">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+          </svg>
+        </div>
+        <h4 class="text-sm font-bold text-slate-800 mb-1">Your shopping cart is empty</h4>
+        <p class="text-xs text-slate-400 max-w-xs mb-6">Add items from the store to get started with your purchase.</p>
+        <button id="cart-continue-btn" class="px-5 py-2.5 rounded-xl bg-slate-900 text-white font-semibold text-xs hover:bg-brand-600 transition-colors uppercase tracking-wider">
+          Continue Shopping
+        </button>
+      </div>
+
+      <div id="cart-items-list" class="hidden space-y-4"></div>
+    </div>
+
+    <div id="cart-drawer-footer" class="p-6 border-t border-slate-100 bg-slate-50 space-y-4 hidden">
+      <div class="flex items-center justify-between text-sm font-bold text-slate-900">
+        <span>Subtotal</span>
+        <span id="cart-subtotal">Rs. 0</span>
+      </div>
+      <p class="text-[10px] text-slate-400 leading-normal">
+        Shipping charges and discounts will be calculated at checkout.
+      </p>
+      <div class="grid grid-cols-2 gap-4">
+        <a href="#" onclick="alert('Checkout process initiated!')" class="w-full py-3 bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs rounded-xl transition-all shadow-md shadow-brand-500/20 text-center uppercase tracking-wider flex items-center justify-center">
+          Checkout
+        </a>
+        <a href="#" onclick="clearCart()" class="w-full py-3 border border-slate-200 hover:bg-slate-100 text-slate-600 font-bold text-xs rounded-xl transition-colors text-center uppercase tracking-wider flex items-center justify-center">
+          Clear All
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Shared Cart and Shop Filter Script -->
+  <script>
+    // State management for products
+    const PRODUCTS = [
+      { id: 1, name: 'Google Nest Speaker (Gen 2)', price: 14500, oldPrice: 18000, rating: 4.8, reviews: 120, brand: 'google', category: 'speakers', img: 'https://images.unsplash.com/photo-1543512214-318c7553f230?auto=format&fit=crop&w=300&q=80', badge: 'Hot', inStock: true },
+      { id: 2, name: 'Smart Watch Series 8 Active', price: 24900, oldPrice: 29900, rating: 4.9, reviews: 84, brand: 'apple', category: 'smartwatches', img: 'https://images.unsplash.com/photo-1508685096489-7aacd43bd3b1?auto=format&fit=crop&w=300&q=80', badge: 'New', inStock: true },
+      { id: 3, name: 'Apple Watch SE Silver Aluminum', price: 79900, oldPrice: 85000, rating: 4.7, reviews: 96, brand: 'apple', category: 'smartwatches', img: 'https://images.unsplash.com/photo-1575311373937-040b8e1fd5b6?auto=format&fit=crop&w=300&q=80', badge: null, inStock: true },
+      { id: 4, name: 'Galaxy Phone Prime A3', price: 44900, oldPrice: 50000, rating: 4.5, reviews: 45, brand: 'samsung', category: 'smartphones', img: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=300&q=80', badge: null, inStock: true },
+      { id: 5, name: 'iPhone 13 Pro Max Max-Space', price: 189000, oldPrice: 210000, rating: 4.9, reviews: 310, brand: 'apple', category: 'smartphones', img: 'https://images.unsplash.com/photo-1599950753725-24ae4078516e?auto=format&fit=crop&w=300&q=80', badge: 'Hot', inStock: true },
+      { id: 6, name: 'Studio Pro Wireless Headphone', price: 19900, oldPrice: 24000, rating: 4.8, reviews: 143, brand: 'sony', category: 'headphones', img: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=300&q=80', badge: null, inStock: true },
+      { id: 7, name: 'Smart Speaker Mini Echo', price: 9900, oldPrice: 12000, rating: 4.4, reviews: 38, brand: 'google', category: 'speakers', img: 'https://images.unsplash.com/photo-1543512214-318c7553f230?auto=format&fit=crop&w=300&q=80', badge: null, inStock: true },
+      { id: 8, name: 'Smart Watch Active Pro', price: 18900, oldPrice: 22000, rating: 4.6, reviews: 29, brand: 'samsung', category: 'smartwatches', img: 'https://images.unsplash.com/photo-1508685096489-7aacd43bd3b1?auto=format&fit=crop&w=300&q=80', badge: null, inStock: true },
+      { id: 9, name: 'A12 Max Smartphone 128GB', price: 59900, oldPrice: 69900, rating: 4.3, reviews: 19, brand: 'samsung', category: 'smartphones', img: 'https://images.unsplash.com/photo-1599950753725-24ae4078516e?auto=format&fit=crop&w=300&q=80', badge: null, inStock: true },
+      { id: 10, name: 'Over-Ear Bluetooth Headphones', price: 15900, oldPrice: 19900, rating: 4.5, reviews: 52, brand: 'sony', category: 'headphones', img: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=300&q=80', badge: null, inStock: true },
+      { id: 11, name: '360 Smart Indoor Cam', price: 8900, oldPrice: 12000, rating: 4.7, reviews: 67, brand: 'google', category: 'cameras', img: 'https://images.unsplash.com/photo-1528044514137-5d51957fc52e?auto=format&fit=crop&w=300&q=80', badge: 'Hot', inStock: false },
+      { id: 12, name: 'Google Pixel 7 Pro 256GB', price: 149000, oldPrice: 165000, rating: 4.8, reviews: 115, brand: 'google', category: 'smartphones', img: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=300&q=80', badge: 'New', inStock: true }
+    ];
+
+    let currentCategory = 'all';
+    let maxPrice = 250000;
+
+    // Filter Logic
+    function applyFilters() {
+      // Get selected brands
+      const brandCheckboxes = document.querySelectorAll('input[name="brand"]:checked');
+      const selectedBrands = Array.from(brandCheckboxes).map(cb => cb.value);
+
+      // Get availability
+      const availabilityCheckboxes = document.querySelectorAll('input[name="availability"]:checked');
+      const selectedAvailability = Array.from(availabilityCheckboxes).map(cb => cb.value);
+
+      // Search keyword
+      const keyword = document.getElementById('search-input').value.toLowerCase().trim();
+
+      // Sort
+      const sortBy = document.getElementById('sort-select').value;
+
+      let filtered = PRODUCTS.filter(p => {
+        // Category
+        if (currentCategory !== 'all' && p.category !== currentCategory) return false;
+        // Price limit
+        if (p.price > maxPrice) return false;
+        // Brands
+        if (selectedBrands.length > 0 && !selectedBrands.includes(p.brand)) return false;
+        // Availability
+        if (selectedAvailability.length > 0) {
+          const isInstock = selectedAvailability.includes('instock') && p.inStock;
+          const isOutofstock = selectedAvailability.includes('outofstock') && !p.inStock;
+          if (!isInstock && !isOutofstock) return false;
+        }
+        // Search Keyword
+        if (keyword && !p.name.toLowerCase().includes(keyword)) return false;
+        
+        return true;
+      });
+
+      // Sorting logic
+      if (sortBy === 'lowhigh') {
+        filtered.sort((a, b) => a.price - b.price);
+      } else if (sortBy === 'highlow') {
+        filtered.sort((a, b) => b.price - a.price);
+      } // popular stays default array sorting
+
+      renderProducts(filtered);
+    }
+
+    function renderProducts(list) {
+      const grid = document.getElementById('shop-products-grid');
+      const emptyState = document.getElementById('shop-empty-state');
+      const countEl = document.getElementById('product-count');
+
+      countEl.textContent = `Showing ${list.length} products`;
+
+      if (list.length === 0) {
+        grid.classList.add('hidden');
+        emptyState.classList.remove('hidden');
+      } else {
+        grid.classList.remove('hidden');
+        emptyState.classList.add('hidden');
+
+        grid.innerHTML = list.map(p => {
+          const badgeHtml = p.badge ? `<span class="absolute top-3 left-3 bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">${p.badge}</span>` : '';
+          const outOfStockOverlay = !p.inStock ? `<div class="absolute inset-0 bg-white/70 flex items-center justify-center text-xs font-bold text-slate-800 uppercase tracking-wider">Out of Stock</div>` : '';
+          const buttonHtml = p.inStock 
+            ? `<button onclick="addToCart('${p.name}', ${p.price}, '${p.img}')" class="w-full mt-4 bg-slate-50 hover:bg-brand-600 text-slate-800 hover:text-white text-xs font-medium py-2 rounded-lg transition-colors flex items-center justify-center gap-1.5">Add to Cart</button>`
+            : `<button disabled class="w-full mt-4 bg-slate-100 text-slate-400 text-xs font-medium py-2 rounded-lg cursor-not-allowed">Unavailable</button>`;
+
+          return `
+            <div class="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm hover:shadow-md hover:border-slate-200 transition-all flex flex-col justify-between group relative">
+              ${badgeHtml}
+              <div class="aspect-square w-full bg-slate-50 rounded-xl overflow-hidden mb-4 flex items-center justify-center p-2 relative">
+                <img src="${p.img}" alt="${p.name}" class="max-h-full object-contain mix-blend-multiply group-hover:scale-105 transition-transform duration-300">
+                ${outOfStockOverlay}
+              </div>
+              <div>
+                <h3 class="text-xs font-semibold text-slate-800 line-clamp-2 hover:text-brand-600 mb-1">
+                  <a href="#">${p.name}</a>
+                </h3>
+                <div class="flex items-center gap-1 mb-2">
+                  <span class="text-yellow-400 text-xs">&#9733;</span>
+                  <span class="text-[10px] font-medium text-slate-500">${p.rating} (${p.reviews})</span>
+                </div>
+                <div class="flex items-baseline gap-1.5">
+                  <span class="text-sm font-bold text-slate-900">Rs. ${p.price.toLocaleString()}</span>
+                  ${p.oldPrice ? `<span class="text-[10px] text-slate-400 line-through">Rs. ${p.oldPrice.toLocaleString()}</span>` : ''}
+                </div>
+              </div>
+              ${buttonHtml}
+            </div>
+          `;
+        }).join('');
+      }
+    }
+
+    function filterCategory(cat) {
+      currentCategory = cat;
+      // update active link styling
+      const buttons = ['all', 'smartwatches', 'speakers', 'headphones', 'smartphones', 'cameras'];
+      buttons.forEach(b => {
+        const btn = document.getElementById(`cat-btn-${b}`);
+        if (btn) {
+          if (b === cat) {
+            btn.classList.add('text-brand-600');
+          } else {
+            btn.classList.remove('text-brand-600');
+          }
+        }
+      });
+      applyFilters();
+    }
+
+    function updatePriceLimit(val) {
+      maxPrice = parseInt(val);
+      document.getElementById('price-limit-display').textContent = `Rs. ${maxPrice.toLocaleString()}`;
+      applyFilters();
+    }
+
+    function clearFilters() {
+      currentCategory = 'all';
+      maxPrice = 250000;
+      document.getElementById('price-slider').value = 250000;
+      document.getElementById('price-limit-display').textContent = `Rs. 250,000`;
+      
+      const brands = document.querySelectorAll('input[name="brand"]');
+      brands.forEach(b => b.checked = false);
+
+      const availability = document.querySelectorAll('input[name="availability"]');
+      availability.forEach(a => {
+        if (a.value === 'instock') a.checked = true;
+        else a.checked = false;
+      });
+
+      document.getElementById('search-input').value = '';
+      
+      filterCategory('all');
+    }
+
+    // STATE AND LOGIC FOR SHOPPING CART DRAWER
+    let cart = [];
+
+    function loadCart() {
+      const stored = localStorage.getItem('alpha_cart');
+      if (stored) {
+        try {
+          cart = JSON.parse(stored);
+        } catch(e) {
+          cart = [];
+        }
+      }
+      updateCartUI();
+    }
+
+    function saveCart() {
+      localStorage.setItem('alpha_cart', JSON.stringify(cart));
+    }
+
+    function toggleCartDrawer(open) {
+      const backdrop = document.getElementById('cart-drawer-backdrop');
+      const drawer = document.getElementById('cart-drawer');
+      
+      if (open) {
+        backdrop.classList.remove('hidden');
+        setTimeout(() => backdrop.classList.add('opacity-100'), 10);
+        drawer.classList.remove('translate-x-full');
+      } else {
+        backdrop.classList.remove('opacity-100');
+        drawer.classList.add('translate-x-full');
+        setTimeout(() => backdrop.classList.add('hidden'), 300);
+      }
+    }
+
+    function addToCart(name, price, img) {
+      const existing = cart.find(item => item.name === name);
+      if (existing) {
+        existing.quantity += 1;
+      } else {
+        cart.push({ name, price, img, quantity: 1 });
+      }
+      saveCart();
+      updateCartUI();
+      toggleCartDrawer(true);
+    }
+
+    function removeFromCart(name) {
+      cart = cart.filter(item => item.name !== name);
+      saveCart();
+      updateCartUI();
+    }
+
+    function changeQuantity(name, amt) {
+      const item = cart.find(item => item.name === name);
+      if (item) {
+        item.quantity += amt;
+        if (item.quantity <= 0) {
+          removeFromCart(name);
+        } else {
+          saveCart();
+          updateCartUI();
+        }
+      }
+    }
+
+    function clearCart() {
+      cart = [];
+      saveCart();
+      updateCartUI();
+    }
+
+    function updateCartUI() {
+      const badge = document.getElementById('cart-badge');
+      const emptyState = document.getElementById('cart-empty-state');
+      const itemsList = document.getElementById('cart-items-list');
+      const footer = document.getElementById('cart-drawer-footer');
+      const subtotalEl = document.getElementById('cart-subtotal');
+
+      const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+      badge.textContent = totalItems;
+      
+      if (cart.length === 0) {
+        emptyState.classList.remove('hidden');
+        itemsList.classList.add('hidden');
+        footer.classList.add('hidden');
+      } else {
+        emptyState.classList.add('hidden');
+        itemsList.classList.remove('hidden');
+        footer.classList.remove('hidden');
+
+        itemsList.innerHTML = '';
+        let subtotal = 0;
+        cart.forEach(item => {
+          subtotal += item.price * item.quantity;
+          const itemHtml = `
+            <div class="flex items-center gap-4 bg-slate-50 p-3 rounded-xl border border-slate-100">
+              <img src="${item.img}" alt="${item.name}" class="w-14 h-14 rounded-lg object-contain bg-white border border-slate-100 flex-shrink-0 p-1">
+              <div class="flex-grow">
+                <h5 class="text-xs font-bold text-slate-800 line-clamp-1">${item.name}</h5>
+                <span class="text-xs font-semibold text-slate-900 block mt-0.5">Rs. ${item.price.toLocaleString()}</span>
+                <div class="flex items-center gap-2 mt-2">
+                  <button onclick="changeQuantity('${item.name}', -1)" class="w-5 h-5 rounded bg-white hover:bg-slate-200 border border-slate-200 flex items-center justify-center text-xs font-bold">-</button>
+                  <span class="text-xs font-medium text-slate-700 w-4 text-center">${item.quantity}</span>
+                  <button onclick="changeQuantity('${item.name}', 1)" class="w-5 h-5 rounded bg-white hover:bg-slate-200 border border-slate-200 flex items-center justify-center text-xs font-bold">+</button>
+                </div>
+              </div>
+              <button onclick="removeFromCart('${item.name}')" class="p-1 text-slate-400 hover:text-red-500 rounded-full transition-colors flex-shrink-0">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+          `;
+          itemsList.innerHTML += itemHtml;
+        });
+        subtotalEl.textContent = `Rs. ${subtotal.toLocaleString()}`;
+      }
+    }
+
+    // Initialize Event Listeners
+    document.addEventListener('DOMContentLoaded', () => {
+      // Check query params for initial category
+      const urlParams = new URLSearchParams(window.location.search);
+      const catParam = urlParams.get('category');
+      if (catParam) {
+        currentCategory = catParam;
+      }
+      
+      clearFilters(); // this applies filters and renders initial view
+
+      loadCart();
+
+      // Cart buttons
+      document.getElementById('cart-btn').addEventListener('click', () => toggleCartDrawer(true));
+      document.getElementById('cart-close-btn').addEventListener('click', () => toggleCartDrawer(false));
+      document.getElementById('cart-drawer-backdrop').addEventListener('click', () => toggleCartDrawer(false));
+      document.getElementById('cart-continue-btn').addEventListener('click', () => toggleCartDrawer(false));
+
+      // Mobile Menu
+      const mobileBtn = document.getElementById('mobile-menu-btn');
+      const mobileNav = document.getElementById('mobile-menu');
+      mobileBtn.addEventListener('click', () => {
+        mobileNav.classList.toggle('hidden');
+      });
+
+      // Search bar toggling
+      const searchToggle = document.getElementById('search-toggle-btn');
+      const searchBar = document.getElementById('search-bar');
+      const searchClose = document.getElementById('search-close-btn');
+
+      searchToggle.addEventListener('click', () => {
+        searchBar.classList.toggle('hidden');
+      });
+      searchClose.addEventListener('click', () => {
+        searchBar.classList.add('hidden');
+      });
+
+      // Search input typing event
+      document.getElementById('search-input').addEventListener('input', () => {
+        applyFilters();
+      });
+    });
+  </script>
+</body>
+</html>

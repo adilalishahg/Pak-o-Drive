@@ -22,6 +22,8 @@ const OrderSchema = new Schema<IOrderDocument>(
         price: { type: Number, required: true },
         quantity: { type: Number, required: true },
         image: { type: String, required: true },
+        variantName: { type: String },
+        variantId: { type: String },
       },
     ],
     totalAmount: { type: Number, required: true },

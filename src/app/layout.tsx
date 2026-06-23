@@ -8,9 +8,7 @@ import './globals.css';
 import '@fortawesome/fontawesome-free/css/all.min.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import { CartProvider } from '../context/CartContext';
-import { Navbar } from '../components/layout/Navbar';
-import { Footer } from '../components/layout/Footer';
-import { WhatsAppSupport } from '../components/common/WhatsAppSupport';
+import { LayoutWrapper } from '../components/layout/LayoutWrapper';
 import TemplateScripts from '../components/common/TemplateScripts';
 import AnalyticsTracker from '../components/common/AnalyticsTracker';
 import { DynamicThemeProvider } from '../components/common/DynamicThemeProvider';
@@ -150,7 +148,7 @@ export default async function RootLayout({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(webSiteSchema) }}
         />
       </head>
-      <body>
+      <body suppressHydrationWarning>
         <DynamicThemeProvider initialTheme={initialTheme}>
           <SiteInfoProvider>
             <CartProvider>
@@ -158,12 +156,9 @@ export default async function RootLayout({
               {isAdmin ? (
                 children
               ) : (
-                <>
-                  <Navbar />
+                <LayoutWrapper>
                   {children}
-                  <Footer />
-                  <WhatsAppSupport />
-                </>
+                </LayoutWrapper>
               )}
               <TemplateScripts />
             </CartProvider>

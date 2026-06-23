@@ -10,6 +10,7 @@ interface CategoryData {
   icon: string;
   image?: string;
   productCount: number;
+  parentCategory?: string;
 }
 
 export default function AdminCategoriesPage() {
@@ -19,10 +20,12 @@ export default function AdminCategoriesPage() {
   const [slug, setSlug] = useState('');
   const [icon, setIcon] = useState('fas fa-tag');
   const [image, setImage] = useState('');
+  const [parentCategory, setParentCategory] = useState('');
   const [uploading, setUploading] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [editingCategory, setEditingCategory] = useState<CategoryData | null>(null);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -83,6 +86,25 @@ export default function AdminCategoriesPage() {
     setSlug(val.toLowerCase().trim().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-'));
   };
 
+  const handleStartEdit = (cat: CategoryData) => {
+    setEditingCategory(cat);
+    setName(cat.name);
+    setSlug(cat.slug);
+    setIcon(cat.icon || 'fas fa-tag');
+    setImage(cat.image || '');
+    setParentCategory(cat.parentCategory || '');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleCancelEdit = () => {
+    setEditingCategory(null);
+    setName('');
+    setSlug('');
+    setIcon('fas fa-tag');
+    setImage('');
+    setParentCategory('');
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name || !slug) return;
@@ -90,21 +112,39 @@ export default function AdminCategoriesPage() {
     setError('');
 
     try {
-      const res = await fetch('/api/categories', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, slug, icon, image }),
-      });
-      const json = await res.json();
-
-      if (json.success) {
-        setCategories([...categories, json.data].sort((a, b) => a.name.localeCompare(b.name)));
-        setName('');
-        setSlug('');
-        setIcon('fas fa-tag');
-        setImage('');
+      if (editingCategory) {
+        // Update Category
+        const res = await fetch(`/api/categories/${editingCategory.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, slug, icon, image, parentCategory }),
+        });
+        const json = await res.json();
+        if (json.success) {
+          setCategories(categories.map((c) => c.id === editingCategory.id ? json.data : c).sort((a, b) => a.name.localeCompare(b.name)));
+          handleCancelEdit();
+        } else {
+          throw new Error(json.error || 'Failed to update category');
+        }
       } else {
-        throw new Error(json.error || 'Failed to create category');
+        // Create Category
+        const res = await fetch('/api/categories', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, slug, icon, image, parentCategory }),
+        });
+        const json = await res.json();
+
+        if (json.success) {
+          setCategories([...categories, json.data].sort((a, b) => a.name.localeCompare(b.name)));
+          setName('');
+          setSlug('');
+          setIcon('fas fa-tag');
+          setImage('');
+          setParentCategory('');
+        } else {
+          throw new Error(json.error || 'Failed to create category');
+        }
       }
     } catch (err: any) {
       console.error(err);
@@ -191,6 +231,11 @@ export default function AdminCategoriesPage() {
                       </td>
                       <td>
                         <span className="fw-bold text-dark">{cat.name}</span>
+                        {cat.parentCategory && (
+                          <div className="small text-muted font-monospace" style={{ fontSize: '0.72rem' }}>
+                            Sub of: {cat.parentCategory}
+                          </div>
+                        )}
                       </td>
                       <td className="d-none d-md-table-cell">
                         <code className="text-muted">{cat.slug}</code>
@@ -201,6 +246,14 @@ export default function AdminCategoriesPage() {
                         </span>
                       </td>
                       <td className="text-end">
+                        <button
+                          onClick={() => handleStartEdit(cat)}
+                          className="btn btn-sm btn-outline-primary border-0 rounded-circle me-1"
+                          style={{ width: '32px', height: '32px' }}
+                          title="Edit Category"
+                        >
+                          <i className="fas fa-edit small" />
+                        </button>
                         <button
                           onClick={() => handleDelete(cat.id, cat.name)}
                           disabled={cat.productCount > 0}
@@ -226,7 +279,9 @@ export default function AdminCategoriesPage() {
         {/* Add Category Form */}
         <div className="col-12 col-lg-4">
           <div className="card border-0 shadow-sm rounded-4 bg-white p-4">
-            <h5 className="fw-bold text-secondary mb-3 border-bottom pb-2">Add New Category</h5>
+            <h5 className="fw-bold text-secondary mb-3 border-bottom pb-2">
+              {editingCategory ? `Edit Category: ${editingCategory.name}` : 'Add New Category'}
+            </h5>
             <form onSubmit={handleSubmit}>
               <div className="mb-3">
                 <label className="form-label text-muted small fw-semibold">Category Name *</label>
@@ -250,6 +305,24 @@ export default function AdminCategoriesPage() {
                   className="form-control rounded-3"
                   placeholder="e.g. smartwatches"
                 />
+              </div>
+
+              <div className="mb-3">
+                <label className="form-label text-muted small fw-semibold">Parent Category (Optional)</label>
+                <select
+                  value={parentCategory}
+                  onChange={(e) => setParentCategory(e.target.value)}
+                  className="form-select rounded-3 text-capitalize"
+                >
+                  <option value="">None (Make Root Category)</option>
+                  {categories
+                    .filter((c) => !c.parentCategory) // only root categories as parents
+                    .map((c) => (
+                      <option key={c.id} value={c.slug}>
+                        {c.name}
+                      </option>
+                    ))}
+                </select>
               </div>
 
               <div className="mb-3">
@@ -312,19 +385,30 @@ export default function AdminCategoriesPage() {
                 </div>
               )}
 
-              <button
-                type="submit"
-                disabled={saving || uploading}
-                className="btn btn-gradient w-100 py-2.5 fw-semibold border-0 text-white rounded-3 shadow"
-              >
-                {saving ? (
-                  <>
-                    <span className="spinner-border spinner-border-sm me-2" /> Saving...
-                  </>
-                ) : (
-                  'Add Category'
+              <div className="d-flex gap-2">
+                {editingCategory && (
+                  <button
+                    type="button"
+                    onClick={handleCancelEdit}
+                    className="btn btn-outline-secondary w-50 py-2.5 fw-semibold rounded-3"
+                  >
+                    Cancel
+                  </button>
                 )}
-              </button>
+                <button
+                  type="submit"
+                  disabled={saving || uploading}
+                  className={`btn btn-gradient ${editingCategory ? 'w-50' : 'w-100'} py-2.5 fw-semibold border-0 text-white rounded-3 shadow`}
+                >
+                  {saving ? (
+                    <>
+                      <span className="spinner-border spinner-border-sm me-2" /> Saving...
+                    </>
+                  ) : (
+                    editingCategory ? 'Update' : 'Add Category'
+                  )}
+                </button>
+              </div>
             </form>
           </div>
         </div>

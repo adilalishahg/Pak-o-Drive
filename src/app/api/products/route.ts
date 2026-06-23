@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import dbConnect from '../../../lib/mongodb';
 import Product from '../../../models/Product';
+import Category from '../../../models/Category';
 
 export async function GET(request: Request) {
   try {
@@ -21,7 +22,13 @@ export async function GET(request: Request) {
     const query: any = {};
 
     if (category) {
-      query.category = category;
+      const subcats = await Category.find({ parentCategory: category });
+      if (subcats.length > 0) {
+        const slugs = [category, ...subcats.map(c => c.slug)];
+        query.category = { $in: slugs };
+      } else {
+        query.category = category;
+      }
     }
 
     if (search) {

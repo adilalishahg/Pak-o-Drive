@@ -28,6 +28,10 @@ export const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({ image,
   const touchMoved = useRef(false);
 
   useEffect(() => {
+    setActiveImage(image);
+  }, [image]);
+
+  useEffect(() => {
     setMainImgSrc(activeImage || '/img/product-placeholder.png');
     setZoomed(false);
     setPan({ x: 0, y: 0 });
