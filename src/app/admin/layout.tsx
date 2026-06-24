@@ -112,13 +112,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             }
             .admin-sidebar-link {
               justify-content: center !important;
-              width: 280px !important;
+              width: 100% !important;
               font-size: 1.15rem !important;
               padding: 12px 20px !important;
             }
             .admin-header-title {
               font-size: 1.1rem !important;
-              max-width: 150px !important;
+              max-width: 240px !important;
               white-space: nowrap !important;
               overflow: hidden !important;
               text-overflow: ellipsis !important;

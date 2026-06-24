@@ -30,11 +30,21 @@ async function dbConnect() {
   if (cached && !cached.promise) {
     const opts = {
       bufferCommands: false,
+      // Vercel serverless: cap the pool so we never hit Atlas free-tier
+      // connection limit (512 on M0 / 500 on M2) under ad traffic spikes.
+      maxPoolSize: 10,
+      minPoolSize: 1,
+      // If Atlas doesn't respond within 10 s, fail fast instead of hanging
+      // the serverless function until its 30 s timeout.
+      serverSelectionTimeoutMS: 10_000,
+      // Drop idle sockets after 45 s so Lambda/Vercel warm containers don't
+      // hold stale connections across cold-start boundaries.
+      socketTimeoutMS: 45_000,
+      // Keep-alive prevents NAT gateways from silently dropping idle conns.
+      family: 4, // IPv4 — avoids DNS fallback latency on Vercel
     };
 
-    cached.promise = mongoose.connect(MONGODB_URI!, opts).then((m) => {
-      return m;
-    });
+    cached.promise = mongoose.connect(MONGODB_URI!, opts).then((m) => m);
   }
 
   try {
@@ -42,6 +52,7 @@ async function dbConnect() {
       cached.conn = await cached.promise;
     }
   } catch (e) {
+    // On error clear the promise so the next request retries cleanly.
     if (cached) {
       cached.promise = null;
     }

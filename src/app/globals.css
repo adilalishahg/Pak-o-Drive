@@ -776,3 +776,52 @@ footer a:hover, .footer a:hover {
 /* ============================================================
    END globals.css
    ============================================================ */
+
+/* ---------- Admin Panel Mobile Responsive ------------------ */
+@media (max-width: 768px) {
+  /* Shrink admin stat cards */
+  .admin-stat-card {
+    padding: 12px !important;
+  }
+  /* Tighter admin table text */
+  .admin-table th,
+  .admin-table td {
+    font-size: 0.75rem !important;
+    padding: 8px 6px !important;
+  }
+  /* Stack admin form rows */
+  .admin-form-row {
+    flex-direction: column !important;
+  }
+  /* Shrink admin sidebar if present */
+  .admin-sidebar {
+    width: 100% !important;
+    min-width: unset !important;
+  }
+  /* Chart container responsive */
+  .admin-chart-container canvas {
+    max-height: 200px !important;
+  }
+  /* Admin cards grid — 1 col on mobile */
+  .admin-cards-grid {
+    grid-template-columns: 1fr !important;
+  }
+  /* Smaller headings in admin */
+  .admin-page-title {
+    font-size: 1.1rem !important;
+  }
+  /* Make admin badge tags wrap */
+  .admin-tags-wrap {
+    flex-wrap: wrap !important;
+    gap: 4px !important;
+  }
+  /* Full-width admin action buttons */
+  .admin-action-bar {
+    flex-direction: column !important;
+    gap: 8px !important;
+  }
+  .admin-action-bar .btn {
+    width: 100% !important;
+    justify-content: center !important;
+  }
+}

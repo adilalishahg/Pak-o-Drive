@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import Image from 'next/image';
+import { OptimizedImage } from '@/components/common/OptimizedImage';
 
 interface CategoryData {
   id: string;
@@ -214,7 +214,7 @@ export default function AdminCategoriesPage() {
                           style={{ width: '40px', height: '40px', color: '#ea580c' }}
                         >
                           {cat.image && !failedImages[cat.id] ? (
-                            <Image
+                            <OptimizedImage
                               src={cat.image}
                               alt={cat.name}
                               fill
@@ -372,7 +372,7 @@ export default function AdminCategoriesPage() {
               {image && (
                 <div className="mb-4 bg-light p-2.5 rounded-3 text-center border">
                   <div style={{ height: '70px', display: 'flex', alignItems: 'center', justifyContent: 'center' }} className="position-relative">
-                    <Image
+                    <OptimizedImage
                       src={image}
                       alt="Category Preview"
                       fill

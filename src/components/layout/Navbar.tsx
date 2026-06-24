@@ -213,6 +213,15 @@ export const Navbar: React.FC = () => {
   const isActive = (href: string) => pathname === href;
 
   const activeHoverColor = isCleanWhite ? theme.primaryColor : (isModernGreen ? '#d4af37' : 'var(--pd-primary)');
+  // hex → rgba helper for box-shadows
+  const hexToRgba = (hex: string, a: number) => {
+    const r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
+    return `rgba(${r},${g},${b},${a})`;
+  };
+  const pc  = theme.primaryColor || '#2563eb';   // primary color
+  const pcA = hexToRgba(pc, 0.12);               // 12% alpha for badge / active bg
+  const pcB = hexToRgba(pc, 0.07);               // 7% alpha for hover bg
+
   const hoverStyles = `
     .category-menu-item-wrapper:hover > .category-submenu {
       display: block !important;
@@ -222,6 +231,67 @@ export const Navbar: React.FC = () => {
     }
     .category-menu-link:hover span {
       color: ${activeHoverColor} !important;
+    }
+
+    /* ── Theme-1 Navbar CSS (driven by theme.primaryColor) ── */
+    .theme1-logo-badge {
+      background: ${pc};
+      box-shadow: 0 3px 10px ${hexToRgba(pc, 0.25)};
+    }
+    .theme1-nav-link {
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: #475569;
+      border-radius: 6px;
+      padding: 8px 12px;
+      transition: color 0.15s, background 0.15s;
+      border-bottom: 2px solid transparent;
+      display: inline-flex; align-items: center;
+    }
+    .theme1-nav-link:hover {
+      color: ${pc};
+      background: ${pcB};
+    }
+    .theme1-nav-link.active {
+      color: ${pc};
+      font-weight: 700;
+      border-bottom-color: ${pc};
+      background: ${pcB};
+    }
+    .theme1-dropdown-header {
+      background: linear-gradient(135deg, ${pc}, ${hexToRgba(pc.slice(0,7) + 'cc', 1).replace('cc','').replace('rgba','').replace('(','').replace(')','') || pc});
+      background: ${pc};
+    }
+    .theme1-dropdown-footer-btn {
+      background: ${pc} !important;
+      box-shadow: 0 3px 10px ${hexToRgba(pc, 0.3)} !important;
+    }
+    .theme1-dropdown-footer-btn:hover {
+      opacity: 0.9;
+    }
+    .theme1-track-order-btn {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: #475569;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 6px 12px;
+      transition: all 0.15s;
+      display: inline-flex; align-items: center; gap: 6px;
+      text-decoration: none;
+    }
+    .theme1-track-order-btn:hover,
+    .theme1-track-order-btn.active {
+      color: ${pc};
+      background: ${pcB};
+      border-color: ${hexToRgba(pc, 0.35)};
+    }
+    .theme1-cart-badge {
+      background: ${pc};
+    }
+    .theme1-admin-icon:hover {
+      color: ${pc} !important;
+      background: ${pcB} !important;
     }
   `;
 
@@ -422,7 +492,7 @@ export const Navbar: React.FC = () => {
                 </button>
                 {catOpen && (
                   <div className="mt-1 ms-3 space-y-1">
-                    {cats.map(cat => (
+                    {categoryTree.map(cat => (
                       <Link key={cat.slug} href={`/shop?category=${cat.slug}`}
                         onClick={() => { setCatOpen(false); setMobileOpen(false); }}
                         className="block px-3 py-2 rounded-md text-sm font-medium text-decoration-none theme1-mobile-sub-link">
@@ -580,7 +650,7 @@ export const Navbar: React.FC = () => {
             <div className="d-flex align-items-center gap-2 ms-auto flex-shrink-0">
 
               {/* Wishlist */}
-              <Link href="/shop" aria-label="Wishlist" className="d-none d-lg-flex"
+              <Link href="/shop" aria-label="Wishlist" className="d-flex"
                 style={{
                   width: '36px', height: '36px', borderRadius: '8px',
                   background: isModernGreen ? 'rgba(255,255,255,0.05)' : (isCleanWhite ? '#f8fafc' : '#f8fafc'),
@@ -691,7 +761,7 @@ export const Navbar: React.FC = () => {
             <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', marginTop: '8px', paddingTop: '10px' }}>
               <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '8px' }}>Categories</p>
               <div className="d-flex flex-wrap gap-2">
-                {cats.map(cat => (
+                {categoryTree.map(cat => (
                   <Link key={cat.slug} href={`/shop?category=${cat.slug}`} onClick={() => setMobileOpen(false)}
                     style={{
                       display: 'inline-flex', alignItems: 'center', gap: '5px',

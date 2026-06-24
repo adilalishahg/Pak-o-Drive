@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import Image from 'next/image';
+import { OptimizedImage } from '@/components/common/OptimizedImage';
 
 interface OrderData {
   _id: string;
@@ -253,15 +253,13 @@ export default function AdminOrdersPage() {
                                           className="rounded bg-white border d-flex align-items-center justify-content-center overflow-hidden position-relative"
                                           style={{ width: '40px', height: '40px' }}
                                         >
-                                          <Image
-                                            src={failedImages[itemKey] ? 'https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=100' : (item.image || '/img/product-placeholder.png')}
+                                          <OptimizedImage
+                                            src={item.image || '/img/product-placeholder.png'}
                                             alt={item.name}
                                             fill
                                             sizes="40px"
                                             style={{ objectFit: 'contain', padding: '2px' }}
-                                            onError={() => {
-                                              setFailedImages((prev) => ({ ...prev, [itemKey]: true }));
-                                            }}
+                                            fallbackSrc="https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=100"
                                           />
                                         </div>
                                       <div className="min-w-0" style={{ flex: 1 }}>

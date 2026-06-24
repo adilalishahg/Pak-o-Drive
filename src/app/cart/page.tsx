@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
+import { OptimizedImage } from '@/components/common/OptimizedImage';
 import { useCart } from '../../context/CartContext';
 
 export default function CartPage() {
@@ -62,10 +62,9 @@ export default function CartPage() {
                 {/* Image */}
                 <Link href={`/product/${id}`} style={{ flexShrink: 0, display: 'block' }}>
                   <div style={{ width: '80px', height: '80px', borderRadius: '8px', background: '#f5f5f5', position: 'relative', overflow: 'hidden' }}>
-                    <Image src={itemImage} alt={prod.name} fill
+                    <OptimizedImage src={itemImage} alt={prod.name} fill
                       sizes="80px" style={{ objectFit: 'contain', padding: '4px' }}
-                      onError={(e) => { (e.target as HTMLImageElement).src = '/img/product-placeholder.png'; }}
-                      unoptimized />
+                      fallbackSrc="/img/product-placeholder.png" />
                   </div>
                 </Link>
 

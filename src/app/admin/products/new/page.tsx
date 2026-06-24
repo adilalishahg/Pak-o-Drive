@@ -209,7 +209,9 @@ export default function AdminNewProductPage() {
         const json = await res.json();
         if (json.success && json.data.length > 0) {
           setCategories(json.data);
-          setCategory(json.data[0].slug); // default select first category
+          // Default select first root (non-sub) category
+          const firstRoot = json.data.find((c: any) => !c.parentCategory) || json.data[0];
+          setCategory(firstRoot.slug);
         }
       } catch (err) {
         console.error('Error fetching categories:', err);
@@ -630,15 +632,43 @@ export default function AdminNewProductPage() {
                   className="form-select rounded-3 text-capitalize"
                 >
                   {categories.length === 0 ? (
-                    <option value="">No categories defined</option>
+                    <option value="">No categories defined — add from admin</option>
                   ) : (
-                    categories.map((cat) => (
-                      <option key={cat.id} value={cat.slug}>
-                        {cat.name}
-                      </option>
-                    ))
+                    (() => {
+                      const roots = categories.filter((c: any) => !c.parentCategory);
+                      const subs = categories.filter((c: any) => c.parentCategory);
+                      const orphans = subs.filter((s: any) => !roots.find((r: any) => r.slug === s.parentCategory));
+                      return (
+                        <>
+                          {roots.map((root: any) => {
+                            const children = subs.filter((s: any) => s.parentCategory === root.slug);
+                            return children.length > 0 ? (
+                              <optgroup key={root.slug} label={`📁 ${root.name}`}>
+                                <option value={root.slug}>{root.name} (All)</option>
+                                {children.map((sub: any) => (
+                                  <option key={sub.slug} value={sub.slug}>
+                                    ↳ {sub.name}
+                                  </option>
+                                ))}
+                              </optgroup>
+                            ) : (
+                              <option key={root.slug} value={root.slug}>{root.name}</option>
+                            );
+                          })}
+                          {orphans.map((s: any) => (
+                            <option key={s.slug} value={s.slug}>{s.name}</option>
+                          ))}
+                        </>
+                      );
+                    })()
                   )}
                 </select>
+                {category && (
+                  <div className="form-text">
+                    <i className="fas fa-tag me-1 text-primary" style={{ fontSize: '11px' }} />
+                    Selected: <strong>{categories.find((c: any) => c.slug === category)?.name || category}</strong>
+                  </div>
+                )}
               </div>
 
               <div className="mb-3">

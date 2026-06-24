@@ -24,6 +24,44 @@ export default function OrderConfirmationPage() {
         if (data.success) {
           setOrder(data.data);
           confetti({ particleCount: 120, spread: 70, origin: { y: 0.5 } });
+
+          // ── Browser-side Purchase pixel events ───────────────────────────
+          // Both guards ensure window is fully mounted before touching fbq/ttq.
+          // event_id matches the server-side CAPI event_id for deduplication.
+          if (typeof window !== 'undefined') {
+            const eventId = `order_${data.data._id}`;
+            const value   = data.data.totalAmount || 0;
+
+            // Meta Pixel — Purchase
+            if (typeof (window as any).fbq === 'function') {
+              try {
+                (window as any).fbq('track', 'Purchase', {
+                  value,
+                  currency: 'PKR',
+                  content_type: 'product',
+                  order_id: data.data._id,
+                }, { eventID: eventId });
+              } catch (pixelErr) {
+                console.error('[Meta Pixel] Purchase fire failed:', pixelErr);
+              }
+            }
+
+            // TikTok Pixel — CompletePayment
+            if (typeof (window as any).ttq !== 'undefined' &&
+                typeof (window as any).ttq.track === 'function') {
+              try {
+                (window as any).ttq.track('CompletePayment', {
+                  value,
+                  currency: 'PKR',
+                  order_id: data.data._id,
+                  event_id: eventId,
+                });
+              } catch (ttErr) {
+                console.error('[TikTok Pixel] CompletePayment fire failed:', ttErr);
+              }
+            }
+          }
+          // ─────────────────────────────────────────────────────────────────
         } else {
           setError(data.error || 'Failed to load order.');
         }

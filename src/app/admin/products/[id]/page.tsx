@@ -688,13 +688,46 @@ export default function AdminEditProductPage() {
                   onChange={(e) => setCategory(e.target.value)}
                   className="form-select rounded-3 text-capitalize"
                 >
-                  {categories.map((cat) => (
-                    <option key={cat.id} value={cat.slug}>
-                      {cat.name}
-                    </option>
-                  ))}
+                  {categories.length === 0 ? (
+                    <option value="">No categories — add from admin/categories</option>
+                  ) : (
+                    (() => {
+                      const roots = categories.filter((c: any) => !c.parentCategory);
+                      const subs = categories.filter((c: any) => c.parentCategory);
+                      const orphans = subs.filter((s: any) => !roots.find((r: any) => r.slug === s.parentCategory));
+                      return (
+                        <>
+                          {roots.map((root: any) => {
+                            const children = subs.filter((s: any) => s.parentCategory === root.slug);
+                            return children.length > 0 ? (
+                              <optgroup key={root.slug} label={`📁 ${root.name}`}>
+                                <option value={root.slug}>{root.name} (All)</option>
+                                {children.map((sub: any) => (
+                                  <option key={sub.slug} value={sub.slug}>
+                                    ↳ {sub.name}
+                                  </option>
+                                ))}
+                              </optgroup>
+                            ) : (
+                              <option key={root.slug} value={root.slug}>{root.name}</option>
+                            );
+                          })}
+                          {orphans.map((s: any) => (
+                            <option key={s.slug} value={s.slug}>{s.name}</option>
+                          ))}
+                        </>
+                      );
+                    })()
+                  )}
                 </select>
+                {category && (
+                  <div className="form-text">
+                    <i className="fas fa-tag me-1 text-primary" style={{ fontSize: '11px' }} />
+                    Selected: <strong>{categories.find((c: any) => c.slug === category)?.name || category}</strong>
+                  </div>
+                )}
               </div>
+
 
               <div className="mb-3">
                 <label className="form-label text-muted small fw-semibold">Upload Image File</label>

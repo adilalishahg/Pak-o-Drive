@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import Image from 'next/image';
+import { OptimizedImage } from '../common/OptimizedImage';
 
 interface ProductImageGalleryProps {
   image: string;
@@ -185,7 +185,7 @@ export const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({ image,
             }}
           />
         ) : (
-          <Image
+          <OptimizedImage
             src={mainImgSrc}
             alt={name}
             fill
@@ -271,7 +271,7 @@ export const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({ image,
                     <span style={{ fontSize: '8px', fontWeight: 800, marginTop: '2px', letterSpacing: '0.5px' }}>VIDEO</span>
                   </div>
                 ) : (
-                  <Image
+                  <OptimizedImage
                     src={thumbnailErrors[idx] ? '/img/product-placeholder.png' : item.url}
                     alt={`${name} ${idx + 1}`}
                     fill

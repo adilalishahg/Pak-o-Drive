@@ -4,168 +4,175 @@ import { useEffect, Suspense } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
 import posthog from 'posthog-js';
 
-// Global utility helper to easily log interactions from other components
+/**
+ * logInteraction — safe to call from any client component.
+ * Guards all window/sessionStorage access so SSR/build never crashes.
+ */
 export async function logInteraction(
-  type: 
-    | 'view_product' 
-    | 'add_to_cart' 
-    | 'search_intent' 
-    | 'scroll_depth' 
-    | 'checkout_abandonment' 
-    | 'begin_checkout' 
+  type:
+    | 'view_product'
+    | 'add_to_cart'
+    | 'search_intent'
+    | 'scroll_depth'
+    | 'checkout_abandonment'
+    | 'begin_checkout'
     | 'checkout_success'
     | 'whatsapp_click',
   path: string,
   metadata: Record<string, any> = {}
 ) {
+  // ── SSR / build-time safety guard ────────────────────────────────────────
+  // sessionStorage and window.innerWidth only exist in the browser.
+  // This function is marked 'async' but can be called from event handlers
+  // inside 'use client' components — still guard explicitly so tree-shaking
+  // doesn't accidentally strip the check during static export.
+  if (typeof window === 'undefined') return;
+
   try {
-    // Retrieve tracking helpers from session storage
-    const utmSource = sessionStorage.getItem('utm_source') || '';
-    const utmMedium = sessionStorage.getItem('utm_medium') || '';
-    const utmCampaign = sessionStorage.getItem('utm_campaign') || '';
-    const sessionId = sessionStorage.getItem('pako_session_id') || '';
+    const utmSource  = sessionStorage.getItem('utm_source')   || '';
+    const utmMedium  = sessionStorage.getItem('utm_medium')   || '';
+    const utmCampaign= sessionStorage.getItem('utm_campaign') || '';
+    const sessionId  = sessionStorage.getItem('pako_session_id') || '';
     const deviceType = window.innerWidth < 768 ? 'Mobile' : 'Desktop';
 
-    // Log to MongoDB API
-    await fetch('/api/analytics', {
-      method: 'POST',
+    // Log to MongoDB (fire-and-forget — no await needed here)
+    fetch('/api/analytics', {
+      method:  'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        type: 'interaction',
+        type:            'interaction',
         path,
         interactionType: type,
-        utm_source: utmSource,
-        utm_medium: utmMedium,
-        utm_campaign: utmCampaign,
-        session_id: sessionId,
-        device: deviceType,
+        utm_source:      utmSource,
+        utm_medium:      utmMedium,
+        utm_campaign:    utmCampaign,
+        session_id:      sessionId,
+        device:          deviceType,
         metadata,
       }),
-    });
+    }).catch((err) => console.error('[Analytics] fetch error:', err));
 
-    // Log to PostHog if initialized
-    if (typeof window !== 'undefined' && (posthog as any).__loaded) {
+    // PostHog — only when the SDK is loaded client-side
+    if ((posthog as any).__loaded) {
       posthog.capture(type, {
         path,
-        utm_source: utmSource,
-        utm_medium: utmMedium,
+        utm_source:   utmSource,
+        utm_medium:   utmMedium,
         utm_campaign: utmCampaign,
-        session_id: sessionId,
-        device: deviceType,
+        session_id:   sessionId,
+        device:       deviceType,
         ...metadata,
       });
     }
   } catch (err) {
-    console.error('Error logging analytics interaction:', err);
+    console.error('[Analytics] logInteraction error:', err);
   }
 }
 
-function TrackerInner() {
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
+// ─── Inner tracker component (needs Suspense for useSearchParams) ─────────────
 
+function TrackerInner() {
+  const pathname    = usePathname();
+  const searchParams= useSearchParams();
+
+  // 1. Session + UTM initialisation
   useEffect(() => {
-    // 1. Initialize PostHog asynchronously (non-blocking)
+    if (typeof window === 'undefined') return;
+
+    // PostHog — init only once
     const phKey = process.env.NEXT_PUBLIC_POSTHOG_KEY;
     if (phKey && !(posthog as any).__loaded) {
       posthog.init(phKey, {
         api_host: 'https://us.i.posthog.com',
         loaded: (ph) => {
-          // Identify call with user details
-          const existingSessionId = sessionStorage.getItem('pako_session_id');
-          if (existingSessionId) {
-            ph.identify(existingSessionId, {
-              device: window.innerWidth < 768 ? 'Mobile' : 'Desktop',
-              screen_width: window.innerWidth,
+          const sid = sessionStorage.getItem('pako_session_id');
+          if (sid) {
+            ph.identify(sid, {
+              device:        window.innerWidth < 768 ? 'Mobile' : 'Desktop',
+              screen_width:  window.innerWidth,
               screen_height: window.innerHeight,
             });
           }
-        }
+        },
       });
     }
 
-    // 2. Setup Session ID
+    // Generate session ID if missing
     if (!sessionStorage.getItem('pako_session_id')) {
-      const newSessionId = 'sess_' + Math.random().toString(36).substring(2, 15);
-      sessionStorage.setItem('pako_session_id', newSessionId);
+      sessionStorage.setItem(
+        'pako_session_id',
+        'sess_' + Math.random().toString(36).substring(2, 15)
+      );
     }
 
-    // 3. Capture UTM parameters
+    // Persist UTM params for the lifetime of the session
     if (searchParams) {
-      const utmSrc = searchParams.get('utm_source');
-      const utmMed = searchParams.get('utm_medium');
-      const utmCam = searchParams.get('utm_campaign');
-
-      if (utmSrc) sessionStorage.setItem('utm_source', utmSrc);
-      if (utmMed) sessionStorage.setItem('utm_medium', utmMed);
-      if (utmCam) sessionStorage.setItem('utm_campaign', utmCam);
+      const src = searchParams.get('utm_source');
+      const med = searchParams.get('utm_medium');
+      const cam = searchParams.get('utm_campaign');
+      if (src) sessionStorage.setItem('utm_source',   src);
+      if (med) sessionStorage.setItem('utm_medium',   med);
+      if (cam) sessionStorage.setItem('utm_campaign', cam);
     }
   }, [searchParams]);
 
+  // 2. Pageview logger
   useEffect(() => {
+    if (typeof window === 'undefined') return;
     if (!pathname || pathname.startsWith('/admin') || pathname.startsWith('/api')) return;
 
-    const fullPath = pathname + (searchParams.toString() ? `?${searchParams.toString()}` : '');
-    const utmSource = sessionStorage.getItem('utm_source') || '';
-    const utmMedium = sessionStorage.getItem('utm_medium') || '';
-    const utmCampaign = sessionStorage.getItem('utm_campaign') || '';
-    const sessionId = sessionStorage.getItem('pako_session_id') || '';
+    const fullPath   = pathname + (searchParams?.toString() ? `?${searchParams.toString()}` : '');
+    const utmSource  = sessionStorage.getItem('utm_source')      || '';
+    const utmMedium  = sessionStorage.getItem('utm_medium')      || '';
+    const utmCampaign= sessionStorage.getItem('utm_campaign')    || '';
+    const sessionId  = sessionStorage.getItem('pako_session_id') || '';
     const deviceType = window.innerWidth < 768 ? 'Mobile' : 'Desktop';
 
-    // Log Pageview to MongoDB
     fetch('/api/analytics', {
-      method: 'POST',
+      method:  'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        type: 'pageview',
-        path: fullPath,
-        utm_source: utmSource,
-        utm_medium: utmMedium,
+        type:         'pageview',
+        path:         fullPath,
+        utm_source:   utmSource,
+        utm_medium:   utmMedium,
         utm_campaign: utmCampaign,
-        session_id: sessionId,
-        device: deviceType,
+        session_id:   sessionId,
+        device:       deviceType,
         landing_page: sessionStorage.getItem('pako_landing_page') || fullPath,
       }),
-    }).catch((err) => {
-      console.error('Error logging pageview:', err);
-    });
+    }).catch((err) => console.error('[Analytics] pageview error:', err));
 
-    // Save landing page
     if (!sessionStorage.getItem('pako_landing_page')) {
       sessionStorage.setItem('pako_landing_page', fullPath);
     }
 
-    // Capture Pageview in PostHog
     if ((posthog as any).__loaded) {
       posthog.capture('$pageview', {
-        path: fullPath,
-        utm_source: utmSource,
-        utm_medium: utmMedium,
+        path:         fullPath,
+        utm_source:   utmSource,
+        utm_medium:   utmMedium,
         utm_campaign: utmCampaign,
-        session_id: sessionId,
+        session_id:   sessionId,
       });
     }
   }, [pathname, searchParams]);
 
-  // 4. Scroll Depth Tracker
+  // 3. Scroll-depth tracker (60 % threshold)
   useEffect(() => {
-    let scrollLogged = false;
-    const handleScroll = () => {
-      if (scrollLogged) return;
-      
-      // Track scroll to 60% of page height
-      const totalHeight = document.documentElement.scrollHeight - window.innerHeight;
-      if (totalHeight <= 0) return;
-
-      const scrolled = (window.scrollY / totalHeight) * 100;
-      if (scrolled > 60) {
-        scrollLogged = true;
+    if (typeof window === 'undefined') return;
+    let fired = false;
+    const onScroll = () => {
+      if (fired) return;
+      const total = document.documentElement.scrollHeight - window.innerHeight;
+      if (total <= 0) return;
+      if ((window.scrollY / total) * 100 > 60) {
+        fired = true;
         logInteraction('scroll_depth', pathname || '', { depth: '60%' });
       }
     };
-
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
   }, [pathname]);
 
   return null;

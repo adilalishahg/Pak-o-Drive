@@ -45,14 +45,16 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const finalPrice = variant ? variant.price : product.price;
 
-    // Log tracking interaction
-    logInteraction('add_to_cart', window.location.pathname, {
-      productId: product._id,
-      name: product.name,
-      variantName: variant?.name,
-      price: finalPrice,
-      quantity,
-    });
+    // Guard: logInteraction uses window/sessionStorage — skip during SSR
+    if (typeof window !== 'undefined') {
+      logInteraction('add_to_cart', window.location.pathname, {
+        productId: product._id,
+        name: product.name,
+        variantName: variant?.name,
+        price: finalPrice,
+        quantity,
+      });
+    }
 
     setCart((prevCart) => {
       const existingItemIndex = prevCart.findIndex(

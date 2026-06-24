@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import dbConnect from '../../../lib/mongodb';
 import Order from '../../../models/Order';
 import Product from '../../../models/Product';
+import { fireConversionEvent } from '../../../utils/conversionApi';
 
 export async function GET() {
   try {
@@ -122,6 +123,30 @@ export async function POST(request: Request) {
     });
 
     const savedOrder = await order.save();
+
+    // ── SERVER-SIDE CONVERSION TRACKING (Meta CAPI + TikTok Events API) ───────
+    // TRUE fire-and-forget: we intentionally do NOT await this Promise.
+    // The customer receives their 201 Order Success response immediately after
+    // the DB write. CAPI/TikTok calls execute asynchronously in the background
+    // without blocking the response or risking a Vercel 30 s function timeout.
+    void fireConversionEvent({
+      orderId: savedOrder._id.toString(),
+      value: calculatedTotal,
+      email: customerDetails.email,
+      phone: customerDetails.phone,
+      clientIp:
+        request.headers.get('x-forwarded-for')?.split(',')[0].trim() ||
+        request.headers.get('x-real-ip') ||
+        '',
+      userAgent: request.headers.get('user-agent') || '',
+      contentIds: resolvedItems.map((i) => i.productId),
+      contentNames: resolvedItems.map((i) => i.name),
+      utmSource: utmSource,
+    }).catch((capiErr) => {
+      // Silently log — a CAPI failure must never surface to the customer.
+      console.error('[CAPI] Non-blocking conversion event failed:', capiErr);
+    });
+    // ─────────────────────────────────────────────────────────────────────────
 
     return NextResponse.json({
       success: true,

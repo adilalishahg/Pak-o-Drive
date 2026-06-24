@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
+import { OptimizedImage } from '@/components/common/OptimizedImage';
 
 interface ProductData {
   _id: string;
@@ -181,15 +181,13 @@ export default function AdminProductsPage() {
                         className="rounded bg-light d-flex align-items-center justify-content-center overflow-hidden position-relative"
                         style={{ width: '56px', height: '56px', border: '1px solid #f1f5f9' }}
                       >
-                        <Image
-                          src={failedImages[product._id] ? 'https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=100' : (product.image || '/img/product-placeholder.png')}
+                        <OptimizedImage
+                          src={product.image || '/img/product-placeholder.png'}
                           alt={product.name}
                           fill
                           sizes="56px"
                           style={{ objectFit: 'contain', padding: '4px' }}
-                          onError={() => {
-                            setFailedImages((prev) => ({ ...prev, [product._id]: true }));
-                          }}
+                          fallbackSrc="https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=100"
                         />
                       </div>
                     </td>

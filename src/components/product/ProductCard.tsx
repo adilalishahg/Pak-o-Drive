@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
+import { OptimizedImage } from '../common/OptimizedImage';
 import { useRouter } from 'next/navigation';
 import { useCart } from '../../context/CartContext';
 import { IProduct } from '../../types';
@@ -69,7 +69,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
               }}
             />
           ) : (
-            <Image
+            <OptimizedImage
               src={imgSrc}
               alt={product.name}
               fill
@@ -181,7 +181,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
             }}
           />
         ) : (
-          <Image
+          <OptimizedImage
             src={imgSrc}
             alt={product.name}
             fill

@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { OptimizedImage } from '../common/OptimizedImage';
 import { IProduct, IProductVariant } from '../../types';
 import { ProductImageGallery } from './ProductImageGallery';
 import { ProductActions } from './ProductActions';
@@ -137,8 +138,14 @@ export const ProductDetailInteractive: React.FC<ProductDetailInteractiveProps> =
                         }}
                       >
                         {v.image && (
-                          <div className="rounded-circle overflow-hidden border" style={{ width: '18px', height: '18px', position: 'relative' }}>
-                            <img src={v.image} alt={v.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                          <div className="rounded-circle overflow-hidden border" style={{ width: '18px', height: '18px', position: 'relative', flexShrink: 0 }}>
+                            <OptimizedImage
+                              src={v.image}
+                              alt={v.name}
+                              fill
+                              sizes="18px"
+                              style={{ objectFit: 'cover' }}
+                            />
                           </div>
                         )}
                         {v.name}
