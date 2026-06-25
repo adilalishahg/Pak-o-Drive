@@ -44,7 +44,7 @@ export const ProductDetailInteractive: React.FC<ProductDetailInteractiveProps> =
 
       <div className="row g-0">
         {/* Image col */}
-        <div className="col-12 col-md-5" style={{ borderBottom: '1px solid #f0f0f0' }}>
+        <div className="col-12 col-md-6 border-bottom border-end-md" style={{ background: '#ffffff' }}>
           <ProductImageGallery
             image={currentImage}
             images={product.images || []}
@@ -54,7 +54,7 @@ export const ProductDetailInteractive: React.FC<ProductDetailInteractiveProps> =
         </div>
 
         {/* Info col */}
-        <div className="col-12 col-md-7">
+        <div className="col-12 col-md-6">
           <div className="pd-detail-right" style={{ padding: '20px 20px 24px' }}>
             {/* Category */}
             <Link

@@ -101,12 +101,16 @@ export const OptimizedImage: React.FC<OptimizedImageProps> = ({
   // Check if we can use custom loader (only for Cloudinary assets)
   const isCloudinary = imgSrc.includes('res.cloudinary.com');
 
+  // Next.js: If priority is true, do not pass loading="lazy" (it conflicts)
+  const isPriority = props.priority === true;
+  const finalLoading = isPriority ? undefined : loading;
+
   return (
     <Image
       src={imgSrc || fallbackSrc}
       alt={alt || 'Product Image'}
       sizes={defaultSizes}
-      loading={loading}
+      loading={finalLoading}
       placeholder={placeholder}
       blurDataURL={finalBlurDataURL}
       loader={isCloudinary ? cloudinaryLoader : undefined}

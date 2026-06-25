@@ -26,7 +26,7 @@ export const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({ image,
   const [activeItem, setActiveItem] = useState<{ type: 'video' | 'image'; url: string }>(initialItem);
 
   const [mainImgSrc, setMainImgSrc] = useState(
-    initialItem.type === 'image' ? initialItem.url : '/img/product-placeholder.png'
+    image || '/img/product-placeholder.png'
   );
   const [thumbnailErrors, setThumbnailErrors] = useState<Record<number, boolean>>({});
 
@@ -42,24 +42,29 @@ export const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({ image,
   const touchStartPos = useRef({ x: 0, y: 0 });
   const touchMoved = useRef(false);
 
-  // Track first mount: on first render don't override the video with image
-  const isFirstMount = useRef(true);
+  // Keep track of the initial image prop and previous image prop values
+  const initialImageRef = useRef(image);
+  const prevImageRef = useRef(image);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   // Only reset to the new variant image when the user explicitly picks a variant
-  // (skip the first mount so the video stays active on initial load)
+  // (we skip updates where the image has not changed from its initial mount value)
   useEffect(() => {
-    if (isFirstMount.current) {
-      isFirstMount.current = false;
-      return;
-    }
-    if (image) {
+    if (image && image !== initialImageRef.current && image !== prevImageRef.current) {
       setActiveItem({ type: 'image', url: image });
     }
+    prevImageRef.current = image;
   }, [image]);
 
   useEffect(() => {
     if (activeItem.type === 'image') {
       setMainImgSrc(activeItem.url || '/img/product-placeholder.png');
+    } else if (activeItem.type === 'video') {
+      setTimeout(() => {
+        if (videoRef.current) {
+          videoRef.current.play().catch(() => {});
+        }
+      }, 50);
     }
     setZoomed(false);
     setPan({ x: 0, y: 0 });
@@ -161,7 +166,7 @@ export const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({ image,
           position: 'relative',
           width: '100%',
           aspectRatio: '1 / 1',
-          background: '#f5f5f5',
+          background: '#ffffff',
           overflow: 'hidden',
           cursor: isImage ? (zoomed ? 'zoom-out' : 'zoom-in') : 'default',
           touchAction: (isImage && zoomed) ? 'none' : 'auto',
@@ -169,6 +174,7 @@ export const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({ image,
       >
         {!isImage ? (
           <video
+            ref={videoRef}
             src={activeItem.url}
             autoPlay
             loop
