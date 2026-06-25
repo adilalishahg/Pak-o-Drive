@@ -81,6 +81,10 @@ export async function GET(request: Request) {
         pages: Math.ceil(totalProducts / limit)
       },
       data: products 
+    }, {
+      headers: {
+        'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=30, must-revalidate'
+      }
     });
   } catch (error: any) {
     console.error('Error fetching products API:', error);

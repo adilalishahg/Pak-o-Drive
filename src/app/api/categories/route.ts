@@ -18,7 +18,11 @@ export async function GET() {
       }
     }
 
-    return NextResponse.json({ success: true, count: categories.length, data: categories });
+    return NextResponse.json({ success: true, count: categories.length, data: categories }, {
+      headers: {
+        'Cache-Control': 'public, s-maxage=180, stale-while-revalidate=60, must-revalidate'
+      }
+    });
   } catch (error: any) {
     console.error('Error fetching categories API:', error);
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });

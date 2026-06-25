@@ -98,10 +98,12 @@ export const DEFAULT_THEME: SiteTheme = {
 /* ─── Helpers ─────────────────────────────────────────────────── */
 /** Converts a hex color to "R, G, B" format for rgba() usage */
 function hexToRgb(hex: string): string {
+  if (!hex || typeof hex !== 'string') return '234, 88, 12';
   const clean = hex.replace('#', '');
   const num = parseInt(clean.length === 3
     ? clean.split('').map(c => c + c).join('')
     : clean, 16);
+  if (isNaN(num)) return '234, 88, 12';
   return `${(num >> 16) & 255}, ${(num >> 8) & 255}, ${num & 255}`;
 }
 

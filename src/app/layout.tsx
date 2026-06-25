@@ -111,39 +111,6 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-const organizationSchema = {
-  '@context': 'https://schema.org',
-  '@type': 'Organization',
-  name: SITE_NAME,
-  url: SITE_URL,
-  logo: `${SITE_URL}/img/carousel-1.png`,
-  contactPoint: {
-    '@type': 'ContactPoint',
-    telephone: '+92-123-456-7890',
-    contactType: 'customer service',
-    availableLanguage: ['English', 'Urdu'],
-  },
-  address: {
-    '@type': 'PostalAddress',
-    streetAddress: '123 Street',
-    addressLocality: 'Karachi',
-    addressCountry: 'PK',
-  },
-  sameAs: ['https://wa.me/923001234567'],
-};
-
-const webSiteSchema = {
-  '@context': 'https://schema.org',
-  '@type': 'WebSite',
-  name: SITE_NAME,
-  url: SITE_URL,
-  potentialAction: {
-    '@type': 'SearchAction',
-    target: { '@type': 'EntryPoint', urlTemplate: `${SITE_URL}/shop?search={search_term_string}` },
-    'query-input': 'required name=search_term_string',
-  },
-};
-
 export default async function RootLayout({
   children,
 }: Readonly<{
@@ -153,17 +120,83 @@ export default async function RootLayout({
   const pathname = headersList.get('x-pathname') || '';
   const isAdmin = pathname.startsWith('/admin');
 
-  // Pre-fetch site settings directly from MongoDB during SSR to prevent FOUC (theme flash)
+  // Pre-fetch site settings and site info directly from MongoDB during SSR
   let initialTheme = null;
+  let siteName = SITE_NAME;
+  let siteUrl = SITE_URL;
+  let sitePhone = '+92-123-456-7890';
+  let siteAddress = '123 Street';
+  let siteCity = 'Karachi';
+  let siteCountry = 'PK';
+  let siteWhatsapp = 'https://wa.me/923001234567';
+
   try {
     await dbConnect();
-    const settings = await SiteSettings.findOne({}).lean();
+    const [settings, info] = await Promise.all([
+      SiteSettings.findOne({}).lean(),
+      SiteInfo.findOne({}).lean()
+    ]);
+
     if (settings) {
       initialTheme = JSON.parse(JSON.stringify(settings));
     }
+
+    if (info) {
+      if (info.siteName) siteName = info.siteName as string;
+      if (info.website) {
+        const ws = info.website as string;
+        siteUrl = ws.startsWith('http') ? ws : `https://${ws}`;
+      }
+      if (info.phone) sitePhone = info.phone as string;
+      if (info.address) siteAddress = info.address as string;
+      if (info.city) siteCity = info.city as string;
+      if (info.country) {
+        const c = info.country as string;
+        siteCountry = c === 'Pakistan' ? 'PK' : c;
+      }
+      if (info.whatsapp) {
+        const wa = info.whatsapp as string;
+        siteWhatsapp = wa.startsWith('http')
+          ? wa
+          : `https://wa.me/${wa.replace(/[+\s-]/g, '')}`;
+      }
+    }
   } catch (err) {
-    console.error('Failed to prefetch site settings during RootLayout SSR:', err);
+    console.error('Failed to prefetch site settings or info during RootLayout SSR:', err);
   }
+
+  const organizationSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    name: siteName,
+    url: siteUrl,
+    logo: `${siteUrl}/img/carousel-1.png`,
+    contactPoint: {
+      '@type': 'ContactPoint',
+      telephone: sitePhone,
+      contactType: 'customer service',
+      availableLanguage: ['English', 'Urdu'],
+    },
+    address: {
+      '@type': 'PostalAddress',
+      streetAddress: siteAddress,
+      addressLocality: siteCity,
+      addressCountry: siteCountry,
+    },
+    sameAs: [siteWhatsapp],
+  };
+
+  const webSiteSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: siteName,
+    url: siteUrl,
+    potentialAction: {
+      '@type': 'SearchAction',
+      target: { '@type': 'EntryPoint', urlTemplate: `${siteUrl}/shop?search={search_term_string}` },
+      'query-input': 'required name=search_term_string',
+    },
+  };
 
   return (
     <html lang="en">
