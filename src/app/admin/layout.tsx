@@ -90,6 +90,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               left: 0 !important;
               width: 100% !important;
               height: 100vh !important;
+              height: 100dvh !important;
               z-index: 2000 !important;
               transform: ${sidebarOpen ? 'translateY(0)' : 'translateY(-100%)'} !important;
               opacity: ${sidebarOpen ? '1' : '0'} !important;
@@ -100,15 +101,18 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             .admin-sidebar-nav-container {
               display: flex !important;
               flex-direction: column !important;
-              justify-content: center !important;
+              justify-content: flex-start !important;
               align-items: center !important;
+              overflow-y: auto !important;
             }
             .admin-sidebar-nav {
               align-items: center !important;
-              justify-content: center !important;
+              justify-content: flex-start !important;
               text-align: center !important;
               width: 100% !important;
               gap: 1.25rem !important;
+              padding-top: 1rem !important;
+              padding-bottom: 1rem !important;
             }
             .admin-sidebar-link {
               justify-content: center !important;

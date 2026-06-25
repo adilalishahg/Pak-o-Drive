@@ -825,3 +825,34 @@ footer a:hover, .footer a:hover {
     justify-content: center !important;
   }
 }
+
+/* ---------- Calendar & Date Input Visibility Contrast Overrides ---------- */
+input[type="date"],
+input.form-control[type="date"] {
+  background-color: #f1f5f9 !important; /* Premium light gray background */
+  color: #0f172a !important; /* Dark high-contrast text */
+  border: 1.5px solid #cbd5e1 !important; /* Slate border */
+  color-scheme: light !important; /* Force standard light theme calendar picker in Chrome/Firefox */
+  font-weight: 600;
+  padding: 8px 12px;
+}
+
+input[type="date"]:focus {
+  background-color: #ffffff !important;
+  border-color: var(--pd-primary, #ea580c) !important;
+  box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.15) !important;
+}
+
+/* Premium styling for webkit date calendar icon indicator */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  filter: invert(0.15) sepia(0.1) saturate(10) hue-rotate(340deg); /* Style icon with a subtle orange hue */
+  opacity: 0.9;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator:hover {
+  transform: scale(1.15);
+  opacity: 1;
+}
+
