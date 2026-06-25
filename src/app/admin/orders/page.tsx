@@ -280,19 +280,19 @@ export default function AdminOrdersPage() {
             
             {/* Logistics stats Row */}
             <div className="row g-2 mb-3 text-center">
-              <div className="col-4">
+              <div className="col-12 col-sm-4">
                 <div className="p-3 rounded-4 border" style={{ background: '#ecfdf5' }}>
                   <p className="text-muted fw-bold mb-1" style={{ fontSize: '0.62rem', textTransform: 'uppercase' }}>RTO Ratio</p>
                   <h4 className="fw-black text-success mb-0" style={{ fontSize: '1.25rem' }}>4.8% <i className="fas fa-arrow-down" style={{ fontSize: '12px' }} /></h4>
                 </div>
               </div>
-              <div className="col-4">
+              <div className="col-12 col-sm-4">
                 <div className="p-3 rounded-4 border" style={{ background: '#fffbeb' }}>
                   <p className="text-muted fw-bold mb-1" style={{ fontSize: '0.62rem', textTransform: 'uppercase' }}>City Validation Queue</p>
                   <h4 className="fw-black text-warning mb-0" style={{ fontSize: '1.25rem' }}>8 Orders</h4>
                 </div>
               </div>
-              <div className="col-4">
+              <div className="col-12 col-sm-4">
                 <div className="p-3 rounded-4 border" style={{ background: '#eff6ff' }}>
                   <p className="text-muted fw-bold mb-1" style={{ fontSize: '0.62rem', textTransform: 'uppercase' }}>Delivery Efficiency</p>
                   <h4 className="fw-black text-primary mb-0" style={{ fontSize: '1.25rem' }}>96%</h4>

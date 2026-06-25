@@ -128,10 +128,10 @@ export default function AdminDashboardPage() {
     <div className="fade-in">
 
 
-      {/* Metric Cards Grid — col-6 = 2 per row on mobile, col-md-4 = 3 per row, col-xl = equal width on desktop */}
+      {/* Metric Cards Grid — col-12 = 1 per row on mobile, col-sm-6 = 2 per row on tablets, col-xl = equal width on desktop */}
       <div className="row g-3 mb-4">
         {/* Total Revenue */}
-        <div className="col-6 col-md-4 col-xl">
+        <div className="col-12 col-sm-6 col-xl">
           <MetricCard
             title="Total Revenue"
             metricType="revenue"
@@ -150,7 +150,7 @@ export default function AdminDashboardPage() {
         </div>
 
         {/* Total Orders */}
-        <div className="col-6 col-md-4 col-xl">
+        <div className="col-12 col-sm-6 col-xl">
           <MetricCard
             title="Total Orders"
             metricType="orders"
@@ -169,7 +169,7 @@ export default function AdminDashboardPage() {
         </div>
 
         {/* Unread Messages */}
-        <div className="col-6 col-md-4 col-xl">
+        <div className="col-12 col-sm-6 col-xl">
           <div className="card border-0 shadow-sm rounded-4 bg-white h-100" style={{ padding: '14px' }}>
             <div className="d-flex align-items-start justify-content-between mb-2">
               <div style={{ minWidth: 0, flex: 1 }}>
@@ -194,7 +194,7 @@ export default function AdminDashboardPage() {
         </div>
 
         {/* Page Views */}
-        <div className="col-6 col-md-4 col-xl">
+        <div className="col-12 col-sm-6 col-xl">
           <MetricCard
             title="Page Views"
             metricType="pageviews"
@@ -213,7 +213,7 @@ export default function AdminDashboardPage() {
         </div>
 
         {/* Abandoned Cart Revenue Leak */}
-        <div className="col-6 col-md-4 col-xl">
+        <div className="col-12 col-sm-6 col-xl">
           <MetricCard
             title="Cart Revenue Leak"
             metricType="abandoned_cart"

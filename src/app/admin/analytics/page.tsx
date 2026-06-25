@@ -240,7 +240,7 @@ export default function AdminAnalyticsDashboard() {
       {/* ── 9 KPI Cards ── */}
       <div className="row g-2 mb-3">
         {kpisConfig.map((k, i) => (
-          <div key={i} className="col-6 col-sm-4 col-lg-3">
+          <div key={i} className="col-12 col-sm-6 col-md-4 col-lg-3">
             <MetricCard
               title={k.t}
               metricType={k.type}
