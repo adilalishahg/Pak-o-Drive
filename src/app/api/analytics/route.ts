@@ -113,6 +113,40 @@ export async function GET(request: Request) {
     const whatsappClicksCount = await Analytics.countDocuments({ type: 'interaction', interactionType: 'whatsapp_click', ...dateFilter });
     const searchesCount = await Analytics.countDocuments({ type: 'interaction', interactionType: 'search_intent', ...dateFilter });
 
+    // Abandoned Cart Leak Calculator
+    const checkoutSessions = await Analytics.distinct('session_id', {
+      type: 'interaction',
+      interactionType: 'checkout_success',
+      ...dateFilter
+    });
+    const leakAgg = await Analytics.aggregate([
+      {
+        $match: {
+          type: 'interaction',
+          interactionType: 'add_to_cart',
+          ...dateFilter,
+          session_id: { $exists: true, $nin: checkoutSessions }
+        }
+      },
+      {
+        $project: {
+          itemValue: {
+            $multiply: [
+              { $ifNull: ['$metadata.price', 0] },
+              { $ifNull: ['$metadata.quantity', 1] }
+            ]
+          }
+        }
+      },
+      {
+        $group: {
+          _id: null,
+          total: { $sum: '$itemValue' }
+        }
+      }
+    ]);
+    const abandonedCartLeak = leakAgg[0]?.total || 0;
+
     // ── 5. CONVERSION FUNNEL ANALYSIS ────────────────────────────────────────
     //
     // We calculate distinct session counts at each funnel step so that one
@@ -429,7 +463,8 @@ export async function GET(request: Request) {
           pageviews: pageviewsCount,
           cartClicks: cartClicksCount,
           whatsappClicks: whatsappClicksCount,
-          searchesCount: searchesCount
+          searchesCount: searchesCount,
+          abandonedCartLeak
         },
         marketing: attributionTable,
         // Multi-step conversion funnel — each element has:

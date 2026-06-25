@@ -64,3 +64,27 @@ export async function PUT(
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
 }
+
+export async function DELETE(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    await dbConnect();
+    const { id } = await params;
+
+    const order = await Order.findByIdAndDelete(id);
+
+    if (!order) {
+      return NextResponse.json(
+        { success: false, error: 'Order not found.' },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json({ success: true, message: 'Order deleted successfully.' });
+  } catch (error: any) {
+    console.error('Error deleting order:', error);
+    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+  }
+}

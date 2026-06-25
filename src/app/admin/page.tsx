@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
+import MetricCard from '../../components/common/MetricCard';
 
 interface DashboardData {
   stats: {
@@ -14,6 +15,7 @@ interface DashboardData {
     cartClicks: number;
     whatsappClicks: number;
     searchesCount: number;
+    abandonedCartLeak?: number;
   };
   charts: {
     labels: string[];
@@ -126,58 +128,48 @@ export default function AdminDashboardPage() {
     <div className="fade-in">
 
 
-      {/* Metric Cards Grid — col-6 = 2 per row on mobile, col-xl-3 = 4 per row on desktop */}
+      {/* Metric Cards Grid — col-6 = 2 per row on mobile, col-md-4 = 3 per row, col-xl = equal width on desktop */}
       <div className="row g-3 mb-4">
         {/* Total Revenue */}
-        <div className="col-6 col-xl-3">
-          <div className="card border-0 shadow-sm rounded-4 bg-white h-100" style={{ padding: '14px' }}>
-            <div className="d-flex align-items-start justify-content-between mb-2">
-              <div style={{ minWidth: 0, flex: 1 }}>
-                <p className="text-muted fw-bold text-uppercase mb-1" style={{ fontSize: '0.62rem', letterSpacing: '0.4px' }}>
-                  Total Revenue
-                </p>
-                <div className="fw-bold text-dark" style={{ fontSize: 'clamp(0.82rem, 3.5vw, 1.4rem)', lineHeight: 1.2, wordBreak: 'break-word' }}>
-                  PKR {stats.revenue.toLocaleString()}
-                </div>
+        <div className="col-6 col-md-4 col-xl">
+          <MetricCard
+            title="Total Revenue"
+            metricType="revenue"
+            initialValue={stats.revenue}
+            formatValue={(val) => `PKR ${val.toLocaleString()}`}
+            iconClass="fa-wallet"
+            iconBg="rgba(37,99,235,0.1)"
+            iconColor="#2563eb"
+            footerContent={
+              <div className="d-flex align-items-center gap-1" style={{ fontSize: '0.68rem' }}>
+                <span className="text-success fw-bold"><i className="fas fa-caret-up" /> 12.5%</span>
+                <span className="text-muted">vs last month</span>
               </div>
-              <div className="rounded-3 d-flex align-items-center justify-content-center flex-shrink-0 ms-1"
-                style={{ width: '34px', height: '34px', minWidth: '34px', background: 'rgba(37,99,235,0.1)', color: '#2563eb' }}>
-                <i className="fas fa-wallet" style={{ fontSize: '13px' }} />
-              </div>
-            </div>
-            <div className="d-flex align-items-center gap-1" style={{ fontSize: '0.68rem' }}>
-              <span className="text-success fw-bold"><i className="fas fa-caret-up" /> 12.5%</span>
-              <span className="text-muted">vs last month</span>
-            </div>
-          </div>
+            }
+          />
         </div>
 
         {/* Total Orders */}
-        <div className="col-6 col-xl-3">
-          <div className="card border-0 shadow-sm rounded-4 bg-white h-100" style={{ padding: '14px' }}>
-            <div className="d-flex align-items-start justify-content-between mb-2">
-              <div style={{ minWidth: 0, flex: 1 }}>
-                <p className="text-muted fw-bold text-uppercase mb-1" style={{ fontSize: '0.62rem', letterSpacing: '0.4px' }}>
-                  Total Orders
-                </p>
-                <div className="fw-bold text-dark" style={{ fontSize: 'clamp(1.1rem, 5vw, 1.75rem)', lineHeight: 1.2 }}>
-                  {stats.orders}
-                </div>
+        <div className="col-6 col-md-4 col-xl">
+          <MetricCard
+            title="Total Orders"
+            metricType="orders"
+            initialValue={stats.orders}
+            formatValue={(val) => val.toString()}
+            iconClass="fa-shopping-bag"
+            iconBg="rgba(249,115,22,0.1)"
+            iconColor="#f97316"
+            footerContent={
+              <div className="d-flex align-items-center gap-1" style={{ fontSize: '0.68rem' }}>
+                <span className="text-success fw-bold"><i className="fas fa-caret-up" /> 8.3%</span>
+                <span className="text-muted">vs last week</span>
               </div>
-              <div className="rounded-3 d-flex align-items-center justify-content-center flex-shrink-0 ms-1"
-                style={{ width: '34px', height: '34px', minWidth: '34px', background: 'rgba(249,115,22,0.1)', color: '#f97316' }}>
-                <i className="fas fa-shopping-bag" style={{ fontSize: '13px' }} />
-              </div>
-            </div>
-            <div className="d-flex align-items-center gap-1" style={{ fontSize: '0.68rem' }}>
-              <span className="text-success fw-bold"><i className="fas fa-caret-up" /> 8.3%</span>
-              <span className="text-muted">vs last week</span>
-            </div>
-          </div>
+            }
+          />
         </div>
 
         {/* Unread Messages */}
-        <div className="col-6 col-xl-3">
+        <div className="col-6 col-md-4 col-xl">
           <div className="card border-0 shadow-sm rounded-4 bg-white h-100" style={{ padding: '14px' }}>
             <div className="d-flex align-items-start justify-content-between mb-2">
               <div style={{ minWidth: 0, flex: 1 }}>
@@ -202,27 +194,40 @@ export default function AdminDashboardPage() {
         </div>
 
         {/* Page Views */}
-        <div className="col-6 col-xl-3">
-          <div className="card border-0 shadow-sm rounded-4 bg-white h-100" style={{ padding: '14px' }}>
-            <div className="d-flex align-items-start justify-content-between mb-2">
-              <div style={{ minWidth: 0, flex: 1 }}>
-                <p className="text-muted fw-bold text-uppercase mb-1" style={{ fontSize: '0.62rem', letterSpacing: '0.4px' }}>
-                  Page Views
-                </p>
-                <div className="fw-bold text-dark" style={{ fontSize: 'clamp(1.1rem, 5vw, 1.75rem)', lineHeight: 1.2 }}>
-                  {stats.pageviews}
-                </div>
+        <div className="col-6 col-md-4 col-xl">
+          <MetricCard
+            title="Page Views"
+            metricType="pageviews"
+            initialValue={stats.pageviews}
+            formatValue={(val) => val.toString()}
+            iconClass="fa-eye"
+            iconBg="rgba(6,182,212,0.1)"
+            iconColor="#06b6d4"
+            footerContent={
+              <div className="d-flex align-items-center gap-1" style={{ fontSize: '0.68rem' }}>
+                <span className="text-muted">Cart clicks:</span>
+                <span className="text-dark fw-bold">{stats.cartClicks}</span>
               </div>
-              <div className="rounded-3 d-flex align-items-center justify-content-center flex-shrink-0 ms-1"
-                style={{ width: '34px', height: '34px', minWidth: '34px', background: 'rgba(6,182,212,0.1)', color: '#06b6d4' }}>
-                <i className="fas fa-eye" style={{ fontSize: '13px' }} />
+            }
+          />
+        </div>
+
+        {/* Abandoned Cart Revenue Leak */}
+        <div className="col-6 col-md-4 col-xl">
+          <MetricCard
+            title="Cart Revenue Leak"
+            metricType="abandoned_cart"
+            initialValue={stats.abandonedCartLeak || 0}
+            formatValue={(val) => `PKR ${val.toLocaleString()}`}
+            iconClass="fa-shopping-cart"
+            iconBg="rgba(239, 68, 68, 0.1)"
+            iconColor="#ef4444"
+            footerContent={
+              <div className="d-flex align-items-center gap-1" style={{ fontSize: '0.68rem' }}>
+                <span className="text-danger fw-bold"><i className="fas fa-exclamation-triangle" /> Potential leak</span>
               </div>
-            </div>
-            <div className="d-flex align-items-center gap-1" style={{ fontSize: '0.68rem' }}>
-              <span className="text-muted">Cart clicks:</span>
-              <span className="text-dark fw-bold">{stats.cartClicks}</span>
-            </div>
-          </div>
+            }
+          />
         </div>
       </div>
 

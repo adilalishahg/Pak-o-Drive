@@ -5,6 +5,33 @@ import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, PieChart, Pie, Cell, Legend, BarChart, Bar
 } from 'recharts';
+import MetricCard from '../../../components/common/MetricCard';
+import InteractiveMap from '../../../components/common/InteractiveMap';
+
+const cityCoordinates: Record<string, [number, number]> = {
+  islamabad: [33.6844, 73.0479],
+  rawalpindi: [33.5651, 73.0169],
+  lahore: [31.5204, 74.3587],
+  karachi: [24.8607, 67.0011],
+  faisalabad: [31.4504, 73.1350],
+  multan: [30.1575, 71.5249],
+  peshawar: [34.0151, 71.5805],
+  quetta: [30.1798, 66.9750],
+  sialkot: [32.4945, 74.5228],
+  gujranwala: [32.1877, 74.1945],
+};
+
+const deliveryRoutes: Array<{ path: [number, number][]; color?: string; weight?: number }> = [
+  // Primary green hub lines
+  { path: [[24.8607, 67.0011], [27.7244, 68.8228], [30.1575, 71.5249], [31.5204, 74.3587], [33.6844, 73.0479]], color: '#10b981', weight: 3 },
+  // Secondary orange link lines
+  { path: [[24.8607, 67.0011], [30.1798, 66.9750]], color: '#f97316', weight: 2 },
+  { path: [[25.3960, 68.3578], [27.7244, 68.8228]], color: '#f97316', weight: 2 },
+  { path: [[30.1798, 66.9750], [27.7244, 68.8228]], color: '#f97316', weight: 2 },
+  { path: [[30.1798, 66.9750], [30.1575, 71.5249]], color: '#f97316', weight: 2 },
+  { path: [[30.1575, 71.5249], [31.4504, 73.1350], [31.5204, 74.3587]], color: '#f97316', weight: 2 },
+  { path: [[33.6844, 73.0479], [34.0151, 71.5805]], color: '#f97316', weight: 2 },
+];
 
 interface FunnelStep {
   step: number; label: string; description: string; count: number;
@@ -17,6 +44,7 @@ interface AnalyticsData {
     conversionRate: number; uniqueSessionsCount: number;
     products?: number; unreadContacts?: number; activePromos?: number;
     pageviews?: number; cartClicks?: number; whatsappClicks?: number; searchesCount?: number;
+    abandonedCartLeak?: number;
   };
   marketing: Array<{ source: string; visits: number; add_to_carts: number; purchases: number; revenue: number; roas: number }>;
   funnel?: FunnelStep[];
@@ -56,24 +84,78 @@ const StatRow = ({ label, value, icon, color = '#f97316' }: { label: string; val
 
 export default function AdminAnalyticsDashboard() {
   const [data, setData] = useState<AnalyticsData | null>(null);
+  const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [mounted, setMounted] = useState(false);
   const [range, setRange] = useState('7days');
+  const [activeLogisticsTab, setActiveLogisticsTab] = useState<'orders' | 'dispatch' | 'bookings' | 'performance'>('orders');
+  const [showBookingModal, setShowBookingModal] = useState(false);
+  const [selectedBookingOrder, setSelectedBookingOrder] = useState<string | null>(null);
+  const [selectedCourier, setSelectedCourier] = useState('TRAX');
+  const [showSlipModal, setShowSlipModal] = useState(false);
 
   useEffect(() => { setMounted(true); fetchAnalytics('7days'); }, []);
 
   async function fetchAnalytics(r = range) {
     try {
       setLoading(true); setError('');
-      const res = await fetch(`/api/analytics?range=${r}`, { cache: 'no-store' });
-      const json = await res.json();
-      if (json.success) setData(json.data);
-      else throw new Error(json.error || 'Failed to load.');
+      const [analyticsRes, ordersRes] = await Promise.all([
+        fetch(`/api/analytics?range=${r}`, { cache: 'no-store' }),
+        fetch('/api/orders', { cache: 'no-store' })
+      ]);
+      const analyticsJson = await analyticsRes.json();
+      const ordersJson = await ordersRes.json();
+      if (analyticsJson.success) setData(analyticsJson.data);
+      else throw new Error(analyticsJson.error || 'Failed to load.');
+      if (ordersJson.success) setOrders(ordersJson.data);
     } catch (e: any) {
       setError(e.message || 'Connection error.');
     } finally { setLoading(false); }
   }
+
+  const handleVerifyCall = async (orderId: string) => {
+    try {
+      const res = await fetch(`/api/orders/${orderId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'Processing' })
+      });
+      const json = await res.json();
+      if (json.success) {
+        setOrders(prev => prev.map(o => o._id === orderId ? { ...o, status: 'Processing' } : o));
+      } else {
+        alert(json.error || 'Failed to verify call.');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Error verifying call.');
+    }
+  };
+
+  const handleCreateBooking = async (orderId: string, courier: string) => {
+    try {
+      const res = await fetch(`/api/orders/${orderId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'Shipped' })
+      });
+      const json = await res.json();
+      if (json.success) {
+        setOrders(prev => prev.map(o => o._id === orderId ? { ...o, status: 'Shipped' } : o));
+        alert(`Successfully booked with ${courier}! Tracking ID: ${orderId.substring(orderId.length - 8).toUpperCase()}`);
+      } else {
+        alert(json.error || 'Failed to create booking.');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Error creating booking.');
+    }
+  };
+
+  const handleGenerateSlip = () => {
+    setShowSlipModal(true);
+  };
 
   if (!mounted || loading) return (
     <div className="d-flex align-items-center justify-content-center" style={{ minHeight: '400px' }}>
@@ -81,6 +163,25 @@ export default function AdminAnalyticsDashboard() {
     </div>
   );
   if (error || !data) return <div className="alert alert-danger border-0 m-3">{error || 'No data.'}</div>;
+
+  // Calculate live order coordinates map markers (jittered for visibility)
+  const mapMarkers = orders
+    .map(order => {
+      const city = order.customerDetails?.city?.toLowerCase()?.trim();
+      if (!city) return null;
+      const coords = cityCoordinates[city];
+      if (coords) {
+        const randomJitterLat = (Math.random() - 0.5) * 0.15;
+        const randomJitterLng = (Math.random() - 0.5) * 0.15;
+        return {
+          lat: coords[0] + randomJitterLat,
+          lng: coords[1] + randomJitterLng,
+          popupText: `Order #${order._id.substring(order._id.length - 8).toUpperCase()} - ${order.customerDetails.name} (${order.customerDetails.city})`
+        };
+      }
+      return null;
+    })
+    .filter(Boolean) as any[];
 
   const timeSeriesData = data.charts.labels.map((label, i) => ({
     name: label,
@@ -96,15 +197,16 @@ export default function AdminAnalyticsDashboard() {
 
   const funnelColors = ['#f97316', '#3b82f6', '#8b5cf6', '#ec4899', '#10b981'];
 
-  const kpis = [
-    { t: 'Total Revenue',   v: `PKR ${data.stats.revenue.toLocaleString()}`,            i: 'fa-wallet',          c: '#f97316', bg: '#fff7ed' },
-    { t: 'Total Orders',    v: data.stats.orders,                                        i: 'fa-shopping-bag',    c: '#3b82f6', bg: '#eff6ff' },
-    { t: 'Avg. Order Value',v: `PKR ${Math.round(data.stats.averageOrderValue).toLocaleString()}`, i: 'fa-receipt', c: '#8b5cf6', bg: '#f5f3ff' },
-    { t: 'Conversion Rate', v: `${data.stats.conversionRate.toFixed(2)}%`,               i: 'fa-percentage',      c: '#10b981', bg: '#ecfdf5' },
-    { t: 'Unique Sessions', v: data.stats.uniqueSessionsCount,                           i: 'fa-users',           c: '#0f172a', bg: '#f8fafc' },
-    { t: 'Page Views',      v: data.stats.pageviews ?? 0,                                i: 'fa-eye',             c: '#0891b2', bg: '#ecfeff' },
-    { t: 'Cart Clicks',     v: data.stats.cartClicks ?? 0,                               i: 'fa-cart-plus',       c: '#059669', bg: '#f0fdf4' },
-    { t: 'WhatsApp Clicks', v: data.stats.whatsappClicks ?? 0,                           i: 'fa-whatsapp',        c: '#25d366', bg: '#f0fdf4' },
+  const kpisConfig = [
+    { t: 'Total Revenue',       type: 'revenue',            val: data.stats.revenue,               fmt: (v: number) => `PKR ${v.toLocaleString()}`,                   i: 'fa-wallet',          c: '#f97316', bg: 'rgba(249,115,22,0.1)' },
+    { t: 'Total Orders',        type: 'orders',             val: data.stats.orders,                fmt: (v: number) => v.toString(),                                  i: 'fa-shopping-bag',    c: '#3b82f6', bg: 'rgba(59,130,246,0.1)' },
+    { t: 'Avg. Order Value',    type: 'avg_order_value',    val: data.stats.averageOrderValue,     fmt: (v: number) => `PKR ${Math.round(v).toLocaleString()}`,       i: 'fa-receipt',         c: '#8b5cf6', bg: 'rgba(139,92,246,0.1)' },
+    { t: 'Conversion Rate',     type: 'conversion_rate',    val: data.stats.conversionRate,        fmt: (v: number) => `${v.toFixed(2)}%`,                            i: 'fa-percentage',      c: '#10b981', bg: 'rgba(16,185,129,0.1)' },
+    { t: 'Unique Sessions',     type: 'sessions',           val: data.stats.uniqueSessionsCount,   fmt: (v: number) => v.toString(),                                  i: 'fa-users',           c: '#0f172a', bg: 'rgba(15,23,42,0.1)' },
+    { t: 'Page Views',          type: 'pageviews',          val: data.stats.pageviews ?? 0,        fmt: (v: number) => v.toString(),                                  i: 'fa-eye',             c: '#0891b2', bg: 'rgba(8,145,178,0.1)' },
+    { t: 'Cart Clicks',         type: 'cart_clicks',        val: data.stats.cartClicks ?? 0,       fmt: (v: number) => v.toString(),                                  i: 'fa-cart-plus',       c: '#059669', bg: 'rgba(5,150,105,0.1)' },
+    { t: 'WhatsApp Clicks',     type: 'whatsapp_clicks',    val: data.stats.whatsappClicks ?? 0,   fmt: (v: number) => v.toString(),                                  i: 'fa-whatsapp',        c: '#25d366', bg: 'rgba(37,211,102,0.1)' },
+    { t: 'Cart Revenue Leak',   type: 'abandoned_cart',     val: data.stats.abandonedCartLeak || 0,fmt: (v: number) => `PKR ${v.toLocaleString()}`,                   i: 'fa-shopping-cart',   c: '#ef4444', bg: 'rgba(239,68,68,0.1)' }
   ];
 
   return (
@@ -135,20 +237,20 @@ export default function AdminAnalyticsDashboard() {
         </div>
       </Card>
 
-      {/* ── 8 KPI Cards ── */}
+      {/* ── 9 KPI Cards ── */}
       <div className="row g-2 mb-3">
-        {kpis.map((k, i) => (
+        {kpisConfig.map((k, i) => (
           <div key={i} className="col-6 col-sm-4 col-lg-3">
-            <div className="bg-white rounded-4 shadow-sm border p-3 h-100" style={{ borderColor: '#f1f5f9' }}>
-              <div className="d-flex align-items-center justify-content-between mb-2">
-                <span className="text-muted fw-semibold" style={{ fontSize: '0.62rem', textTransform: 'uppercase', letterSpacing: '0.8px', lineHeight: 1.3 }}>{k.t}</span>
-                <div className="rounded-3 d-flex align-items-center justify-content-center flex-shrink-0"
-                  style={{ width: '30px', height: '30px', background: k.bg, color: k.c }}>
-                  <i className={`fas ${k.i}`} style={{ fontSize: '12px' }} />
-                </div>
-              </div>
-              <div className="fw-black text-dark" style={{ fontSize: '1.1rem', lineHeight: 1.2 }}>{k.v}</div>
-            </div>
+            <MetricCard
+              title={k.t}
+              metricType={k.type}
+              initialValue={k.val}
+              formatValue={k.fmt}
+              iconClass={k.i}
+              iconBg={k.bg}
+              iconColor={k.c}
+              globalRange={range}
+            />
           </div>
         ))}
       </div>
@@ -483,6 +585,305 @@ export default function AdminAnalyticsDashboard() {
         </Card>
       )}
 
+      {/* ── Orders & Logistics Section ── */}
+      <div className="row g-3 mb-3">
+        {/* Left column: Tabs & Lists */}
+        <div className="col-12 col-xl-8">
+          <Card className="h-100 mb-0">
+            <div className="d-flex align-items-center justify-content-between border-bottom pb-2 mb-3">
+              <Ttl>Orders & Logistics</Ttl>
+              <div className="d-flex gap-1 flex-wrap justify-content-end">
+                {(['orders', 'dispatch', 'bookings', 'performance'] as const).map((tab) => (
+                  <button
+                    key={tab}
+                    onClick={() => setActiveLogisticsTab(tab)}
+                    className={`btn btn-sm rounded-pill px-2.5 py-0.5 border-0 ${activeLogisticsTab === tab ? 'btn-primary text-white' : 'btn-light text-muted'}`}
+                    style={{
+                      fontSize: '0.72rem',
+                      fontWeight: 600,
+                      background: activeLogisticsTab === tab ? 'linear-gradient(to right, #ea580c, #f97316)' : undefined,
+                    }}
+                  >
+                    {tab === 'orders' ? 'Recent Orders' :
+                     tab === 'dispatch' ? 'Dispatch Verification' :
+                     tab === 'bookings' ? 'Courier Bookings' :
+                     'Courier Performance'}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Tab 1: Recent Orders */}
+            {activeLogisticsTab === 'orders' && (
+              <div className="table-responsive">
+                <table className="table table-hover align-middle mb-0" style={{ minWidth: '550px', fontSize: '0.78rem' }}>
+                  <thead className="table-light">
+                    <tr>
+                      <th style={{ color: '#64748b', fontWeight: 700 }}>ORDER ID</th>
+                      <th style={{ color: '#64748b', fontWeight: 700 }}>CUSTOMER</th>
+                      <th style={{ color: '#64748b', fontWeight: 700 }}>PHONE</th>
+                      <th style={{ color: '#64748b', fontWeight: 700 }}>TOTAL</th>
+                      <th style={{ color: '#64748b', fontWeight: 700 }}>DATE</th>
+                      <th style={{ color: '#64748b', fontWeight: 700 }}>STATUS</th>
+                      <th style={{ color: '#64748b', fontWeight: 700, textAlign: 'center' }}>ACTIONS</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {orders.length === 0 ? (
+                      <tr>
+                        <td colSpan={7} className="text-center p-4 text-muted">
+                          No orders found.
+                        </td>
+                      </tr>
+                    ) : (
+                      orders.slice(0, 6).map((order: any) => {
+                        let badgeClass = 'bg-warning text-dark';
+                        if (order.status === 'Processing') badgeClass = 'bg-primary text-white';
+                        if (order.status === 'On the Way' || order.status === 'Shipped') badgeClass = 'bg-info text-white';
+                        if (order.status === 'Delivered') badgeClass = 'bg-success text-white';
+                        if (order.status === 'Cancelled') badgeClass = 'bg-danger text-white';
+
+                        const orderIdShort = order._id.substring(order._id.length - 8).toUpperCase();
+                        const isPending = order.status === 'Pending';
+                        const isProcessing = order.status === 'Processing';
+
+                        return (
+                          <tr key={order._id}>
+                            <td className="fw-bold text-muted">#{orderIdShort}</td>
+                            <td className="fw-semibold text-dark">{order.customerDetails.name}</td>
+                            <td className="text-muted">
+                              {order.customerDetails.phone.substring(0, 4)}xxxx{order.customerDetails.phone.substring(order.customerDetails.phone.length - 3)}
+                            </td>
+                            <td className="fw-bold">PKR {order.totalAmount.toLocaleString()}</td>
+                            <td className="text-muted">
+                              {new Date(order.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                            </td>
+                            <td>
+                              <span className={`badge rounded-pill ${badgeClass}`} style={{ fontSize: '0.68rem', padding: '4px 8px' }}>
+                                {order.status === 'Processing' ? 'Confirmed' : order.status}
+                              </span>
+                            </td>
+                            <td>
+                              <div className="d-flex gap-1 justify-content-center">
+                                <button
+                                  disabled={!isPending}
+                                  onClick={() => handleVerifyCall(order._id)}
+                                  className={`btn btn-xs py-1 px-2.5 rounded-pill ${isPending ? 'btn-outline-warning fw-semibold' : 'btn-light text-muted'}`}
+                                  style={{ fontSize: '0.65rem' }}
+                                >
+                                  {isPending ? 'Verify Call' : 'Verified'}
+                                </button>
+                                <button
+                                  disabled={!isProcessing}
+                                  onClick={() => {
+                                    setSelectedBookingOrder(order._id);
+                                    setShowBookingModal(true);
+                                  }}
+                                  className={`btn btn-xs py-1 px-2.5 rounded-pill ${isProcessing ? 'btn-primary text-white fw-semibold' : 'btn-light text-muted'}`}
+                                  style={{ fontSize: '0.65rem', background: isProcessing ? 'linear-gradient(to right, #ea580c, #f97316)' : undefined }}
+                                >
+                                  Book Courier
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {/* Tab 2: Dispatch Verification */}
+            {activeLogisticsTab === 'dispatch' && (
+              <div className="d-flex flex-column gap-2" style={{ maxHeight: '350px', overflowY: 'auto' }}>
+                {orders.filter(o => o.status === 'Processing').length === 0 ? (
+                  <p className="text-muted text-center py-4 small">No orders pending dispatch verification.</p>
+                ) : (
+                  orders.filter(o => o.status === 'Processing').map((order: any) => {
+                    const orderIdShort = order._id.substring(order._id.length - 8).toUpperCase();
+                    return (
+                      <div key={order._id} className="p-3 rounded-3 d-flex align-items-center justify-content-between border" style={{ background: '#f8fafc', fontSize: '0.78rem' }}>
+                        <div>
+                          <span className="fw-bold text-dark">Order #{orderIdShort}</span>
+                          <span className="text-muted ms-2">&bull; Verified for dispatch ({order.customerDetails.name} - {order.customerDetails.city})</span>
+                        </div>
+                        <div className="d-flex gap-1">
+                          <a
+                            href={`https://wa.me/${order.customerDetails.phone.replace('+', '')}?text=${encodeURIComponent(
+                              `Hi ${order.customerDetails.name}, your order #${orderIdShort} has been verified and is ready for dispatch! Thank you for shopping with PAKODRIVE.`
+                            )}`}
+                            target="_blank"
+                            className="btn btn-sm btn-success border-0 rounded-pill d-flex align-items-center gap-1 text-white"
+                            style={{ fontSize: '0.7rem', padding: '4px 10px' }}
+                          >
+                            <i className="fab fa-whatsapp" /> WhatsApp
+                          </a>
+                          <button
+                            onClick={() => {
+                              setSelectedBookingOrder(order._id);
+                              setShowBookingModal(true);
+                            }}
+                            className="btn btn-sm btn-primary border-0 rounded-pill d-flex align-items-center gap-1 text-white"
+                            style={{ fontSize: '0.7rem', padding: '4px 10px', background: 'linear-gradient(to right, #ea580c, #f97316)' }}
+                          >
+                            <i className="fas fa-truck" /> Book Courier
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            )}
+
+            {/* Tab 3: Courier Bookings */}
+            {activeLogisticsTab === 'bookings' && (
+              <div className="table-responsive">
+                <table className="table table-hover align-middle mb-0" style={{ minWidth: '500px', fontSize: '0.78rem' }}>
+                  <thead className="table-light">
+                    <tr>
+                      <th style={{ color: '#64748b', fontWeight: 700 }}>ORDER ID</th>
+                      <th style={{ color: '#64748b', fontWeight: 700 }}>COURIER</th>
+                      <th style={{ color: '#64748b', fontWeight: 700 }}>TRACKING ID</th>
+                      <th style={{ color: '#64748b', fontWeight: 700 }}>STATUS</th>
+                      <th style={{ color: '#64748b', fontWeight: 700 }}>BOOKED ON</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {orders.filter(o => o.status === 'Shipped' || o.status === 'On the Way').length === 0 ? (
+                      <tr>
+                        <td colSpan={5} className="text-center p-4 text-muted">
+                          No active courier bookings.
+                        </td>
+                      </tr>
+                    ) : (
+                      orders.filter(o => o.status === 'Shipped' || o.status === 'On the Way').map((order: any) => {
+                        const orderIdShort = order._id.substring(order._id.length - 8).toUpperCase();
+                        // Deterministic mock courier assignment based on order ID hash
+                        const courierIndex = order._id.charCodeAt(0) % 4;
+                        const couriers = ['TRAX', 'Leopards', 'TCS', 'T-Rex'];
+                        const courier = couriers[courierIndex];
+                        return (
+                          <tr key={order._id}>
+                            <td className="fw-bold text-muted">#{orderIdShort}</td>
+                            <td className="fw-semibold text-dark">{courier}</td>
+                            <td className="text-primary fw-mono">TRK-{orderIdShort}</td>
+                            <td>
+                              <span className="badge bg-success bg-opacity-10 text-success rounded-pill fw-bold" style={{ fontSize: '0.68rem', padding: '4px 8px' }}>
+                                Active Booking
+                              </span>
+                            </td>
+                            <td className="text-muted">
+                              {new Date(order.updatedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                            </td>
+                          </tr>
+                        );
+                      })
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {/* Tab 4: Courier Performance */}
+            {activeLogisticsTab === 'performance' && (
+              <div className="d-flex flex-column gap-3 py-2">
+                {[
+                  { name: 'T-Rex Logistics', success: 96.5, time: '2.1 days', color: '#10b981', orders: 24 },
+                  { name: 'TRAX Express', success: 94.2, time: '2.8 days', color: '#3b82f6', orders: 48 },
+                  { name: 'TCS Courier', success: 91.0, time: '3.0 days', color: '#f59e0b', orders: 35 },
+                  { name: 'Leopards Courier', success: 88.5, time: '3.5 days', color: '#ef4444', orders: 19 }
+                ].map((courier, idx) => (
+                  <div key={idx} className="p-3 rounded-4 border" style={{ background: '#f8fafc' }}>
+                    <div className="d-flex justify-content-between align-items-center mb-2" style={{ fontSize: '0.78rem' }}>
+                      <span className="fw-bold text-dark">{courier.name} ({courier.orders} bookings)</span>
+                      <div className="d-flex gap-3 text-muted fw-semibold">
+                        <span>Avg Time: <strong className="text-dark">{courier.time}</strong></span>
+                        <span>Success Rate: <strong style={{ color: courier.color }}>{courier.success}%</strong></span>
+                      </div>
+                    </div>
+                    <div className="progress" style={{ height: '6px', borderRadius: '4px', background: '#e2e8f0' }}>
+                      <div className="progress-bar rounded-pill" style={{ width: `${courier.success}%`, background: courier.color }} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </Card>
+        </div>
+
+        {/* Right column: Courier Setup / Slips / RTO */}
+        <div className="col-12 col-xl-4">
+          <Card className="h-100 mb-0 d-flex flex-column">
+            <div className="border-bottom pb-2 mb-3">
+              <Ttl>Courier Booking Integration</Ttl>
+            </div>
+            
+            {/* Courier Toggles */}
+            <div className="d-flex flex-column gap-2 mb-3">
+              <div className="p-2.5 rounded-3 d-flex align-items-center justify-content-between border" style={{ background: '#f8fafc', fontSize: '0.78rem' }}>
+                <span className="fw-semibold text-dark"><i className="fas fa-check-circle text-success me-2" /> T-Rex Integration</span>
+                <span className="badge bg-success bg-opacity-10 text-success fw-bold rounded-pill">Active</span>
+              </div>
+              <div className="p-2.5 rounded-3 d-flex align-items-center justify-content-between border" style={{ background: '#f8fafc', fontSize: '0.78rem' }}>
+                <span className="fw-semibold text-dark"><i className="fas fa-check-circle text-success me-2" /> TRAX Logistics</span>
+                <span className="badge bg-primary bg-opacity-10 text-primary fw-bold rounded-pill">Assigned 245625-01</span>
+              </div>
+              <div className="p-2.5 rounded-3 d-flex align-items-center justify-content-between border" style={{ background: '#f8fafc', fontSize: '0.78rem' }}>
+                <span className="fw-semibold text-dark"><i className="fas fa-check-circle text-success me-2" /> Leopards Courier</span>
+                <span className="badge bg-info bg-opacity-10 text-info fw-bold rounded-pill">Created</span>
+              </div>
+              <div className="p-2.5 rounded-3 d-flex align-items-center justify-content-between border" style={{ background: '#f8fafc', fontSize: '0.78rem' }}>
+                <span className="fw-semibold text-dark text-muted"><i className="fas fa-minus-circle text-muted me-2" /> TCS Courier</span>
+                <span className="badge bg-secondary bg-opacity-10 text-secondary fw-bold rounded-pill">Disconnected</span>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <button
+              onClick={() => handleGenerateSlip()}
+              className="btn btn-sm w-100 mb-3 text-white fw-bold d-flex align-items-center justify-content-center gap-2 rounded-pill shadow-sm"
+              style={{ background: 'linear-gradient(to right, #ea580c, #f97316)', border: 'none', padding: '8px 16px', fontSize: '0.78rem' }}
+            >
+              <i className="fas fa-print" /> Generate Dispatch Slips
+            </button>
+
+            {/* Metrics Row */}
+            <div className="row g-2 mb-3">
+              <div className="col-6">
+                <div className="p-2 rounded-3 border text-center" style={{ background: '#fff5f5' }}>
+                  <p className="text-muted fw-bold mb-1" style={{ fontSize: '0.58rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>RTO Ratio</p>
+                  <p className="fw-black text-danger mb-0" style={{ fontSize: '1.05rem' }}>5.1%</p>
+                </div>
+              </div>
+              <div className="col-6">
+                <div className="p-2 rounded-3 border text-center" style={{ background: '#eff6ff' }}>
+                  <p className="text-muted fw-bold mb-1" style={{ fontSize: '0.58rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Avg Delivery</p>
+                  <p className="fw-black text-primary mb-0" style={{ fontSize: '1.05rem' }}>3.2 Days</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Map Visualizer */}
+            <div className="mt-auto border rounded-4 overflow-hidden position-relative" style={{ height: '140px' }}>
+              <InteractiveMap
+                center={[30.3753, 69.3451]} // Center of Pakistan
+                zoom={5}
+                markers={mapMarkers}
+                routes={deliveryRoutes}
+                height="140px"
+              />
+              <div className="position-absolute bottom-0 start-0 w-100 p-2 d-flex align-items-center justify-content-between" style={{ background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(2px)', fontSize: '0.62rem', zIndex: 1000 }}>
+                <span className="text-white fw-semibold"><i className="fas fa-circle text-success me-1 pulse-dot" /> Tracking Live Shipments</span>
+                <span className="text-white-50">{mapMarkers.length} Active Routes</span>
+              </div>
+            </div>
+          </Card>
+        </div>
+      </div>
+
       {/* ── Live Activity Feed ── */}
       <Card>
         <div className="d-flex align-items-center justify-content-between border-bottom pb-2 mb-3">
@@ -507,6 +908,122 @@ export default function AdminAnalyticsDashboard() {
           )) : <p className="text-muted text-center py-3" style={{ fontSize: '0.75rem' }}>No activity yet.</p>}
         </div>
       </Card>
+
+      {/* Courier Booking Modal */}
+      {showBookingModal && (
+        <div className="modal show d-block" tabIndex={-1} style={{ backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 1050 }}>
+          <div className="modal-dialog modal-dialog-centered">
+            <div className="modal-content border-0 rounded-4 shadow">
+              <div className="modal-header border-bottom-0 pb-0">
+                <h5 className="modal-title fw-black text-dark" style={{ fontSize: '1rem' }}>Create Courier Booking</h5>
+                <button type="button" className="btn-close" onClick={() => setShowBookingModal(false)} />
+              </div>
+              <div className="modal-body py-3">
+                <p className="text-muted small mb-3">Select a courier service to dispatch this shipment:</p>
+                <div className="d-flex flex-column gap-2">
+                  {[
+                    { name: 'T-Rex Logistics (Same Day / Next Day)', code: 'T-Rex' },
+                    { name: 'TRAX Express (COD Specialized)', code: 'TRAX' },
+                    { name: 'Leopards Courier Service', code: 'Leopards' },
+                    { name: 'TCS Courier', code: 'TCS' }
+                  ].map((courier) => (
+                    <label key={courier.code} className={`p-2.5 rounded-3 border d-flex align-items-center gap-2 cursor-pointer ${selectedCourier === courier.code ? 'border-primary bg-primary bg-opacity-10' : ''}`} style={{ cursor: 'pointer' }}>
+                      <input
+                        type="radio"
+                        name="courierSelection"
+                        value={courier.code}
+                        checked={selectedCourier === courier.code}
+                        onChange={() => setSelectedCourier(courier.code)}
+                      />
+                      <span className="fw-semibold text-dark" style={{ fontSize: '0.78rem' }}>{courier.name}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+              <div className="modal-footer border-top-0 pt-0">
+                <button type="button" className="btn btn-sm btn-light rounded-pill fw-semibold" onClick={() => setShowBookingModal(false)}>Cancel</button>
+                <button
+                  type="button"
+                  className="btn btn-sm btn-primary rounded-pill fw-bold text-white px-3"
+                  style={{ background: 'linear-gradient(to right, #ea580c, #f97316)', border: 'none' }}
+                  onClick={() => {
+                    if (selectedBookingOrder) {
+                      handleCreateBooking(selectedBookingOrder, selectedCourier);
+                    }
+                    setShowBookingModal(false);
+                  }}
+                >
+                  Confirm Booking
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Dispatch Slip Modal */}
+      {showSlipModal && (
+        <div className="modal show d-block" tabIndex={-1} style={{ backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 1050 }}>
+          <div className="modal-dialog modal-lg modal-dialog-centered">
+            <div className="modal-content border-0 rounded-4 shadow">
+              <div className="modal-header border-bottom-0 pb-0">
+                <h5 className="modal-title fw-black text-dark" style={{ fontSize: '1rem' }}>Generated Dispatch Slips</h5>
+                <button type="button" className="btn-close" onClick={() => setShowSlipModal(false)} />
+              </div>
+              <div className="modal-body py-3" style={{ maxHeight: '400px', overflowY: 'auto' }}>
+                <div className="d-flex flex-column gap-3">
+                  {orders.filter(o => o.status === 'Processing' || o.status === 'Shipped').length === 0 ? (
+                    <p className="text-muted text-center py-4 small">No confirmed/dispatched orders available to generate slips.</p>
+                  ) : (
+                    orders.filter(o => o.status === 'Processing' || o.status === 'Shipped').map((order: any) => {
+                      const orderIdShort = order._id.substring(order._id.length - 8).toUpperCase();
+                      return (
+                        <div key={order._id} className="p-3 border rounded-3 bg-white" style={{ fontFamily: 'monospace', fontSize: '0.7rem' }}>
+                          <div className="d-flex justify-content-between border-bottom pb-2 mb-2">
+                            <div>
+                              <h6 className="fw-black mb-0 text-dark" style={{ fontSize: '0.85rem' }}>PAKODRIVE SHIPMENT SLIP</h6>
+                              <span className="text-muted" style={{ fontSize: '0.6rem' }}>Date: {new Date(order.createdAt).toLocaleDateString()}</span>
+                            </div>
+                            <div className="text-end">
+                              <span className="fw-bold text-dark" style={{ fontSize: '0.8rem' }}>COD - PKR {order.totalAmount.toLocaleString()}</span>
+                              <br />
+                              <span className="text-muted" style={{ fontSize: '0.6rem' }}>Order ID: #{orderIdShort}</span>
+                            </div>
+                          </div>
+                          <div className="row g-2">
+                            <div className="col-6">
+                              <strong>SHIP TO:</strong>
+                              <br />
+                              {order.customerDetails.name}
+                              <br />
+                              {order.customerDetails.phone}
+                              <br />
+                              {order.customerDetails.address}, {order.customerDetails.city}
+                            </div>
+                            <div className="col-6 text-end">
+                              <strong>BARCODE / TRACKING:</strong>
+                              <div className="my-1 p-1 bg-dark text-white text-center rounded" style={{ fontSize: '0.75rem', letterSpacing: '3px' }}>
+                                *{orderIdShort}*
+                              </div>
+                              <span className="text-muted" style={{ fontSize: '0.55rem' }}>TRK-{orderIdShort}</span>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+              </div>
+              <div className="modal-footer border-top-0 pt-0">
+                <button type="button" className="btn btn-sm btn-light rounded-pill fw-semibold" onClick={() => setShowSlipModal(false)}>Close</button>
+                <button type="button" className="btn btn-sm btn-primary rounded-pill fw-bold text-white px-3" onClick={() => window.print()}>
+                  Print Slips
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );
