@@ -22,16 +22,23 @@ export const cloudinaryLoader = ({ src, width, quality }: { src: string; width: 
     return src;
   }
 
-  // Set default quality to 80 if not specified
-  const q = quality || 80;
-  const transformations = `f_webp,q_auto,w_${width},c_limit`;
+  // Use passed quality or default to 70 for better compression
+  const q = quality || 70;
+  // f_auto lets Cloudinary serve AVIF (30-50% smaller than WebP) when the browser supports it
+  const transformations = `f_auto,q_${q},w_${width},c_limit`;
 
   // Insert transformations into Cloudinary URL
-  // Matches '/upload/' or '/upload/v1234567/' to insert the transformation string
   const uploadIndex = src.indexOf('/upload/');
   if (uploadIndex !== -1) {
     const prefix = src.substring(0, uploadIndex + 8);
-    const suffix = src.substring(uploadIndex + 8);
+    let suffix = src.substring(uploadIndex + 8);
+    // Strip any pre-existing Cloudinary transformations (e.g. f_webp,q_auto,w_128/)
+    // They look like segments of key_value pairs before the actual path
+    suffix = suffix.replace(/^(?:[a-z_]+[,/])*(?:v\d+\/)?/, (match) => {
+      // Keep version prefix like v1234567/ but remove transformation chains
+      const versionMatch = match.match(/(v\d+\/)/);
+      return versionMatch ? versionMatch[1] : '';
+    });
     return `${prefix}${transformations}/${suffix}`;
   }
 
@@ -49,7 +56,7 @@ const getBlurPlaceholder = (src: string): string => {
       const prefix = src.substring(0, uploadIndex + 8);
       const suffix = src.substring(uploadIndex + 8);
       // Generate a tiny 20px blurred image
-      return `${prefix}f_webp,q_30,w_20,e_blur:1000/${suffix}`;
+      return `${prefix}f_auto,q_30,w_20,e_blur:1000/${suffix}`;
     }
   }
   // Generic grey placeholder base64/SVG data URI for non-Cloudinary images
