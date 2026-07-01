@@ -221,11 +221,11 @@ export default async function ProductDetailPage({ params }: PageProps) {
           {relatedProducts.length > 0 && (
             <div className="pd-card" style={{ marginTop: '8px', marginBottom: '16px' }}>
               <div style={{ padding: '16px 16px 8px' }}>
-                <h4 style={{
+                <h2 style={{
                   fontSize: '0.95rem', fontWeight: 800, color: '#111',
                   marginBottom: '12px', paddingBottom: '8px',
                   borderBottom: '2px solid var(--pd-primary)', display: 'inline-block',
-                }}>Related Products</h4>
+                }}>Related Products</h2>
               </div>
               <div className="row g-2 g-md-3" style={{ padding: '0 12px 16px' }}>
                 {relatedProducts.map((prod: any) => (

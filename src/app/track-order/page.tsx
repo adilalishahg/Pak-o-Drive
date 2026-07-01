@@ -102,7 +102,9 @@ export default function TrackOrderPage() {
                 type="button"
                 onClick={() => { setSearchType('email'); setInputValue(''); setError(''); }}
                 className={`btn btn-sm rounded-pill px-4 ${searchType === 'email' ? 'btn-primary border-0' : 'btn-outline-secondary'}`}
-                style={searchType === 'email' ? { background: 'linear-gradient(to right, #ea580c, #f97316)', border: 'none' } : {}}
+                style={searchType === 'email' 
+                  ? { background: 'linear-gradient(to right, #c2410c, #ea580c)', border: 'none', color: '#ffffff' } 
+                  : { color: '#475569', borderColor: '#94a3b8' }}
               >
                 <i className="fas fa-envelope me-2" />Email
               </button>
@@ -110,7 +112,9 @@ export default function TrackOrderPage() {
                 type="button"
                 onClick={() => { setSearchType('phone'); setInputValue(''); setError(''); }}
                 className={`btn btn-sm rounded-pill px-4 ${searchType === 'phone' ? 'btn-primary border-0' : 'btn-outline-secondary'}`}
-                style={searchType === 'phone' ? { background: 'linear-gradient(to right, #ea580c, #f97316)', border: 'none' } : {}}
+                style={searchType === 'phone' 
+                  ? { background: 'linear-gradient(to right, #c2410c, #ea580c)', border: 'none', color: '#ffffff' } 
+                  : { color: '#475569', borderColor: '#94a3b8' }}
               >
                 <i className="fas fa-phone me-2" />Phone
               </button>
@@ -134,6 +138,7 @@ export default function TrackOrderPage() {
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}
                   placeholder={searchType === 'email' ? 'your@email.com' : '+923001234567'}
+                  aria-label={searchType === 'email' ? 'Email Address' : 'Phone Number'}
                   style={{
                     flex: 1, border: 'none', outline: 'none',
                     padding: '13px 14px', fontSize: '0.9rem',

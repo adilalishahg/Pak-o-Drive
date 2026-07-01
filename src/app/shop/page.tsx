@@ -86,7 +86,7 @@ function ShopContent() {
                 )}
               </ol>
             </nav>
-            <span style={{ fontSize: '0.78rem', color: '#94a3b8', fontWeight: 500 }}>
+            <span style={{ fontSize: '0.78rem', color: '#64748b', fontWeight: 500 }}>
               {loading ? '...' : `${sorted.length} products found`}
             </span>
           </div>
@@ -154,15 +154,17 @@ function ShopContent() {
                 value={keywords} onChange={e => setKeywords(e.target.value)}
                 style={{
                   flex: 1, border: 'none', outline: 'none', padding: '8px 14px',
-                  fontSize: '0.85rem', fontFamily: 'var(--pd-font)', background: 'transparent'
+                  fontSize: '0.85rem', fontFamily: 'var(--pd-font)', background: 'transparent',
+                  color: '#1e293b'
                 }} />
-              <button type="submit" style={{ background: 'none', border: 'none', padding: '0 14px', cursor: 'pointer', color: '#94a3b8' }}>
+              <button type="submit" aria-label="Submit Search" style={{ background: 'none', border: 'none', padding: '0 14px', cursor: 'pointer', color: '#64748b' }}>
                 <i className="fas fa-search" style={{ fontSize: '13px' }} />
               </button>
             </form>
 
             {/* Sort */}
             <select value={sortBy} onChange={e => setSortBy(e.target.value)}
+              aria-label="Sort products"
               style={{
                 border: '1.5px solid #e2e8f0', borderRadius: '8px',
                 padding: '8px 12px', fontSize: '0.82rem', fontFamily: 'var(--pd-font)',
@@ -258,9 +260,9 @@ function ShopContent() {
                   @media (min-width: 992px) { .shop-grid { grid-template-columns: repeat(4, 1fr) !important; } }
                   @media (min-width: 1200px) { .shop-grid { grid-template-columns: repeat(4, 1fr) !important; gap: 12px !important; } }
                 `}</style>
-              {sorted.map(prod => (
+              {sorted.map((prod, idx) => (
                 <div key={prod._id}>
-                  <ProductCardAuto product={prod} />
+                  <ProductCardAuto product={prod} priority={idx < 4} />
                 </div>
               ))}
             </div>

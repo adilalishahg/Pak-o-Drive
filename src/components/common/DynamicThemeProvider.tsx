@@ -265,9 +265,27 @@ footer a:hover, .footer a:hover { color: ${theme.primaryColor} !important; }
 ` : `
 footer, .footer {
   background: ${theme.secondaryColor} !important;
+  color: #f1f5f9 !important;
+}
+.footer p, .footer span {
+  color: #f1f5f9 !important;
+}
+footer h3, footer h4, footer h5, .footer h3, .footer h4, .footer h5 {
+  color: #ffffff !important;
+}
+footer a, .footer a {
+  color: #f1f5f9 !important;
+}
+footer a:hover, .footer a:hover {
+  color: #ffffff !important;
+  text-decoration: underline !important;
 }
 .copyright {
   background: color-mix(in srgb, ${theme.secondaryColor} 80%, #000) !important;
+  color: #cbd5e1 !important;
+}
+.copyright a {
+  color: #ffffff !important;
 }
 `}
 
@@ -808,37 +826,29 @@ export function DynamicThemeProvider({ children, initialTheme }: ProviderProps) 
       <link rel="preconnect" href="https://cdn.jsdelivr.net" />
 
       {/* Preload FontAwesome Webfonts */}
-      <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/webfonts/fa-solid-900.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
-      <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/webfonts/fa-brands-400.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
+      <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/webfonts/fa-solid-900.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
+      <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/webfonts/fa-brands-400.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
 
       {/* Asynchronous font loading */}
       <link rel="preload" href={fontUrl} as="style" />
       <link rel="stylesheet" href={fontUrl} media="print" onLoad={(e) => { e.currentTarget.media = 'all'; }} />
 
-      {/* Load FontAwesome and Bootstrap Icons which are used statically across page components */}
-      <link rel="preload" href={ICON_CDNS.fontawesome} as="style" />
-      <link rel="stylesheet" href={ICON_CDNS.fontawesome} media="print" onLoad={(e) => { e.currentTarget.media = 'all'; }} />
+      {/* Active Theme Icon Library (High Priority) */}
+      <link rel="stylesheet" href={iconUrl} />
 
-      <link rel="preload" href={ICON_CDNS.bootstrap} as="style" />
-      <link rel="stylesheet" href={ICON_CDNS.bootstrap} media="print" onLoad={(e) => { e.currentTarget.media = 'all'; }} />
-
-      {/* Load other libraries dynamically ONLY if they are active in the theme settings */}
-      {wantedLib === 'material' && (
+      {/* Fallback FontAwesome loading (Asynchronous) */}
+      {wantedLib !== 'fontawesome' && (
         <>
-          <link rel="preload" href={ICON_CDNS.material} as="style" />
-          <link rel="stylesheet" href={ICON_CDNS.material} media="print" onLoad={(e) => { e.currentTarget.media = 'all'; }} />
+          <link rel="preload" href={ICON_CDNS.fontawesome} as="style" />
+          <link rel="stylesheet" href={ICON_CDNS.fontawesome} media="print" onLoad={(e) => { e.currentTarget.media = 'all'; }} />
         </>
       )}
-      {wantedLib === 'remix' && (
+
+      {/* Fallback Bootstrap Icons loading (Asynchronous) */}
+      {wantedLib !== 'bootstrap' && (
         <>
-          <link rel="preload" href={ICON_CDNS.remix} as="style" />
-          <link rel="stylesheet" href={ICON_CDNS.remix} media="print" onLoad={(e) => { e.currentTarget.media = 'all'; }} />
-        </>
-      )}
-      {wantedLib === 'phosphor' && (
-        <>
-          <link rel="preload" href={ICON_CDNS.phosphor} as="style" />
-          <link rel="stylesheet" href={ICON_CDNS.phosphor} media="print" onLoad={(e) => { e.currentTarget.media = 'all'; }} />
+          <link rel="preload" href={ICON_CDNS.bootstrap} as="style" />
+          <link rel="stylesheet" href={ICON_CDNS.bootstrap} media="print" onLoad={(e) => { e.currentTarget.media = 'all'; }} />
         </>
       )}
 

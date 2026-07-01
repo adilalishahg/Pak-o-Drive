@@ -63,7 +63,7 @@ export const ProductDetailInteractive: React.FC<ProductDetailInteractiveProps> =
                 display: 'inline-block',
                 textDecoration: 'none',
                 background: 'rgba(var(--pd-primary-rgb,234,88,12),0.08)',
-                color: 'var(--pd-primary)',
+                color: 'var(--pd-primary-dark)',
                 fontSize: '0.65rem',
                 fontWeight: 700,
                 padding: '3px 10px',
@@ -169,7 +169,7 @@ export const ProductDetailInteractive: React.FC<ProductDetailInteractiveProps> =
             >
               {currentOriginalPrice > currentPrice && (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                  <del style={{ fontSize: '0.82rem', color: '#9ca3af' }}>
+                  <del style={{ fontSize: '0.82rem', color: '#64748b' }}>
                     PKR {currentOriginalPrice.toLocaleString()}
                   </del>
                   <span
@@ -205,20 +205,20 @@ export const ProductDetailInteractive: React.FC<ProductDetailInteractiveProps> =
             {/* Meta */}
             <div style={{ fontSize: '0.78rem', marginBottom: '14px', display: 'flex', flexDirection: 'column', gap: '5px' }}>
               <div>
-                <span style={{ color: '#9ca3af' }}>Availability: </span>
-                <span style={{ fontWeight: 700, color: currentStock > 0 ? '#16a34a' : '#dc2626' }}>
+                <span style={{ color: '#64748b' }}>Availability: </span>
+                <span style={{ fontWeight: 700, color: currentStock > 0 ? '#15803d' : '#dc2626' }}>
                   {currentStock > 0 ? `In Stock (${currentStock})` : 'Out of Stock'}
                 </span>
               </div>
               <div>
-                <span style={{ color: '#9ca3af' }}>SKU: </span>
+                <span style={{ color: '#64748b' }}>SKU: </span>
                 <span style={{ fontWeight: 600, color: '#374151' }}>
                   PAK-{product._id?.substring(18).toUpperCase()}-{selectedVariant ? selectedVariant.name.substring(0, 3).toUpperCase() : 'MAIN'}
                 </span>
               </div>
               <div>
-                <span style={{ color: '#9ca3af' }}>Shipping: </span>
-                <span style={{ fontWeight: 600, color: '#16a34a' }}>Free above PKR 5,000</span>
+                <span style={{ color: '#64748b' }}>Shipping: </span>
+                <span style={{ fontWeight: 600, color: '#15803d' }}>Free above PKR 5,000</span>
               </div>
             </div>
 

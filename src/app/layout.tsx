@@ -6,8 +6,6 @@ import { Inter, Roboto } from 'next/font/google';
 import './bootstrap.min.css';
 import './style.css';
 import './globals.css';
-import '@fortawesome/fontawesome-free/css/all.min.css';
-import 'bootstrap-icons/font/bootstrap-icons.css';
 import { CartProvider } from '../context/CartContext';
 import { LayoutWrapper } from '../components/layout/LayoutWrapper';
 
