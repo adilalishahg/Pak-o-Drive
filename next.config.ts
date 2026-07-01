@@ -2,6 +2,9 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   reactCompiler: true,
+  experimental: {
+    optimizeCss: true,
+  },
   images: {
     // Auto-serve WebP/AVIF to supported browsers — no raw JPEG/PNG hits mobile
     formats: ["image/avif", "image/webp"],
