@@ -255,7 +255,7 @@ export const Footer: React.FC = () => {
                   </div>
                   <div>
                     <h5 className="text-white mb-1" style={{ fontWeight: 700, fontSize: '0.95rem' }}>{label}</h5>
-                    <p className="mb-0 text-slate-300" style={{ fontSize: '0.85rem', lineHeight: 1.5 }}>{value}</p>
+                    <p className="mb-0 text-slate-100" style={{ fontSize: '0.85rem', lineHeight: 1.5 }}>{value}</p>
                   </div>
                 </div>
               </div>
@@ -268,7 +268,7 @@ export const Footer: React.FC = () => {
             <div className="col-md-6 col-lg-6 col-xl-3">
               <div className="footer-item d-flex flex-column">
                 <h3 className="mb-3" style={{ color: 'var(--pd-primary-dark, #c2410c)', fontWeight: 700, fontSize: '1.25rem' }}>Newsletter</h3>
-                <p className="mb-3 text-slate-300" style={{ fontSize: '0.85rem', lineHeight: 1.6 }}>
+                <p className="mb-3 text-slate-100" style={{ fontSize: '0.85rem', lineHeight: 1.6 }}>
                   {info.newsletterText}
                 </p>
                 <form onSubmit={handleSubscribe} className="d-flex flex-column gap-2 mb-3">
@@ -326,7 +326,7 @@ export const Footer: React.FC = () => {
                   { href: '/cart', label: 'My Cart' },
                   { href: '/checkout', label: 'Checkout' },
                 ].map(l => (
-                  <Link key={l.href} href={l.href} className="text-slate-300 hover:text-white transition-colors mb-2 d-flex align-items-center gap-2 text-decoration-none" style={{ fontSize: '0.88rem', transition: 'color 0.2s' }}>
+                  <Link key={l.href} href={l.href} className="text-slate-100 hover:text-white transition-colors mb-2 d-flex align-items-center gap-2 text-decoration-none" style={{ fontSize: '0.88rem', transition: 'color 0.2s' }}>
                     <IconMap.chevron size={12} color="var(--pd-primary-dark, #c2410c)" /> {l.label}
                   </Link>
                 ))}
@@ -344,7 +344,7 @@ export const Footer: React.FC = () => {
                   { href: '/terms', label: 'Terms & Conditions' },
                   { href: '/return-policy', label: 'Return Policy' },
                 ].map(l => (
-                  <Link key={l.href} href={l.href} className="text-slate-300 hover:text-white transition-colors mb-2 d-flex align-items-center gap-2 text-decoration-none" style={{ fontSize: '0.88rem', transition: 'color 0.2s' }}>
+                  <Link key={l.href} href={l.href} className="text-slate-100 hover:text-white transition-colors mb-2 d-flex align-items-center gap-2 text-decoration-none" style={{ fontSize: '0.88rem', transition: 'color 0.2s' }}>
                     <IconMap.chevron size={12} color="var(--pd-primary-dark, #c2410c)" /> {l.label}
                   </Link>
                 ))}
@@ -355,7 +355,7 @@ export const Footer: React.FC = () => {
             <div className="col-md-6 col-lg-6 col-xl-3">
               <div className="footer-item d-flex flex-column">
                 <h3 className="mb-4" style={{ color: 'var(--pd-primary-dark, #c2410c)', fontWeight: 700, fontSize: '1.25rem' }}>Payment Method</h3>
-                <p className="text-slate-300" style={{ fontSize: '0.85rem', lineHeight: 1.6 }}>
+                <p className="text-slate-100" style={{ fontSize: '0.85rem', lineHeight: 1.6 }}>
                   We support Cash on Delivery nationwide across Pakistan. Verify your orders before making payments.
                 </p>
                 <div className="d-inline-flex align-items-center gap-2 mt-2 px-3 py-2 rounded-pill" style={{ background: 'rgba(var(--pd-primary-rgb,234,88,12),0.12)', border: '1px solid rgba(var(--pd-primary-rgb,234,88,12),0.25)' }}>
@@ -379,7 +379,7 @@ export const Footer: React.FC = () => {
                 <span style={{ color: 'rgba(255,255,255,0.85)' }}>{info.copyrightText}</span>
               </span>
             </div>
-            <div className="col-md-6 text-center text-md-end text-slate-400" style={{ fontSize: '0.82rem' }}>
+            <div className="col-md-6 text-center text-md-end text-slate-300" style={{ fontSize: '0.82rem' }}>
               {info.siteTagline}
             </div>
           </div>

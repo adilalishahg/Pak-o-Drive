@@ -25,7 +25,7 @@ export const FooterClassic: React.FC = () => {
   };
 
   return (
-    <div className="container-fluid bg-dark mt-5 pt-5 footer" style={{ color: '#cbd5e1' }}>
+    <div className="container-fluid bg-dark mt-5 pt-5 footer" style={{ color: '#f1f5f9' }}>
       <div className="container py-5">
         <div className="row g-5">
 
@@ -77,7 +77,7 @@ export const FooterClassic: React.FC = () => {
                 { href: '/cart', label: 'My Cart' },
                 { href: '/checkout', label: 'Checkout' },
               ].map(l => (
-                <Link key={l.href} href={l.href} className="text-slate-300 hover:text-white transition-colors text-decoration-none">
+                <Link key={l.href} href={l.href} className="text-slate-100 hover:text-white transition-colors text-decoration-none">
                   <i className="fas fa-angle-right me-2"></i>{l.label}
                 </Link>
               ))}
@@ -95,7 +95,7 @@ export const FooterClassic: React.FC = () => {
                 { href: '/contact', label: 'Terms & Conditions' },
                 { href: '/contact', label: 'Return Policy' },
               ].map(l => (
-                <Link key={l.label} href={l.href} className="text-slate-300 hover:text-white transition-colors text-decoration-none">
+                <Link key={l.label} href={l.href} className="text-slate-100 hover:text-white transition-colors text-decoration-none">
                   <i className="fas fa-angle-right me-2"></i>{l.label}
                 </Link>
               ))}
@@ -109,11 +109,11 @@ export const FooterClassic: React.FC = () => {
             <div className="d-flex flex-column gap-2 mt-3">
               <div className="d-flex gap-2 align-items-center">
                 <i className="fas fa-phone text-primary"></i>
-                <a href={`tel:${info.phone}`} className="text-slate-300 hover:text-white transition-colors text-decoration-none">{info.phone}</a>
+                <a href={`tel:${info.phone}`} className="text-slate-100 hover:text-white transition-colors text-decoration-none">{info.phone}</a>
               </div>
               <div className="d-flex gap-2 align-items-center">
                 <i className="fas fa-envelope text-primary"></i>
-                <a href={`mailto:${info.email}`} className="text-slate-300 hover:text-white transition-colors text-decoration-none">{info.email}</a>
+                <a href={`mailto:${info.email}`} className="text-slate-100 hover:text-white transition-colors text-decoration-none">{info.email}</a>
               </div>
             </div>
           </div>
@@ -126,10 +126,10 @@ export const FooterClassic: React.FC = () => {
         <div className="container">
           <div className="row">
             <div className="col-md-6 text-center text-md-start mb-3 mb-md-0">
-              <span className="text-slate-400">&copy; {new Date().getFullYear()} <a href="/" className="text-white text-decoration-none fw-bold">{info.logoText}</a>. All Rights Reserved.</span>
+              <span className="text-slate-300">&copy; {new Date().getFullYear()} <a href="/" className="text-white text-decoration-none fw-bold">{info.logoText}</a>. All Rights Reserved.</span>
             </div>
             <div className="col-md-6 text-center text-md-end">
-              <span className="text-slate-400">Powered by <a href="#" className="text-white text-decoration-none">Trusted Platform</a></span>
+              <span className="text-slate-300">Powered by <a href="#" className="text-white text-decoration-none">Trusted Platform</a></span>
             </div>
           </div>
         </div>

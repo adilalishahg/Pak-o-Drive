@@ -801,6 +801,16 @@ export function DynamicThemeProvider({ children, initialTheme }: ProviderProps) 
   const iconUrl = ICON_CDNS[wantedLib];
   return (
     <ThemeContext.Provider value={{ theme, loading, refresh: fetchAndApply }}>
+      {/* Preconnect to critical domains */}
+      <link rel="preconnect" href="https://fonts.googleapis.com" />
+      <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+      <link rel="preconnect" href="https://cdnjs.cloudflare.com" />
+      <link rel="preconnect" href="https://cdn.jsdelivr.net" />
+
+      {/* Preload FontAwesome Webfonts */}
+      <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/webfonts/fa-solid-900.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
+      <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/webfonts/fa-brands-400.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
+
       {/* Asynchronous font loading */}
       <link rel="preload" href={fontUrl} as="style" />
       <link rel="stylesheet" href={fontUrl} media="print" onLoad={(e) => { e.currentTarget.media = 'all'; }} />
