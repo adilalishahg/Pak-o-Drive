@@ -158,8 +158,67 @@ export default function AdminAnalyticsDashboard() {
   };
 
   if (!mounted || loading) return (
-    <div className="d-flex align-items-center justify-content-center" style={{ minHeight: '400px' }}>
-      <div className="spinner-border text-primary" role="status" />
+    <div style={{ padding: '0 2px' }}>
+      <style dangerouslySetInnerHTML={{ __html: `
+        @keyframes skeleton-pulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.5; }
+        }
+        .skeleton-pulse {
+          animation: skeleton-pulse 1.5s ease-in-out infinite;
+        }
+        .skeleton-block {
+          background-color: #e2e8f0;
+          border-radius: 8px;
+        }
+      `}} />
+
+      {/* Header Skeleton */}
+      <div className="bg-white rounded-4 border p-3 p-md-4 mb-3" style={{ borderColor: '#f1f5f9' }}>
+        <div className="d-flex flex-column flex-sm-row align-items-start align-items-sm-center justify-content-between gap-2">
+          <div className="w-100">
+            <div className="skeleton-block skeleton-pulse mb-2" style={{ width: '220px', height: '24px' }} />
+            <div className="skeleton-block skeleton-pulse" style={{ width: '380px', height: '16px' }} />
+          </div>
+        </div>
+      </div>
+
+      {/* 9 KPI Cards Skeleton */}
+      <div className="row g-2 mb-3">
+        {[...Array(9)].map((_, i) => (
+          <div key={i} className="col-12 col-sm-6 col-md-4 col-lg-3">
+            <div className="bg-white rounded-4 border p-3 mb-2" style={{ borderColor: '#f1f5f9', minHeight: '80px' }}>
+              <div className="d-flex align-items-center justify-content-between mb-2">
+                <div className="skeleton-block skeleton-pulse" style={{ height: '12px', width: '95px' }} />
+                <div className="skeleton-block skeleton-pulse rounded-circle" style={{ height: '24px', width: '24px' }} />
+              </div>
+              <div className="skeleton-block skeleton-pulse" style={{ height: '26px', width: '130px' }} />
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Revenue Chart + Device Pie Skeleton */}
+      <div className="row g-3 mb-3">
+        <div className="col-12 col-lg-8">
+          <div className="bg-white rounded-4 border p-3 p-md-4 mb-3" style={{ borderColor: '#f1f5f9', height: '272px' }}>
+            <div className="d-flex align-items-center justify-content-between border-bottom pb-2 mb-3">
+              <div className="skeleton-block skeleton-pulse" style={{ height: '14px', width: '200px' }} />
+            </div>
+            <div className="skeleton-block skeleton-pulse w-100 h-75" />
+          </div>
+        </div>
+        <div className="col-12 col-lg-4">
+          <div className="bg-white rounded-4 border p-3 p-md-4 mb-3" style={{ borderColor: '#f1f5f9', height: '272px' }}>
+            <div className="d-flex align-items-center justify-content-between border-bottom pb-2 mb-3">
+              <div className="skeleton-block skeleton-pulse" style={{ height: '14px', width: '120px' }} />
+            </div>
+            <div className="d-flex justify-content-center align-items-center h-75">
+              <div className="skeleton-block skeleton-pulse rounded-circle" style={{ height: '120px', width: '120px' }} />
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
   if (error || !data) return <div className="alert alert-danger border-0 m-3">{error || 'No data.'}</div>;
@@ -210,7 +269,16 @@ export default function AdminAnalyticsDashboard() {
   ];
 
   return (
-    <div style={{ padding: '0 2px' }}>
+    <div style={{ padding: '0 2px' }} className="fade-in">
+      <style dangerouslySetInnerHTML={{ __html: `
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        .fade-in {
+          animation: fadeIn 0.35s ease-out forwards;
+        }
+      `}} />
 
       {/* ── Header ── */}
       <Card>

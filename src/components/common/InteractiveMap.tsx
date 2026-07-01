@@ -54,15 +54,41 @@ export default function InteractiveMap({
       setMapLoaded(true);
       return;
     }
+
+    let cssLoaded = false;
+    let jsLoaded = false;
+
+    const checkLoaded = () => {
+      if (cssLoaded && jsLoaded) {
+        setMapLoaded(true);
+      }
+    };
+
+    // Load stylesheet
     const link = document.createElement('link');
     link.rel = 'stylesheet';
     link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+    link.onload = () => {
+      cssLoaded = true;
+      checkLoaded();
+    };
+    link.onerror = () => {
+      cssLoaded = true;
+      checkLoaded();
+    };
     document.head.appendChild(link);
 
+    // Load script
     const script = document.createElement('script');
     script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
     script.async = true;
-    script.onload = () => setMapLoaded(true);
+    script.onload = () => {
+      jsLoaded = true;
+      checkLoaded();
+    };
+    script.onerror = () => {
+      console.error("Leaflet map script failed to load");
+    };
     document.body.appendChild(script);
   }, []);
 

@@ -47,19 +47,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     return <>{children}</>;
   }
 
-  if (!authorized) {
-    return (
-      <div
-        className="d-flex align-items-center justify-content-center min-vh-100"
-        style={{ background: '#0f172a', color: '#ffffff' }}
-      >
-        <div className="spinner-border text-primary" role="status">
-          <span className="visually-hidden">Loading...</span>
-        </div>
-      </div>
-    );
-  }
-
   const menuItems = [
     { name: 'Dashboard', path: '/admin', icon: 'fas fa-chart-line' },
     { name: 'Products', path: '/admin/products', icon: 'fas fa-box' },
@@ -273,7 +260,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
           {/* Content Body */}
           <main className="p-4 flex-grow-1" style={{ maxWidth: '1600px', width: '100%', margin: '0 auto' }}>
-            {children}
+            {authorized ? children : (
+              <div className="d-flex align-items-center justify-content-center" style={{ minHeight: '300px' }}>
+                <div className="spinner-border text-primary" role="status">
+                  <span className="visually-hidden">Loading...</span>
+                </div>
+              </div>
+            )}
           </main>
         </div>
       </div>

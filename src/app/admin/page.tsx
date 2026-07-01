@@ -16,6 +16,7 @@ interface DashboardData {
     whatsappClicks: number;
     searchesCount: number;
     abandonedCartLeak?: number;
+    averageOrderValue?: number;
   };
   charts: {
     labels: string[];
@@ -83,8 +84,47 @@ export default function AdminDashboardPage() {
 
   if (loading) {
     return (
-      <div className="d-flex align-items-center justify-content-center p-5" style={{ minHeight: '400px' }}>
-        <div className="spinner-border text-primary" role="status" />
+      <div style={{ padding: '0 2px' }}>
+        <style dangerouslySetInnerHTML={{ __html: `
+          @keyframes skeleton-pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+          }
+          .skeleton-pulse {
+            animation: skeleton-pulse 1.5s ease-in-out infinite;
+          }
+          .skeleton-block {
+            background-color: #e2e8f0;
+            border-radius: 8px;
+          }
+        `}} />
+
+        {/* 5 KPI Cards Skeleton */}
+        <div className="row g-3 mb-4">
+          {[...Array(5)].map((_, i) => (
+            <div key={i} className="col-12 col-sm-6 col-xl">
+              <div className="bg-white rounded-4 border p-3" style={{ borderColor: '#f1f5f9', minHeight: '80px' }}>
+                <div className="d-flex align-items-center justify-content-between mb-2">
+                  <div className="skeleton-block skeleton-pulse" style={{ height: '12px', width: '90px' }} />
+                  <div className="skeleton-block skeleton-pulse rounded-circle" style={{ height: '24px', width: '24px' }} />
+                </div>
+                <div className="skeleton-block skeleton-pulse" style={{ height: '26px', width: '120px' }} />
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* 2 Charts Skeleton */}
+        <div className="row g-3 g-md-4 mb-4">
+          {[...Array(2)].map((_, i) => (
+            <div key={i} className="col-12 col-lg-6">
+              <div className="bg-white rounded-4 border p-3 p-md-4" style={{ borderColor: '#f1f5f9', height: '220px' }}>
+                <div className="skeleton-block skeleton-pulse mb-3" style={{ height: '16px', width: '180px' }} />
+                <div className="skeleton-block skeleton-pulse w-100 h-75" />
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
@@ -124,9 +164,26 @@ export default function AdminDashboardPage() {
       .join(' ');
   };
 
+  // Calculate dynamic sales and views change percentages vs previous day
+  const lastSales = charts.sales && charts.sales.length > 1 ? charts.sales[charts.sales.length - 1] : 0;
+  const prevSales = charts.sales && charts.sales.length > 1 ? charts.sales[charts.sales.length - 2] : 0;
+  const salesChange = prevSales > 0 ? ((lastSales - prevSales) / prevSales) * 100 : 0;
+
+  const lastViews = charts.pageviews && charts.pageviews.length > 1 ? charts.pageviews[charts.pageviews.length - 1] : 0;
+  const prevViews = charts.pageviews && charts.pageviews.length > 1 ? charts.pageviews[charts.pageviews.length - 2] : 0;
+  const viewsChange = prevViews > 0 ? ((lastViews - prevViews) / prevViews) * 100 : 0;
+
   return (
     <div className="fade-in">
-
+      <style dangerouslySetInnerHTML={{ __html: `
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        .fade-in {
+          animation: fadeIn 0.35s ease-out forwards;
+        }
+      `}} />
 
       {/* Metric Cards Grid — col-12 = 1 per row on mobile, col-sm-6 = 2 per row on tablets, col-xl = equal width on desktop */}
       <div className="row g-3 mb-4">
@@ -142,8 +199,12 @@ export default function AdminDashboardPage() {
             iconColor="#2563eb"
             footerContent={
               <div className="d-flex align-items-center gap-1" style={{ fontSize: '0.68rem' }}>
-                <span className="text-success fw-bold"><i className="fas fa-caret-up" /> 12.5%</span>
-                <span className="text-muted">vs last month</span>
+                {salesChange >= 0 ? (
+                  <span className="text-success fw-bold"><i className="fas fa-caret-up" /> {salesChange.toFixed(1)}%</span>
+                ) : (
+                  <span className="text-danger fw-bold"><i className="fas fa-caret-down" /> {Math.abs(salesChange).toFixed(1)}%</span>
+                )}
+                <span className="text-muted">vs yesterday</span>
               </div>
             }
           />
@@ -161,8 +222,8 @@ export default function AdminDashboardPage() {
             iconColor="#f97316"
             footerContent={
               <div className="d-flex align-items-center gap-1" style={{ fontSize: '0.68rem' }}>
-                <span className="text-success fw-bold"><i className="fas fa-caret-up" /> 8.3%</span>
-                <span className="text-muted">vs last week</span>
+                <span className="text-muted">Avg Value:</span>
+                <span className="text-dark fw-bold">PKR {Math.round(data.stats.averageOrderValue || 0).toLocaleString()}</span>
               </div>
             }
           />
@@ -205,8 +266,12 @@ export default function AdminDashboardPage() {
             iconColor="#06b6d4"
             footerContent={
               <div className="d-flex align-items-center gap-1" style={{ fontSize: '0.68rem' }}>
-                <span className="text-muted">Cart clicks:</span>
-                <span className="text-dark fw-bold">{stats.cartClicks}</span>
+                {viewsChange >= 0 ? (
+                  <span className="text-success fw-bold"><i className="fas fa-caret-up" /> {viewsChange.toFixed(1)}%</span>
+                ) : (
+                  <span className="text-danger fw-bold"><i className="fas fa-caret-down" /> {Math.abs(viewsChange).toFixed(1)}%</span>
+                )}
+                <span className="text-muted">vs yesterday</span>
               </div>
             }
           />
