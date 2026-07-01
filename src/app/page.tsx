@@ -408,8 +408,8 @@ export default function Home() {
               </div>
             ) : (
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                {products.slice(0, trending.limit || 4).map(prod => (
-                  <ProductCard key={prod._id} product={prod} />
+                {products.slice(0, trending.limit || 4).map((prod, idx) => (
+                  <ProductCard key={prod._id} product={prod} priority={idx < 4} />
                 ))}
               </div>
             )}
@@ -513,10 +513,10 @@ export default function Home() {
           <section className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-12 border-t border-slate-100">
             <div className="flex items-center justify-between mb-8">
               <div>
-                <p className="text-xs font-bold uppercase tracking-widest mb-1" style={{ color: theme.primaryColor }}>Handpicked For You</p>
+                <p className="text-xs font-bold uppercase tracking-widest mb-1" style={{ color: 'var(--pd-primary-dark, #c2410c)' }}>Handpicked For You</p>
                 <h2 className="text-2xl font-bold text-slate-900 tracking-tight">{featSec.title}</h2>
               </div>
-              <Link href="/shop" className="text-sm font-semibold inline-flex items-center gap-1 text-decoration-none" style={{ color: theme.primaryColor }}>
+              <Link href="/shop" className="text-sm font-semibold inline-flex items-center gap-1 text-decoration-none" style={{ color: 'var(--pd-primary-dark, #c2410c)' }}>
                 See All
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" className="w-4 h-4">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
@@ -611,7 +611,7 @@ export default function Home() {
           <div className="mb-3">
             <div className="d-flex align-items-center justify-content-between mb-3">
               <div>
-                <p className="text-uppercase fw-bold mb-1" style={{ fontSize: '0.72rem', letterSpacing: '2px', color: isModernGreen ? '#d4af37' : (isCleanWhite ? '#2563eb' : 'var(--pd-primary)') }}>
+                <p className="text-uppercase fw-bold mb-1" style={{ fontSize: '0.72rem', letterSpacing: '2px', color: isModernGreen ? '#0d231d' : (isCleanWhite ? '#2563eb' : 'var(--pd-primary-dark, #c2410c)') }}>
                   Handpicked For You
                 </p>
                 <h2 className="fw-bold text-dark mb-0" style={{ fontSize: 'clamp(1.3rem, 3vw, 2rem)', letterSpacing: '-0.3px', color: isModernGreen ? '#0d231d !important' : (isCleanWhite ? '#1e293b !important' : 'inherit') }}>
@@ -666,9 +666,9 @@ export default function Home() {
                 @media (min-width: 992px) { .products-grid { grid-template-columns: repeat(4, 1fr) !important; } }
                 @media (min-width: 1400px) { .products-grid { grid-template-columns: repeat(5, 1fr) !important; gap: 14px !important; } }
               `}</style>
-              {filtered.map(prod => (
+              {filtered.map((prod, idx) => (
                 <div key={prod._id} className="animate-on-scroll">
-                  <ProductCardAuto product={prod} />
+                  <ProductCardAuto product={prod} priority={idx < 4} />
                 </div>
               ))}
             </div>
@@ -714,7 +714,7 @@ export default function Home() {
                     <ThemeIcon name={s.icon} />
                   </span>
                   <div>
-                    <h6 className="text-uppercase mb-1 fw-bold" style={{ fontSize: '0.72rem', letterSpacing: '0.5px', color: isModernGreen ? '#0d231d' : (isCleanWhite ? '#1e293b' : '') }}>{s.title}</h6>
+                    <p className="text-uppercase mb-1 fw-bold" style={{ fontSize: '0.72rem', letterSpacing: '0.5px', color: isModernGreen ? '#0d231d' : (isCleanWhite ? '#1e293b' : '#eae7db') }}>{s.title}</p>
                     <p className="mb-0 text-muted" style={{ fontSize: '0.7rem', lineHeight: 1.4 }}>{s.desc}</p>
                   </div>
                 </div>
@@ -833,7 +833,7 @@ export default function Home() {
                   >
                     {item.svg}
                   </div>
-                  <h5 className="fw-bold mb-2" style={{ fontSize: '0.95rem' }}>{item.title}</h5>
+                  <p className="fw-bold mb-2" style={{ fontSize: '0.95rem', color: isModernGreen ? '#0d231d' : '' }}>{item.title}</p>
                   <p className={(isModernGreen || isCleanWhite) ? (isModernGreen ? "mb-0 text-white-50" : "mb-0 text-muted") : "text-muted mb-0"} style={{ fontSize: '0.85rem', lineHeight: 1.6 }}>{item.desc}</p>
                 </div>
               </div>
@@ -852,7 +852,7 @@ export default function Home() {
           <div className="container">
             <div className="d-flex align-items-center justify-content-between mb-4">
               <div>
-                <p className="text-uppercase fw-bold mb-1" style={{ fontSize: '0.72rem', letterSpacing: '2px', color: isModernGreen ? '#d4af37' : 'var(--pd-primary)' }}>
+                <p className="text-uppercase fw-bold mb-1" style={{ fontSize: '0.72rem', letterSpacing: '2px', color: isModernGreen ? '#0d231d' : 'var(--pd-primary-dark, #c2410c)' }}>
                   Handpicked For You
                 </p>
                 <h2 className="fw-bold mb-0" style={{ fontSize: 'clamp(1.3rem, 3vw, 2rem)', color: isModernGreen ? '#0d231d' : 'inherit' }}>

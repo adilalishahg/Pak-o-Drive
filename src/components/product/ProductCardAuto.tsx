@@ -6,11 +6,11 @@ import { ProductCard } from './ProductCard';
 import { ProductCardClassic } from './ProductCardClassic';
 import { IProduct } from '../../types';
 
-interface Props { product: IProduct }
+interface Props { product: IProduct; priority?: boolean; }
 
-export const ProductCardAuto: React.FC<Props> = ({ product }) => {
+export const ProductCardAuto: React.FC<Props> = ({ product, priority }) => {
   const { theme } = useSiteTheme();
   return theme.layoutTheme === 'classic'
-    ? <ProductCardClassic product={product} />
-    : <ProductCard product={product} />;
+    ? <ProductCardClassic product={product} priority={priority} />
+    : <ProductCard product={product} priority={priority} />;
 };

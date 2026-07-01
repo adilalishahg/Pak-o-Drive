@@ -16,7 +16,7 @@ export function LayoutWrapper({ children }: { children: React.ReactNode }) {
   return (
     <>
       {isClassic ? <NavbarClassic /> : <Navbar />}
-      {children}
+      <main>{children}</main>
       {isClassic ? <FooterClassic /> : <Footer />}
       <WhatsAppSupport />
       <FloatingCartButton />

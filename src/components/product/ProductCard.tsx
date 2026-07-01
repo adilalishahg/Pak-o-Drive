@@ -10,9 +10,10 @@ import { useSiteTheme } from '../common/DynamicThemeProvider';
 
 interface ProductCardProps {
   product: IProduct;
+  priority?: boolean;
 }
 
-export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
+export const ProductCard: React.FC<ProductCardProps> = ({ product, priority }) => {
   const { addToCart, cartCount } = useCart();
   const router = useRouter();
   const [adding, setAdding] = useState(false);
@@ -47,7 +48,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
             -{discountPercent}%
           </span>
         ) : product.isNewArrival ? (
-          <span className="absolute top-2 left-2 sm:top-3 sm:left-3 text-white text-[9px] sm:text-[10px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-wider z-10" style={{ backgroundColor: theme.primaryColor }}>
+          <span className="absolute top-2 left-2 sm:top-3 sm:left-3 text-white text-[9px] sm:text-[10px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-wider z-10" style={{ backgroundColor: 'var(--pd-primary-dark, #c2410c)' }}>
             New
           </span>
         ) : null}
@@ -77,6 +78,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
               className="max-h-full object-contain mix-blend-multiply group-hover:scale-105 transition-transform duration-300"
               onError={() => setImgSrc('/img/product-placeholder.png')}
               itemProp="image"
+              priority={priority}
             />
           )}
         </div>
@@ -84,9 +86,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
         <div className="flex flex-col flex-grow justify-between">
           <div>
             <h3 className="text-[11px] sm:text-xs font-semibold text-slate-800 line-clamp-2 mb-1 theme1-product-title leading-tight sm:leading-normal">
-              <Link href={`/product/${formattedId}`} onClick={e => e.stopPropagation()}>
-                {product.name}
-              </Link>
+              {product.name}
             </h3>
             <div className="flex items-center gap-1 mb-1.5 sm:mb-2">
               <span className="text-yellow-400 text-[10px] sm:text-xs">&#9733;</span>
@@ -189,6 +189,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
             style={{ objectFit: 'cover', transition: 'transform 0.35s ease' }}
             onError={() => setImgSrc('/img/product-placeholder.png')}
             itemProp="image"
+            priority={priority}
           />
         )}
 
@@ -204,7 +205,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
         ) : product.isNewArrival ? (
           <span className="product-card-badge" style={{
             position: 'absolute', top: '8px', left: '8px', zIndex: 2,
-            background: 'var(--pd-primary)', color: '#fff',
+            background: 'var(--pd-primary-dark, #c2410c)', color: '#fff',
             fontSize: '0.6rem', fontWeight: 800,
             padding: '3px 7px', borderRadius: '4px',
             textTransform: 'uppercase',
@@ -247,13 +248,13 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
         {/* Price */}
         <div className="product-card-price-container">
           {product.originalPrice > product.price && (
-            <del className="product-card-price-original" style={{ fontSize: '0.7rem', color: '#9ca3af', display: 'block', lineHeight: 1.2 }}>
+            <del className="product-card-price-original" style={{ fontSize: '0.7rem', color: '#64748b', display: 'block', lineHeight: 1.2 }}>
               PKR {product.originalPrice.toLocaleString()}
             </del>
           )}
           <span className="product-card-price-current" style={{
             fontSize: '0.95rem', fontWeight: 800,
-            color: 'var(--pd-primary)', lineHeight: 1,
+            color: 'var(--pd-primary-dark, #c2410c)', lineHeight: 1,
           }}>
             PKR {product.price.toLocaleString()}
           </span>

@@ -25,13 +25,13 @@ export const FooterClassic: React.FC = () => {
   };
 
   return (
-    <div className="container-fluid bg-dark text-secondary mt-5 pt-5 footer">
+    <div className="container-fluid bg-dark mt-5 pt-5 footer" style={{ color: '#cbd5e1' }}>
       <div className="container py-5">
         <div className="row g-5">
 
           {/* Newsletter */}
           <div className="col-lg-3 col-md-6">
-            <h4 className="text-white mb-4">Newsletter</h4>
+            <h3 className="text-white mb-4" style={{ fontSize: '1.25rem', fontWeight: 700 }}>Newsletter</h3>
             <p>Subscribe to get notifications on headphones, chargers, and automotive electronics updates.</p>
             <div className="position-relative mx-auto" style={{ maxWidth: '400px' }}>
               <form onSubmit={handleNewsletter}>
@@ -46,7 +46,8 @@ export const FooterClassic: React.FC = () => {
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="btn btn-primary py-2 position-absolute top-0 end-0 mt-2 me-2"
+                  className="btn py-2 position-absolute top-0 end-0 mt-2 me-2 text-white border-0"
+                  style={{ background: 'var(--pd-primary-dark, #c2410c)', fontWeight: 600, fontSize: '0.85rem' }}
                 >
                   {submitting ? '...' : 'SignUp'}
                 </button>
@@ -54,12 +55,12 @@ export const FooterClassic: React.FC = () => {
             </div>
             <div className="d-flex pt-2 gap-2 mt-3">
               {[
-                { icon: 'fab fa-twitter', href: '#' },
-                { icon: 'fab fa-facebook-f', href: '#' },
-                { icon: 'fab fa-youtube', href: '#' },
-                { icon: 'fab fa-instagram', href: '#' },
+                { icon: 'fab fa-twitter', href: '#', label: 'Twitter' },
+                { icon: 'fab fa-facebook-f', href: '#', label: 'Facebook' },
+                { icon: 'fab fa-youtube', href: '#', label: 'YouTube' },
+                { icon: 'fab fa-instagram', href: '#', label: 'Instagram' },
               ].map((s, i) => (
-                <a key={i} className="btn btn-square btn-outline-secondary rounded-circle" href={s.href}>
+                <a key={i} className="btn btn-square btn-outline-secondary rounded-circle" href={s.href} aria-label={s.label}>
                   <i className={s.icon}></i>
                 </a>
               ))}
@@ -68,7 +69,7 @@ export const FooterClassic: React.FC = () => {
 
           {/* Customer Service */}
           <div className="col-lg-3 col-md-6">
-            <h4 className="text-white mb-4">Customer Service</h4>
+            <h3 className="text-white mb-4" style={{ fontSize: '1.25rem', fontWeight: 700 }}>Customer Service</h3>
             <div className="d-flex flex-column gap-2">
               {[
                 { href: '/contact', label: 'Contact Us' },
@@ -76,7 +77,7 @@ export const FooterClassic: React.FC = () => {
                 { href: '/cart', label: 'My Cart' },
                 { href: '/checkout', label: 'Checkout' },
               ].map(l => (
-                <Link key={l.href} href={l.href} className="text-secondary text-decoration-none">
+                <Link key={l.href} href={l.href} className="text-slate-300 hover:text-white transition-colors text-decoration-none">
                   <i className="fas fa-angle-right me-2"></i>{l.label}
                 </Link>
               ))}
@@ -85,7 +86,7 @@ export const FooterClassic: React.FC = () => {
 
           {/* Information */}
           <div className="col-lg-3 col-md-6">
-            <h4 className="text-white mb-4">Information</h4>
+            <h3 className="text-white mb-4" style={{ fontSize: '1.25rem', fontWeight: 700 }}>Information</h3>
             <div className="d-flex flex-column gap-2">
               {[
                 { href: '/', label: 'About Us' },
@@ -94,7 +95,7 @@ export const FooterClassic: React.FC = () => {
                 { href: '/contact', label: 'Terms & Conditions' },
                 { href: '/contact', label: 'Return Policy' },
               ].map(l => (
-                <Link key={l.label} href={l.href} className="text-secondary text-decoration-none">
+                <Link key={l.label} href={l.href} className="text-slate-300 hover:text-white transition-colors text-decoration-none">
                   <i className="fas fa-angle-right me-2"></i>{l.label}
                 </Link>
               ))}
@@ -103,16 +104,16 @@ export const FooterClassic: React.FC = () => {
 
           {/* Contact */}
           <div className="col-lg-3 col-md-6">
-            <h4 className="text-white mb-4">Payment Method</h4>
+            <h3 className="text-white mb-4" style={{ fontSize: '1.25rem', fontWeight: 700 }}>Payment Method</h3>
             <p>We support Cash on Delivery nationwide in Pakistan. Verify your order before paying cash.</p>
             <div className="d-flex flex-column gap-2 mt-3">
               <div className="d-flex gap-2 align-items-center">
                 <i className="fas fa-phone text-primary"></i>
-                <a href={`tel:${info.phone}`} className="text-secondary text-decoration-none">{info.phone}</a>
+                <a href={`tel:${info.phone}`} className="text-slate-300 hover:text-white transition-colors text-decoration-none">{info.phone}</a>
               </div>
               <div className="d-flex gap-2 align-items-center">
                 <i className="fas fa-envelope text-primary"></i>
-                <a href={`mailto:${info.email}`} className="text-secondary text-decoration-none">{info.email}</a>
+                <a href={`mailto:${info.email}`} className="text-slate-300 hover:text-white transition-colors text-decoration-none">{info.email}</a>
               </div>
             </div>
           </div>
@@ -125,10 +126,10 @@ export const FooterClassic: React.FC = () => {
         <div className="container">
           <div className="row">
             <div className="col-md-6 text-center text-md-start mb-3 mb-md-0">
-              <span className="text-secondary">&copy; {new Date().getFullYear()} <a href="/" className="text-white text-decoration-none fw-bold">{info.logoText}</a>. All Rights Reserved.</span>
+              <span className="text-slate-400">&copy; {new Date().getFullYear()} <a href="/" className="text-white text-decoration-none fw-bold">{info.logoText}</a>. All Rights Reserved.</span>
             </div>
             <div className="col-md-6 text-center text-md-end">
-              <span className="text-secondary">Powered by <a href="#" className="text-white text-decoration-none">Trusted Platform</a></span>
+              <span className="text-slate-400">Powered by <a href="#" className="text-white text-decoration-none">Trusted Platform</a></span>
             </div>
           </div>
         </div>

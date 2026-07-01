@@ -53,7 +53,9 @@ export const WhatsAppSupport: React.FC = () => {
             display: 'flex',
             alignItems: 'center',
             gap: '10px',
-            position: 'relative',
+            position: 'absolute',
+            bottom: '78px',
+            right: '0px',
             whiteSpace: 'nowrap',
             animation: 'waBounce 1.5s ease infinite',
           }}

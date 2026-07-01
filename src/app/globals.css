@@ -386,9 +386,7 @@ body {
 
 /* ---------- Announcement Bar ------------------------------ */
 .announcement-bar {
-  background: linear-gradient(90deg, #ea580c 0%, #c2410c 30%, #9a3412 60%, #c2410c 80%, #ea580c 100%);
-  background-size: 300% 100%;
-  animation: gradientShift 6s ease infinite;
+  background: linear-gradient(135deg, var(--pd-primary, #ea580c) 0%, var(--pd-primary-dark, #c2410c) 100%);
   font-size: 13px;
   font-weight: 600;
   letter-spacing: 0.5px;

@@ -799,17 +799,39 @@ export function DynamicThemeProvider({ children, initialTheme }: ProviderProps) 
   const fontUrl = `https://fonts.googleapis.com/css2?family=${fontName}:wght@300;400;500;600;700;800&display=swap`;
   const wantedLib = theme.iconLibrary ?? 'fontawesome';
   const iconUrl = ICON_CDNS[wantedLib];
-
   return (
     <ThemeContext.Provider value={{ theme, loading, refresh: fetchAndApply }}>
-      {/* Declarative pre-rendering elements to prevent Flash of Unstyled Content (FOUC) */}
-      <link rel="stylesheet" href={fontUrl} />
-      {/* Load all icon CDNs to ensure static icons and selected library icons both render correctly */}
-      <link rel="stylesheet" href={ICON_CDNS.fontawesome} />
-      <link rel="stylesheet" href={ICON_CDNS.bootstrap} />
-      <link rel="stylesheet" href={ICON_CDNS.material} />
-      <link rel="stylesheet" href={ICON_CDNS.remix} />
-      <link rel="stylesheet" href={ICON_CDNS.phosphor} />
+      {/* Asynchronous font loading */}
+      <link rel="preload" href={fontUrl} as="style" />
+      <link rel="stylesheet" href={fontUrl} media="print" onLoad={(e) => { e.currentTarget.media = 'all'; }} />
+
+      {/* Load FontAwesome and Bootstrap Icons which are used statically across page components */}
+      <link rel="preload" href={ICON_CDNS.fontawesome} as="style" />
+      <link rel="stylesheet" href={ICON_CDNS.fontawesome} media="print" onLoad={(e) => { e.currentTarget.media = 'all'; }} />
+
+      <link rel="preload" href={ICON_CDNS.bootstrap} as="style" />
+      <link rel="stylesheet" href={ICON_CDNS.bootstrap} media="print" onLoad={(e) => { e.currentTarget.media = 'all'; }} />
+
+      {/* Load other libraries dynamically ONLY if they are active in the theme settings */}
+      {wantedLib === 'material' && (
+        <>
+          <link rel="preload" href={ICON_CDNS.material} as="style" />
+          <link rel="stylesheet" href={ICON_CDNS.material} media="print" onLoad={(e) => { e.currentTarget.media = 'all'; }} />
+        </>
+      )}
+      {wantedLib === 'remix' && (
+        <>
+          <link rel="preload" href={ICON_CDNS.remix} as="style" />
+          <link rel="stylesheet" href={ICON_CDNS.remix} media="print" onLoad={(e) => { e.currentTarget.media = 'all'; }} />
+        </>
+      )}
+      {wantedLib === 'phosphor' && (
+        <>
+          <link rel="preload" href={ICON_CDNS.phosphor} as="style" />
+          <link rel="stylesheet" href={ICON_CDNS.phosphor} media="print" onLoad={(e) => { e.currentTarget.media = 'all'; }} />
+        </>
+      )}
+
       <style id="pd-dynamic-theme" dangerouslySetInnerHTML={{ __html: css }} />
       {children}
     </ThemeContext.Provider>

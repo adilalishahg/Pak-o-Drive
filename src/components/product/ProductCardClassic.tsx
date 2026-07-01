@@ -8,9 +8,9 @@ import { useCart } from '../../context/CartContext';
 import { IProduct } from '../../types';
 import { useSiteTheme } from '../common/DynamicThemeProvider';
 
-interface Props { product: IProduct }
+interface Props { product: IProduct; priority?: boolean; }
 
-export const ProductCardClassic: React.FC<Props> = ({ product }) => {
+export const ProductCardClassic: React.FC<Props> = ({ product, priority }) => {
   const { addToCart, cartCount } = useCart();
   const router = useRouter();
   const [adding, setAdding] = useState(false);
@@ -98,6 +98,7 @@ export const ProductCardClassic: React.FC<Props> = ({ product }) => {
             sizes="(max-width: 575px) 50vw, (max-width: 992px) 33vw, 25vw"
             style={{ objectFit: 'cover', transition: 'transform 0.4s ease' }}
             onError={() => setImgSrc('/img/product-placeholder.png')}
+            priority={priority}
           />
         )}
 
@@ -105,7 +106,7 @@ export const ProductCardClassic: React.FC<Props> = ({ product }) => {
         {discount > 0 && (
           <span className="product-card-badge" style={{
             position: 'absolute', top: '10px', left: '10px',
-            background: 'var(--bs-primary, #ea580c)', color: '#fff',
+            background: 'var(--pd-primary-dark, #c2410c)', color: '#fff',
             borderRadius: '6px', fontSize: '0.7rem', fontWeight: 700,
             padding: '3px 8px', letterSpacing: '0.3px',
             zIndex: 2,
@@ -116,7 +117,7 @@ export const ProductCardClassic: React.FC<Props> = ({ product }) => {
         {product.isNewArrival && !discount && (
           <span className="product-card-badge" style={{
             position: 'absolute', top: '10px', left: '10px',
-            background: '#10b981', color: '#fff',
+            background: '#047857', color: '#fff',
             borderRadius: '6px', fontSize: '0.7rem', fontWeight: 700,
             padding: '3px 8px',
             zIndex: 2,
@@ -153,22 +154,18 @@ export const ProductCardClassic: React.FC<Props> = ({ product }) => {
       {/* Product info */}
       <div className="product-card-content" style={{ padding: '12px 14px', flex: 1, display: 'flex', flexDirection: 'column', gap: '4px' }}>
         {/* Category */}
-        <Link
-          href={`/shop?category=${product.category}`}
-          onClick={e => e.stopPropagation()}
+        <span
           className="product-card-category"
           style={{
-            fontSize: '0.72rem', color: '#94a3b8', textDecoration: 'none',
+            fontSize: '0.72rem', color: '#576574', textDecoration: 'none',
             textTransform: 'capitalize', fontWeight: 500, letterSpacing: '0.3px',
           }}
         >
           {product.category}
-        </Link>
+        </span>
 
         {/* Name */}
-        <Link
-          href={`/product/${id}`}
-          onClick={e => e.stopPropagation()}
+        <span
           className="product-card-title"
           style={{
             fontSize: '0.9rem', fontWeight: 600, color: '#1e293b',
@@ -178,15 +175,15 @@ export const ProductCardClassic: React.FC<Props> = ({ product }) => {
           }}
         >
           {product.name}
-        </Link>
+        </span>
 
         {/* Price row */}
         <div className="product-card-price-container" style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}>
-          <span className="product-card-price-current" style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--bs-primary, #ea580c)' }}>
+          <span className="product-card-price-current" style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--pd-primary-dark, #c2410c)' }}>
             PKR {product.price.toLocaleString()}
           </span>
           {product.originalPrice > product.price && (
-            <del className="product-card-price-original" style={{ fontSize: '0.78rem', color: '#94a3b8' }}>
+            <del className="product-card-price-original" style={{ fontSize: '0.78rem', color: '#64748b' }}>
               PKR {product.originalPrice.toLocaleString()}
             </del>
           )}
@@ -198,11 +195,11 @@ export const ProductCardClassic: React.FC<Props> = ({ product }) => {
             <i
               key={i}
               className="fas fa-star"
-              style={{ fontSize: '11px', color: i < rating ? 'var(--bs-primary, #ea580c)' : '#e2e8f0' }}
+              style={{ fontSize: '11px', color: i < rating ? 'var(--pd-primary-dark, #c2410c)' : '#e2e8f0' }}
             />
           ))}
           {product.rating > 0 && (
-            <span className="product-card-rating-text" style={{ fontSize: '0.72rem', color: '#94a3b8', marginLeft: '4px' }}>
+            <span className="product-card-rating-text" style={{ fontSize: '0.72rem', color: '#576574', marginLeft: '4px' }}>
               ({product.rating.toFixed(1)})
             </span>
           )}
