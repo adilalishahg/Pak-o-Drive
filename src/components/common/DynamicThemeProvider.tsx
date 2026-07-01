@@ -749,7 +749,7 @@ footer a:hover, .footer a:hover {
 
 const ICON_CDNS: Record<IconLibrary, string> = {
   fontawesome: 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css',
-  material: 'https://fonts.googleapis.com/icon?family=Material+Icons+Round',
+  material: 'https://fonts.googleapis.com/icon?family=Material+Icons+Round&display=swap',
   bootstrap: 'https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css',
   remix: 'https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css',
   phosphor: 'https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css',
@@ -833,8 +833,9 @@ export function DynamicThemeProvider({ children, initialTheme }: ProviderProps) 
       <link rel="preload" href={fontUrl} as="style" />
       <link rel="stylesheet" href={fontUrl} media="print" onLoad={(e) => { e.currentTarget.media = 'all'; }} />
 
-      {/* Active Theme Icon Library (High Priority) */}
-      <link rel="stylesheet" href={iconUrl} />
+      {/* Active Theme Icon Library (Asynchronous) */}
+      <link rel="preload" href={iconUrl} as="style" />
+      <link rel="stylesheet" href={iconUrl} media="print" onLoad={(e) => { e.currentTarget.media = 'all'; }} />
 
       {/* Fallback FontAwesome loading (Asynchronous) */}
       {wantedLib !== 'fontawesome' && (
