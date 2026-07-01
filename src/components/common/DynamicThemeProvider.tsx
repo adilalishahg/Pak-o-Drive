@@ -843,25 +843,25 @@ export function DynamicThemeProvider({ children, initialTheme }: ProviderProps) 
       <link rel="preconnect" href="https://cdnjs.cloudflare.com" />
       <link rel="preconnect" href="https://cdn.jsdelivr.net" />
 
-      {/* Preload FontAwesome Webfonts */}
-      <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/webfonts/fa-solid-900.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
-      <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/webfonts/fa-brands-400.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
+      {/* Preload FontAwesome Webfonts only when FA is the active icon library */}
+      {wantedLib === 'fontawesome' && (
+        <>
+          <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/webfonts/fa-solid-900.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
+          <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/webfonts/fa-brands-400.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
+        </>
+      )}
 
-       {/* Asynchronous font & stylesheet loading via client script injection to bypass React 19/Next.js onLoad stripping */}
+       {/* Asynchronous font & icon CSS loading — only the SELECTED library is loaded, using print→all trick to avoid render-blocking */}
       <script dangerouslySetInnerHTML={{ __html: `
         (function() {
-          var links = ${JSON.stringify([
-            fontUrl,
-            iconUrl,
-            wantedLib !== 'fontawesome' ? ICON_CDNS.fontawesome : null,
-            wantedLib !== 'bootstrap' ? ICON_CDNS.bootstrap : null
-          ].filter(Boolean))};
-          links.forEach(function(url) {
-            // Check if already injected to avoid duplication during React renders
+          var urls = ${JSON.stringify([fontUrl, iconUrl].filter(Boolean))};
+          urls.forEach(function(url) {
             if (document.querySelector('link[href="' + url + '"]')) return;
             var link = document.createElement('link');
             link.rel = 'stylesheet';
             link.href = url;
+            link.media = 'print';
+            link.onload = function() { this.media = 'all'; };
             document.head.appendChild(link);
           });
         })();
