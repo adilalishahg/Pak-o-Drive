@@ -71,9 +71,12 @@ export const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({ image,
   }, [activeItem]);
 
   /* ── Desktop mouse ── */
+  // Cache container rect once on enter — avoids getBoundingClientRect on every mousemove (forced reflow fix)
+  const cachedRect = useRef<DOMRect | null>(null);
+
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!containerRef.current || !zoomed) return;
-    const { left, top, width, height } = containerRef.current.getBoundingClientRect();
+    if (!cachedRect.current || !zoomed) return;
+    const { left, top, width, height } = cachedRect.current;
     const x = ((e.clientX - left) / width) * 100;
     const y = ((e.clientY - top) / height) * 100;
     setZoomOrigin({ x, y });
@@ -81,7 +84,9 @@ export const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({ image,
 
   const handleMouseEnter = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!containerRef.current) return;
-    const { left, top, width, height } = containerRef.current.getBoundingClientRect();
+    // Read layout once on enter, cache it — not on every move event
+    cachedRect.current = containerRef.current.getBoundingClientRect();
+    const { left, top, width, height } = cachedRect.current;
     const x = ((e.clientX - left) / width) * 100;
     const y = ((e.clientY - top) / height) * 100;
     setZoomOrigin({ x, y });
@@ -129,7 +134,10 @@ export const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({ image,
     if (!zoomed) {
       if (!containerRef.current) return;
       const touch = e.changedTouches[0];
-      const { left, top, width, height } = containerRef.current.getBoundingClientRect();
+      // Use cached rect to avoid forced reflow on touch end
+      const rect = cachedRect.current || containerRef.current.getBoundingClientRect();
+      cachedRect.current = rect;
+      const { left, top, width, height } = rect;
       const x = ((touch.clientX - left) / width) * 100;
       const y = ((touch.clientY - top) / height) * 100;
       setZoomOrigin({ x, y });
@@ -138,6 +146,7 @@ export const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({ image,
     } else {
       setZoomed(false);
       setPan({ x: 0, y: 0 });
+      cachedRect.current = null; // invalidate on zoom-out so next enter re-reads
     }
   };
 
@@ -157,7 +166,7 @@ export const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({ image,
       <div
         ref={containerRef}
         onMouseEnter={isImage ? handleMouseEnter : undefined}
-        onMouseLeave={isImage ? () => { setZoomed(false); setPan({ x: 0, y: 0 }); } : undefined}
+        onMouseLeave={isImage ? () => { setZoomed(false); setPan({ x: 0, y: 0 }); cachedRect.current = null; } : undefined}
         onMouseMove={isImage ? handleMouseMove : undefined}
         onTouchStart={isImage ? handleTouchStart : undefined}
         onTouchMove={isImage ? handleTouchMove : undefined}
