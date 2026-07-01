@@ -1,12 +1,32 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import {
-  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
-  ResponsiveContainer, PieChart, Pie, Cell, Legend, BarChart, Bar
-} from 'recharts';
+import dynamic from 'next/dynamic';
 import MetricCard from '../../../components/common/MetricCard';
-import InteractiveMap from '../../../components/common/InteractiveMap';
+
+// Dynamically import InteractiveMap (SSR false since Leaflet needs window/document)
+const InteractiveMap = dynamic(() => import('../../../components/common/InteractiveMap'), {
+  ssr: false,
+  loading: () => <div className="skeleton-pulse" style={{ height: '140px', background: '#424447ff', borderRadius: '16px' }} />
+});
+
+// Dynamically import Recharts Chart Sub-components (SSR false to prevent bundle bloating)
+const TrendChart = dynamic(() => import('../../../components/common/AnalyticsCharts').then(m => m.TrendChart), {
+  ssr: false,
+  loading: () => <div className="skeleton-pulse w-100 h-100 rounded" style={{ height: '200px', backgroundColor: '#f1f5f9' }} />
+});
+const DeviceBreakdownChart = dynamic(() => import('../../../components/common/AnalyticsCharts').then(m => m.DeviceBreakdownChart), {
+  ssr: false,
+  loading: () => <div className="skeleton-pulse rounded-circle bg-light" style={{ width: '120px', height: '120px', margin: 'auto' }} />
+});
+const AgeBreakdownChart = dynamic(() => import('../../../components/common/AnalyticsCharts').then(m => m.AgeBreakdownChart), {
+  ssr: false,
+  loading: () => <div className="skeleton-pulse w-100 h-100 rounded" style={{ height: '80px', backgroundColor: '#f1f5f9' }} />
+});
+const ConversionRateChart = dynamic(() => import('../../../components/common/AnalyticsCharts').then(m => m.ConversionRateChart), {
+  ssr: false,
+  loading: () => <div className="skeleton-pulse w-100 h-100 rounded" style={{ height: '200px', backgroundColor: '#f1f5f9' }} />
+});
 
 const cityCoordinates: Record<string, [number, number]> = {
   islamabad: [33.6844, 73.0479],
@@ -157,74 +177,13 @@ export default function AdminAnalyticsDashboard() {
     setShowSlipModal(true);
   };
 
-  if (!mounted || loading) return (
-    <div style={{ padding: '0 2px' }}>
-      <style dangerouslySetInnerHTML={{ __html: `
-        @keyframes skeleton-pulse {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.5; }
-        }
-        .skeleton-pulse {
-          animation: skeleton-pulse 1.5s ease-in-out infinite;
-        }
-        .skeleton-block {
-          background-color: #e2e8f0;
-          border-radius: 8px;
-        }
-      `}} />
+  if (error) return <div className="alert alert-danger border-0 m-3">{error}</div>;
 
-      {/* Header Skeleton */}
-      <div className="bg-white rounded-4 border p-3 p-md-4 mb-3" style={{ borderColor: '#f1f5f9' }}>
-        <div className="d-flex flex-column flex-sm-row align-items-start align-items-sm-center justify-content-between gap-2">
-          <div className="w-100">
-            <div className="skeleton-block skeleton-pulse mb-2" style={{ width: '220px', height: '24px' }} />
-            <div className="skeleton-block skeleton-pulse" style={{ width: '380px', height: '16px' }} />
-          </div>
-        </div>
-      </div>
-
-      {/* 9 KPI Cards Skeleton */}
-      <div className="row g-2 mb-3">
-        {[...Array(9)].map((_, i) => (
-          <div key={i} className="col-12 col-sm-6 col-md-4 col-lg-3">
-            <div className="bg-white rounded-4 border p-3 mb-2" style={{ borderColor: '#f1f5f9', minHeight: '80px' }}>
-              <div className="d-flex align-items-center justify-content-between mb-2">
-                <div className="skeleton-block skeleton-pulse" style={{ height: '12px', width: '95px' }} />
-                <div className="skeleton-block skeleton-pulse rounded-circle" style={{ height: '24px', width: '24px' }} />
-              </div>
-              <div className="skeleton-block skeleton-pulse" style={{ height: '26px', width: '130px' }} />
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Revenue Chart + Device Pie Skeleton */}
-      <div className="row g-3 mb-3">
-        <div className="col-12 col-lg-8">
-          <div className="bg-white rounded-4 border p-3 p-md-4 mb-3" style={{ borderColor: '#f1f5f9', height: '272px' }}>
-            <div className="d-flex align-items-center justify-content-between border-bottom pb-2 mb-3">
-              <div className="skeleton-block skeleton-pulse" style={{ height: '14px', width: '200px' }} />
-            </div>
-            <div className="skeleton-block skeleton-pulse w-100 h-75" />
-          </div>
-        </div>
-        <div className="col-12 col-lg-4">
-          <div className="bg-white rounded-4 border p-3 p-md-4 mb-3" style={{ borderColor: '#f1f5f9', height: '272px' }}>
-            <div className="d-flex align-items-center justify-content-between border-bottom pb-2 mb-3">
-              <div className="skeleton-block skeleton-pulse" style={{ height: '14px', width: '120px' }} />
-            </div>
-            <div className="d-flex justify-content-center align-items-center h-75">
-              <div className="skeleton-block skeleton-pulse rounded-circle" style={{ height: '120px', width: '120px' }} />
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-  if (error || !data) return <div className="alert alert-danger border-0 m-3">{error || 'No data.'}</div>;
+  // Determine if we should show skeleton loading inside components
+  const isPageLoading = !mounted || loading || !data;
 
   // Calculate live order coordinates map markers (jittered for visibility)
-  const mapMarkers = orders
+  const mapMarkers = (orders || [])
     .map(order => {
       const city = order.customerDetails?.city?.toLowerCase()?.trim();
       if (!city) return null;
@@ -242,21 +201,21 @@ export default function AdminAnalyticsDashboard() {
     })
     .filter(Boolean) as any[];
 
-  const timeSeriesData = data.charts.labels.map((label, i) => ({
+  const timeSeriesData = data ? data.charts.labels.map((label, i) => ({
     name: label,
-    Revenue: data.charts.revenue[i],
+    Revenue: data.charts.revenue[i] || 0,
     Pageviews: data.charts.pageviews?.[i] ?? 0,
-    Conversion: parseFloat(data.charts.conversion[i].toFixed(2))
-  }));
+    Conversion: parseFloat((data.charts.conversion[i] || 0).toFixed(2))
+  })) : [];
 
-  const devicePie = [
+  const devicePie = data ? [
     { name: 'Mobile', value: data.insights.devices.mobile, color: '#f97316' },
     { name: 'Desktop', value: data.insights.devices.desktop, color: '#0f172a' }
-  ];
+  ] : [];
 
   const funnelColors = ['#f97316', '#3b82f6', '#8b5cf6', '#ec4899', '#10b981'];
 
-  const kpisConfig = [
+  const kpisConfig = data ? [
     { t: 'Total Revenue',       type: 'revenue',            val: data.stats.revenue,               fmt: (v: number) => `PKR ${v.toLocaleString()}`,                   i: 'fa-wallet',          c: '#f97316', bg: 'rgba(249,115,22,0.1)' },
     { t: 'Total Orders',        type: 'orders',             val: data.stats.orders,                fmt: (v: number) => v.toString(),                                  i: 'fa-shopping-bag',    c: '#3b82f6', bg: 'rgba(59,130,246,0.1)' },
     { t: 'Avg. Order Value',    type: 'avg_order_value',    val: data.stats.averageOrderValue,     fmt: (v: number) => `PKR ${Math.round(v).toLocaleString()}`,       i: 'fa-receipt',         c: '#8b5cf6', bg: 'rgba(139,92,246,0.1)' },
@@ -266,7 +225,7 @@ export default function AdminAnalyticsDashboard() {
     { t: 'Cart Clicks',         type: 'cart_clicks',        val: data.stats.cartClicks ?? 0,       fmt: (v: number) => v.toString(),                                  i: 'fa-cart-plus',       c: '#059669', bg: 'rgba(5,150,105,0.1)' },
     { t: 'WhatsApp Clicks',     type: 'whatsapp_clicks',    val: data.stats.whatsappClicks ?? 0,   fmt: (v: number) => v.toString(),                                  i: 'fa-whatsapp',        c: '#25d366', bg: 'rgba(37,211,102,0.1)' },
     { t: 'Cart Revenue Leak',   type: 'abandoned_cart',     val: data.stats.abandonedCartLeak || 0,fmt: (v: number) => `PKR ${v.toLocaleString()}`,                   i: 'fa-shopping-cart',   c: '#ef4444', bg: 'rgba(239,68,68,0.1)' }
-  ];
+  ] : [];
 
   return (
     <div style={{ padding: '0 2px' }} className="fade-in">
@@ -277,6 +236,17 @@ export default function AdminAnalyticsDashboard() {
         }
         .fade-in {
           animation: fadeIn 0.35s ease-out forwards;
+        }
+        @keyframes skeleton-pulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.45; }
+        }
+        .skeleton-pulse {
+          animation: skeleton-pulse 1.5s ease-in-out infinite;
+        }
+        .skeleton-block {
+          background-color: #e2e8f0;
+          border-radius: 6px;
         }
       `}} />
 
@@ -307,20 +277,34 @@ export default function AdminAnalyticsDashboard() {
 
       {/* ── 9 KPI Cards ── */}
       <div className="row g-2 mb-3">
-        {kpisConfig.map((k, i) => (
-          <div key={i} className="col-12 col-sm-6 col-md-4 col-lg-3">
-            <MetricCard
-              title={k.t}
-              metricType={k.type}
-              initialValue={k.val}
-              formatValue={k.fmt}
-              iconClass={k.i}
-              iconBg={k.bg}
-              iconColor={k.c}
-              globalRange={range}
-            />
-          </div>
-        ))}
+        {isPageLoading ? (
+          [...Array(9)].map((_, i) => (
+            <div key={i} className="col-12 col-sm-6 col-md-4 col-lg-3">
+              <div className="bg-white rounded-4 border p-3 mb-2 skeleton-pulse" style={{ borderColor: '#f1f5f9', minHeight: '84px' }}>
+                <div className="d-flex align-items-center justify-content-between mb-2">
+                  <div className="skeleton-block" style={{ height: '12px', width: '90px' }} />
+                  <div className="skeleton-block rounded-circle" style={{ height: '22px', width: '22px' }} />
+                </div>
+                <div className="skeleton-block" style={{ height: '24px', width: '130px' }} />
+              </div>
+            </div>
+          ))
+        ) : (
+          kpisConfig.map((k, i) => (
+            <div key={i} className="col-12 col-sm-6 col-md-4 col-lg-3">
+              <MetricCard
+                title={k.t}
+                metricType={k.type}
+                initialValue={k.val}
+                formatValue={k.fmt}
+                iconClass={k.i}
+                iconBg={k.bg}
+                iconColor={k.c}
+                globalRange={range}
+              />
+            </div>
+          ))
+        )}
       </div>
 
       {/* ── Revenue Chart + Device Pie ── */}
@@ -332,27 +316,11 @@ export default function AdminAnalyticsDashboard() {
               <span className="badge rounded-pill fw-bold" style={{ background: '#fff7ed', color: '#f97316', fontSize: '0.6rem' }}>Daily</span>
             </div>
             <div style={{ height: '200px' }}>
-              <ResponsiveContainer width="100%" height="100%" minWidth={0}>
-                <AreaChart data={timeSeriesData} margin={{ top: 5, right: 5, left: -25, bottom: 0 }}>
-                  <defs>
-                    <linearGradient id="rG" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#ea580c" stopOpacity={0.35} />
-                      <stop offset="95%" stopColor="#ea580c" stopOpacity={0} />
-                    </linearGradient>
-                    <linearGradient id="pG" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.25} />
-                      <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                  <XAxis dataKey="name" stroke="#94a3b8" fontSize={9} tickLine={false} />
-                  <YAxis stroke="#94a3b8" fontSize={9} tickLine={false} />
-                  <Tooltip />
-                  <Legend iconType="circle" iconSize={7} wrapperStyle={{ fontSize: '10px' }} />
-                  <Area name="Revenue (PKR)" type="monotone" dataKey="Revenue" stroke="#ea580c" strokeWidth={2} fillOpacity={1} fill="url(#rG)" />
-                  <Area name="Page Views" type="monotone" dataKey="Pageviews" stroke="#3b82f6" strokeWidth={2} fillOpacity={1} fill="url(#pG)" />
-                </AreaChart>
-              </ResponsiveContainer>
+              {isPageLoading ? (
+                <div className="skeleton-pulse w-100 h-100 rounded" style={{ backgroundColor: '#f1f5f9' }} />
+              ) : (
+                <TrendChart data={timeSeriesData} />
+              )}
             </div>
           </Card>
         </div>
@@ -362,28 +330,33 @@ export default function AdminAnalyticsDashboard() {
               <Ttl>Device Breakdown</Ttl>
             </div>
             <div style={{ height: '160px', position: 'relative' }}>
-              <ResponsiveContainer width="100%" height="100%" minWidth={0}>
-                <PieChart>
-                  <Pie data={devicePie} cx="50%" cy="50%" innerRadius={45} outerRadius={65} paddingAngle={4} dataKey="value">
-                    {devicePie.map((e, i) => <Cell key={i} fill={e.color} />)}
-                  </Pie>
-                  <Tooltip formatter={v => `${v} hits`} />
-                </PieChart>
-              </ResponsiveContainer>
-              <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
-                <span className="fw-black text-dark" style={{ fontSize: '1rem' }}>
-                  {Math.round((data.insights.devices.mobile / Math.max(data.insights.devices.mobile + data.insights.devices.desktop, 1)) * 100)}%
-                </span>
-                <span className="text-muted" style={{ fontSize: '0.6rem', textTransform: 'uppercase' }}>Mobile</span>
-              </div>
+              {isPageLoading ? (
+                <div className="d-flex justify-content-center align-items-center h-100 skeleton-pulse">
+                  <div className="rounded-circle" style={{ height: '120px', width: '120px', backgroundColor: '#e2e8f0' }} />
+                </div>
+              ) : (
+                <>
+                  <DeviceBreakdownChart data={devicePie} />
+                  <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
+                    <span className="fw-black text-dark" style={{ fontSize: '1rem' }}>
+                      {devicePie.length ? Math.round((devicePie[0].value / Math.max(devicePie[0].value + devicePie[1].value, 1)) * 100) : 0}%
+                    </span>
+                    <span className="text-muted" style={{ fontSize: '0.6rem', textTransform: 'uppercase' }}>Mobile</span>
+                  </div>
+                </>
+              )}
             </div>
             <div className="d-flex justify-content-center gap-3 mt-1">
-              {devicePie.map((d, i) => (
-                <div key={i} className="d-flex align-items-center gap-1">
-                  <span className="rounded-circle" style={{ width: '9px', height: '9px', background: d.color, display: 'inline-block', flexShrink: 0 }} />
-                  <span style={{ fontSize: '0.7rem', fontWeight: 600 }}>{d.name} ({d.value})</span>
-                </div>
-              ))}
+              {isPageLoading ? (
+                <div className="skeleton-pulse w-75 mx-auto" style={{ height: '12px', background: '#f1f5f9', borderRadius: '4px' }} />
+              ) : (
+                devicePie.map((d, i) => (
+                  <div key={i} className="d-flex align-items-center gap-1">
+                    <span className="rounded-circle" style={{ width: '9px', height: '9px', background: d.color, display: 'inline-block', flexShrink: 0 }} />
+                    <span style={{ fontSize: '0.7rem', fontWeight: 600 }}>{d.name} ({d.value})</span>
+                  </div>
+                ))
+              )}
             </div>
           </Card>
         </div>
@@ -395,12 +368,25 @@ export default function AdminAnalyticsDashboard() {
         <div className="col-12 col-md-4">
           <Card className="h-100">
             <div className="border-bottom pb-2 mb-3"><Ttl>Engagement Overview</Ttl></div>
-            <StatRow label="Total Page Views"   value={data.stats.pageviews ?? 0}      icon="fa-eye"        color="#0891b2" />
-            <StatRow label="Search Events"       value={data.stats.searchesCount ?? 0}  icon="fa-search"     color="#8b5cf6" />
-            <StatRow label="Add to Cart Events"  value={data.stats.cartClicks ?? 0}     icon="fa-cart-plus"  color="#059669" />
-            <StatRow label="WhatsApp Clicks"     value={data.stats.whatsappClicks ?? 0} icon="fa-whatsapp"   color="#25d366" />
-            <StatRow label="Unique Sessions"     value={data.stats.uniqueSessionsCount} icon="fa-fingerprint" color="#f97316" />
-            <StatRow label="Active Products"     value={data.stats.products ?? 0}       icon="fa-box"        color="#3b82f6" />
+            {isPageLoading ? (
+              <div className="skeleton-pulse d-flex flex-column gap-3 py-1">
+                {[...Array(6)].map((_, i) => (
+                  <div key={i} className="d-flex justify-content-between">
+                    <div style={{ height: '14px', width: '120px', background: '#e2e8f0', borderRadius: '4px' }} />
+                    <div style={{ height: '14px', width: '45px', background: '#e2e8f0', borderRadius: '4px' }} />
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <>
+                <StatRow label="Total Page Views"   value={data.stats.pageviews ?? 0}      icon="fa-eye"        color="#0891b2" />
+                <StatRow label="Search Events"       value={data.stats.searchesCount ?? 0}  icon="fa-search"     color="#8b5cf6" />
+                <StatRow label="Add to Cart Events"  value={data.stats.cartClicks ?? 0}     icon="fa-cart-plus"  color="#059669" />
+                <StatRow label="WhatsApp Clicks"     value={data.stats.whatsappClicks ?? 0} icon="fa-whatsapp"   color="#25d366" />
+                <StatRow label="Unique Sessions"     value={data.stats.uniqueSessionsCount} icon="fa-fingerprint" color="#f97316" />
+                <StatRow label="Active Products"     value={data.stats.products ?? 0}       icon="fa-box"        color="#3b82f6" />
+              </>
+            )}
           </Card>
         </div>
 
@@ -408,7 +394,19 @@ export default function AdminAnalyticsDashboard() {
         <div className="col-12 col-md-4">
           <Card className="h-100">
             <div className="border-bottom pb-2 mb-3"><Ttl>Popular Categories</Ttl></div>
-            {data.insights.categories.length ? (
+            {isPageLoading ? (
+              <div className="skeleton-pulse d-flex flex-column gap-3 py-1">
+                {[...Array(3)].map((_, i) => (
+                  <div key={i} className="w-100">
+                    <div className="d-flex justify-content-between mb-1">
+                      <div style={{ height: '12px', width: '90px', background: '#e2e8f0', borderRadius: '4px' }} />
+                      <div style={{ height: '12px', width: '35px', background: '#e2e8f0', borderRadius: '4px' }} />
+                    </div>
+                    <div style={{ height: '6px', background: '#e2e8f0', borderRadius: '4px' }} />
+                  </div>
+                ))}
+              </div>
+            ) : data.insights.categories.length ? (
               data.insights.categories.map((c, i) => {
                 const max = data.insights.categories[0].count || 1;
                 const pct = Math.round((c.count / max) * 100);
@@ -433,7 +431,16 @@ export default function AdminAnalyticsDashboard() {
           <Card className="h-100">
             <div className="border-bottom pb-2 mb-3"><Ttl>Customer Search Intents</Ttl></div>
             <div style={{ maxHeight: '240px', overflowY: 'auto' }}>
-              {data.insights.searches.length ? data.insights.searches.map((s, i) => (
+              {isPageLoading ? (
+                <div className="skeleton-pulse d-flex flex-column gap-2">
+                  {[...Array(4)].map((_, i) => (
+                    <div key={i} className="p-2 rounded-3 d-flex justify-content-between align-items-center" style={{ background: '#f8fafc', height: '34px' }}>
+                      <div style={{ height: '12px', width: '85px', background: '#e2e8f0', borderRadius: '4px' }} />
+                      <div style={{ height: '16px', width: '24px', background: '#e2e8f0', borderRadius: '10px' }} />
+                    </div>
+                  ))}
+                </div>
+              ) : data.insights.searches.length ? data.insights.searches.map((s, i) => (
                 <div key={i} className="d-flex align-items-center justify-content-between p-2 rounded-3 mb-2"
                   style={{ background: '#f8fafc', fontSize: '0.78rem' }}>
                   <span className="fw-medium text-dark">"{s.keyword}"</span>
@@ -453,7 +460,16 @@ export default function AdminAnalyticsDashboard() {
           <Card className="h-100">
             <div className="border-bottom pb-2 mb-3"><Ttl>Top Cities</Ttl></div>
             <div style={{ maxHeight: '220px', overflowY: 'auto' }}>
-              {data.insights.locations?.length ? data.insights.locations.map((loc, i) => (
+              {isPageLoading ? (
+                <div className="skeleton-pulse d-flex flex-column gap-2">
+                  {[...Array(5)].map((_, i) => (
+                    <div key={i} className="p-2 rounded-3 d-flex justify-content-between align-items-center" style={{ background: '#f8fafc', height: '34px' }}>
+                      <div style={{ height: '12px', width: '90px', background: '#e2e8f0', borderRadius: '4px' }} />
+                      <div style={{ height: '16px', width: '24px', background: '#e2e8f0', borderRadius: '10px' }} />
+                    </div>
+                  ))}
+                </div>
+              ) : data.insights.locations?.length ? data.insights.locations.map((loc, i) => (
                 <div key={i} className="d-flex align-items-center justify-content-between p-2 rounded-3 mb-2"
                   style={{ background: '#f8fafc', fontSize: '0.78rem' }}>
                   <span className="fw-semibold text-dark d-flex align-items-center gap-2">
@@ -470,7 +486,19 @@ export default function AdminAnalyticsDashboard() {
         <div className="col-12 col-md-4">
           <Card className="h-100">
             <div className="border-bottom pb-2 mb-3"><Ttl>Gender Breakdown</Ttl></div>
-            {data.insights.demographics?.gender?.length ? data.insights.demographics.gender.map((g, i) => {
+            {isPageLoading ? (
+              <div className="skeleton-pulse d-flex flex-column gap-3 py-1">
+                {[...Array(2)].map((_, i) => (
+                  <div key={i} className="w-100">
+                    <div className="d-flex justify-content-between mb-1">
+                      <div style={{ height: '12px', width: '80px', background: '#e2e8f0', borderRadius: '4px' }} />
+                      <div style={{ height: '12px', width: '40px', background: '#e2e8f0', borderRadius: '4px' }} />
+                    </div>
+                    <div style={{ height: '6px', background: '#e2e8f0', borderRadius: '4px' }} />
+                  </div>
+                ))}
+              </div>
+            ) : data.insights.demographics?.gender?.length ? data.insights.demographics.gender.map((g, i) => {
               const tot = data.insights.demographics!.gender.reduce((s, x) => s + x.count, 0) || 1;
               const pct = Math.round((g.count / tot) * 100);
               return (
@@ -488,16 +516,11 @@ export default function AdminAnalyticsDashboard() {
 
             <div className="border-top pt-3 mt-2">
               <p className="fw-bold mb-2" style={{ fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '1px', color: '#64748b' }}>Age Groups</p>
-              {data.insights.demographics?.age?.length ? (
+              {isPageLoading ? (
+                <div className="skeleton-pulse w-100" style={{ height: '80px', background: '#f1f5f9', borderRadius: '8px' }} />
+              ) : data.insights.demographics?.age?.length ? (
                 <div style={{ height: '80px' }}>
-                  <ResponsiveContainer width="100%" height="100%" minWidth={0}>
-                    <BarChart data={data.insights.demographics.age.map(a => ({ name: a.range, count: a.count }))} barSize={20} margin={{ top: 5, right: 0, left: -30, bottom: 0 }}>
-                      <XAxis dataKey="name" fontSize={9} tickLine={false} stroke="#94a3b8" />
-                      <YAxis fontSize={9} tickLine={false} stroke="#94a3b8" />
-                      <Tooltip />
-                      <Bar dataKey="count" fill="#6366f1" radius={[3,3,0,0]} />
-                    </BarChart>
-                  </ResponsiveContainer>
+                  <AgeBreakdownChart data={data.insights.demographics.age.map(a => ({ name: a.range, count: a.count }))} />
                 </div>
               ) : <p className="text-muted" style={{ fontSize: '0.72rem' }}>No age data.</p>}
             </div>
@@ -509,14 +532,32 @@ export default function AdminAnalyticsDashboard() {
           <Card className="h-100">
             <div className="border-bottom pb-2 mb-3"><Ttl>OS & Browser Platform</Ttl></div>
             <p className="fw-bold mb-2 text-muted" style={{ fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '1px' }}>Operating Systems</p>
-            {data.insights.platforms?.os?.length ? data.insights.platforms.os.map((o, i) => (
+            {isPageLoading ? (
+              <div className="skeleton-pulse d-flex flex-column gap-2 mb-3">
+                {[...Array(3)].map((_, i) => (
+                  <div key={i} className="d-flex justify-content-between">
+                    <div style={{ height: '13px', width: '90px', background: '#e2e8f0', borderRadius: '4px' }} />
+                    <div style={{ height: '13px', width: '40px', background: '#e2e8f0', borderRadius: '4px' }} />
+                  </div>
+                ))}
+              </div>
+            ) : data.insights.platforms?.os?.length ? data.insights.platforms.os.map((o, i) => (
               <div key={i} className="d-flex justify-content-between mb-2" style={{ fontSize: '0.78rem' }}>
                 <span className="fw-semibold text-dark">{o.os}</span>
                 <span className="text-muted fw-bold">{o.count} hits</span>
               </div>
             )) : <p className="text-muted" style={{ fontSize: '0.72rem' }}>No OS data.</p>}
             <p className="fw-bold mb-2 mt-3 text-muted" style={{ fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '1px' }}>Web Browsers</p>
-            {data.insights.platforms?.browsers?.length ? data.insights.platforms.browsers.map((b, i) => (
+            {isPageLoading ? (
+              <div className="skeleton-pulse d-flex flex-column gap-2">
+                {[...Array(3)].map((_, i) => (
+                  <div key={i} className="d-flex justify-content-between">
+                    <div style={{ height: '13px', width: '80px', background: '#e2e8f0', borderRadius: '4px' }} />
+                    <div style={{ height: '13px', width: '40px', background: '#e2e8f0', borderRadius: '4px' }} />
+                  </div>
+                ))}
+              </div>
+            ) : data.insights.platforms?.browsers?.length ? data.insights.platforms.browsers.map((b, i) => (
               <div key={i} className="d-flex justify-content-between mb-2" style={{ fontSize: '0.78rem' }}>
                 <span className="fw-semibold text-dark">{b.browser}</span>
                 <span className="text-muted fw-bold">{b.count} hits</span>
@@ -544,25 +585,38 @@ export default function AdminAnalyticsDashboard() {
                   </tr>
                 </thead>
                 <tbody>
-                  {data.marketing.map((ch, i) => (
-                    <tr key={i}>
-                      <td className="fw-semibold text-capitalize">
-                        <span className="d-inline-block rounded-circle me-1"
-                          style={{ width: '8px', height: '8px', verticalAlign: 'middle',
-                            background: ch.source.includes('instagram') ? '#ec4899' : ch.source.includes('tiktok') ? '#06b6d4' : '#94a3b8' }} />
-                        {ch.source}
-                      </td>
-                      <td className="text-center">{ch.visits}</td>
-                      <td className="text-center d-none d-sm-table-cell">{ch.add_to_carts}</td>
-                      <td className="text-center d-none d-sm-table-cell">{ch.purchases}</td>
-                      <td className="text-end fw-semibold">PKR {ch.revenue.toLocaleString()}</td>
-                      <td className="text-end d-none d-md-table-cell">
-                        {ch.roas > 0
-                          ? <span className="badge fw-bold" style={{ background: '#ecfdf5', color: '#059669', fontSize: '0.7rem' }}>{ch.roas.toFixed(1)}x</span>
-                          : <span className="text-muted">—</span>}
-                      </td>
-                    </tr>
-                  ))}
+                  {isPageLoading ? (
+                    [...Array(3)].map((_, i) => (
+                      <tr key={i} className="skeleton-pulse">
+                        <td><div style={{ height: '13px', width: '80px', background: '#e2e8f0', borderRadius: '4px' }} /></td>
+                        <td className="text-center"><div style={{ height: '13px', width: '30px', background: '#e2e8f0', borderRadius: '4px', margin: 'auto' }} /></td>
+                        <td className="text-center d-none d-sm-table-cell"><div style={{ height: '13px', width: '30px', background: '#e2e8f0', borderRadius: '4px', margin: 'auto' }} /></td>
+                        <td className="text-center d-none d-sm-table-cell"><div style={{ height: '13px', width: '30px', background: '#e2e8f0', borderRadius: '4px', margin: 'auto' }} /></td>
+                        <td className="text-end"><div style={{ height: '13px', width: '60px', background: '#e2e8f0', borderRadius: '4px', marginLeft: 'auto' }} /></td>
+                        <td className="text-end d-none d-md-table-cell"><div style={{ height: '13px', width: '25px', background: '#e2e8f0', borderRadius: '4px', marginLeft: 'auto' }} /></td>
+                      </tr>
+                    ))
+                  ) : (
+                    data.marketing.map((ch, i) => (
+                      <tr key={i}>
+                        <td className="fw-semibold text-capitalize">
+                          <span className="d-inline-block rounded-circle me-1"
+                            style={{ width: '8px', height: '8px', verticalAlign: 'middle',
+                              background: ch.source.includes('instagram') ? '#ec4899' : ch.source.includes('tiktok') ? '#06b6d4' : '#94a3b8' }} />
+                          {ch.source}
+                        </td>
+                        <td className="text-center">{ch.visits}</td>
+                        <td className="text-center d-none d-sm-table-cell">{ch.add_to_carts}</td>
+                        <td className="text-center d-none d-sm-table-cell">{ch.purchases}</td>
+                        <td className="text-end fw-semibold">PKR {ch.revenue.toLocaleString()}</td>
+                        <td className="text-end d-none d-md-table-cell">
+                          {ch.roas > 0
+                            ? <span className="badge fw-bold" style={{ background: '#ecfdf5', color: '#059669', fontSize: '0.7rem' }}>{ch.roas.toFixed(1)}x</span>
+                            : <span className="text-muted">—</span>}
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>
@@ -574,28 +628,35 @@ export default function AdminAnalyticsDashboard() {
           <Card className="h-100">
             <div className="border-bottom pb-2 mb-3"><Ttl>Daily Conversion Rate (%)</Ttl></div>
             <div style={{ height: '200px' }}>
-              <ResponsiveContainer width="100%" height="100%" minWidth={0}>
-                <AreaChart data={timeSeriesData} margin={{ top: 5, right: 5, left: -25, bottom: 0 }}>
-                  <defs>
-                    <linearGradient id="cG" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#10b981" stopOpacity={0.35} />
-                      <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                  <XAxis dataKey="name" stroke="#94a3b8" fontSize={9} tickLine={false} />
-                  <YAxis stroke="#94a3b8" fontSize={9} tickLine={false} />
-                  <Tooltip formatter={(v: unknown) => `${v}%`} />
-                  <Area name="Conversion %" type="monotone" dataKey="Conversion" stroke="#10b981" strokeWidth={2} fillOpacity={1} fill="url(#cG)" />
-                </AreaChart>
-              </ResponsiveContainer>
+              {isPageLoading ? (
+                <div className="skeleton-pulse w-100 h-100 rounded" style={{ backgroundColor: '#f1f5f9' }} />
+              ) : (
+                <ConversionRateChart data={timeSeriesData} />
+              )}
             </div>
           </Card>
         </div>
       </div>
 
       {/* ── Conversion Funnel ── */}
-      {data.funnel && data.funnel.length > 0 && (
+      {isPageLoading ? (
+        <Card>
+          <div className="d-flex align-items-start justify-content-between border-bottom pb-2 mb-3">
+            <Ttl>Conversion Funnel — Drop-Off Analysis</Ttl>
+          </div>
+          <div className="skeleton-pulse d-flex flex-column gap-3 py-2">
+            {[...Array(5)].map((_, i) => (
+              <div key={i} className="d-flex gap-3">
+                <div style={{ width: '26px', height: '26px', background: '#e2e8f0', borderRadius: '8px' }} />
+                <div className="flex-grow-1">
+                  <div style={{ height: '14px', width: '120px', background: '#e2e8f0', borderRadius: '4px', marginBottom: '8px' }} />
+                  <div style={{ height: '6px', background: '#e2e8f0', borderRadius: '4px' }} />
+                </div>
+              </div>
+            ))}
+          </div>
+        </Card>
+      ) : data.funnel && data.funnel.length > 0 && (
         <Card>
           <div className="d-flex align-items-start justify-content-between border-bottom pb-2 mb-3">
             <div>
@@ -607,7 +668,7 @@ export default function AdminAnalyticsDashboard() {
             </span>
           </div>
           {data.funnel.map((step, idx) => {
-            const topCount = data.funnel![0].count || 1;
+            const topCount = data.funnel ? (data.funnel[0]?.count || 1) : 1;
             const bw = Math.max((step.count / topCount) * 100, 0);
             const col = funnelColors[idx] || funnelColors[0];
             const drop = idx > 0 ? (100 - step.conversionFromPrevious).toFixed(1) : null;
@@ -697,7 +758,19 @@ export default function AdminAnalyticsDashboard() {
                     </tr>
                   </thead>
                   <tbody>
-                    {orders.length === 0 ? (
+                    {isPageLoading ? (
+                      [...Array(5)].map((_, i) => (
+                        <tr key={i} className="skeleton-pulse">
+                          <td><div style={{ height: '13px', width: '70px', background: '#e2e8f0', borderRadius: '4px' }} /></td>
+                          <td><div style={{ height: '13px', width: '90px', background: '#e2e8f0', borderRadius: '4px' }} /></td>
+                          <td><div style={{ height: '13px', width: '80px', background: '#e2e8f0', borderRadius: '4px' }} /></td>
+                          <td><div style={{ height: '13px', width: '70px', background: '#e2e8f0', borderRadius: '4px' }} /></td>
+                          <td><div style={{ height: '13px', width: '50px', background: '#e2e8f0', borderRadius: '4px' }} /></td>
+                          <td><div style={{ height: '18px', width: '60px', background: '#e2e8f0', borderRadius: '10px' }} /></td>
+                          <td><div style={{ height: '22px', width: '100px', background: '#e2e8f0', borderRadius: '10px', margin: 'auto' }} /></td>
+                        </tr>
+                      ))
+                    ) : orders.length === 0 ? (
                       <tr>
                         <td colSpan={7} className="text-center p-4 text-muted">
                           No orders found.
@@ -766,7 +839,16 @@ export default function AdminAnalyticsDashboard() {
             {/* Tab 2: Dispatch Verification */}
             {activeLogisticsTab === 'dispatch' && (
               <div className="d-flex flex-column gap-2" style={{ maxHeight: '350px', overflowY: 'auto' }}>
-                {orders.filter(o => o.status === 'Processing').length === 0 ? (
+                {isPageLoading ? (
+                  <div className="skeleton-pulse d-flex flex-column gap-2">
+                    {[...Array(3)].map((_, i) => (
+                      <div key={i} className="p-3 rounded-3 d-flex justify-content-between align-items-center border" style={{ height: '54px', background: '#f8fafc' }}>
+                        <div style={{ height: '14px', width: '220px', background: '#e2e8f0', borderRadius: '4px' }} />
+                        <div style={{ height: '24px', width: '120px', background: '#e2e8f0', borderRadius: '12px' }} />
+                      </div>
+                    ))}
+                  </div>
+                ) : orders.filter(o => o.status === 'Processing').length === 0 ? (
                   <p className="text-muted text-center py-4 small">No orders pending dispatch verification.</p>
                 ) : (
                   orders.filter(o => o.status === 'Processing').map((order: any) => {
@@ -820,7 +902,17 @@ export default function AdminAnalyticsDashboard() {
                     </tr>
                   </thead>
                   <tbody>
-                    {orders.filter(o => o.status === 'Shipped' || o.status === 'On the Way').length === 0 ? (
+                    {isPageLoading ? (
+                      [...Array(3)].map((_, i) => (
+                        <tr key={i} className="skeleton-pulse">
+                          <td><div style={{ height: '13px', width: '70px', background: '#e2e8f0', borderRadius: '4px' }} /></td>
+                          <td><div style={{ height: '13px', width: '80px', background: '#e2e8f0', borderRadius: '4px' }} /></td>
+                          <td><div style={{ height: '13px', width: '95px', background: '#e2e8f0', borderRadius: '4px' }} /></td>
+                          <td><div style={{ height: '18px', width: '85px', background: '#e2e8f0', borderRadius: '10px' }} /></td>
+                          <td><div style={{ height: '13px', width: '110px', background: '#e2e8f0', borderRadius: '4px' }} /></td>
+                        </tr>
+                      ))
+                    ) : orders.filter(o => o.status === 'Shipped' || o.status === 'On the Way').length === 0 ? (
                       <tr>
                         <td colSpan={5} className="text-center p-4 text-muted">
                           No active courier bookings.
@@ -829,7 +921,6 @@ export default function AdminAnalyticsDashboard() {
                     ) : (
                       orders.filter(o => o.status === 'Shipped' || o.status === 'On the Way').map((order: any) => {
                         const orderIdShort = order._id.substring(order._id.length - 8).toUpperCase();
-                        // Deterministic mock courier assignment based on order ID hash
                         const courierIndex = order._id.charCodeAt(0) % 4;
                         const couriers = ['TRAX', 'Leopards', 'TCS', 'T-Rex'];
                         const courier = couriers[courierIndex];
@@ -890,28 +981,40 @@ export default function AdminAnalyticsDashboard() {
             </div>
             
             {/* Courier Toggles */}
-            <div className="d-flex flex-column gap-2 mb-3">
-              <div className="p-2.5 rounded-3 d-flex align-items-center justify-content-between border" style={{ background: '#f8fafc', fontSize: '0.78rem' }}>
-                <span className="fw-semibold text-dark"><i className="fas fa-check-circle text-success me-2" /> T-Rex Integration</span>
-                <span className="badge bg-success bg-opacity-10 text-success fw-bold rounded-pill">Active</span>
+            {isPageLoading ? (
+              <div className="skeleton-pulse d-flex flex-column gap-2 mb-3">
+                {[...Array(4)].map((_, i) => (
+                  <div key={i} className="p-2.5 rounded-3 d-flex justify-content-between align-items-center border" style={{ height: '42px', background: '#f8fafc' }}>
+                    <div style={{ height: '12px', width: '100px', background: '#e2e8f0', borderRadius: '4px' }} />
+                    <div style={{ height: '12px', width: '60px', background: '#e2e8f0', borderRadius: '4px' }} />
+                  </div>
+                ))}
               </div>
-              <div className="p-2.5 rounded-3 d-flex align-items-center justify-content-between border" style={{ background: '#f8fafc', fontSize: '0.78rem' }}>
-                <span className="fw-semibold text-dark"><i className="fas fa-check-circle text-success me-2" /> TRAX Logistics</span>
-                <span className="badge bg-primary bg-opacity-10 text-primary fw-bold rounded-pill">Assigned 245625-01</span>
+            ) : (
+              <div className="d-flex flex-column gap-2 mb-3">
+                <div className="p-2.5 rounded-3 d-flex align-items-center justify-content-between border" style={{ background: '#f8fafc', fontSize: '0.78rem' }}>
+                  <span className="fw-semibold text-dark"><i className="fas fa-check-circle text-success me-2" /> T-Rex Integration</span>
+                  <span className="badge bg-success bg-opacity-10 text-success fw-bold rounded-pill">Active</span>
+                </div>
+                <div className="p-2.5 rounded-3 d-flex align-items-center justify-content-between border" style={{ background: '#f8fafc', fontSize: '0.78rem' }}>
+                  <span className="fw-semibold text-dark"><i className="fas fa-check-circle text-success me-2" /> TRAX Logistics</span>
+                  <span className="badge bg-primary bg-opacity-10 text-primary fw-bold rounded-pill">Assigned 245625-01</span>
+                </div>
+                <div className="p-2.5 rounded-3 d-flex align-items-center justify-content-between border" style={{ background: '#f8fafc', fontSize: '0.78rem' }}>
+                  <span className="fw-semibold text-dark"><i className="fas fa-check-circle text-success me-2" /> Leopards Courier</span>
+                  <span className="badge bg-info bg-opacity-10 text-info fw-bold rounded-pill">Created</span>
+                </div>
+                <div className="p-2.5 rounded-3 d-flex align-items-center justify-content-between border" style={{ background: '#f8fafc', fontSize: '0.78rem' }}>
+                  <span className="fw-semibold text-dark text-muted"><i className="fas fa-minus-circle text-muted me-2" /> TCS Courier</span>
+                  <span className="badge bg-secondary bg-opacity-10 text-secondary fw-bold rounded-pill">Disconnected</span>
+                </div>
               </div>
-              <div className="p-2.5 rounded-3 d-flex align-items-center justify-content-between border" style={{ background: '#f8fafc', fontSize: '0.78rem' }}>
-                <span className="fw-semibold text-dark"><i className="fas fa-check-circle text-success me-2" /> Leopards Courier</span>
-                <span className="badge bg-info bg-opacity-10 text-info fw-bold rounded-pill">Created</span>
-              </div>
-              <div className="p-2.5 rounded-3 d-flex align-items-center justify-content-between border" style={{ background: '#f8fafc', fontSize: '0.78rem' }}>
-                <span className="fw-semibold text-dark text-muted"><i className="fas fa-minus-circle text-muted me-2" /> TCS Courier</span>
-                <span className="badge bg-secondary bg-opacity-10 text-secondary fw-bold rounded-pill">Disconnected</span>
-              </div>
-            </div>
+            )}
 
             {/* Action Buttons */}
             <button
               onClick={() => handleGenerateSlip()}
+              disabled={isPageLoading}
               className="btn btn-sm w-100 mb-3 text-white fw-bold d-flex align-items-center justify-content-center gap-2 rounded-pill shadow-sm"
               style={{ background: 'linear-gradient(to right, #ea580c, #f97316)', border: 'none', padding: '8px 16px', fontSize: '0.78rem' }}
             >
@@ -936,17 +1039,23 @@ export default function AdminAnalyticsDashboard() {
 
             {/* Map Visualizer */}
             <div className="mt-auto border rounded-4 overflow-hidden position-relative" style={{ height: '140px' }}>
-              <InteractiveMap
-                center={[30.3753, 69.3451]} // Center of Pakistan
-                zoom={5}
-                markers={mapMarkers}
-                routes={deliveryRoutes}
-                height="140px"
-              />
-              <div className="position-absolute bottom-0 start-0 w-100 p-2 d-flex align-items-center justify-content-between" style={{ background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(2px)', fontSize: '0.62rem', zIndex: 1000 }}>
-                <span className="text-white fw-semibold"><i className="fas fa-circle text-success me-1 pulse-dot" /> Tracking Live Shipments</span>
-                <span className="text-white-50">{mapMarkers.length} Active Routes</span>
-              </div>
+              {isPageLoading ? (
+                <div className="skeleton-pulse w-100 h-100 rounded" style={{ background: '#424447ff' }} />
+              ) : (
+                <>
+                  <InteractiveMap
+                    center={[30.3753, 69.3451]} // Center of Pakistan
+                    zoom={5}
+                    markers={mapMarkers}
+                    routes={deliveryRoutes}
+                    height="140px"
+                  />
+                  <div className="position-absolute bottom-0 start-0 w-100 p-2 d-flex align-items-center justify-content-between" style={{ background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(2px)', fontSize: '0.62rem', zIndex: 1000 }}>
+                    <span className="text-white fw-semibold"><i className="fas fa-circle text-success me-1 pulse-dot" /> Tracking Live Shipments</span>
+                    <span className="text-white-50">{mapMarkers.length} Active Routes</span>
+                  </div>
+                </>
+              )}
             </div>
           </Card>
         </div>
@@ -959,7 +1068,19 @@ export default function AdminAnalyticsDashboard() {
           <span className="rounded-circle" style={{ width: '9px', height: '9px', background: '#f97316', display: 'inline-block', boxShadow: '0 0 0 3px rgba(249,115,22,0.25)' }} />
         </div>
         <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
-          {data.feed.length ? data.feed.map(act => (
+          {isPageLoading ? (
+            <div className="skeleton-pulse d-flex flex-column gap-2">
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="p-3 rounded-3 d-flex gap-3 align-items-center" style={{ background: '#f8fafc', height: '46px' }}>
+                  <div style={{ width: '30px', height: '30px', background: '#e2e8f0', borderRadius: '8px' }} />
+                  <div className="flex-grow-1">
+                    <div style={{ height: '12px', width: '80%', background: '#e2e8f0', borderRadius: '4px', marginBottom: '6px' }} />
+                    <div style={{ height: '10px', width: '40%', background: '#e2e8f0', borderRadius: '4px' }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : data.feed && data.feed.length ? data.feed.map(act => (
             <div key={String(act._id)} className="d-flex align-items-start gap-3 p-2 rounded-3 mb-2"
               style={{ background: '#f8fafc', fontSize: '0.78rem' }}>
               <div className="rounded-3 d-flex align-items-center justify-content-center flex-shrink-0"

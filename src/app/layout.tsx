@@ -2,15 +2,28 @@ import type { Metadata } from 'next';
 import { Analytics } from '@vercel/analytics/next';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import { headers } from 'next/headers';
+import { Inter, Roboto } from 'next/font/google';
 import './bootstrap.min.css';
-import './animate.min.css';
-import './owl.carousel.min.css';
 import './style.css';
 import './globals.css';
 import '@fortawesome/fontawesome-free/css/all.min.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import { CartProvider } from '../context/CartContext';
 import { LayoutWrapper } from '../components/layout/LayoutWrapper';
+
+const inter = Inter({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-inter',
+  weight: ['300', '400', '500', '600', '700', '800'],
+});
+
+const roboto = Roboto({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-roboto',
+  weight: ['400', '500', '700'],
+});
 import TemplateScripts from '../components/common/TemplateScripts';
 import AnalyticsTracker from '../components/common/AnalyticsTracker';
 import { DynamicThemeProvider } from '../components/common/DynamicThemeProvider';
@@ -199,18 +212,9 @@ export default async function RootLayout({
       'query-input': 'required name=search_term_string',
     },
   };
-
   return (
-    <html lang="en">
+    <html lang="en" className={`${inter.variable} ${roboto.variable}`}>
       <head>
-        {/* Google Web Fonts */}
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Roboto:wght@400;500;700&display=swap"
-          rel="stylesheet"
-        />
-
         {/* JSON-LD Structured Data */}
         <script
           type="application/ld+json"

@@ -76,7 +76,7 @@ export const NavbarClassic: React.FC = () => {
         <div className="d-flex align-items-center gap-2 gap-lg-3 px-3 px-lg-4" style={{ height: '60px', maxWidth: '1440px', margin: '0 auto' }}>
 
           {/* Logo */}
-          <Link href="/" className="text-decoration-none flex-shrink-0 d-flex align-items-center gap-2" style={{ minWidth: '130px' }}>
+          <Link href="/" aria-label={`${info.logoText || 'PAKODRIVE'} Home`} className="text-decoration-none flex-shrink-0 d-flex align-items-center gap-2" style={{ minWidth: '130px' }}>
             <div style={{
               width: '32px', height: '32px',
               background: 'linear-gradient(135deg, var(--bs-primary, #ea580c), #c2410c)',
@@ -121,7 +121,7 @@ export const NavbarClassic: React.FC = () => {
                 <option value="All Category">All Category</option>
                 {cats.map(c => <option key={c.slug} value={c.name}>{c.name}</option>)}
               </select>
-              <button type="submit" style={{
+              <button type="submit" aria-label="Submit Search" style={{
                 background: 'var(--bs-primary, #ea580c)',
                 border: 'none', padding: '0 16px', cursor: 'pointer',
                 color: '#fff', display: 'flex', alignItems: 'center',

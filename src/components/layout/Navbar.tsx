@@ -306,7 +306,7 @@ export const Navbar: React.FC = () => {
               
               {/* Logo */}
               <div className="flex-shrink-0 flex items-center">
-                <Link href="/" className="text-2xl font-extrabold tracking-wider text-slate-900 flex items-center gap-2 text-decoration-none">
+                <Link href="/" aria-label={`${info.logoText || 'ALPHA'} Home`} className="text-2xl font-extrabold tracking-wider text-slate-900 flex items-center gap-2 text-decoration-none">
                   <span className="theme1-logo-badge w-8 h-8 rounded-lg flex items-center justify-center text-white text-base font-black">
                     <ThemeIcon name={info.logoIcon || 'shopping-bag'} style={{ color: '#fff', fontSize: '15px' }} />
                   </span>
@@ -445,6 +445,7 @@ export const Navbar: React.FC = () => {
                 <button
                   onClick={() => setMobileOpen(o => !o)}
                   className="md:hidden p-2 text-slate-500 hover:text-slate-900 rounded-full hover:bg-slate-50 transition-all border-0 bg-transparent"
+                  aria-label="Toggle mobile menu"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" className="w-6 h-6">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
@@ -549,7 +550,7 @@ export const Navbar: React.FC = () => {
           <div className="d-flex align-items-center gap-2 gap-lg-3" style={{ height: '64px' }}>
 
             {/* 1. LOGO */}
-            <Link href="/" className="text-decoration-none flex-shrink-0" style={{ minWidth: '130px' }}>
+            <Link href="/" aria-label={`${info.logoText || 'PAKODRIVE'} Home`} className="text-decoration-none flex-shrink-0" style={{ minWidth: '130px' }}>
               <div className="d-flex align-items-center gap-2">
                 <div style={{
                   width: '34px', height: '34px',
@@ -581,7 +582,7 @@ export const Navbar: React.FC = () => {
                     fontSize: '0.88rem', fontFamily: 'var(--pd-font)', background: 'transparent', minWidth: 0,
                     color: isModernGreen ? '#f7f5ed' : (isCleanWhite ? '#1e293b' : 'inherit')
                   }} />
-                <button type="submit" style={{
+                <button type="submit" aria-label="Submit Search" style={{
                   background: isModernGreen ? '#d4af37' : (isCleanWhite ? theme.primaryColor : 'linear-gradient(135deg, var(--pd-primary), #c2410c)'),
                   border: 'none', padding: '0 18px', cursor: 'pointer',
                   color: isModernGreen ? '#0d231d' : '#fff', display: 'flex', alignItems: 'center', gap: '6px',

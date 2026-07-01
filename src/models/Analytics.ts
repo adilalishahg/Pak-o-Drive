@@ -69,5 +69,7 @@ const AnalyticsSchema = new Schema<IAnalyticsDocument>(
 AnalyticsSchema.index({ utm_source: 1, timestamp: -1 });
 AnalyticsSchema.index({ session_id: 1 });
 AnalyticsSchema.index({ type: 1, interactionType: 1 });
+AnalyticsSchema.index({ timestamp: -1 });
+AnalyticsSchema.index({ type: 1, interactionType: 1, timestamp: -1 });
 
 export default mongoose.models.Analytics || mongoose.model<IAnalyticsDocument>('Analytics', AnalyticsSchema);

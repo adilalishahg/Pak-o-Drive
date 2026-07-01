@@ -20,7 +20,7 @@
   --pd-radius: 16px;
   --pd-btn-radius: 50px;
   --pd-card-radius: 16px;
-  --pd-font: 'Inter', system-ui, -apple-system, sans-serif;
+  --pd-font: var(--font-inter), 'Inter', system-ui, -apple-system, sans-serif;
   --pd-font-size-base: 16px;
   --pd-glass-bg: rgba(255, 255, 255, 0.72);
   --pd-glass-blur: blur(12px);

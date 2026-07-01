@@ -132,6 +132,14 @@ export default function AdminOrdersPage() {
       if (json.success) {
         setOrders(prev => prev.map((o) => (o._id === orderId ? { ...o, status: newStatus as any } : o)));
         
+        // Sync selected order state
+        setSelectedOrder(prev => {
+          if (prev && prev._id === orderId) {
+            return { ...prev, status: newStatus as any };
+          }
+          return prev;
+        });
+
         if (newStatus === 'Cancelled' || newStatus === 'Pending') {
           setDispatchReady(prev => ({ ...prev, [orderId]: false }));
         } else {
@@ -178,6 +186,15 @@ export default function AdminOrdersPage() {
       const json = await res.json();
       if (json.success) {
         setOrders(prev => prev.map(o => o._id === orderId ? { ...o, status: 'Shipped' } : o));
+        
+        // Sync selected order state
+        setSelectedOrder(prev => {
+          if (prev && prev._id === orderId) {
+            return { ...prev, status: 'Shipped' };
+          }
+          return prev;
+        });
+
         setDispatchReady(prev => ({ ...prev, [orderId]: true }));
         
         const trackingCode = `TRK-${shortId}`;
@@ -489,12 +506,26 @@ export default function AdminOrdersPage() {
                 </tr>
               ) : (
                 filteredOrders.map((order) => {
-                  let badgeClass = 'bg-warning text-dark';
-                  if (order.status === 'Processing') badgeClass = 'bg-primary text-white';
-                  if (order.status === 'On the Way') badgeClass = 'bg-purple text-white';
-                  if (order.status === 'Shipped') badgeClass = 'bg-info text-white';
-                  if (order.status === 'Delivered') badgeClass = 'bg-success text-white';
-                  if (order.status === 'Cancelled') badgeClass = 'bg-danger text-white';
+                  let badgeBgColor = '#eab308'; // pending yellow
+                  let badgeTextColor = '#000000';
+                  if (order.status === 'Processing') {
+                    badgeBgColor = '#ea580c'; // primary orange
+                    badgeTextColor = '#ffffff';
+                  } else if (order.status === 'On the Way') {
+                    badgeBgColor = '#8b5cf6'; // purple
+                    badgeTextColor = '#ffffff';
+                  } else if (order.status === 'Shipped') {
+                    badgeBgColor = '#06b6d4'; // info cyan
+                    badgeTextColor = '#ffffff';
+                  } else if (order.status === 'Delivered') {
+                    badgeBgColor = '#10b981'; // success green
+                    badgeTextColor = '#ffffff';
+                  } else if (order.status === 'Cancelled') {
+                    badgeBgColor = '#ef4444'; // danger red
+                    badgeTextColor = '#ffffff';
+                  }
+
+                  const arrowColor = badgeTextColor === '#ffffff' ? '%23ffffff' : '%23212529';
 
                   const orderIdShort = order._id.substring(order._id.length - 8).toUpperCase();
                   const isSelected = selectedOrder?._id === order._id;
@@ -514,9 +545,35 @@ export default function AdminOrdersPage() {
                       </td>
                       <td className="fw-bold text-dark">PKR {order.totalAmount.toLocaleString()}</td>
                       <td>
-                        <span className={`badge rounded-pill ${badgeClass}`} style={{ fontSize: '0.68rem', padding: '4px 8px' }}>
-                          {order.status === 'Processing' ? 'Confirmed' : order.status}
-                        </span>
+                        <select
+                          value={order.status}
+                          onChange={(e) => handleStatusChange(order._id, e.target.value as any)}
+                          onClick={(e) => e.stopPropagation()}
+                          className="form-select form-select-sm rounded-pill fw-bold text-center"
+                          style={{
+                            fontSize: '0.68rem',
+                            padding: '4px 24px 4px 12px',
+                            border: 'none',
+                            backgroundColor: badgeBgColor,
+                            color: badgeTextColor,
+                            cursor: 'pointer',
+                            width: 'fit-content',
+                            minWidth: '110px',
+                            appearance: 'none',
+                            backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='${arrowColor}' stroke-linecap='round' stroke-linejoin='round' stroke-width='2.5' d='m2 5 6 6 6-6'/%3e%3c/svg%3e")`,
+                            backgroundRepeat: 'no-repeat',
+                            backgroundPosition: 'right 8px center',
+                            backgroundSize: '10px 10px',
+                            display: 'inline-block',
+                          }}
+                        >
+                          <option value="Pending" className="bg-white text-dark">Pending</option>
+                          <option value="Processing" className="bg-white text-dark">Confirmed</option>
+                          <option value="On the Way" className="bg-white text-dark">On the Way</option>
+                          <option value="Shipped" className="bg-white text-dark">Shipped</option>
+                          <option value="Delivered" className="bg-white text-dark">Delivered</option>
+                          <option value="Cancelled" className="bg-white text-dark">Cancelled</option>
+                        </select>
                       </td>
                       <td style={{ textAlign: 'center' }} onClick={(e) => e.stopPropagation()}>
                         <div className="form-check form-switch d-inline-block">

@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { OptimizedImage } from '../components/common/OptimizedImage';
 import { ProductCardAuto } from '../components/product/ProductCardAuto';
 import { ProductCard } from '../components/product/ProductCard';
 import { IProduct } from '../types';
@@ -342,7 +343,15 @@ export default function Home() {
                     </Link>
                   </div>
                   <div className="absolute right-0 bottom-0 top-0 w-1/2 flex items-center justify-center p-4">
-                    <img src={heroBig.imageUrl} alt={heroBig.title} className="max-h-[300px] object-contain drop-shadow-2xl transition-transform duration-700 group-hover:scale-105" />
+                    <OptimizedImage
+                      src={heroBig.imageUrl}
+                      alt={heroBig.title || 'Featured Product'}
+                      width={300}
+                      height={300}
+                      style={{ objectFit: 'contain', maxHeight: '300px', width: 'auto', height: 'auto' }}
+                      className="drop-shadow-2xl transition-transform duration-700 group-hover:scale-105"
+                      priority
+                    />
                   </div>
                 </div>
               )}
@@ -365,7 +374,15 @@ export default function Home() {
                     </Link>
                   </div>
                   <div className="w-full flex justify-end mt-4">
-                    <img src={heroSmall.imageUrl} alt={heroSmall.title} className="max-h-[200px] object-contain drop-shadow-lg transition-transform duration-700 group-hover:scale-105" />
+                    <OptimizedImage
+                      src={heroSmall.imageUrl}
+                      alt={heroSmall.title || 'Special Discount'}
+                      width={200}
+                      height={200}
+                      style={{ objectFit: 'contain', maxHeight: '200px', width: 'auto', height: 'auto' }}
+                      className="drop-shadow-lg transition-transform duration-700 group-hover:scale-105"
+                      priority
+                    />
                   </div>
                 </div>
               )}
@@ -420,7 +437,14 @@ export default function Home() {
                 return (
                   <Link key={idx} href={`/shop?category=${col.slug}`} className="flex flex-col items-center group text-decoration-none theme1-collection-item">
                     <div className="w-20 h-20 rounded-full bg-slate-50 flex items-center justify-center border border-slate-100 group-hover:shadow-md transition-all duration-300 overflow-hidden p-2 theme1-collection-circle">
-                      <img src={img} alt={col.name} className="max-h-full object-contain mix-blend-multiply group-hover:scale-110 transition-transform" />
+                      <OptimizedImage
+                        src={img}
+                        alt={col.name}
+                        width={64}
+                        height={64}
+                        style={{ objectFit: 'contain', maxHeight: '100%', width: 'auto', height: 'auto' }}
+                        className="mix-blend-multiply group-hover:scale-110 transition-transform"
+                      />
                     </div>
                     <span className="text-xs font-semibold text-slate-700 mt-3 transition-colors theme1-collection-text">{col.name}</span>
                   </Link>
@@ -445,7 +469,14 @@ export default function Home() {
                 </Link>
               </div>
               <div className="relative w-full md:w-1/2 flex justify-center md:justify-end">
-                <img src={deal.imageUrl} alt={deal.title} className="max-h-[260px] object-contain drop-shadow-[0_20px_50px_rgba(59,130,246,0.25)] transition-transform duration-700 group-hover:scale-105" />
+                <OptimizedImage
+                  src={deal.imageUrl}
+                  alt={deal.title || 'Weekly Deal'}
+                  width={260}
+                  height={260}
+                  style={{ objectFit: 'contain', maxHeight: '260px', width: 'auto', height: 'auto' }}
+                  className="drop-shadow-[0_20px_50px_rgba(59,130,246,0.25)] transition-transform duration-700 group-hover:scale-105"
+                />
               </div>
             </div>
           </section>
