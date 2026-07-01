@@ -829,29 +829,25 @@ export function DynamicThemeProvider({ children, initialTheme }: ProviderProps) 
       <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/webfonts/fa-solid-900.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
       <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/webfonts/fa-brands-400.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
 
-      {/* Asynchronous font loading */}
-      <link rel="preload" href={fontUrl} as="style" />
-      <link rel="stylesheet" href={fontUrl} media="print" onLoad={(e) => { e.currentTarget.media = 'all'; }} />
-
-      {/* Active Theme Icon Library (Asynchronous) */}
-      <link rel="preload" href={iconUrl} as="style" />
-      <link rel="stylesheet" href={iconUrl} media="print" onLoad={(e) => { e.currentTarget.media = 'all'; }} />
-
-      {/* Fallback FontAwesome loading (Asynchronous) */}
-      {wantedLib !== 'fontawesome' && (
-        <>
-          <link rel="preload" href={ICON_CDNS.fontawesome} as="style" />
-          <link rel="stylesheet" href={ICON_CDNS.fontawesome} media="print" onLoad={(e) => { e.currentTarget.media = 'all'; }} />
-        </>
-      )}
-
-      {/* Fallback Bootstrap Icons loading (Asynchronous) */}
-      {wantedLib !== 'bootstrap' && (
-        <>
-          <link rel="preload" href={ICON_CDNS.bootstrap} as="style" />
-          <link rel="stylesheet" href={ICON_CDNS.bootstrap} media="print" onLoad={(e) => { e.currentTarget.media = 'all'; }} />
-        </>
-      )}
+       {/* Asynchronous font & stylesheet loading via client script injection to bypass React 19/Next.js onLoad stripping */}
+      <script dangerouslySetInnerHTML={{ __html: `
+        (function() {
+          var links = ${JSON.stringify([
+            fontUrl,
+            iconUrl,
+            wantedLib !== 'fontawesome' ? ICON_CDNS.fontawesome : null,
+            wantedLib !== 'bootstrap' ? ICON_CDNS.bootstrap : null
+          ].filter(Boolean))};
+          links.forEach(function(url) {
+            // Check if already injected to avoid duplication during React renders
+            if (document.querySelector('link[href="' + url + '"]')) return;
+            var link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.href = url;
+            document.head.appendChild(link);
+          });
+        })();
+      `}} />
 
       <style id="pd-dynamic-theme" dangerouslySetInnerHTML={{ __html: css }} />
       {children}

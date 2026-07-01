@@ -64,7 +64,11 @@ export async function POST(request: Request) {
             folder: 'electro_store',
             public_id: uniqueId,
             overwrite: true,
-            resource_type: 'auto'
+            resource_type: 'auto',
+            format: 'webp',
+            transformation: [
+              { width: 1200, height: 1200, crop: 'limit' }
+            ]
           },
           (error, result) => {
             if (error) reject(error);

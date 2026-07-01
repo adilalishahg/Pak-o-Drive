@@ -24,7 +24,7 @@ export const cloudinaryLoader = ({ src, width, quality }: { src: string; width: 
 
   // Set default quality to 80 if not specified
   const q = quality || 80;
-  const transformations = `f_auto,q_auto,w_${width},c_limit`;
+  const transformations = `f_webp,q_auto,w_${width},c_limit`;
 
   // Insert transformations into Cloudinary URL
   // Matches '/upload/' or '/upload/v1234567/' to insert the transformation string
@@ -49,7 +49,7 @@ const getBlurPlaceholder = (src: string): string => {
       const prefix = src.substring(0, uploadIndex + 8);
       const suffix = src.substring(uploadIndex + 8);
       // Generate a tiny 20px blurred image
-      return `${prefix}f_auto,q_30,w_20,e_blur:1000/${suffix}`;
+      return `${prefix}f_webp,q_30,w_20,e_blur:1000/${suffix}`;
     }
   }
   // Generic grey placeholder base64/SVG data URI for non-Cloudinary images
