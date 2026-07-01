@@ -2,7 +2,6 @@
 
 import { useEffect, Suspense } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
-import posthog from 'posthog-js';
 
 /**
  * logInteraction — safe to call from any client component.
@@ -22,10 +21,6 @@ export async function logInteraction(
   metadata: Record<string, any> = {}
 ) {
   // ── SSR / build-time safety guard ────────────────────────────────────────
-  // sessionStorage and window.innerWidth only exist in the browser.
-  // This function is marked 'async' but can be called from event handlers
-  // inside 'use client' components — still guard explicitly so tree-shaking
-  // doesn't accidentally strip the check during static export.
   if (typeof window === 'undefined') return;
 
   try {
@@ -52,17 +47,21 @@ export async function logInteraction(
       }),
     }).catch((err) => console.error('[Analytics] fetch error:', err));
 
-    // PostHog — only when the SDK is loaded client-side
-    if ((posthog as any).__loaded) {
-      posthog.capture(type, {
-        path,
-        utm_source:   utmSource,
-        utm_medium:   utmMedium,
-        utm_campaign: utmCampaign,
-        session_id:   sessionId,
-        device:       deviceType,
-        ...metadata,
-      });
+    // PostHog — loaded dynamically client-side only when tracking is active
+    const phKey = process.env.NEXT_PUBLIC_POSTHOG_KEY;
+    if (phKey) {
+      const posthog = (await import('posthog-js')).default;
+      if ((posthog as any).__loaded) {
+        posthog.capture(type, {
+          path,
+          utm_source:   utmSource,
+          utm_medium:   utmMedium,
+          utm_campaign: utmCampaign,
+          session_id:   sessionId,
+          device:       deviceType,
+          ...metadata,
+        });
+      }
     }
   } catch (err) {
     console.error('[Analytics] logInteraction error:', err);
@@ -79,21 +78,25 @@ function TrackerInner() {
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
-    // PostHog — init only once
+    // PostHog — init only once dynamically
     const phKey = process.env.NEXT_PUBLIC_POSTHOG_KEY;
-    if (phKey && !(posthog as any).__loaded) {
-      posthog.init(phKey, {
-        api_host: 'https://us.i.posthog.com',
-        loaded: (ph) => {
-          const sid = sessionStorage.getItem('pako_session_id');
-          if (sid) {
-            ph.identify(sid, {
-              device:        window.innerWidth < 768 ? 'Mobile' : 'Desktop',
-              screen_width:  window.innerWidth,
-              screen_height: window.innerHeight,
-            });
-          }
-        },
+    if (phKey) {
+      import('posthog-js').then(({ default: posthog }) => {
+        if (!(posthog as any).__loaded) {
+          posthog.init(phKey, {
+            api_host: 'https://us.i.posthog.com',
+            loaded: (ph) => {
+              const sid = sessionStorage.getItem('pako_session_id');
+              if (sid) {
+                ph.identify(sid, {
+                  device:        window.innerWidth < 768 ? 'Mobile' : 'Desktop',
+                  screen_width:  window.innerWidth,
+                  screen_height: window.innerHeight,
+                });
+              }
+            },
+          });
+        }
       });
     }
 
@@ -147,13 +150,18 @@ function TrackerInner() {
       sessionStorage.setItem('pako_landing_page', fullPath);
     }
 
-    if ((posthog as any).__loaded) {
-      posthog.capture('$pageview', {
-        path:         fullPath,
-        utm_source:   utmSource,
-        utm_medium:   utmMedium,
-        utm_campaign: utmCampaign,
-        session_id:   sessionId,
+    const phKey = process.env.NEXT_PUBLIC_POSTHOG_KEY;
+    if (phKey) {
+      import('posthog-js').then(({ default: posthog }) => {
+        if ((posthog as any).__loaded) {
+          posthog.capture('$pageview', {
+            path:         fullPath,
+            utm_source:   utmSource,
+            utm_medium:   utmMedium,
+            utm_campaign: utmCampaign,
+            session_id:   sessionId,
+          });
+        }
       });
     }
   }, [pathname, searchParams]);
