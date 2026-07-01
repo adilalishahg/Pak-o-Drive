@@ -100,22 +100,32 @@ export const OptimizedImage: React.FC<OptimizedImageProps> = ({
   // Check if we can use custom loader (only for Cloudinary assets)
   const isCloudinary = finalSrc.includes('res.cloudinary.com');
 
-  // Next.js: If priority is true, do not pass loading="lazy" (it conflicts)
+  // Next.js: If priority is true, completely omit loading prop and force fetchPriority="high"
   const isPriority = props.priority === true;
-  const finalLoading = isPriority ? undefined : loading;
+
+  // Build image props — when priority is set we must NOT pass loading at all
+  const imageProps: Record<string, unknown> = {
+    src: finalSrc || fallbackSrc,
+    alt: alt || 'Product Image',
+    sizes: defaultSizes,
+    placeholder,
+    blurDataURL: finalBlurDataURL,
+    loader: isCloudinary ? cloudinaryLoader : undefined,
+    onError: handleImageError,
+    ...props,
+  };
+
+  if (isPriority) {
+    // Ensure loading is completely absent and fetchPriority is high
+    delete imageProps.loading;
+    imageProps.fetchPriority = 'high';
+    imageProps.priority = true;
+  } else {
+    imageProps.loading = loading;
+  }
 
   return (
-    <Image
-      src={finalSrc || fallbackSrc}
-      alt={alt || 'Product Image'}
-      sizes={defaultSizes}
-      loading={finalLoading}
-      placeholder={placeholder}
-      blurDataURL={finalBlurDataURL}
-      loader={isCloudinary ? cloudinaryLoader : undefined}
-      onError={handleImageError}
-      {...props}
-    />
+    <Image {...(imageProps as ImageProps)} />
   );
 };
 

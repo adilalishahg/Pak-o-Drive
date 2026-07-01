@@ -193,6 +193,7 @@ export function HeroSlider({ slides, autoPlayMs = 5000 }: HeroSliderProps) {
                   sizes="(max-width: 767px) 42vw, (max-width: 991px) 38vw, 320px"
                   style={{ objectFit: 'contain' }}
                   priority
+                  fetchPriority="high"
                 />
               </div>
             </div>
