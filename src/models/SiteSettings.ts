@@ -35,6 +35,15 @@ export interface IWeeklyDealSection {
   imageUrl: string;
 }
 
+export interface IOfferBanner {
+  enabled: boolean;
+  subtitle: string;
+  title: string;
+  discount: string;
+  buttonLink: string;
+  imageUrl: string;
+}
+
 export interface IHomepageSections {
   heroBig: IHeroBigSection;
   heroSmall: IHeroSmallSection;
@@ -44,6 +53,8 @@ export interface IHomepageSections {
   moreDeals: IProductSection;
   featuredSection: IProductSection;
   valueProps: { enabled: boolean };
+  offerBanner1: IOfferBanner;
+  offerBanner2: IOfferBanner;
 }
 
 /* ── Main settings interface ─────────────────────────────────── */
@@ -119,6 +130,15 @@ const ValuePropsSchema = new Schema({
   enabled: { type: Boolean, default: true },
 }, { _id: false });
 
+const OfferBannerSchema = new Schema({
+  enabled:    { type: Boolean, default: true },
+  subtitle:   { type: String,  default: '' },
+  title:      { type: String,  default: '' },
+  discount:   { type: String,  default: '' },
+  buttonLink: { type: String,  default: '' },
+  imageUrl:   { type: String,  default: '' },
+}, { _id: false });
+
 /* ── Main schema ─────────────────────────────────────────────── */
 const SiteSettingsSchema = new Schema<ISiteSettingsDocument>(
   {
@@ -152,6 +172,20 @@ const SiteSettingsSchema = new Schema<ISiteSettingsDocument>(
       moreDeals:        { type: ProductSectionSchema, default: () => ({ title: 'More Active Deals', limit: 4 }) },
       featuredSection:  { type: ProductSectionSchema, default: () => ({ title: 'Featured Products', limit: 8, enabled: true }) },
       valueProps:       { type: ValuePropsSchema,    default: () => ({}) },
+      offerBanner1:     { type: OfferBannerSchema,   default: () => ({
+        subtitle: 'Special Discount',
+        title: 'TWS Earbuds',
+        discount: '50% Off',
+        buttonLink: '/shop?category=headphones',
+        imageUrl: '/img/product-1.png',
+      }) },
+      offerBanner2:     { type: OfferBannerSchema,   default: () => ({
+        subtitle: 'Find The Best Smartwatches for You!',
+        title: 'Smart Wearables',
+        discount: '20% Off',
+        buttonLink: '/shop?category=smartwatches',
+        imageUrl: '/img/product-2.png',
+      }) },
     },
   },
   { timestamps: true }

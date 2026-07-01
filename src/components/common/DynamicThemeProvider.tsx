@@ -36,6 +36,8 @@ export interface SiteTheme {
     moreDeals:        { enabled: boolean; title: string; limit: number };
     featuredSection:  { enabled: boolean; title: string; limit: number };
     valueProps:       { enabled: boolean };
+    offerBanner1:     { enabled: boolean; subtitle: string; title: string; discount: string; buttonLink: string; imageUrl: string };
+    offerBanner2:     { enabled: boolean; subtitle: string; title: string; discount: string; buttonLink: string; imageUrl: string };
   };
 }
 
@@ -92,6 +94,22 @@ export const DEFAULT_THEME: SiteTheme = {
     moreDeals:  { enabled: true, title: 'More Active Deals', limit: 4 },
     featuredSection: { enabled: true, title: 'Featured Products', limit: 8 },
     valueProps: { enabled: true },
+    offerBanner1: {
+      enabled: true,
+      subtitle: 'Special Discount',
+      title: 'TWS Earbuds',
+      discount: '50% Off',
+      buttonLink: '/shop?category=headphones',
+      imageUrl: '/img/product-1.png',
+    },
+    offerBanner2: {
+      enabled: true,
+      subtitle: 'Find The Best Smartwatches for You!',
+      title: 'Smart Wearables',
+      discount: '20% Off',
+      buttonLink: '/shop?category=smartwatches',
+      imageUrl: '/img/product-2.png',
+    },
   },
 };
 

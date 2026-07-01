@@ -246,6 +246,8 @@ export default function Home() {
   const moreDeals = hs?.moreDeals          ?? { enabled: true, title: 'More Active Deals', limit: 4 };
   const valProps  = hs?.valueProps         ?? { enabled: true };
   const featSec   = hs?.featuredSection    ?? { enabled: true, title: 'Featured Products', limit: 8 };
+  const offerBanner1 = hs?.offerBanner1     ?? { enabled: true, subtitle: 'Special Discount', title: 'TWS Earbuds', discount: '50% Off', buttonLink: '/shop?category=headphones', imageUrl: '/img/product-1.png' };
+  const offerBanner2 = hs?.offerBanner2     ?? { enabled: true, subtitle: 'Find The Best Smartwatches for You!', title: 'Smart Wearables', discount: '20% Off', buttonLink: '/shop?category=smartwatches', imageUrl: '/img/product-2.png' };
 
   /* ── Construct Dynamic Hero Slides for default layout ── */
   const dynamicHeroSlides = [];
@@ -283,27 +285,27 @@ export default function Home() {
 
   /* ── Construct Dynamic Offer Banners for default layout ── */
   const dynamicOffers = [];
-  if (heroSmall && heroSmall.enabled !== false) {
+  if (offerBanner1 && offerBanner1.enabled !== false) {
     dynamicOffers.push({
-      sub: heroSmall.badge || 'Special Discount',
-      title: heroSmall.title || 'TWS Earbuds',
-      disc: heroSmall.highlight || '50',
-      img: heroSmall.imageUrl || '/img/product-1.png',
-      link: '/shop',
-      imgAlt: heroSmall.title || 'Premium Headphones',
+      sub: offerBanner1.subtitle || 'Special Discount',
+      title: offerBanner1.title || 'TWS Earbuds',
+      disc: offerBanner1.discount || '50% Off',
+      img: offerBanner1.imageUrl || '/img/product-1.png',
+      link: offerBanner1.buttonLink || '/shop',
+      imgAlt: offerBanner1.title || 'Premium Headphones',
       bg: 'linear-gradient(135deg, color-mix(in srgb, var(--pd-primary) 8%, #fff) 0%, #fff 100%)',
     });
   } else {
     dynamicOffers.push(OFFERS[0]);
   }
-  if (deal && deal.enabled !== false) {
+  if (offerBanner2 && offerBanner2.enabled !== false) {
     dynamicOffers.push({
-      sub: deal.label || 'Big Deal',
-      title: deal.title || 'Smart Wearables',
-      disc: 'Special Deal',
-      img: deal.imageUrl || '/img/product-2.png',
-      link: deal.buttonLink || '/shop',
-      imgAlt: deal.title || 'Smart Watch',
+      sub: offerBanner2.subtitle || 'Find The Best Smartwatches for You!',
+      title: offerBanner2.title || 'Smart Wearables',
+      disc: offerBanner2.discount || '20% Off',
+      img: offerBanner2.imageUrl || '/img/product-2.png',
+      link: offerBanner2.buttonLink || '/shop',
+      imgAlt: offerBanner2.title || 'Smart Watch',
       bg: 'linear-gradient(135deg, color-mix(in srgb, var(--pd-accent) 8%, #fff) 0%, #fff 100%)',
     });
   } else {

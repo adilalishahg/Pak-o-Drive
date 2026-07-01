@@ -1014,6 +1014,26 @@ export default function ThemeSettingsPage() {
                     ],
                   },
                   {
+                    key: 'offerBanner1', label: 'Left Offer Banner (Small)', icon: 'fas fa-percent',
+                    fields: [
+                      { f: 'subtitle', label: 'Subtitle / Badge', ph: 'Special Discount' },
+                      { f: 'title', label: 'Heading', ph: 'TWS Earbuds' },
+                      { f: 'discount', label: 'Discount Tag (e.g. 50% Off)', ph: '50% Off' },
+                      { f: 'buttonLink', label: 'Button Link', ph: '/shop?category=headphones' },
+                      { f: 'imageUrl', label: 'Banner Image', isImage: true },
+                    ],
+                  },
+                  {
+                    key: 'offerBanner2', label: 'Right Offer Banner (Small)', icon: 'fas fa-percent',
+                    fields: [
+                      { f: 'subtitle', label: 'Subtitle / Badge', ph: 'Find The Best Smartwatches for You!' },
+                      { f: 'title', label: 'Heading', ph: 'Smart Wearables' },
+                      { f: 'discount', label: 'Discount Tag (e.g. 20% Off)', ph: '20% Off' },
+                      { f: 'buttonLink', label: 'Button Link', ph: '/shop?category=smartwatches' },
+                      { f: 'imageUrl', label: 'Banner Image', isImage: true },
+                    ],
+                  },
+                  {
                     key: 'weeklyDeal', label: 'Weekly Big Deal Banner', icon: 'fas fa-tags',
                     fields: [
                       { f: 'label', label: 'Label', ph: 'The Big Deal This Week' },
