@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { Analytics } from '@vercel/analytics/next';
 import { headers } from 'next/headers';
 import './bootstrap.min.css';
 import './animate.min.css';
@@ -232,6 +233,7 @@ export default async function RootLayout({
                 </LayoutWrapper>
               )}
               <TemplateScripts />
+              <Analytics />
             </CartProvider>
           </SiteInfoProvider>
         </DynamicThemeProvider>

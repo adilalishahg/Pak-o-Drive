@@ -371,7 +371,7 @@ export default function AdminOrdersPage() {
               </div>
               <div className="col-4">
                 <div className={`p-2 rounded-3 border d-flex align-items-center justify-content-center ${selectedCourier === 'LEOPARDS' ? 'border-warning bg-warning bg-opacity-10' : ''}`} style={{ height: '48px', cursor: 'pointer' }} onClick={() => setSelectedCourier('LEOPARDS')}>
-                  <span className="fw-bold text-warning" style={{ fontSize: '11px' }}><i className="fas fa-shipping-fast me-1" /> LEOPARDS</span>
+                  <span className={`fw-bold ${selectedCourier === 'LEOPARDS' ? 'text-dark' : 'text-warning'}`} style={{ fontSize: '11px' }}><i className="fas fa-shipping-fast me-1" /> LEOPARDS</span>
                 </div>
               </div>
               <div className="col-4">
