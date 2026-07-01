@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState, useCallback } from 'react';
 import { DEFAULT_THEME, IconLibrary, SiteTheme } from '../../../components/common/DynamicThemeProvider';
+import { optimizeImageBeforeUpload } from '../../../utils/imageOptimizer';
 
 /* ─── Helpers ────────────────────────────────────────────────── */
 const FONT_OPTIONS = [
@@ -934,10 +935,11 @@ export default function ThemeSettingsPage() {
                     if (!file) return;
 
                     setUp(true);
-                    const formData = new FormData();
-                    formData.append('file', file);
-
                     try {
+                      const optimizedFile = await optimizeImageBeforeUpload(file);
+                      const formData = new FormData();
+                      formData.append('file', optimizedFile);
+
                       const res = await fetch('/api/upload', {
                         method: 'POST',
                         body: formData,

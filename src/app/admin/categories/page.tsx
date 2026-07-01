@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { OptimizedImage } from '@/components/common/OptimizedImage';
+import { optimizeImageBeforeUpload } from '@/utils/imageOptimizer';
 
 interface CategoryData {
   id: string;
@@ -34,10 +35,10 @@ export default function AdminCategoriesPage() {
     setUploading(true);
     setError('');
 
-    const formData = new FormData();
-    formData.append('file', file);
-
     try {
+      const optimizedFile = await optimizeImageBeforeUpload(file);
+      const formData = new FormData();
+      formData.append('file', optimizedFile);
       const res = await fetch('/api/upload', {
         method: 'POST',
         body: formData,

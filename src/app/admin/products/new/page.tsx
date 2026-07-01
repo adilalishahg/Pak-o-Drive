@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useAdminUpload } from '../../../../context/AdminUploadContext';
+import { optimizeImageBeforeUpload } from '../../../../utils/imageOptimizer';
 
 export default function AdminNewProductPage() {
   const router = useRouter();
@@ -61,10 +62,10 @@ export default function AdminNewProductPage() {
     setVariantUploading((prev) => ({ ...prev, [index]: true }));
     setError('');
 
-    const formData = new FormData();
-    formData.append('file', file);
-
     try {
+      const optimizedFile = await optimizeImageBeforeUpload(file);
+      const formData = new FormData();
+      formData.append('file', optimizedFile);
       const res = await fetch('/api/upload', {
         method: 'POST',
         body: formData,
@@ -99,10 +100,10 @@ export default function AdminNewProductPage() {
     setGalleryUploading(true);
     setError('');
 
-    const formData = new FormData();
-    formData.append('file', file);
-
     try {
+      const optimizedFile = await optimizeImageBeforeUpload(file);
+      const formData = new FormData();
+      formData.append('file', optimizedFile);
       const res = await fetch('/api/upload', {
         method: 'POST',
         body: formData,
@@ -150,10 +151,10 @@ export default function AdminNewProductPage() {
     setUploading(true);
     setError('');
 
-    const formData = new FormData();
-    formData.append('file', file);
-
     try {
+      const optimizedFile = await optimizeImageBeforeUpload(file);
+      const formData = new FormData();
+      formData.append('file', optimizedFile);
       const res = await fetch('/api/upload', {
         method: 'POST',
         body: formData,
