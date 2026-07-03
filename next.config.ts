@@ -10,6 +10,14 @@ const nextConfig: NextConfig = {
     inlineCss: true,
     optimizePackageImports: ['canvas-confetti'],
   },
+  turbopack: {
+    resolveAlias: {
+      // Stub legacy polyfill packages — modern browsers don't need them
+      'core-js/stable': { browser: './src/lib/empty-polyfills.js' },
+      'core-js/features': { browser: './src/lib/empty-polyfills.js' },
+      'regenerator-runtime/runtime': { browser: './src/lib/empty-polyfills.js' },
+    },
+  },
   images: {
     // Auto-serve WebP/AVIF to supported browsers — no raw JPEG/PNG hits mobile
     formats: ["image/avif", "image/webp"],

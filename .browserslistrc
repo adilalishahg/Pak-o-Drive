@@ -1,0 +1,15 @@
+# Modern browsers only — eliminates legacy JS polyfills
+# Covers 95%+ of Pakistani mobile traffic (Chrome/Samsung Browser)
+[production]
+chrome >= 90
+edge >= 90
+firefox >= 90
+safari >= 15
+samsung >= 14
+not ie 11
+not dead
+
+[development]
+last 1 chrome version
+last 1 firefox version
+last 1 safari version
