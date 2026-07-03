@@ -2,6 +2,7 @@ import React, { Suspense } from 'react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
+import { headers } from 'next/headers';
 import { ProductCard } from '../../../components/product/ProductCard';
 import { ProductDetailInteractive } from '../../../components/product/ProductDetailInteractive';
 import { getCachedProduct, getCachedRelatedProducts, getCachedSiteInfo } from '../../../lib/cache';
@@ -15,17 +16,15 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const p = await getCachedProduct(id);
   if (!p) return { title: 'Product Not Found' };
 
+  const headersList = await headers();
+  const host = headersList.get('host') || 'pak-o-drive.vercel.app';
+  const proto = headersList.get('x-forwarded-proto') || 'https';
+  const siteUrl = `${proto}://${host}`;
+
   let siteLogoText = 'PAKODRIVE';
-  let siteUrl = 'https://pakodrive.com';
   const siteInfo = await getCachedSiteInfo();
-  if (siteInfo) {
-    if (siteInfo.logoText) {
-      siteLogoText = siteInfo.logoText as string;
-    }
-    if (siteInfo.website) {
-      const ws = siteInfo.website as string;
-      siteUrl = ws.startsWith('http') ? ws : `https://${ws}`;
-    }
+  if (siteInfo && siteInfo.logoText) {
+    siteLogoText = siteInfo.logoText as string;
   }
 
   const metaTitle = p.seoTitle || `${p.name} | ${siteLogoText}`;

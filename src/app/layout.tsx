@@ -45,6 +45,11 @@ const SITE_DESC =
   'PAKODRIVE — Pakistan\'s trusted electronics store. Shop headphones, chargers, smartwatches, automotive electronics & more with free shipping and 30-day returns.';
 
 export async function generateMetadata(): Promise<Metadata> {
+  const headersList = await headers();
+  const host = headersList.get('host') || 'pak-o-drive.vercel.app';
+  const proto = headersList.get('x-forwarded-proto') || 'https';
+  const activeSiteUrl = `${proto}://${host}`;
+
   let siteName = SITE_NAME;
   let defaultTitle = `${SITE_NAME} — Best Electronics Store in Pakistan`;
   let description = SITE_DESC;
@@ -57,8 +62,8 @@ export async function generateMetadata(): Promise<Metadata> {
     'PAKODRIVE',
     'online shopping Pakistan',
   ];
-  let siteUrl = SITE_URL;
   let favicon = '/favicon.ico';
+  let ogImageUrl = `${activeSiteUrl}/img/carousel-1.png`;
 
   try {
     const info = await getCachedSiteInfo();
@@ -77,8 +82,8 @@ export async function generateMetadata(): Promise<Metadata> {
       if (info.seoKeywords) {
         keywords = info.seoKeywords.split(',').map((k: string) => k.trim()).filter(Boolean);
       }
-      if (info.website) {
-        siteUrl = info.website.startsWith('http') ? info.website : `https://${info.website}`;
+      if (info.logo) {
+        ogImageUrl = info.logo.startsWith('http') ? info.logo : `${activeSiteUrl}${info.logo}`;
       }
       if (info.favicon) {
         favicon = info.favicon;
@@ -89,14 +94,14 @@ export async function generateMetadata(): Promise<Metadata> {
   }
 
   return {
-    metadataBase: new URL(siteUrl),
+    metadataBase: new URL(activeSiteUrl),
     title: {
       default: defaultTitle,
       template: `%s | ${siteName}`,
     },
     description,
     keywords,
-    authors: [{ name: siteName, url: siteUrl }],
+    authors: [{ name: siteName, url: activeSiteUrl }],
     creator: siteName,
     publisher: siteName,
     robots: {
@@ -107,20 +112,20 @@ export async function generateMetadata(): Promise<Metadata> {
     openGraph: {
       type: 'website',
       locale: 'en_PK',
-      url: siteUrl,
+      url: activeSiteUrl,
       siteName: siteName,
       title: defaultTitle,
       description,
-      images: [{ url: '/img/carousel-1.png', width: 1200, height: 630, alt: siteName }],
+      images: [{ url: ogImageUrl, width: 1200, height: 630, alt: siteName }],
     },
     twitter: {
       card: 'summary_large_image',
       title: defaultTitle,
       description,
-      images: ['/img/carousel-1.png'],
+      images: [ogImageUrl],
     },
     alternates: {
-      canonical: siteUrl,
+      canonical: activeSiteUrl,
     },
     icons: {
       icon: favicon,

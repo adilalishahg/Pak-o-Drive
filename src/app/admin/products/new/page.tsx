@@ -25,6 +25,7 @@ export default function AdminNewProductPage() {
   const [images, setImages] = useState<string[]>([]);
   const [galleryUploading, setGalleryUploading] = useState(false);
   const [galleryUrlInput, setGalleryUrlInput] = useState('');
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
 
   const [mainImageError, setMainImageError] = useState(false);
   const [galleryImageErrors, setGalleryImageErrors] = useState<Record<number, boolean>>({});
@@ -258,10 +259,29 @@ export default function AdminNewProductPage() {
     e.preventDefault();
     setLoading(true);
     setError('');
+    setValidationErrors({});
 
-    if (!image.trim()) {
-      setError('Please upload an image file or provide an image URL link.');
+    const errors: Record<string, string> = {};
+    if (!name.trim()) errors.name = 'Product name is required.';
+    if (!description.trim()) errors.description = 'Description is required.';
+    if (!price || Number(price) <= 0) errors.price = 'Price must be a positive number.';
+    if (!stock || Number(stock) < 0) errors.stock = 'Stock cannot be negative.';
+    if (!image.trim()) errors.image = 'Please upload an image file or provide an image URL link.';
+
+    if (Object.keys(errors).length > 0) {
+      setValidationErrors(errors);
+      setError('Please correct the highlighted errors before saving.');
       setLoading(false);
+      
+      // Find first error key and scroll/focus
+      const firstErrorField = Object.keys(errors)[0];
+      // For image file vs URL, handle custom elements
+      const targetId = firstErrorField === 'image' ? 'image' : firstErrorField;
+      const element = document.getElementById(targetId);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        element.focus();
+      }
       return;
     }
 
@@ -354,23 +374,31 @@ export default function AdminNewProductPage() {
                 <input
                   type="text"
                   required
+                  id="name"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="form-control rounded-3"
+                  className={`form-control rounded-3 ${validationErrors.name ? 'is-invalid' : ''}`}
                   placeholder="e.g. Sony WH-1000XM5 Wireless Headphones"
                 />
+                {validationErrors.name && (
+                  <div className="invalid-feedback">{validationErrors.name}</div>
+                )}
               </div>
 
               <div className="mb-3">
                 <label className="form-label text-muted small fw-semibold">Description *</label>
                 <textarea
                   required
+                  id="description"
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  className="form-control rounded-3"
+                  className={`form-control rounded-3 ${validationErrors.description ? 'is-invalid' : ''}`}
                   rows={6}
                   placeholder="Provide detailed description of product highlights, features, and package box contents..."
                 />
+                {validationErrors.description && (
+                  <div className="invalid-feedback">{validationErrors.description}</div>
+                )}
               </div>
             </div>
 
@@ -596,11 +624,15 @@ export default function AdminNewProductPage() {
                 <input
                   type="number"
                   required
+                  id="price"
                   value={price}
                   onChange={(e) => setPrice(e.target.value)}
-                  className="form-control rounded-3"
+                  className={`form-control rounded-3 ${validationErrors.price ? 'is-invalid' : ''}`}
                   placeholder="Sales Price"
                 />
+                {validationErrors.price && (
+                  <div className="invalid-feedback">{validationErrors.price}</div>
+                )}
               </div>
 
               <div className="mb-3">
@@ -619,11 +651,15 @@ export default function AdminNewProductPage() {
                 <input
                   type="number"
                   required
+                  id="stock"
                   value={stock}
                   onChange={(e) => setStock(e.target.value)}
-                  className="form-control rounded-3"
+                  className={`form-control rounded-3 ${validationErrors.stock ? 'is-invalid' : ''}`}
                   placeholder="Quantity in warehouse"
                 />
+                {validationErrors.stock && (
+                  <div className="invalid-feedback">{validationErrors.stock}</div>
+                )}
               </div>
             </div>
 
@@ -683,7 +719,7 @@ export default function AdminNewProductPage() {
                   type="file"
                   accept="image/*"
                   onChange={handleFileChange}
-                  className="form-control rounded-3"
+                  className={`form-control rounded-3 ${validationErrors.image ? 'is-invalid' : ''}`}
                 />
                 {uploading && (
                   <div className="d-flex align-items-center gap-1.5 mt-1.5 text-primary small">
@@ -697,11 +733,15 @@ export default function AdminNewProductPage() {
                 <label className="form-label text-muted small fw-semibold">Or Provide Image URL</label>
                 <input
                   type="text"
+                  id="image"
                   value={image}
                   onChange={(e) => setImage(e.target.value)}
-                  className="form-control rounded-3"
+                  className={`form-control rounded-3 ${validationErrors.image ? 'is-invalid' : ''}`}
                   placeholder="Path: /img/product-1.png or absolute URL"
                 />
+                {validationErrors.image && (
+                  <div className="invalid-feedback d-block">{validationErrors.image}</div>
+                )}
               </div>
 
               <div className="bg-light p-3 rounded-3 text-center border mb-3">
