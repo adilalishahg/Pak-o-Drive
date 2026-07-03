@@ -165,8 +165,13 @@ async function ProductDetailContent({ id }: { id: string }) {
     ],
   };
 
+  const mainProductImg = product.image ? (product.image.startsWith('http') ? product.image : `${siteUrl}${product.image}`) : '';
+
   return (
     <>
+      {mainProductImg && (
+        <link rel="preload" as="image" href={mainProductImg} fetchPriority="high" />
+      )}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchema) }}
