@@ -821,9 +821,10 @@ export function DynamicThemeProvider({ children, initialTheme }: ProviderProps) 
   }, []);
 
   useEffect(() => {
-    // Re-fetch client side to ensure dynamic changes are captured
-    fetchAndApply();
-  }, [fetchAndApply]);
+    if (!initialTheme) {
+      fetchAndApply();
+    }
+  }, [initialTheme, fetchAndApply]);
 
   // For layoutTheme 'theme1' (Clean White), if the font is default 'Inter' or empty, use 'Plus Jakarta Sans' as a more aesthetic default.
   const activeFontFamily = theme.layoutTheme === 'theme1' && (theme.fontFamily === 'Inter' || !theme.fontFamily)

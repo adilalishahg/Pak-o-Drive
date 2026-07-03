@@ -143,6 +143,7 @@ export default async function RootLayout({
 
   // Pre-fetch site settings and site info directly from MongoDB during SSR
   let initialTheme = null;
+  let initialSiteInfo = null;
   let siteName = SITE_NAME;
   let siteUrl = SITE_URL;
   let sitePhone = '+92-123-456-7890';
@@ -162,6 +163,7 @@ export default async function RootLayout({
     }
 
     if (info) {
+      initialSiteInfo = info;
       if (info.siteName) siteName = info.siteName as string;
       if (info.website) {
         const ws = info.website as string;
@@ -232,7 +234,7 @@ export default async function RootLayout({
       </head>
       <body suppressHydrationWarning>
         <DynamicThemeProvider initialTheme={initialTheme}>
-          <SiteInfoProvider>
+          <SiteInfoProvider initialInfo={initialSiteInfo}>
             <CartProvider>
               <AnalyticsTracker />
               <WebVitals />

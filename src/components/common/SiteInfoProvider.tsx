@@ -83,9 +83,19 @@ export function useSiteInfo() {
   return useContext(SiteInfoContext);
 }
 
-export function SiteInfoProvider({ children }: { children: React.ReactNode }) {
-  const [info, setInfo] = useState<SiteInfo>(DEFAULT_SITE_INFO);
-  const [loading, setLoading] = useState(true);
+interface SiteInfoProviderProps {
+  children: React.ReactNode;
+  initialInfo?: Partial<SiteInfo> | null;
+}
+
+export function SiteInfoProvider({ children, initialInfo }: SiteInfoProviderProps) {
+  const [info, setInfo] = useState<SiteInfo>(() => {
+    if (initialInfo) {
+      return { ...DEFAULT_SITE_INFO, ...initialInfo };
+    }
+    return DEFAULT_SITE_INFO;
+  });
+  const [loading, setLoading] = useState(initialInfo ? false : true);
 
   const fetch_ = useCallback(async () => {
     try {
@@ -101,7 +111,11 @@ export function SiteInfoProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  useEffect(() => { fetch_(); }, [fetch_]);
+  useEffect(() => {
+    if (!initialInfo) {
+      fetch_();
+    }
+  }, [initialInfo, fetch_]);
 
   return (
     <SiteInfoContext.Provider value={{ info, loading, refresh: fetch_ }}>
