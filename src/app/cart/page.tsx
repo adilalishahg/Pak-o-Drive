@@ -102,11 +102,11 @@ export default function CartPage() {
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                       fontSize: '0.88rem', fontWeight: 700, color: '#111',
                     }}>{item.quantity}</span>
-                    <button onClick={() => updateQuantity(id, item.quantity + 1, variantId)} disabled={item.quantity >= stockLimit}
+                    <button onClick={() => updateQuantity(id, item.quantity + 1, variantId)} disabled={stockLimit >= 0 && item.quantity >= stockLimit}
                       style={{
                         width: '32px', height: '32px', border: '1px solid #e5e7eb',
                         borderRadius: '0 6px 6px 0', background: '#f9fafb',
-                        cursor: item.quantity >= stockLimit ? 'not-allowed' : 'pointer',
+                        cursor: (stockLimit >= 0 && item.quantity >= stockLimit) ? 'not-allowed' : 'pointer',
                         fontSize: '1rem', color: '#374151', display: 'flex', alignItems: 'center', justifyContent: 'center',
                       }}>+</button>
                   </div>

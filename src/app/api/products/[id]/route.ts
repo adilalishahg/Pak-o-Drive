@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import dbConnect from '../../../../lib/mongodb';
 import Product from '../../../../models/Product';
 
@@ -41,6 +42,8 @@ export async function PUT(
       return NextResponse.json({ success: false, error: 'Product not found' }, { status: 404 });
     }
 
+    revalidatePath('/product/' + id);
+
     return NextResponse.json({ success: true, message: 'Product updated successfully!', data: updatedProduct });
   } catch (error: any) {
     console.error('Error updating product API:', error);
@@ -60,6 +63,8 @@ export async function DELETE(
     if (!deletedProduct) {
       return NextResponse.json({ success: false, error: 'Product not found' }, { status: 404 });
     }
+
+    revalidatePath('/product/' + id);
 
     return NextResponse.json({ success: true, message: 'Product deleted successfully!', data: deletedProduct });
   } catch (error: any) {

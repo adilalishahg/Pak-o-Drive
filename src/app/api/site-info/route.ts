@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import dbConnect from '../../../lib/mongodb';
 import SiteInfo from '../../../models/SiteInfo';
 
@@ -23,6 +24,7 @@ export async function PUT(request: Request) {
       { $set: body },
       { upsert: true, new: true, runValidators: true }
     );
+    revalidatePath('/', 'layout');
     return NextResponse.json({ success: true, message: 'Site info saved!', data: info });
   } catch (error: any) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });

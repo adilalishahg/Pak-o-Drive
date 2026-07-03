@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import dbConnect from '../../../lib/mongodb';
 import SiteSettings from '../../../models/SiteSettings';
 
@@ -40,6 +41,8 @@ export async function PUT(request: Request) {
       { $set: body },
       { upsert: true, new: true, runValidators: true }
     );
+
+    revalidatePath('/', 'layout');
 
     return NextResponse.json({
       success: true,

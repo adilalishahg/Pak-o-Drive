@@ -79,7 +79,8 @@ export async function GET(request: Request) {
       locationAggregation,
       rawFeed,
       viewsTrendAgg,
-      ordersTrendAgg
+      ordersTrendAgg,
+      topProductsAgg
     ] = await Promise.all([
       // Attribution visits & cart adds
       Analytics.aggregate([
@@ -295,6 +296,22 @@ export async function GET(request: Request) {
             count: { $sum: 1 }
           }
         }
+      ]),
+      // Top Selling Products Aggregation
+      Order.aggregate([
+        { $match: orderMatch },
+        { $unwind: "$items" },
+        {
+          $group: {
+            _id: "$items.productId",
+            name: { $first: "$items.name" },
+            image: { $first: "$items.image" },
+            quantity: { $sum: "$items.quantity" },
+            revenue: { $sum: { $multiply: ["$items.price", "$items.quantity"] } }
+          }
+        },
+        { $sort: { quantity: -1 } },
+        { $limit: 5 }
       ])
     ]);
 
@@ -532,6 +549,7 @@ export async function GET(request: Request) {
           abandonedCartLeak
         },
         marketing: attributionTable,
+        topProducts: topProductsAgg,
         funnel: conversionFunnel,
         insights: {
           searches,

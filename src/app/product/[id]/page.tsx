@@ -1,38 +1,32 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
-import dbConnect from '../../../lib/mongodb';
-import Product from '../../../models/Product';
-import SiteInfo from '../../../models/SiteInfo';
 import { ProductCard } from '../../../components/product/ProductCard';
 import { ProductDetailInteractive } from '../../../components/product/ProductDetailInteractive';
+import { getCachedProduct, getCachedRelatedProducts, getCachedSiteInfo } from '../../../lib/cache';
 
-export const revalidate = 60; // Cache this page for 60 seconds (ISR)
+export const instant = true;
 
 interface PageProps { params: Promise<{ id: string }> }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  await dbConnect();
   const { id } = await params;
-  let p: any;
-  try { p = await Product.findById(id).lean(); } catch { return { title: 'Product Not Found' }; }
+  const p = await getCachedProduct(id);
   if (!p) return { title: 'Product Not Found' };
 
   let siteLogoText = 'PAKODRIVE';
   let siteUrl = 'https://pakodrive.com';
-  try {
-    const siteInfo = await SiteInfo.findOne({}).lean();
-    if (siteInfo) {
-      if (siteInfo.logoText) {
-        siteLogoText = siteInfo.logoText as string;
-      }
-      if (siteInfo.website) {
-        const ws = siteInfo.website as string;
-        siteUrl = ws.startsWith('http') ? ws : `https://${ws}`;
-      }
+  const siteInfo = await getCachedSiteInfo();
+  if (siteInfo) {
+    if (siteInfo.logoText) {
+      siteLogoText = siteInfo.logoText as string;
     }
-  } catch {}
+    if (siteInfo.website) {
+      const ws = siteInfo.website as string;
+      siteUrl = ws.startsWith('http') ? ws : `https://${ws}`;
+    }
+  }
 
   const metaTitle = p.seoTitle || `${p.name} | ${siteLogoText}`;
   const metaDesc = p.seoDescription || String(p.description || '').substring(0, 160);
@@ -66,15 +60,28 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 export default async function ProductDetailPage({ params }: PageProps) {
-  await dbConnect();
-  const { id } = await params;
-  let productObj: any;
-  try { productObj = await Product.findById(id); } catch { return notFound(); }
-  if (!productObj) return notFound();
+  return (
+    <Suspense
+      fallback={
+        <div style={{ minHeight: '100vh', background: '#f4f4f4', padding: '100px 20px' }} className="d-flex justify-content-center align-items-center">
+          <div className="spinner-border text-primary" role="status">
+            <span className="visually-hidden">Loading product...</span>
+          </div>
+        </div>
+      }
+    >
+      {params.then(({ id }) => (
+        <ProductDetailContent id={id} />
+      ))}
+    </Suspense>
+  );
+}
 
-  const product = JSON.parse(JSON.stringify(productObj));
-  const relatedObj = await Product.find({ category: product.category, _id: { $ne: product._id } }).limit(6);
-  const relatedProducts = JSON.parse(JSON.stringify(relatedObj));
+async function ProductDetailContent({ id }: { id: string }) {
+  const product = await getCachedProduct(id);
+  if (!product) return notFound();
+
+  const relatedProducts = await getCachedRelatedProducts(product.category, product._id);
 
   const discountPercent = product.originalPrice > product.price
     ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100) : 0;
@@ -84,19 +91,15 @@ export default async function ProductDetailPage({ params }: PageProps) {
 
   let siteUrl = 'https://pakodrive.com';
   let siteLogoText = 'PAKODRIVE';
-  try {
-    const siteInfo = await SiteInfo.findOne({}).lean();
-    if (siteInfo) {
-      if (siteInfo.website) {
-        const ws = siteInfo.website as string;
-        siteUrl = ws.startsWith('http') ? ws : `https://${ws}`;
-      }
-      if (siteInfo.logoText) {
-        siteLogoText = siteInfo.logoText as string;
-      }
+  const siteInfo = await getCachedSiteInfo();
+  if (siteInfo) {
+    if (siteInfo.website) {
+      const ws = siteInfo.website as string;
+      siteUrl = ws.startsWith('http') ? ws : `https://${ws}`;
     }
-  } catch (err) {
-    console.error('Error fetching site info on product details page:', err);
+    if (siteInfo.logoText) {
+      siteLogoText = siteInfo.logoText as string;
+    }
   }
 
   const productUrl = `${siteUrl}/product/${product._id}`;
@@ -121,7 +124,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
       priceCurrency: 'PKR',
       price: product.price,
       itemCondition: 'https://schema.org/NewCondition',
-      availability: product.stock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+      availability: product.stock !== 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
       priceValidUntil: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
     },
     aggregateRating: product.reviewsCount > 0 ? {

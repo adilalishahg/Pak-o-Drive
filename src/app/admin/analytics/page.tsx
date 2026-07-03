@@ -67,6 +67,7 @@ interface AnalyticsData {
     abandonedCartLeak?: number;
   };
   marketing: Array<{ source: string; visits: number; add_to_carts: number; purchases: number; revenue: number; roas: number }>;
+  topProducts?: Array<{ _id: string; name: string; image: string; quantity: number; revenue: number }>;
   funnel?: FunnelStep[];
   insights: {
     searches: Array<{ keyword: string; count: number }>;
@@ -567,53 +568,44 @@ export default function AdminAnalyticsDashboard() {
         </div>
       </div>
 
-      {/* ── Marketing Attribution ── */}
+      {/* ── Marketing Attribution & Top Selling Products ── */}
       <div className="row g-3 mb-3">
-        <div className="col-12 col-lg-8">
-          <Card>
-            <div className="border-bottom pb-2 mb-3"><Ttl>Marketing Channel & UTM Attribution</Ttl></div>
+        {/* Marketing Attribution */}
+        <div className="col-12 col-md-4">
+          <Card className="h-100 mb-0">
+            <div className="border-bottom pb-2 mb-3"><Ttl>Marketing Channels (UTM)</Ttl></div>
             <div className="table-responsive">
               <table className="table table-sm mb-0" style={{ fontSize: '0.78rem' }}>
                 <thead className="table-light">
                   <tr>
                     <th>Source</th>
                     <th className="text-center">Visits</th>
-                    <th className="text-center d-none d-sm-table-cell">Carts</th>
-                    <th className="text-center d-none d-sm-table-cell">Orders</th>
+                    <th className="text-center">Orders</th>
                     <th className="text-end">Revenue</th>
-                    <th className="text-end d-none d-md-table-cell">ROAS</th>
                   </tr>
                 </thead>
                 <tbody>
                   {isPageLoading ? (
                     [...Array(3)].map((_, i) => (
                       <tr key={i} className="skeleton-pulse">
-                        <td><div style={{ height: '13px', width: '80px', background: '#e2e8f0', borderRadius: '4px' }} /></td>
-                        <td className="text-center"><div style={{ height: '13px', width: '30px', background: '#e2e8f0', borderRadius: '4px', margin: 'auto' }} /></td>
-                        <td className="text-center d-none d-sm-table-cell"><div style={{ height: '13px', width: '30px', background: '#e2e8f0', borderRadius: '4px', margin: 'auto' }} /></td>
-                        <td className="text-center d-none d-sm-table-cell"><div style={{ height: '13px', width: '30px', background: '#e2e8f0', borderRadius: '4px', margin: 'auto' }} /></td>
-                        <td className="text-end"><div style={{ height: '13px', width: '60px', background: '#e2e8f0', borderRadius: '4px', marginLeft: 'auto' }} /></td>
-                        <td className="text-end d-none d-md-table-cell"><div style={{ height: '13px', width: '25px', background: '#e2e8f0', borderRadius: '4px', marginLeft: 'auto' }} /></td>
+                        <td><div style={{ height: '13px', width: '60px', background: '#e2e8f0', borderRadius: '4px' }} /></td>
+                        <td className="text-center"><div style={{ height: '13px', width: '25px', background: '#e2e8f0', borderRadius: '4px', margin: 'auto' }} /></td>
+                        <td className="text-center"><div style={{ height: '13px', width: '25px', background: '#e2e8f0', borderRadius: '4px', margin: 'auto' }} /></td>
+                        <td className="text-end"><div style={{ height: '13px', width: '45px', background: '#e2e8f0', borderRadius: '4px', marginLeft: 'auto' }} /></td>
                       </tr>
                     ))
                   ) : (
                     data.marketing.map((ch, i) => (
                       <tr key={i}>
-                        <td className="fw-semibold text-capitalize">
+                        <td className="fw-semibold text-capitalize" style={{ fontSize: '0.75rem' }}>
                           <span className="d-inline-block rounded-circle me-1"
                             style={{ width: '8px', height: '8px', verticalAlign: 'middle',
                               background: ch.source.includes('instagram') ? '#ec4899' : ch.source.includes('tiktok') ? '#06b6d4' : '#94a3b8' }} />
                           {ch.source}
                         </td>
                         <td className="text-center">{ch.visits}</td>
-                        <td className="text-center d-none d-sm-table-cell">{ch.add_to_carts}</td>
-                        <td className="text-center d-none d-sm-table-cell">{ch.purchases}</td>
+                        <td className="text-center">{ch.purchases}</td>
                         <td className="text-end fw-semibold">PKR {ch.revenue.toLocaleString()}</td>
-                        <td className="text-end d-none d-md-table-cell">
-                          {ch.roas > 0
-                            ? <span className="badge fw-bold" style={{ background: '#ecfdf5', color: '#059669', fontSize: '0.7rem' }}>{ch.roas.toFixed(1)}x</span>
-                            : <span className="text-muted">—</span>}
-                        </td>
                       </tr>
                     ))
                   )}
@@ -623,11 +615,66 @@ export default function AdminAnalyticsDashboard() {
           </Card>
         </div>
 
+        {/* Top Selling Products */}
+        <div className="col-12 col-md-4">
+          <Card className="h-100 mb-0">
+            <div className="border-bottom pb-2 mb-3"><Ttl>Top Selling Products</Ttl></div>
+            <div className="table-responsive">
+              <table className="table table-sm mb-0" style={{ fontSize: '0.78rem' }}>
+                <thead className="table-light">
+                  <tr>
+                    <th>Product</th>
+                    <th className="text-center">Sold</th>
+                    <th className="text-end">Revenue</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {isPageLoading ? (
+                    [...Array(3)].map((_, i) => (
+                      <tr key={i} className="skeleton-pulse">
+                        <td>
+                          <div className="d-flex align-items-center gap-2">
+                            <div style={{ width: '20px', height: '20px', background: '#e2e8f0', borderRadius: '4px' }} />
+                            <div style={{ height: '13px', width: '100px', background: '#e2e8f0', borderRadius: '4px' }} />
+                          </div>
+                        </td>
+                        <td className="text-center"><div style={{ height: '13px', width: '25px', background: '#e2e8f0', borderRadius: '4px', margin: 'auto' }} /></td>
+                        <td className="text-end"><div style={{ height: '13px', width: '45px', background: '#e2e8f0', borderRadius: '4px', marginLeft: 'auto' }} /></td>
+                      </tr>
+                    ))
+                  ) : data.topProducts && data.topProducts.length ? (
+                    data.topProducts.map((p, i) => (
+                      <tr key={i}>
+                        <td>
+                          <div className="d-flex align-items-center gap-1.5" style={{ minWidth: 0 }}>
+                            {p.image && (
+                              <div style={{ width: '20px', height: '20px', position: 'relative', overflow: 'hidden', borderRadius: '4px', background: '#f8fafc', flexShrink: 0 }}>
+                                <img src={p.image} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                              </div>
+                            )}
+                            <span className="fw-semibold text-dark text-truncate" style={{ fontSize: '0.75rem' }}>{p.name}</span>
+                          </div>
+                        </td>
+                        <td className="text-center fw-bold">{p.quantity}</td>
+                        <td className="text-end fw-semibold">PKR {p.revenue.toLocaleString()}</td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={3} className="text-center py-3 text-muted">No sales in this period.</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </Card>
+        </div>
+
         {/* Conversion Chart */}
-        <div className="col-12 col-lg-4">
-          <Card className="h-100">
+        <div className="col-12 col-md-4">
+          <Card className="h-100 mb-0">
             <div className="border-bottom pb-2 mb-3"><Ttl>Daily Conversion Rate (%)</Ttl></div>
-            <div style={{ height: '200px' }}>
+            <div style={{ height: '180px' }}>
               {isPageLoading ? (
                 <div className="skeleton-pulse w-100 h-100 rounded" style={{ backgroundColor: '#f1f5f9' }} />
               ) : (

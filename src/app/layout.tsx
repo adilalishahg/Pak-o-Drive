@@ -9,6 +9,8 @@ import './globals.css';
 import { CartProvider } from '../context/CartContext';
 import { LayoutWrapper } from '../components/layout/LayoutWrapper';
 
+export const instant = false;
+
 const inter = Inter({
   subsets: ['latin'],
   display: 'swap',
@@ -26,9 +28,8 @@ import TemplateScripts from '../components/common/TemplateScripts';
 import AnalyticsTracker from '../components/common/AnalyticsTracker';
 import { DynamicThemeProvider } from '../components/common/DynamicThemeProvider';
 import { SiteInfoProvider } from '../components/common/SiteInfoProvider';
-import dbConnect from '../lib/mongodb';
-import SiteSettings from '../models/SiteSettings';
-import SiteInfo from '../models/SiteInfo';
+import { WebVitals } from '../components/common/WebVitals';
+import { getCachedSiteInfo, getCachedSiteSettings } from '../lib/cache';
 
 const SITE_URL = 'https://pakodrive.com';
 const SITE_NAME = 'PAKODRIVE Electronics';
@@ -52,8 +53,7 @@ export async function generateMetadata(): Promise<Metadata> {
   let favicon = '/favicon.ico';
 
   try {
-    await dbConnect();
-    const info = await SiteInfo.findOne({}).lean();
+    const info = await getCachedSiteInfo();
     if (info) {
       if (info.siteName) siteName = info.siteName;
       if (info.seoTitle) {
@@ -144,14 +144,13 @@ export default async function RootLayout({
   let siteWhatsapp = 'https://wa.me/923001234567';
 
   try {
-    await dbConnect();
     const [settings, info] = await Promise.all([
-      SiteSettings.findOne({}).lean(),
-      SiteInfo.findOne({}).lean()
+      getCachedSiteSettings(),
+      getCachedSiteInfo()
     ]);
 
     if (settings) {
-      initialTheme = JSON.parse(JSON.stringify(settings));
+      initialTheme = settings;
     }
 
     if (info) {
@@ -228,6 +227,7 @@ export default async function RootLayout({
           <SiteInfoProvider>
             <CartProvider>
               <AnalyticsTracker />
+              <WebVitals />
               {isAdmin ? (
                 children
               ) : (
@@ -236,8 +236,12 @@ export default async function RootLayout({
                 </LayoutWrapper>
               )}
               <TemplateScripts />
-              <Analytics />
-              <SpeedInsights />
+              {process.env.NODE_ENV === 'production' && (
+                <>
+                  <Analytics />
+                  <SpeedInsights />
+                </>
+              )}
             </CartProvider>
           </SiteInfoProvider>
         </DynamicThemeProvider>

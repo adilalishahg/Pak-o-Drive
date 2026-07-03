@@ -76,7 +76,7 @@ export async function POST(request: Request) {
       }
 
       // Check stock
-      if (stockLimit < cartItem.quantity) {
+      if (stockLimit >= 0 && stockLimit < cartItem.quantity) {
         return NextResponse.json(
           {
             success: false,
@@ -99,14 +99,16 @@ export async function POST(request: Request) {
         variantId: matchedVariant ? matchedVariant._id?.toString() : undefined,
       });
 
-      // Decrement stock
-      if (matchedVariant) {
-        matchedVariant.stock -= cartItem.quantity;
-        dbProduct.markModified('variants');
-      } else {
-        dbProduct.stock -= cartItem.quantity;
+      // Decrement stock if not unlimited
+      if (stockLimit >= 0) {
+        if (matchedVariant) {
+          matchedVariant.stock -= cartItem.quantity;
+          dbProduct.markModified('variants');
+        } else {
+          dbProduct.stock -= cartItem.quantity;
+        }
+        await dbProduct.save();
       }
-      await dbProduct.save();
     }
 
     // Save order

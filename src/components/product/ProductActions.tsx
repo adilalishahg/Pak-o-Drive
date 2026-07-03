@@ -17,7 +17,8 @@ export const ProductActions: React.FC<ProductActionsProps> = ({ product, selecte
   const whatsappNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '+923001234567';
 
   const stockLimit = selectedVariant !== undefined ? selectedVariant.stock : product.stock;
-  const outOfStock = stockLimit <= 0;
+  const outOfStock = stockLimit === 0;
+  const isUnlimited = stockLimit < 0;
 
   // Reset quantity to 1 if the selected variant changes
   useEffect(() => {
@@ -58,9 +59,9 @@ export const ProductActions: React.FC<ProductActionsProps> = ({ product, selecte
           <span style={{ width: '40px', textAlign: 'center', fontWeight: 700, fontSize: '0.95rem', color: '#111' }}>
             {outOfStock ? 0 : quantity}
           </span>
-          <button onClick={() => setQuantity(q => Math.min(stockLimit, q + 1))} disabled={quantity >= stockLimit || outOfStock}
+          <button onClick={() => setQuantity(q => (!isUnlimited ? Math.min(stockLimit, q + 1) : q + 1))} disabled={(!isUnlimited && quantity >= stockLimit) || outOfStock}
             style={{ width: '36px', height: '36px', border: 'none', background: '#f9fafb',
-              cursor: (quantity >= stockLimit || outOfStock) ? 'not-allowed' : 'pointer', fontSize: '1rem',
+              cursor: ((!isUnlimited && quantity >= stockLimit) || outOfStock) ? 'not-allowed' : 'pointer', fontSize: '1rem',
               color: '#374151', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             +
           </button>

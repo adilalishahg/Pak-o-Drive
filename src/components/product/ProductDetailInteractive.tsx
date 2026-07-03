@@ -206,8 +206,8 @@ export const ProductDetailInteractive: React.FC<ProductDetailInteractiveProps> =
             <div style={{ fontSize: '0.78rem', marginBottom: '14px', display: 'flex', flexDirection: 'column', gap: '5px' }}>
               <div>
                 <span style={{ color: '#64748b' }}>Availability: </span>
-                <span style={{ fontWeight: 700, color: currentStock > 0 ? '#15803d' : '#dc2626' }}>
-                  {currentStock > 0 ? `In Stock (${currentStock})` : 'Out of Stock'}
+                <span style={{ fontWeight: 700, color: currentStock !== 0 ? '#15803d' : '#dc2626' }}>
+                  {currentStock < 0 ? 'In Stock (Unlimited)' : currentStock > 0 ? `In Stock (${currentStock})` : 'Out of Stock'}
                 </span>
               </div>
               <div>
