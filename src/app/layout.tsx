@@ -66,7 +66,10 @@ export async function generateMetadata(): Promise<Metadata> {
   let ogImageUrl = `${activeSiteUrl}/img/carousel-1.png`;
 
   try {
-    const info = await getCachedSiteInfo();
+    const info = await Promise.race([
+      getCachedSiteInfo(),
+      new Promise<null>((resolve) => setTimeout(() => resolve(null), 1500))
+    ]);
     if (info) {
       if (info.siteName) siteName = info.siteName;
       if (info.seoTitle) {
@@ -84,6 +87,13 @@ export async function generateMetadata(): Promise<Metadata> {
       }
       if (info.logoImage) {
         ogImageUrl = info.logoImage.startsWith('http') ? info.logoImage : `${activeSiteUrl}${info.logoImage}`;
+      }
+      if (ogImageUrl.includes('res.cloudinary.com')) {
+        if (ogImageUrl.endsWith('.webp')) {
+          ogImageUrl = ogImageUrl.slice(0, -5) + '.jpg';
+        } else if (ogImageUrl.includes('/upload/')) {
+          ogImageUrl = ogImageUrl.replace('/upload/', '/upload/f_jpg,q_85/');
+        }
       }
       if (info.favicon) {
         favicon = info.favicon;

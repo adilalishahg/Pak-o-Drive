@@ -11,8 +11,10 @@ interface PageProps { params: Promise<{ id: string }> }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { id } = await params;
-  const p = await getCachedProduct(id);
-  if (!p) return { title: 'Product Not Found' };
+  const p = await Promise.race([
+    getCachedProduct(id),
+    new Promise<null>((resolve) => setTimeout(() => resolve(null), 1500))
+  ]);
 
   const headersList = await headers();
   const host = headersList.get('host') || 'pak-o-drive.vercel.app';
@@ -20,9 +22,32 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const siteUrl = `${proto}://${host}`;
 
   let siteLogoText = 'PAKODRIVE';
-  const siteInfo = await getCachedSiteInfo();
+  const siteInfo = await Promise.race([
+    getCachedSiteInfo(),
+    new Promise<null>((resolve) => setTimeout(() => resolve(null), 1000))
+  ]);
+
   if (siteInfo && siteInfo.logoText) {
     siteLogoText = siteInfo.logoText as string;
+  }
+
+  if (!p) {
+    const fallbackTitle = siteInfo?.seoTitle || `Order Online | ${siteLogoText}`;
+    const fallbackDesc = siteInfo?.seoDescription || "Shop headphones, chargers, smartwatches & more on PAKODRIVE.";
+    const fallbackImg = siteInfo?.logoImage 
+      ? (siteInfo.logoImage.startsWith('http') ? siteInfo.logoImage : `${siteUrl}${siteInfo.logoImage}`)
+      : `${siteUrl}/img/carousel-1.png`;
+
+    return {
+      title: fallbackTitle,
+      description: fallbackDesc,
+      openGraph: {
+        title: fallbackTitle,
+        description: fallbackDesc,
+        url: `${siteUrl}/product/${id}`,
+        images: [{ url: fallbackImg }],
+      }
+    };
   }
 
   const metaTitle = p.seoTitle || `${p.name} | ${siteLogoText}`;
