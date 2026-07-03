@@ -315,6 +315,7 @@ export function HomePageClient({ initialProducts, initialCategories }: HomePageC
                       alt={heroBig.title || 'Featured Product'}
                       width={300}
                       height={300}
+                      sizes="(max-width: 640px) 280px, 300px"
                       style={{ objectFit: 'contain', maxHeight: '300px', width: 'auto', height: 'auto' }}
                       className="drop-shadow-2xl transition-transform duration-700 group-hover:scale-105"
                       priority
