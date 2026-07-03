@@ -19,7 +19,7 @@ export default async function Home() {
       if (uploadIndex !== -1) {
         const prefix = heroBigImg.substring(0, uploadIndex + 8);
         let suffix = heroBigImg.substring(uploadIndex + 8);
-        suffix = suffix.replace(/^(?:[a-z_]+[,/])*(?:v\d+\/)?/, (match) => {
+        suffix = suffix.replace(/^(?:[a-z_]+[,/])*(?:v\d+\/)?/, (match: string) => {
           const versionMatch = match.match(/(v\d+\/)/);
           return versionMatch ? versionMatch[1] : '';
         });

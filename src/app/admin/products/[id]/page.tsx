@@ -95,30 +95,35 @@ export default function AdminEditProductPage() {
   }, [images]);
 
   const handleGalleryFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
 
     setGalleryUploading(true);
     setError('');
 
     try {
-      const optimizedFile = await optimizeImageBeforeUpload(file);
-      const formData = new FormData();
-      formData.append('file', optimizedFile);
-      const res = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData,
+      const uploadPromises = Array.from(files).map(async (file) => {
+        const optimizedFile = await optimizeImageBeforeUpload(file);
+        const formData = new FormData();
+        formData.append('file', optimizedFile);
+        const res = await fetch('/api/upload', {
+          method: 'POST',
+          body: formData,
+        });
+
+        const json = await res.json();
+        if (json.success) {
+          return json.url;
+        } else {
+          throw new Error(json.error || `Failed to upload gallery image: ${file.name}`);
+        }
       });
 
-      const json = await res.json();
-      if (json.success) {
-        setImages((prev) => [...prev, json.url]);
-      } else {
-        throw new Error(json.error || 'Failed to upload gallery image.');
-      }
+      const urls = await Promise.all(uploadPromises);
+      setImages((prev) => [...prev, ...urls]);
     } catch (err: any) {
       console.error(err);
-      setError(err.message || 'Error uploading gallery file.');
+      setError(err.message || 'Error uploading gallery files.');
     } finally {
       setGalleryUploading(false);
       e.target.value = '';
@@ -837,13 +842,14 @@ export default function AdminEditProductPage() {
                   <input
                     type="file"
                     accept="image/*"
+                    multiple
                     onChange={handleGalleryFileChange}
                     className="form-control rounded-3"
                   />
                   {galleryUploading && (
                     <div className="d-flex align-items-center gap-1.5 mt-1.5 text-primary small">
                       <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true" />
-                      <span>Uploading gallery image...</span>
+                      <span>Uploading gallery images...</span>
                     </div>
                   )}
                 </div>
