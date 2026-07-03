@@ -852,7 +852,7 @@ export function DynamicThemeProvider({ children, initialTheme }: ProviderProps) 
 
        {/* Asynchronous font & icon CSS loading — only the SELECTED library is loaded, using print→all trick to avoid render-blocking */}
       <script dangerouslySetInnerHTML={{ __html: `
-        (function() {
+        (window.requestIdleCallback || function(cb) { setTimeout(cb, 100); })(function() {
           var urls = ${JSON.stringify([fontUrl, iconUrl].filter(Boolean))};
           urls.forEach(function(url) {
             if (document.querySelector('link[href="' + url + '"]')) return;
@@ -863,7 +863,7 @@ export function DynamicThemeProvider({ children, initialTheme }: ProviderProps) 
             link.onload = function() { this.media = 'all'; };
             document.head.appendChild(link);
           });
-        })();
+        });
       `}} />
 
       <style id="pd-dynamic-theme" dangerouslySetInnerHTML={{ __html: css }} />

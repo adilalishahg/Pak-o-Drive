@@ -6,9 +6,12 @@ export default async function Home() {
   const categories = await getCachedAllCategories();
 
   return (
-    <HomePageClient
-      initialProducts={products}
-      initialCategories={categories}
-    />
+    <>
+      <link rel="preload" as="image" href="/img/product-1.png" fetchPriority="high" />
+      <HomePageClient
+        initialProducts={products}
+        initialCategories={categories}
+      />
+    </>
   );
 }
