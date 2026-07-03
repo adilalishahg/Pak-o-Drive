@@ -82,8 +82,8 @@ export async function generateMetadata(): Promise<Metadata> {
       if (info.seoKeywords) {
         keywords = info.seoKeywords.split(',').map((k: string) => k.trim()).filter(Boolean);
       }
-      if (info.logo) {
-        ogImageUrl = info.logo.startsWith('http') ? info.logo : `${activeSiteUrl}${info.logo}`;
+      if (info.logoImage) {
+        ogImageUrl = info.logoImage.startsWith('http') ? info.logoImage : `${activeSiteUrl}${info.logoImage}`;
       }
       if (info.favicon) {
         favicon = info.favicon;

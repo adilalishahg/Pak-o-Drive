@@ -7,6 +7,8 @@ export interface SiteInfo {
   siteTagline: string;
   logoText: string;
   logoIcon: string;
+  logoImage?: string;
+  showLogoImage?: boolean;
   favicon: string;
   seoTitle: string;
   seoDescription: string;
@@ -39,6 +41,8 @@ export const DEFAULT_SITE_INFO: SiteInfo = {
   siteTagline: "Pakistan's Trusted Electronics Store",
   logoText: 'Electro',
   logoIcon: 'shopping-bag',
+  logoImage: '',
+  showLogoImage: false,
   favicon: '/favicon.ico',
   seoTitle: 'PAKODRIVE Electronics — Best Electronics Store in Pakistan',
   seoDescription: "PAKODRIVE — Pakistan's trusted electronics store. Shop headphones, chargers, smartwatches, automotive electronics & more with free shipping and 30-day returns.",

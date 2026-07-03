@@ -7,8 +7,6 @@ import { ProductCard } from '../../../components/product/ProductCard';
 import { ProductDetailInteractive } from '../../../components/product/ProductDetailInteractive';
 import { getCachedProduct, getCachedRelatedProducts, getCachedSiteInfo } from '../../../lib/cache';
 
-export const instant = true;
-
 interface PageProps { params: Promise<{ id: string }> }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
@@ -31,9 +29,17 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const metaDesc = p.seoDescription || String(p.description || '').substring(0, 160);
   const keywords = p.seoKeywords ? p.seoKeywords.split(',').map((k: string) => k.trim()).filter(Boolean) : undefined;
   const productUrl = `${siteUrl}/product/${id}`;
-  const imageUrl = p.image
+  let imageUrl = p.image
     ? (p.image.startsWith('http') ? p.image : `${siteUrl}${p.image}`)
     : '';
+
+  if (imageUrl.includes('res.cloudinary.com')) {
+    if (imageUrl.endsWith('.webp')) {
+      imageUrl = imageUrl.slice(0, -5) + '.jpg';
+    } else if (imageUrl.includes('/upload/')) {
+      imageUrl = imageUrl.replace('/upload/', '/upload/f_jpg,q_85/');
+    }
+  }
 
   return {
     title: metaTitle,

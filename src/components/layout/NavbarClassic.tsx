@@ -76,19 +76,29 @@ export const NavbarClassic: React.FC = () => {
         <div className="d-flex align-items-center gap-2 gap-lg-3 px-3 px-lg-4" style={{ height: '60px', maxWidth: '1440px', margin: '0 auto' }}>
 
           {/* Logo */}
-          <Link href="/" aria-label={`${info.logoText || 'PAKODRIVE'} Home`} className="text-decoration-none flex-shrink-0 d-flex align-items-center gap-2" style={{ minWidth: '130px' }}>
-            <div style={{
-              width: '32px', height: '32px',
-              background: 'linear-gradient(135deg, var(--bs-primary, #ea580c), #c2410c)',
-              borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center',
-              boxShadow: '0 3px 10px rgba(234,88,12,0.28)', flexShrink: 0,
-            }}>
-              <ThemeIcon name={info.logoIcon || 'shopping-bag'} style={{ color: '#fff', fontSize: '14px' }} />
-            </div>
-            <span style={{ fontWeight: 800, fontSize: '1.2rem', color: 'var(--bs-primary, #ea580c)', letterSpacing: '-0.5px', lineHeight: 1 }}>
-              {info.logoText}
-            </span>
-          </Link>
+          {info.showLogoImage && info.logoImage ? (
+            <Link href="/" aria-label={`${info.logoText || 'PAKODRIVE'} Home`} className="text-decoration-none flex-shrink-0 d-flex align-items-center" style={{ minWidth: '130px' }}>
+              <img
+                src={info.logoImage}
+                alt={info.logoText || 'PAKODRIVE'}
+                style={{ maxHeight: '36px', width: 'auto', objectFit: 'contain' }}
+              />
+            </Link>
+          ) : (
+            <Link href="/" aria-label={`${info.logoText || 'PAKODRIVE'} Home`} className="text-decoration-none flex-shrink-0 d-flex align-items-center gap-2" style={{ minWidth: '130px' }}>
+              <div style={{
+                width: '32px', height: '32px',
+                background: 'linear-gradient(135deg, var(--bs-primary, #ea580c), #c2410c)',
+                borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                boxShadow: '0 3px 10px rgba(234,88,12,0.28)', flexShrink: 0,
+              }}>
+                <ThemeIcon name={info.logoIcon || 'shopping-bag'} style={{ color: '#fff', fontSize: '14px' }} />
+              </div>
+              <span style={{ fontWeight: 800, fontSize: '1.2rem', color: 'var(--bs-primary, #ea580c)', letterSpacing: '-0.5px', lineHeight: 1 }}>
+                {info.logoText}
+              </span>
+            </Link>
+          )}
 
           {/* Search bar — flex-grow, hidden on mobile */}
           <form onSubmit={handleSearch} className="flex-grow-1 d-none d-md-flex" style={{ maxWidth: '500px' }}>

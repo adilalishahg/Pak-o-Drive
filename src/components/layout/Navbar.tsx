@@ -307,12 +307,22 @@ export const Navbar: React.FC = () => {
               
               {/* Logo */}
               <div className="flex-shrink-0 flex items-center">
-                <Link href="/" aria-label={`${info.logoText || 'ALPHA'} Home`} className="text-2xl font-extrabold tracking-wider text-slate-900 flex items-center gap-2 text-decoration-none">
-                  <span className="theme1-logo-badge w-8 h-8 rounded-lg flex items-center justify-center text-white text-base font-black">
-                    <ThemeIcon name={info.logoIcon || 'shopping-bag'} style={{ color: '#fff', fontSize: '15px' }} />
-                  </span>
-                  {info.logoText || 'ALPHA'}
-                </Link>
+                {info.showLogoImage && info.logoImage ? (
+                  <Link href="/" aria-label={`${info.logoText || 'ALPHA'} Home`} className="flex items-center text-decoration-none">
+                    <img
+                      src={info.logoImage}
+                      alt={info.logoText || 'ALPHA'}
+                      style={{ maxHeight: '42px', width: 'auto', objectFit: 'contain' }}
+                    />
+                  </Link>
+                ) : (
+                  <Link href="/" aria-label={`${info.logoText || 'ALPHA'} Home`} className="text-2xl font-extrabold tracking-wider text-slate-900 flex items-center gap-2 text-decoration-none">
+                    <span className="theme1-logo-badge w-8 h-8 rounded-lg flex items-center justify-center text-white text-base font-black">
+                      <ThemeIcon name={info.logoIcon || 'shopping-bag'} style={{ color: '#fff', fontSize: '15px' }} />
+                    </span>
+                    {info.logoText || 'ALPHA'}
+                  </Link>
+                )}
               </div>
 
               {/* Navigation Links */}
@@ -551,21 +561,31 @@ export const Navbar: React.FC = () => {
           <div className="d-flex align-items-center gap-2 gap-lg-3" style={{ height: '64px' }}>
 
             {/* 1. LOGO */}
-            <Link href="/" aria-label={`${info.logoText || 'PAKODRIVE'} Home`} className="text-decoration-none flex-shrink-0" style={{ minWidth: '130px' }}>
-              <div className="d-flex align-items-center gap-2">
-                <div style={{
-                  width: '34px', height: '34px',
-                  background: isModernGreen ? '#d4af37' : (isCleanWhite ? theme.primaryColor : 'linear-gradient(135deg, var(--pd-primary), #c2410c)'),
-                  borderRadius: '9px', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  boxShadow: isModernGreen ? '0 3px 10px rgba(212,175,55,0.2)' : (isCleanWhite ? `0 3px 10px color-mix(in srgb, ${theme.primaryColor} 20%, transparent)` : '0 3px 10px rgba(234,88,12,0.28)'), flexShrink: 0,
-                }}>
-                  <ThemeIcon name={info.logoIcon || 'shopping-bag'} style={{ color: isModernGreen ? '#0d231d' : '#fff', fontSize: '16px' }} />
+            {info.showLogoImage && info.logoImage ? (
+              <Link href="/" aria-label={`${info.logoText || 'PAKODRIVE'} Home`} className="text-decoration-none flex-shrink-0 d-flex align-items-center" style={{ minWidth: '130px' }}>
+                <img
+                  src={info.logoImage}
+                  alt={info.logoText || 'PAKODRIVE'}
+                  style={{ maxHeight: '38px', width: 'auto', objectFit: 'contain' }}
+                />
+              </Link>
+            ) : (
+              <Link href="/" aria-label={`${info.logoText || 'PAKODRIVE'} Home`} className="text-decoration-none flex-shrink-0" style={{ minWidth: '130px' }}>
+                <div className="d-flex align-items-center gap-2">
+                  <div style={{
+                    width: '34px', height: '34px',
+                    background: isModernGreen ? '#d4af37' : (isCleanWhite ? theme.primaryColor : 'linear-gradient(135deg, var(--pd-primary), #c2410c)'),
+                    borderRadius: '9px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    boxShadow: isModernGreen ? '0 3px 10px rgba(212,175,55,0.2)' : (isCleanWhite ? `0 3px 10px color-mix(in srgb, ${theme.primaryColor} 20%, transparent)` : '0 3px 10px rgba(234,88,12,0.28)'), flexShrink: 0,
+                  }}>
+                    <ThemeIcon name={info.logoIcon || 'shopping-bag'} style={{ color: isModernGreen ? '#0d231d' : '#fff', fontSize: '16px' }} />
+                  </div>
+                  <span style={{ fontWeight: 800, fontSize: '1.3rem', color: isModernGreen ? '#d4af37' : (isCleanWhite ? theme.primaryColor : 'var(--pd-primary)'), letterSpacing: '-0.5px', lineHeight: 1 }}>
+                    {info.logoText}
+                  </span>
                 </div>
-                <span style={{ fontWeight: 800, fontSize: '1.3rem', color: isModernGreen ? '#d4af37' : (isCleanWhite ? theme.primaryColor : 'var(--pd-primary)'), letterSpacing: '-0.5px', lineHeight: 1 }}>
-                  {info.logoText}
-                </span>
-              </div>
-            </Link>
+              </Link>
+            )}
 
             {/* 2. SEARCH BAR — flex-grow */}
             <form onSubmit={handleSearch} className="flex-grow-1 d-none d-md-flex"

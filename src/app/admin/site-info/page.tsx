@@ -1,12 +1,15 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import { optimizeImageBeforeUpload } from '../../../utils/imageOptimizer';
 
 interface SiteInfo {
   siteName: string;
   siteTagline: string;
   logoText: string;
   logoIcon: string;
+  logoImage: string;
+  showLogoImage: boolean;
   favicon: string;
   seoTitle: string;
   seoDescription: string;
@@ -39,6 +42,8 @@ const DEFAULT_INFO: SiteInfo = {
   siteTagline: '',
   logoText: '',
   logoIcon: 'shopping-bag',
+  logoImage: '',
+  showLogoImage: false,
   favicon: '/favicon.ico',
   seoTitle: '',
   seoDescription: '',
@@ -72,6 +77,7 @@ export default function AdminSiteInfoPage() {
   const [info, setInfo] = useState<SiteInfo>(DEFAULT_INFO);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [logoUploading, setLogoUploading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [activeTab, setActiveTab] = useState<ActiveTab>('general');
@@ -99,8 +105,46 @@ export default function AdminSiteInfoPage() {
   }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setInfo((prev) => ({ ...prev, [name]: value }));
+    const { name, value, type } = e.target as any;
+    if (type === 'checkbox') {
+      const checked = (e.target as HTMLInputElement).checked;
+      setInfo((prev) => ({ ...prev, [name]: checked }));
+    } else {
+      setInfo((prev) => ({ ...prev, [name]: value }));
+    }
+  };
+
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setLogoUploading(true);
+    setError('');
+    setSuccess('');
+
+    try {
+      const optimizedFile = await optimizeImageBeforeUpload(file);
+      const formData = new FormData();
+      formData.append('file', optimizedFile);
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const json = await res.json();
+      if (json.success) {
+        setInfo((prev) => ({ ...prev, logoImage: json.url }));
+        setSuccess('Logo image uploaded successfully!');
+        setTimeout(() => setSuccess(''), 3000);
+      } else {
+        throw new Error(json.error || 'Failed to upload logo image.');
+      }
+    } catch (err: any) {
+      console.error(err);
+      setError(err.message || 'Error uploading logo image.');
+    } finally {
+      setLogoUploading(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -249,6 +293,67 @@ export default function AdminSiteInfoPage() {
                       placeholder="e.g. Pakistan's Trusted Electronics Store"
                     />
                   </div>
+
+                  {/* Logo Image Upload & Toggle Section */}
+                  <div className="col-12 col-md-6">
+                    <label className="form-label text-muted small fw-semibold">Upload Brand Logo Image</label>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleLogoUpload}
+                      className="form-control rounded-3"
+                    />
+                    {logoUploading && (
+                      <div className="d-flex align-items-center gap-1.5 mt-1 text-primary small">
+                        <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true" />
+                        <span>Uploading logo image...</span>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="col-12 col-md-6">
+                    <label className="form-label text-muted small fw-semibold">Or Provide Brand Logo Image URL</label>
+                    <input
+                      type="text"
+                      name="logoImage"
+                      value={info.logoImage || ''}
+                      onChange={handleChange}
+                      className="form-control rounded-3"
+                      placeholder="Path: /img/logo.png or absolute URL"
+                    />
+                  </div>
+
+                  <div className="col-12">
+                    <div className="form-check form-switch p-0 d-flex align-items-center gap-2 mt-1">
+                      <input
+                        type="checkbox"
+                        name="showLogoImage"
+                        checked={!!info.showLogoImage}
+                        onChange={(e) => setInfo((prev) => ({ ...prev, showLogoImage: e.target.checked }))}
+                        className="form-check-input ms-0"
+                        id="showLogoImageSwitch"
+                        style={{ cursor: 'pointer', width: '2.5rem', height: '1.25rem' }}
+                      />
+                      <label className="form-check-label text-dark small fw-semibold mb-0" htmlFor="showLogoImageSwitch" style={{ cursor: 'pointer' }}>
+                        {info.showLogoImage ? 'Show Brand Logo Image on website header' : 'Show Brand Logo Text on website header'}
+                      </label>
+                    </div>
+                  </div>
+
+                  {info.logoImage && (
+                    <div className="col-12">
+                      <div className="bg-light p-3 rounded-3 text-center border" style={{ maxWidth: '240px' }}>
+                        <div style={{ height: '60px', display: 'flex', alignItems: 'center', justifyContent: 'center' }} className="position-relative w-100">
+                          <img
+                            src={info.logoImage}
+                            alt="Brand Logo Preview"
+                            style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'contain' }}
+                          />
+                        </div>
+                        <div className="text-muted small mt-2">Brand Logo Preview</div>
+                      </div>
+                    </div>
+                  )}
                   <div className="col-12">
                     <label className="form-label text-muted small fw-semibold">Newsletter Subscription Subtitle Text</label>
                     <textarea

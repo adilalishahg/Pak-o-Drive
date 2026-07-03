@@ -6,6 +6,8 @@ export interface ISiteInfo {
   siteTagline: string;
   logoText: string;
   logoIcon: string;
+  logoImage: string;
+  showLogoImage: boolean;
   favicon: string;
   seoTitle: string;
   seoDescription: string;
@@ -48,6 +50,8 @@ const SiteInfoSchema = new Schema<ISiteInfoDocument>(
     siteTagline:    { type: String, default: "Pakistan's Trusted Electronics Store" },
     logoText:       { type: String, default: 'Electro' },
     logoIcon:       { type: String, default: 'shopping-bag' },
+    logoImage:      { type: String, default: '' },
+    showLogoImage:  { type: Boolean, default: false },
     favicon:        { type: String, default: '/favicon.ico' },
     seoTitle:       { type: String, default: 'PAKODRIVE Electronics — Best Electronics Store in Pakistan' },
     seoDescription: { type: String, default: "PAKODRIVE — Pakistan's trusted electronics store. Shop headphones, chargers, smartwatches, automotive electronics & more with free shipping and 30-day returns." },
