@@ -840,8 +840,6 @@ export function DynamicThemeProvider({ children, initialTheme }: ProviderProps) 
       {/* Preconnect to critical domains */}
       <link rel="preconnect" href="https://fonts.googleapis.com" />
       <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-      <link rel="preconnect" href="https://cdnjs.cloudflare.com" />
-      <link rel="preconnect" href="https://cdn.jsdelivr.net" />
 
       {/* Preload FontAwesome Webfonts only when FA is the active icon library */}
       {wantedLib === 'fontawesome' && (

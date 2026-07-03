@@ -3,6 +3,7 @@ import dbConnect from './mongodb';
 import SiteInfo from '../models/SiteInfo';
 import SiteSettings from '../models/SiteSettings';
 import Product from '../models/Product';
+import Category from '../models/Category';
 
 export async function getCachedSiteInfo() {
   'use cache';
@@ -52,6 +53,32 @@ export async function getCachedRelatedProducts(category: string, excludeId: stri
     return JSON.parse(JSON.stringify(relatedObj));
   } catch (err) {
     console.error('Error in getCachedRelatedProducts:', err);
+    return [];
+  }
+}
+
+export async function getCachedAllProducts() {
+  'use cache';
+  cacheLife('minutes');
+  try {
+    await dbConnect();
+    const list = await Product.find({}).sort({ createdAt: -1 }).lean();
+    return JSON.parse(JSON.stringify(list));
+  } catch (err) {
+    console.error('Error in getCachedAllProducts:', err);
+    return [];
+  }
+}
+
+export async function getCachedAllCategories() {
+  'use cache';
+  cacheLife('hours');
+  try {
+    await dbConnect();
+    const list = await Category.find({}).sort({ name: 1 }).lean();
+    return JSON.parse(JSON.stringify(list));
+  } catch (err) {
+    console.error('Error in getCachedAllCategories:', err);
     return [];
   }
 }

@@ -8,8 +8,16 @@ import './style.css';
 import './globals.css';
 import { CartProvider } from '../context/CartContext';
 import { LayoutWrapper } from '../components/layout/LayoutWrapper';
+import type { Viewport } from 'next';
 
 export const instant = false;
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
+  userScalable: true,
+};
 
 const inter = Inter({
   subsets: ['latin'],
