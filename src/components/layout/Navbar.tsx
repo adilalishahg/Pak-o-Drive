@@ -679,7 +679,7 @@ export const Navbar: React.FC = () => {
                     ? (isModernGreen ? 'linear-gradient(135deg,#d4af37,#b89324)' : (isCleanWhite ? `linear-gradient(135deg,${theme.primaryColor},color-mix(in srgb, ${theme.primaryColor} 80%, #000))` : 'linear-gradient(135deg,var(--pd-primary),#c2410c)'))
                     : (isModernGreen ? 'rgba(255,255,255,0.06)' : (isCleanWhite ? '#f8fafc' : '#f8fafc')),
                   border: cartCount > 0
-                    ? 'none'
+                    ? '1px solid transparent'
                     : (isModernGreen ? '1px solid rgba(255,255,255,0.15)' : (isCleanWhite ? '1px solid #e2e8f0' : '1px solid #e2e8f0')),
                   borderRadius: '8px', padding: '7px 12px', transition: 'all 0.2s', flexShrink: 0,
                 }}

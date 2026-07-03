@@ -237,7 +237,7 @@ export const NavbarClassic: React.FC = () => {
               style={{
                 display: 'flex', alignItems: 'center', gap: '7px', textDecoration: 'none',
                 background: cartCount > 0 ? 'linear-gradient(135deg,var(--bs-primary,#ea580c),#c2410c)' : '#f8fafc',
-                border: cartCount > 0 ? 'none' : '1px solid #e2e8f0',
+                border: cartCount > 0 ? '1px solid transparent' : '1px solid #e2e8f0',
                 borderRadius: '7px', padding: '6px 11px', transition: 'all 0.2s', flexShrink: 0,
               }}
             >
