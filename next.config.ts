@@ -3,8 +3,12 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   reactCompiler: true,
   cacheComponents: true,
+  compiler: {
+    removeConsole: process.env.NODE_ENV === 'production' ? { exclude: ['error', 'warn'] } : false,
+  },
   experimental: {
     inlineCss: true,
+    optimizePackageImports: ['canvas-confetti'],
   },
   images: {
     // Auto-serve WebP/AVIF to supported browsers — no raw JPEG/PNG hits mobile
