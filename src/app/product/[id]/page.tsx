@@ -167,11 +167,31 @@ async function ProductDetailContent({ id }: { id: string }) {
 
   const mainProductImg = product.image ? (product.image.startsWith('http') ? product.image : `${siteUrl}${product.image}`) : '';
 
+  const productPreloadUrls: string[] = [];
+  if (mainProductImg) {
+    if (mainProductImg.includes('res.cloudinary.com')) {
+      const uploadIndex = mainProductImg.indexOf('/upload/');
+      if (uploadIndex !== -1) {
+        const prefix = mainProductImg.substring(0, uploadIndex + 8);
+        let suffix = mainProductImg.substring(uploadIndex + 8);
+        suffix = suffix.replace(/^(?:[a-z_]+[,/])*(?:v\d+\/)?/, (match) => {
+          const versionMatch = match.match(/(v\d+\/)/);
+          return versionMatch ? versionMatch[1] : '';
+        });
+        productPreloadUrls.push(`${prefix}f_auto,q_70,w_390,c_limit/${suffix}`);
+        productPreloadUrls.push(`${prefix}f_auto,q_70,w_640,c_limit/${suffix}`);
+      }
+    } else {
+      productPreloadUrls.push(`/_next/image?url=${encodeURIComponent(mainProductImg)}&w=390&q=75`);
+      productPreloadUrls.push(`/_next/image?url=${encodeURIComponent(mainProductImg)}&w=640&q=75`);
+    }
+  }
+
   return (
     <>
-      {mainProductImg && (
-        <link rel="preload" as="image" href={mainProductImg} fetchPriority="high" />
-      )}
+      {productPreloadUrls.map((url, i) => (
+        <link key={i} rel="preload" as="image" href={url} fetchPriority="high" />
+      ))}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchema) }}
