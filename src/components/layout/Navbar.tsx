@@ -8,6 +8,7 @@ import { logInteraction } from '../common/AnalyticsTracker';
 import { useSiteInfo } from '../common/SiteInfoProvider';
 import { ThemeIcon } from '../common/ThemeIcon';
 import { useSiteTheme } from '../common/DynamicThemeProvider';
+import { OptimizedImage } from '../common/OptimizedImage';
 
 /* ── Category maps ─────────────────────────────────────────── */
 const CAT_ICONS: Record<string, string> = {
@@ -66,7 +67,7 @@ function CategoryMenuItem({ node, onClose, primaryColor }: { node: any; onClose:
           overflow: 'hidden', position: 'relative'
         }}>
           {node.image ? (
-            <img src={node.image} alt={node.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            <OptimizedImage src={node.image} alt={node.name} fill sizes="20px" style={{ objectFit: 'cover' }} />
           ) : (
             <i className={icon} style={{ fontSize: '12px', color }} />
           )}
