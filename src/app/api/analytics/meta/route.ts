@@ -41,12 +41,12 @@ function getConfidence(days: number): MetaAdResult['estimatedSalesConfidence'] {
 
 // ── GET Handler ──
 export async function GET(request: Request) {
-  try {
-    const { searchParams } = new URL(request.url);
-    const query = searchParams.get('q') || 'smartwatch';
-    const token = process.env.META_AD_LIBRARY_TOKEN;
-    const region = process.env.NEXT_PUBLIC_TARGET_REGION || 'PK';
+  const { searchParams } = new URL(request.url);
+  const query = searchParams.get('q') || 'smartwatch';
+  const region = process.env.NEXT_PUBLIC_TARGET_REGION || 'PK';
+  const token = process.env.META_AD_LIBRARY_TOKEN;
 
+  try {
     if (!token) {
       // Return demo/fallback data when no token is configured
       return NextResponse.json({
@@ -117,12 +117,12 @@ export async function GET(request: Request) {
   } catch (err: any) {
     console.error('Meta Ad Library route error:', err);
     return NextResponse.json({
-      success: false,
-      data: [],
-      query: '',
-      region: '',
-      error: err.message || 'Internal Server Error',
-    } satisfies MetaApiResponse, { status: 500 });
+      success: true,
+      data: generateFallbackData(query),
+      query,
+      region,
+      error: `Meta fetch failed (${err.message || 'Connection error'}) — showing simulated data.`,
+    } satisfies MetaApiResponse);
   }
 }
 
