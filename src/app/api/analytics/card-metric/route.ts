@@ -1,12 +1,12 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '../../../../lib/mongodb';
 import Order from '../../../../models/Order';
 import Analytics from '../../../../models/Analytics';
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   try {
     await dbConnect();
-    const { searchParams } = new URL(request.url);
+    const searchParams = request.nextUrl.searchParams;
     const type = searchParams.get('type') || 'revenue';
     const range = searchParams.get('range') || 'today';
 

@@ -63,6 +63,36 @@ export async function logInteraction(
         });
       }
     }
+    // Facebook Pixel interaction events tracking
+    if (typeof (window as any).fbq === 'function') {
+      if (type === 'add_to_cart') {
+        (window as any).fbq('track', 'AddToCart', {
+          content_name: metadata.product_name,
+          content_ids: [metadata.product_id],
+          content_type: 'product',
+          value: metadata.price,
+          currency: 'PKR'
+        });
+      } else if (type === 'begin_checkout') {
+        (window as any).fbq('track', 'InitiateCheckout', {
+          value: metadata.value,
+          currency: 'PKR',
+          num_items: metadata.num_items
+        });
+      } else if (type === 'search_intent') {
+        (window as any).fbq('track', 'Search', {
+          search_string: metadata.keyword
+        });
+      } else if (type === 'view_product') {
+        (window as any).fbq('track', 'ViewContent', {
+          content_name: metadata.product_name,
+          content_ids: [metadata.product_id],
+          content_type: 'product',
+          value: metadata.price,
+          currency: 'PKR'
+        });
+      }
+    }
   } catch (err) {
     console.error('[Analytics] logInteraction error:', err);
   }
@@ -77,6 +107,36 @@ function TrackerInner() {
   // 1. Session + UTM initialisation
   useEffect(() => {
     if (typeof window === 'undefined') return;
+
+    // Meta Pixel injection logic
+    const pixelId = process.env.NEXT_PUBLIC_META_PIXEL_ID;
+    const w = window as any;
+    if (pixelId && !w.fbq) {
+      w.fbq = function(...args: any[]) {
+        if (w.fbq.callMethod) {
+          w.fbq.callMethod.apply(w.fbq, args);
+        } else {
+          w.fbq.queue.push(args);
+        }
+      };
+      if (!w._fbq) w._fbq = w.fbq;
+      w.fbq.push = w.fbq;
+      w.fbq.loaded = true;
+      w.fbq.version = '2.0';
+      w.fbq.queue = [];
+      
+      const script = document.createElement('script');
+      script.async = true;
+      script.src = 'https://connect.facebook.net/en_US/fbevents.js';
+      const firstScript = document.getElementsByTagName('script')[0];
+      if (firstScript && firstScript.parentNode) {
+        firstScript.parentNode.insertBefore(script, firstScript);
+      } else {
+        document.head.appendChild(script);
+      }
+      
+      w.fbq('init', pixelId);
+    }
 
     // PostHog — init only once dynamically
     const phKey = process.env.NEXT_PUBLIC_POSTHOG_KEY;
@@ -145,6 +205,11 @@ function TrackerInner() {
         landing_page: sessionStorage.getItem('pako_landing_page') || fullPath,
       }),
     }).catch((err) => console.error('[Analytics] pageview error:', err));
+
+    // Meta PageView Tracking
+    if (typeof (window as any).fbq === 'function') {
+      (window as any).fbq('track', 'PageView');
+    }
 
     if (!sessionStorage.getItem('pako_landing_page')) {
       sessionStorage.setItem('pako_landing_page', fullPath);

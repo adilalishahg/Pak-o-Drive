@@ -45,10 +45,11 @@ const SITE_DESC =
   'PAKODRIVE — Pakistan\'s trusted electronics store. Shop headphones, chargers, smartwatches, automotive electronics & more with free shipping and 30-day returns.';
 
 export async function generateMetadata(): Promise<Metadata> {
-  const headersList = await headers();
-  const host = headersList.get('host') || 'pak-o-drive.vercel.app';
-  const proto = headersList.get('x-forwarded-proto') || 'https';
-  const activeSiteUrl = `${proto}://${host}`;
+  // Use the build-time env var instead of reading request headers at runtime.
+  // This keeps generateMetadata() fully static so Next.js can prerender /admin
+  // and other routes without the "runtime data in generateMetadata" error.
+  const activeSiteUrl =
+    process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '') || SITE_URL;
 
   let siteName = SITE_NAME;
   let defaultTitle = `${SITE_NAME} — Best Electronics Store in Pakistan`;

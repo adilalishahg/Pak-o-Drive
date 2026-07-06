@@ -2,7 +2,6 @@ import React, { Suspense } from 'react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
-import { headers } from 'next/headers';
 import { ProductCard } from '../../../components/product/ProductCard';
 import { ProductDetailInteractive } from '../../../components/product/ProductDetailInteractive';
 import { getCachedProduct, getCachedRelatedProducts, getCachedSiteInfo } from '../../../lib/cache';
@@ -16,10 +15,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     new Promise<null>((resolve) => setTimeout(() => resolve(null), 1500))
   ]);
 
-  const headersList = await headers();
-  const host = headersList.get('host') || 'pak-o-drive.vercel.app';
-  const proto = headersList.get('x-forwarded-proto') || 'https';
-  const siteUrl = `${proto}://${host}`;
+  // Use build-time env var instead of request headers — keeps generateMetadata static.
+  const siteUrl =
+    process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '') || 'https://pakodrive.com';
 
   let siteLogoText = 'PAKODRIVE';
   const siteInfo = await Promise.race([

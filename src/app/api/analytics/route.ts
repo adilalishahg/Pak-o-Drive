@@ -80,7 +80,9 @@ export async function GET(request: Request) {
       rawFeed,
       viewsTrendAgg,
       ordersTrendAgg,
-      topProductsAgg
+      topProductsAgg,
+      attributionCampaignsAggregation,
+      ordersByCampaign
     ] = await Promise.all([
       // Attribution visits & cart adds
       Analytics.aggregate([
@@ -312,6 +314,44 @@ export async function GET(request: Request) {
         },
         { $sort: { quantity: -1 } },
         { $limit: 5 }
+      ]),
+      // Campaign visits & cart adds
+      Analytics.aggregate([
+        matchStage,
+        { $match: { utm_campaign: { $exists: true, $ne: null } } },
+        {
+          $group: {
+            _id: {
+              utm_campaign: "$utm_campaign",
+              utm_source: { $ifNull: ["$utm_source", "ad"] },
+              session_id: "$session_id"
+            },
+            hasAddToCart: {
+              $max: { $cond: [{ $eq: ["$interactionType", "add_to_cart"] }, 1, 0] }
+            }
+          }
+        },
+        {
+          $group: {
+            _id: {
+              campaign: "$_id.utm_campaign",
+              source: "$_id.utm_source"
+            },
+            visits: { $sum: 1 },
+            add_to_carts: { $sum: "$hasAddToCart" }
+          }
+        }
+      ]),
+      // Orders by UTM Campaign
+      Order.aggregate([
+        { $match: { status: { $ne: 'Cancelled' }, utmCampaign: { $exists: true, $ne: null }, ...(orderDateFilter.createdAt ? { createdAt: orderDateFilter.createdAt } : {}) } },
+        {
+          $group: {
+            _id: "$utmCampaign",
+            purchases: { $sum: 1 },
+            revenue: { $sum: "$totalAmount" }
+          }
+        }
       ])
     ]);
 
@@ -327,6 +367,23 @@ export async function GET(request: Request) {
         purchases: orderStats.purchases,
         revenue: orderStats.revenue,
         roas: orderStats.revenue > 0 ? (orderStats.revenue / (channel.visits * 15)) : 0
+      };
+    });
+
+    // Merged visits & purchases for campaigns attribution summary
+    const campaignsTable = attributionCampaignsAggregation.map((camp: any) => {
+      const campaignName = camp._id.campaign;
+      const sourceName = camp._id.source;
+      const orderStats = ordersByCampaign.find((o: any) => o._id === campaignName) || { purchases: 0, revenue: 0 };
+      
+      return {
+        campaign: campaignName,
+        source: sourceName,
+        visits: camp.visits,
+        add_to_carts: camp.add_to_carts,
+        purchases: orderStats.purchases,
+        revenue: orderStats.revenue,
+        roas: orderStats.revenue > 0 ? (orderStats.revenue / (camp.visits * 15)) : 0
       };
     });
 
@@ -549,6 +606,7 @@ export async function GET(request: Request) {
           abandonedCartLeak
         },
         marketing: attributionTable,
+        campaigns: campaignsTable,
         topProducts: topProductsAgg,
         funnel: conversionFunnel,
         insights: {

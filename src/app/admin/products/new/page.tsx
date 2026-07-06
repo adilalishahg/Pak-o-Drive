@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -29,6 +29,90 @@ export default function AdminNewProductPage() {
 
   const [mainImageError, setMainImageError] = useState(false);
   const [galleryImageErrors, setGalleryImageErrors] = useState<Record<number, boolean>>({});
+
+  const [docxParsing, setDocxParsing] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
+  const docxInputRef = useRef<HTMLInputElement>(null);
+
+  const handleDocxUploadTrigger = () => {
+    docxInputRef.current?.click();
+  };
+
+  const handleDocxFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setDocxParsing(true);
+    setError('');
+    setSuccessMessage('');
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      const res = await fetch('/api/products/parse-document', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const json = await res.json();
+      if (json.success && json.data) {
+        const data = json.data;
+
+        if (data.name) setName(data.name);
+        if (data.description) setDescription(data.description);
+        if (data.price) setPrice(String(data.price));
+        if (data.originalPrice) setOriginalPrice(String(data.originalPrice));
+        if (data.stock) setStock(String(data.stock));
+
+        if (data.category) {
+          const matchedCategory = categories.find(
+            c => c.slug.toLowerCase() === data.category.toLowerCase() || 
+                 c.name.toLowerCase() === data.category.toLowerCase()
+          );
+          if (matchedCategory) {
+            setCategory(matchedCategory.slug);
+          } else {
+            const slugified = data.category.toLowerCase().replace(/\s+/g, '-');
+            const matchBySlug = categories.find(c => c.slug.toLowerCase() === slugified);
+            if (matchBySlug) {
+              setCategory(matchBySlug.slug);
+            } else {
+              setCategory(data.category);
+            }
+          }
+        }
+
+        if (data.image) setImage(data.image);
+        if (data.images && data.images.length > 0) setImages(data.images);
+
+        if (data.specifications && Object.keys(data.specifications).length > 0) {
+          const newSpecs = Object.entries(data.specifications).map(([key, value]) => ({
+            key,
+            value: String(value),
+          }));
+          setSpecs(newSpecs);
+        }
+
+        if (data.seoTitle) setSeoTitle(data.seoTitle);
+        if (data.seoDescription) setSeoDescription(data.seoDescription);
+        if (data.seoKeywords) setSeoKeywords(data.seoKeywords);
+
+        setSuccessMessage('Form populated successfully from DOCX file!');
+        setTimeout(() => setSuccessMessage(''), 5000);
+      } else {
+        throw new Error(json.error || 'Failed to parse DOCX file.');
+      }
+    } catch (err: any) {
+      console.error(err);
+      setError(err.message || 'Error processing DOCX file.');
+    } finally {
+      setDocxParsing(false);
+      if (docxInputRef.current) {
+        docxInputRef.current.value = '';
+      }
+    }
+  };
 
   interface VariantInput {
     name: string;
@@ -349,13 +433,47 @@ export default function AdminNewProductPage() {
   return (
     <div className="fade-in">
       <div className="card border-0 shadow-sm rounded-4 p-4 bg-white mb-4">
-        <div className="d-flex align-items-center justify-content-between">
+        <div className="d-flex align-items-center justify-content-between flex-wrap gap-3">
           <h5 className="fw-bold text-secondary mb-0">Create New Product</h5>
-          <Link href="/admin/products" className="btn btn-outline-secondary btn-sm rounded-pill px-3">
-            <i className="fas fa-arrow-left me-1.5" /> Back to List
-          </Link>
+          <div className="d-flex align-items-center gap-2">
+            <input
+              type="file"
+              ref={docxInputRef}
+              onChange={handleDocxFileChange}
+              accept=".docx"
+              style={{ display: 'none' }}
+            />
+            <button
+              type="button"
+              onClick={handleDocxUploadTrigger}
+              className="btn btn-primary btn-sm rounded-pill px-3 d-flex align-items-center gap-1.5"
+              disabled={docxParsing}
+            >
+              {docxParsing ? (
+                <>
+                  <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true" />
+                  <span>Parsing DOCX...</span>
+                </>
+              ) : (
+                <>
+                  <i className="fas fa-file-word" />
+                  <span>Fill Form by DOCX</span>
+                </>
+              )}
+            </button>
+            <Link href="/admin/products" className="btn btn-outline-secondary btn-sm rounded-pill px-3">
+              <i className="fas fa-arrow-left me-1.5" /> Back to List
+            </Link>
+          </div>
         </div>
       </div>
+
+      {successMessage && (
+        <div className="alert alert-success border-0 mb-4 shadow-sm" role="alert">
+          <i className="fas fa-check-circle me-2" />
+          {successMessage}
+        </div>
+      )}
 
       {error && (
         <div className="alert alert-danger border-0 mb-4" role="alert">

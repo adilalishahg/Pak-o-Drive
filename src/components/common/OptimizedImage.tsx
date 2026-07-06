@@ -77,11 +77,58 @@ export const OptimizedImage: React.FC<OptimizedImageProps> = ({
   loading = 'lazy',
   placeholder = 'blur',
   blurDataURL,
-  fallbackSrc = '/images/placeholder.png',
+  fallbackSrc = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIj48cmVjdCB3aWR0aD0iMTAwJSIgZmlsbD0iI2UzZTFlMSIvPjwvc3ZnPg==',
   onError,
   ...props
 }) => {
   const [hasError, setHasError] = React.useState(false);
+
+  // Parse and clean the source string to protect against stringified arrays, invalid formatting, etc.
+  const cleanImageSrc = (inputSrc: unknown): string => {
+    if (!inputSrc || typeof inputSrc !== 'string') {
+      return '';
+    }
+    let s = inputSrc.trim();
+    if (!s) return '';
+
+    // If it's a JSON-like stringified array, extract the first URL
+    if (s.startsWith('[') && s.endsWith(']')) {
+      try {
+        const parsed = JSON.parse(s);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          s = parsed[0];
+        }
+      } catch (e) {
+        // Fallback: regex to find the first image URL or path in the brackets
+        const match = s.match(/["']([^"']+)["']/);
+        if (match && match[1]) {
+          s = match[1];
+        } else {
+          // If regex fails, clean out brackets/quotes
+          s = s.replace(/[\[\]"']/g, '').split(',')[0].trim();
+        }
+      }
+    }
+
+    // Clean up wrapping quotes if present
+    s = s.replace(/^["']|["']$/g, '').trim();
+
+    // Ensure leading slash for relative paths
+    if (
+      s &&
+      !s.startsWith('/') &&
+      !s.startsWith('http://') &&
+      !s.startsWith('https://') &&
+      !s.startsWith('data:')
+    ) {
+      s = '/' + s;
+    }
+
+    return s;
+  };
+
+  const initialSrc = cleanImageSrc(src);
+  const finalSrc = hasError || !initialSrc ? cleanImageSrc(fallbackSrc) : initialSrc;
 
   // Reset error state if image source changes
   React.useEffect(() => {
@@ -94,8 +141,6 @@ export const OptimizedImage: React.FC<OptimizedImageProps> = ({
       onError(e);
     }
   };
-
-  const finalSrc = hasError ? fallbackSrc : (typeof src === 'string' ? src : '');
 
   // Determine standard responsive sizes string if not provided
   // Standard breakpoints: mobile (< 768px) -> 100vw, desktop (>= 768px) -> 50vw or custom

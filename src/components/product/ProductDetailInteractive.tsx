@@ -7,6 +7,7 @@ import { IProduct, IProductVariant } from '../../types';
 import { ProductImageGallery } from './ProductImageGallery';
 import { ProductActions } from './ProductActions';
 import { ProductViewLogger } from '../common/ProductViewLogger';
+import { MarkdownRenderer } from '../common/MarkdownRenderer';
 
 interface ProductDetailInteractiveProps {
   product: IProduct;
@@ -222,20 +223,16 @@ export const ProductDetailInteractive: React.FC<ProductDetailInteractiveProps> =
               </div>
             </div>
 
-            {/* Description */}
+            {/* Description — rendered as markdown */}
             {currentDescription && (
-              <p
+              <MarkdownRenderer
+                content={currentDescription}
                 style={{
-                  fontSize: '0.82rem',
-                  color: '#6b7280',
-                  lineHeight: 1.65,
-                  marginBottom: '16px',
                   borderTop: '1px solid #f0f0f0',
                   paddingTop: '12px',
+                  marginBottom: '16px',
                 }}
-              >
-                {currentDescription}
-              </p>
+              />
             )}
 
             {/* Actions */}
