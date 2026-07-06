@@ -79,11 +79,15 @@ export async function GET(request: Request) {
       // Exact engagement rate calculation: ((likes + comments + shares) / views) * 100
       const er = views > 0 ? parseFloat((((likes + comments + shares) / views) * 100).toFixed(2)) : 0;
 
+      const idVal = post.aweme_id || post.id || '';
+      const handleVal = post.author?.unique_id || post.author?.uniqueId || post.author?.nickname || 'tiktok_creator';
+      const webVideoUrl = idVal ? `https://www.tiktok.com/@${handleVal}/video/${idVal}` : (post.video?.play_addr?.url_list?.[0] || '');
+
       return {
-        id: post.aweme_id || post.id || Math.random().toString(),
-        creatorHandle: post.author?.unique_id || post.author?.uniqueId || post.author?.nickname || 'tiktok_creator',
+        id: idVal || Math.random().toString(),
+        creatorHandle: handleVal,
         creatorAvatar: post.author?.avatar_thumb?.url_list?.[0] || '',
-        videoUrl: post.video?.play_addr?.url_list?.[0] || '',
+        videoUrl: webVideoUrl,
         caption: post.desc || 'No caption available',
         viewsCount: views,
         likesCount: likes,

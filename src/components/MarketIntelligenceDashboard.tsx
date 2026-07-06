@@ -274,9 +274,21 @@ export default function MarketIntelligenceDashboard({ initialQuery = 'smartwatch
           </div>
 
           {metaError && (
-            <div className="alert alert-light border-warning text-warning d-flex gap-2 align-items-center py-2 px-3 rounded-3 text-[0.7rem] mb-0">
-              <AlertCircleIcon />
-              <span>{metaError}</span>
+            <div className="alert alert-light border-warning text-warning d-flex flex-column gap-2 py-2 px-3 rounded-3 text-[0.7rem] mb-0">
+              <div className="d-flex align-items-center gap-2">
+                <AlertCircleIcon />
+                <span>{metaError}</span>
+              </div>
+              <a
+                href={`https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=PK&q=${encodeURIComponent(query)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn btn-sm btn-outline-warning w-100 rounded-pill py-1 mt-1 font-bold text-center flex align-items-center justify-content-center gap-1.5"
+                style={{ fontSize: '0.68rem', fontWeight: 600 }}
+              >
+                <i className="fab fa-facebook-f" />
+                Search Public Meta Ad Library (No verification needed)
+              </a>
             </div>
           )}
 
@@ -470,6 +482,23 @@ export default function MarketIntelligenceDashboard({ initialQuery = 'smartwatch
                       </strong>
                     </div>
                   </div>
+
+                  {/* Watch Video link */}
+                  {post.videoUrl && (
+                    <div className="d-flex align-items-center justify-content-between p-2 bg-white rounded-3 border border-slate-200 border-opacity-40 mt-1">
+                      <span className="text-[11px] font-bold text-dark truncate pr-2">
+                        TikTok Creative Content
+                      </span>
+                      <a
+                        href={post.videoUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-[10px] font-black text-rose-600 uppercase tracking-wider hover:underline flex-shrink-0"
+                      >
+                        Watch Video
+                      </a>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
