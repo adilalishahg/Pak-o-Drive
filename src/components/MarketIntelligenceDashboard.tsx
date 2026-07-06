@@ -134,16 +134,23 @@ export default function MarketIntelligenceDashboard({ initialQuery = 'smartwatch
   const [metaError, setMetaError] = useState<string | null>(null);
   const [tiktokError, setTikTokError] = useState<string | null>(null);
 
+  // Pagination states
+  const [tiktokLoadingMore, setTiktokLoadingMore] = useState(false);
+  const [tiktokHasMore, setTiktokHasMore] = useState(true);
+  const [tiktokCursor, setTiktokCursor] = useState<string | number>('0');
+
   const fetchIntelligence = useCallback(async (searchQuery: string) => {
     if (!searchQuery.trim()) return;
     setLoading(true);
     setMetaError(null);
     setTikTokError(null);
+    setTiktokHasMore(true);
+    setTiktokCursor('0');
 
     try {
       const [metaRes, tiktokRes] = await Promise.all([
         fetch(`/api/analytics/meta?q=${encodeURIComponent(searchQuery)}`),
-        fetch(`/api/analytics/tiktok?q=${encodeURIComponent(searchQuery)}`),
+        fetch(`/api/analytics/tiktok?q=${encodeURIComponent(searchQuery)}&cursor=0`),
       ]);
 
       const metaJson = await metaRes.json();
@@ -160,6 +167,8 @@ export default function MarketIntelligenceDashboard({ initialQuery = 'smartwatch
 
       if (tiktokJson.success) {
         setTikTokPosts(tiktokJson.data || []);
+        setTiktokCursor(tiktokJson.nextCursor || '0');
+        setTiktokHasMore(tiktokJson.hasMore !== false);
         if (tiktokJson.error) {
           setTikTokError(tiktokJson.error);
         }
@@ -174,6 +183,32 @@ export default function MarketIntelligenceDashboard({ initialQuery = 'smartwatch
       setLoading(false);
     }
   }, []);
+
+  const fetchMoreTikTok = async () => {
+    if (tiktokLoadingMore || !tiktokHasMore) return;
+    setTiktokLoadingMore(true);
+    setTikTokError(null);
+    try {
+      const res = await fetch(`/api/analytics/tiktok?q=${encodeURIComponent(query)}&cursor=${tiktokCursor}`);
+      const json = await res.json();
+      if (json.success) {
+        const newPosts = json.data || [];
+        setTikTokPosts((prev) => [...prev, ...newPosts]);
+        setTiktokCursor(json.nextCursor || '0');
+        setTiktokHasMore(json.hasMore !== false && newPosts.length > 0);
+        if (json.error) {
+          setTikTokError(json.error);
+        }
+      } else {
+        setTikTokError(json.error || 'Failed to fetch more TikTok data');
+      }
+    } catch (err) {
+      console.error('Error loading more TikTok content:', err);
+      setTikTokError('Failed to load more TikTok creative posts.');
+    } finally {
+      setTiktokLoadingMore(false);
+    }
+  };
 
   useEffect(() => {
     fetchIntelligence(initialQuery);
@@ -501,6 +536,24 @@ export default function MarketIntelligenceDashboard({ initialQuery = 'smartwatch
                   )}
                 </div>
               ))}
+
+              {/* Load More Button */}
+              {tiktokHasMore && (
+                <div className="text-center pt-2 pb-1">
+                  <button
+                    type="button"
+                    disabled={tiktokLoadingMore}
+                    onClick={fetchMoreTikTok}
+                    className="btn btn-sm btn-outline-secondary rounded-pill px-4 py-1.5 font-bold"
+                    style={{ fontSize: '0.72rem', fontWeight: 600 }}
+                  >
+                    {tiktokLoadingMore ? (
+                      <span className="spinner-border spinner-border-sm me-1.5 animate-spin" role="status" aria-hidden="true" />
+                    ) : null}
+                    {tiktokLoadingMore ? 'Loading More...' : 'Load More Video Creative'}
+                  </button>
+                </div>
+              )}
             </div>
           ) : (
             <div className="p-5 bg-light rounded-4 text-center text-muted text-xs border border-dashed">

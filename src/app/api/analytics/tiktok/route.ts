@@ -19,6 +19,8 @@ interface TikTokApiResponse {
   data: TikTokPostResult[];
   query: string;
   error?: string;
+  nextCursor?: number | string;
+  hasMore?: boolean;
 }
 
 // ── GET Handler ──
@@ -26,6 +28,7 @@ export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const query = searchParams.get('q') || 'smartwatch';
+    const cursor = searchParams.get('cursor') || '0';
     const apiKey = process.env.RAPIDAPI_KEY;
 
     if (!apiKey) {
@@ -35,6 +38,8 @@ export async function GET(request: Request) {
         data: generateFallbackTikTokData(query),
         query,
         error: 'RAPIDAPI_KEY not configured — showing simulated data for demonstration.',
+        nextCursor: 0,
+        hasMore: false,
       } satisfies TikTokApiResponse);
     }
 
@@ -45,6 +50,7 @@ export async function GET(request: Request) {
     url.searchParams.set('keywords', query);
     url.searchParams.set('keyword', query); // Set both parameter formats to be safe
     url.searchParams.set('count', '10');
+    url.searchParams.set('cursor', cursor);
 
     const res = await fetch(url.toString(), {
       method: 'GET',
@@ -64,6 +70,8 @@ export async function GET(request: Request) {
         data: generateFallbackTikTokData(query),
         query,
         error: `TikTok API error: ${json?.message || json?.msg || 'Failed to fetch'} — showing simulated data.`,
+        nextCursor: 0,
+        hasMore: false,
       } satisfies TikTokApiResponse);
     }
 
@@ -101,6 +109,8 @@ export async function GET(request: Request) {
       success: true,
       data: posts,
       query,
+      nextCursor: json.cursor !== undefined ? json.cursor : 0,
+      hasMore: json.has_more !== undefined ? json.has_more : json.hasMore !== undefined ? json.hasMore : false,
     } satisfies TikTokApiResponse);
 
   } catch (err: any) {
