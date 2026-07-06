@@ -39,7 +39,7 @@ export async function GET(request: Request) {
     }
 
     const host = process.env.RAPIDAPI_HOST || 'tiktok-all-in-one-api.p.rapidapi.com';
-    const path = host.includes('tiktok-api23') ? '/api/feed/search' : '/api/v1/search/post';
+    const path = host.includes('tiktok-api23') ? '/api/search/video' : '/api/v1/search/post';
     const url = new URL(`https://${host}${path}`);
     
     url.searchParams.set('keywords', query);
@@ -68,7 +68,7 @@ export async function GET(request: Request) {
     }
 
     // Parse the API results (adapting for common TikTok search responses)
-    const items = json.itemList || json.data?.itemList || json.data?.posts || json.data || [];
+    const items = json.item_list || json.itemList || json.data?.itemList || json.data?.posts || json.data || [];
     const posts: TikTokPostResult[] = items.map((post: any) => {
       const statsObj = post.statistics || post.stats || {};
       const views = statsObj.play_count || statsObj.playCount || post.play_count || 1000;
