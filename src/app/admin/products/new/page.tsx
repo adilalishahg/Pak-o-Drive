@@ -6,6 +6,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useAdminUpload } from '../../../../context/AdminUploadContext';
 import { optimizeImageBeforeUpload } from '../../../../utils/imageOptimizer';
+import ProductSEOOptimizer from '../../../../components/product/ProductSEOOptimizer';
 
 export default function AdminNewProductPage() {
   const router = useRouter();
@@ -734,6 +735,28 @@ export default function AdminNewProductPage() {
 
           {/* Sidebar Settings */}
           <div className="col-12 col-lg-4">
+            {/* Optimization Suite Card */}
+            <ProductSEOOptimizer
+              name={name}
+              setName={setName}
+              description={description}
+              setDescription={setDescription}
+              price={price}
+              originalPrice={originalPrice}
+              image={image}
+              images={images}
+              video={video}
+              seoTitle={seoTitle}
+              setSeoTitle={setSeoTitle}
+              seoDescription={seoDescription}
+              setSeoDescription={setSeoDescription}
+              seoKeywords={seoKeywords}
+              setSeoKeywords={setSeoKeywords}
+              category={category}
+              specs={specs}
+              variants={variants}
+            />
+
             {/* Price & Stock Card */}
             <div className="card border-0 shadow-sm rounded-4 bg-white p-4 mb-4">
               <h6 className="fw-bold text-dark border-bottom pb-2 mb-3">Pricing & Inventory</h6>

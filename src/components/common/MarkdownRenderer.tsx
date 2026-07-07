@@ -15,7 +15,13 @@ interface MarkdownRendererProps {
  * Compatible with Next.js 16 Turbopack without any @swc/helpers issues.
  */
 function parseMarkdown(md: string): string {
-  const lines = md.split('\n');
+  // Preprocess: split inline headings and bullets into separate lines
+  const processed = md
+    .replace(/(?<=.)(#{1,6}\s+)/g, '\n$1')
+    .replace(/(?<=[\s.:;!?])([-*]\s+)/g, '\n$1')
+    .replace(/\n{3,}/g, '\n\n');
+
+  const lines = processed.split('\n');
   const output: string[] = [];
   let inUl = false;
   let inOl = false;

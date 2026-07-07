@@ -9,6 +9,19 @@ import { ProductActions } from './ProductActions';
 import { ProductViewLogger } from '../common/ProductViewLogger';
 import { MarkdownRenderer } from '../common/MarkdownRenderer';
 
+const cleanStorefrontDescription = (desc: string): string => {
+  if (!desc) return '';
+  return desc
+    .split('\n')
+    .filter(line => {
+      const lower = line.toLowerCase();
+      return !lower.includes('pov:') && !lower.includes('#tiktokmademebuyit') && !lower.includes('#unboxing') && !lower.includes('#viral') && !lower.includes('#trending');
+    })
+    .join('\n')
+    .replace(/#\w+/g, '')
+    .trim();
+};
+
 interface ProductDetailInteractiveProps {
   product: IProduct;
 }
@@ -226,7 +239,7 @@ export const ProductDetailInteractive: React.FC<ProductDetailInteractiveProps> =
             {/* Description — rendered as markdown */}
             {currentDescription && (
               <MarkdownRenderer
-                content={currentDescription}
+                content={cleanStorefrontDescription(currentDescription)}
                 style={{
                   borderTop: '1px solid #f0f0f0',
                   paddingTop: '12px',
