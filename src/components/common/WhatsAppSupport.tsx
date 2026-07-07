@@ -20,7 +20,8 @@ export const WhatsAppSupport: React.FC = () => {
     // Track WhatsApp support button click
     logInteraction('whatsapp_click', window.location.pathname);
 
-    const text = encodeURIComponent('Hi Pakodrive, I have an inquiry about your products.');
+    const url = typeof window !== 'undefined' ? window.location.href : '';
+    const text = encodeURIComponent(`Hi Pakodrive, I have an inquiry about your products.\n${url}`);
     window.open(`https://wa.me/${number.replace('+', '')}?text=${text}`, '_blank');
   };
 

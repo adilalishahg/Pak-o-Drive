@@ -6,6 +6,23 @@ import { ProductCard } from '../../../components/product/ProductCard';
 import { ProductDetailInteractive } from '../../../components/product/ProductDetailInteractive';
 import { getCachedProduct, getCachedRelatedProducts, getCachedSiteInfo } from '../../../lib/cache';
 
+import { headers } from 'next/headers';
+
+async function getDynamicSiteUrl() {
+  let activeSiteUrl = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '') || 'https://pakodrive.com';
+  try {
+    const headersList = await headers();
+    const host = headersList.get('host');
+    const proto = headersList.get('x-forwarded-proto') || 'https';
+    if (host) {
+      activeSiteUrl = `${proto}://${host}`;
+    }
+  } catch (e) {
+    // Ignore error at build time
+  }
+  return activeSiteUrl;
+}
+
 interface PageProps { params: Promise<{ id: string }> }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
@@ -15,9 +32,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     new Promise<null>((resolve) => setTimeout(() => resolve(null), 1500))
   ]);
 
-  // Use build-time env var instead of request headers — keeps generateMetadata static.
-  const siteUrl =
-    process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '') || 'https://pakodrive.com';
+  const siteUrl = await getDynamicSiteUrl();
 
   let siteLogoText = 'PAKODRIVE';
   const siteInfo = await Promise.race([
@@ -29,12 +44,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     siteLogoText = siteInfo.logoText as string;
   }
 
+  const fallbackImg = siteInfo?.logoImage 
+    ? (siteInfo.logoImage.startsWith('http') ? siteInfo.logoImage : `${siteUrl}${siteInfo.logoImage}`)
+    : `${siteUrl}/img/carousel-1.png`;
+
   if (!p) {
     const fallbackTitle = siteInfo?.seoTitle || `Order Online | ${siteLogoText}`;
     const fallbackDesc = siteInfo?.seoDescription || "Shop headphones, chargers, smartwatches & more on PAKODRIVE.";
-    const fallbackImg = siteInfo?.logoImage 
-      ? (siteInfo.logoImage.startsWith('http') ? siteInfo.logoImage : `${siteUrl}${siteInfo.logoImage}`)
-      : `${siteUrl}/img/carousel-1.png`;
 
     return {
       title: fallbackTitle,
@@ -52,9 +68,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const metaDesc = p.seoDescription || String(p.description || '').substring(0, 160);
   const keywords = p.seoKeywords ? p.seoKeywords.split(',').map((k: string) => k.trim()).filter(Boolean) : undefined;
   const productUrl = `${siteUrl}/product/${id}`;
+  
   let imageUrl = p.image
     ? (p.image.startsWith('http') ? p.image : `${siteUrl}${p.image}`)
-    : '';
+    : fallbackImg;
 
   if (imageUrl.includes('res.cloudinary.com')) {
     if (imageUrl.endsWith('.webp')) {

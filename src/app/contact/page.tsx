@@ -83,7 +83,8 @@ export default function ContactPage() {
   };
 
   const handleWhatsAppChat = () => {
-    const text = encodeURIComponent('Hi Pakodrive, I have an inquiry about products/support.');
+    const url = typeof window !== 'undefined' ? window.location.href : '';
+    const text = encodeURIComponent(`Hi Pakodrive, I have an inquiry about products/support.\n${url}`);
     window.open(`https://wa.me/${whatsappNumber.replace('+', '')}?text=${text}`, '_blank');
   };
 

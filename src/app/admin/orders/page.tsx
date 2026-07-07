@@ -594,7 +594,7 @@ export default function AdminOrdersPage() {
                         <div className="d-flex gap-1.5 justify-content-center">
                           <a
                             href={`https://wa.me/${order.customerDetails.phone.replace('+', '')}?text=${encodeURIComponent(
-                              `Hi ${order.customerDetails.name}, your order #${orderIdShort} status has been updated to "${order.status === 'Processing' ? 'Confirmed' : order.status}".`
+                              `Hi ${order.customerDetails.name}, your order #${orderIdShort} status has been updated to "${order.status === 'Processing' ? 'Confirmed' : order.status}".\nView order details: ${typeof window !== 'undefined' ? window.location.origin : 'https://pakodrive.com'}/order-confirmation/${order._id}`
                             )}`}
                             target="_blank"
                             className="btn btn-xs btn-success rounded-circle d-flex align-items-center justify-content-center text-white"
@@ -674,7 +674,7 @@ export default function AdminOrdersPage() {
                     <div className="d-flex gap-2">
                       <a
                         href={`https://wa.me/${order.customerDetails.phone.replace('+', '')}?text=${encodeURIComponent(
-                          `Hi ${order.customerDetails.name}, please verify your order #${orderIdShort} with PAKODRIVE. Thank you!`
+                          `Hi ${order.customerDetails.name}, please verify your order #${orderIdShort} with PAKODRIVE. Thank you!\nOrder details: ${typeof window !== 'undefined' ? window.location.origin : 'https://pakodrive.com'}/order-confirmation/${order._id}`
                         )}`}
                         target="_blank"
                         className="btn btn-sm btn-success border-0 text-white rounded-pill px-3"

@@ -1198,7 +1198,7 @@ export default function AdminAnalyticsDashboard() {
                         <div className="d-flex gap-1">
                           <a
                             href={`https://wa.me/${order.customerDetails.phone.replace('+', '')}?text=${encodeURIComponent(
-                              `Hi ${order.customerDetails.name}, your order #${orderIdShort} has been verified and is ready for dispatch! Thank you for shopping with PAKODRIVE.`
+                              `Hi ${order.customerDetails.name}, your order #${orderIdShort} has been verified and is ready for dispatch! Thank you for shopping with PAKODRIVE.\nOrder details: ${typeof window !== 'undefined' ? window.location.origin : 'https://pakodrive.com'}/order-confirmation/${order._id}`
                             )}`}
                             target="_blank"
                             className="btn btn-sm btn-success border-0 rounded-pill d-flex align-items-center gap-1 text-white"
