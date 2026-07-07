@@ -174,6 +174,7 @@ export default function AdminAnalyticsDashboard() {
   const [error, setError] = useState('');
   const [mounted, setMounted] = useState(false);
   const [range, setRange] = useState('7days');
+  const [activeSection, setActiveSection] = useState<'overview' | 'engagement' | 'marketing' | 'logistics' | 'trends'>('overview');
   const [activeLogisticsTab, setActiveLogisticsTab] = useState<'orders' | 'dispatch' | 'bookings' | 'performance'>('orders');
   const [showBookingModal, setShowBookingModal] = useState(false);
   const [selectedBookingOrder, setSelectedBookingOrder] = useState<string | null>(null);
@@ -362,6 +363,13 @@ export default function AdminAnalyticsDashboard() {
           background-color: #e2e8f0;
           border-radius: 6px;
         }
+        .scrollbar-none::-webkit-scrollbar {
+          display: none !important;
+        }
+        .scrollbar-none {
+          -ms-overflow-style: none !important;
+          scrollbar-width: none !important;
+        }
       `}} />
 
       {/* ── Header ── */}
@@ -389,11 +397,55 @@ export default function AdminAnalyticsDashboard() {
         </div>
       </Card>
 
+      {/* ── Tabs Bar ── */}
+      <div 
+        className="d-flex overflow-x-auto gap-2 pb-2 mb-3 scrollbar-none" 
+        style={{ 
+          scrollbarWidth: 'none', 
+          msOverflowStyle: 'none',
+          borderBottom: '1px solid #e2e8f0',
+          position: 'sticky',
+          top: '0',
+          background: '#fff',
+          zIndex: 10,
+          paddingTop: '8px',
+          paddingBottom: '8px',
+          margin: '0 -2px'
+        }}
+      >
+        {[
+          { id: 'overview',   label: 'Overview',      icon: 'fa-chart-pie' },
+          { id: 'engagement', label: 'Audience & Engagement', icon: 'fa-users' },
+          { id: 'marketing',  label: 'Marketing & Conversion', icon: 'fa-funnel-dollar' },
+          { id: 'logistics',  label: 'Orders & Logistics', icon: 'fa-shipping-fast' },
+          { id: 'trends',     label: 'Market Intel & AI',  icon: 'fa-brain' }
+        ].map(tab => (
+          <button
+            key={tab.id}
+            type="button"
+            onClick={() => setActiveSection(tab.id as any)}
+            className="btn btn-sm rounded-pill px-3 py-1.5 border d-flex align-items-center gap-2 fw-bold transition-all"
+            style={{
+              fontSize: '0.78rem',
+              whiteSpace: 'nowrap',
+              background: activeSection === tab.id ? 'linear-gradient(to right, #ea580c, #f97316)' : '#fff',
+              color: activeSection === tab.id ? '#fff' : '#64748b',
+              borderColor: activeSection === tab.id ? 'transparent' : '#e2e8f0',
+              boxShadow: activeSection === tab.id ? '0 2px 4px rgba(234,88,12,0.15)' : 'none'
+            }}
+          >
+            <i className={`fas ${tab.icon}`} />
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      <div className={activeSection === 'overview' ? '' : 'd-none'}>
       {/* ── 9 KPI Cards ── */}
       <div className="row g-2 mb-3">
         {isPageLoading ? (
           [...Array(9)].map((_, i) => (
-            <div key={i} className="col-12 col-sm-6 col-md-4 col-lg-3">
+            <div key={i} className="col-6 col-sm-6 col-md-4 col-lg-3">
               <div className="bg-white rounded-4 border p-3 mb-2 skeleton-pulse" style={{ borderColor: '#f1f5f9', minHeight: '84px' }}>
                 <div className="d-flex align-items-center justify-content-between mb-2">
                   <div className="skeleton-block" style={{ height: '12px', width: '90px' }} />
@@ -405,7 +457,7 @@ export default function AdminAnalyticsDashboard() {
           ))
         ) : (
           kpisConfig.map((k, i) => (
-            <div key={i} className="col-12 col-sm-6 col-md-4 col-lg-3">
+            <div key={i} className="col-6 col-sm-6 col-md-4 col-lg-3">
               <MetricCard
                 title={k.t}
                 metricType={k.type}
@@ -475,7 +527,9 @@ export default function AdminAnalyticsDashboard() {
           </Card>
         </div>
       </div>
+      </div>
 
+      <div className={activeSection === 'engagement' ? '' : 'd-none'}>
       {/* ── Engagement Stats + Categories + Searches ── */}
       <div className="row g-3 mb-3">
         {/* Engagement */}
@@ -680,7 +734,9 @@ export default function AdminAnalyticsDashboard() {
           </Card>
         </div>
       </div>
+      </div>
 
+      <div className={activeSection === 'marketing' ? '' : 'd-none'}>
       {/* ── Marketing Attribution & Top Selling Products ── */}
       <div className="row g-3 mb-3">
         {/* Marketing Attribution */}
@@ -991,15 +1047,17 @@ export default function AdminAnalyticsDashboard() {
           </div>
         </Card>
       )}
+      </div>
 
+      <div className={activeSection === 'logistics' ? '' : 'd-none'}>
       {/* ── Orders & Logistics Section ── */}
       <div className="row g-3 mb-3">
         {/* Left column: Tabs & Lists */}
         <div className="col-12 col-xl-8">
           <Card className="h-100 mb-0">
-            <div className="d-flex align-items-center justify-content-between border-bottom pb-2 mb-3">
+            <div className="d-flex flex-column flex-sm-row align-items-start align-items-sm-center justify-content-between gap-2 border-bottom pb-2 mb-3">
               <Ttl>Orders & Logistics</Ttl>
-              <div className="d-flex gap-1 flex-wrap justify-content-end">
+              <div className="d-flex gap-1 overflow-x-auto pb-1 scrollbar-none flex-nowrap w-100 justify-content-start justify-content-sm-end" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
                 {(['orders', 'dispatch', 'bookings', 'performance'] as const).map((tab) => (
                   <button
                     key={tab}
@@ -1375,7 +1433,9 @@ export default function AdminAnalyticsDashboard() {
           )) : <p className="text-muted text-center py-3" style={{ fontSize: '0.75rem' }}>No activity yet.</p>}
         </div>
       </Card>
+      </div>
 
+      <div className={activeSection === 'trends' ? '' : 'd-none'}>
       {/* ── AI Marketing Co-Pilot & Ad Campaign Advisor ── */}
       <Card>
         <div className="d-flex align-items-center gap-2 border-bottom pb-2 mb-3">
@@ -1619,7 +1679,7 @@ export default function AdminAnalyticsDashboard() {
         </div>
 
         {/* Current Target Indicator */}
-        <div className="alert alert-light border d-flex align-items-center gap-2 py-2 px-3 mb-3 rounded-3" style={{ fontSize: '0.75rem' }}>
+        <div className="alert alert-light border d-flex flex-wrap align-items-center gap-1.5 py-2 px-3 mb-3 rounded-3" style={{ fontSize: '0.75rem' }}>
           <i className="fas fa-chart-line text-primary" />
           <span className="text-muted">Analyzing Trends for:</span>
           <strong className="text-dark">"{trendsKeyword}"</strong>
@@ -1699,6 +1759,7 @@ export default function AdminAnalyticsDashboard() {
 
       {/* ── Market Intelligence & Ad Finder ── */}
       <MarketIntelligenceDashboard key={trendsKeyword} initialQuery={trendsKeyword} />
+      </div>
 
 
       {/* Courier Booking Modal */}

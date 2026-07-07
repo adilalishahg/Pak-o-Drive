@@ -278,7 +278,7 @@ export default function MarketIntelligenceDashboard({ initialQuery = 'smartwatch
       </div>
 
       {/* Target Status Indicator */}
-      <div className="alert alert-light border d-flex align-items-center gap-2 py-2 px-3 mb-3 rounded-3 text-[0.75rem]">
+      <div className="alert alert-light border d-flex flex-wrap align-items-center gap-1.5 py-2 px-3 mb-3 rounded-3 text-[0.75rem]">
         <i className="fas fa-chart-line text-primary" />
         <span className="text-muted">Analyzing Ads & Viral Content for:</span>
         <strong className="text-dark">"{query}"</strong>
@@ -310,9 +310,9 @@ export default function MarketIntelligenceDashboard({ initialQuery = 'smartwatch
 
           {metaError && (
             <div className="alert alert-light border-warning text-warning d-flex flex-column gap-2 py-2 px-3 rounded-3 text-[0.7rem] mb-0">
-              <div className="d-flex align-items-center gap-2">
+              <div className="d-flex align-items-start gap-2">
                 <AlertCircleIcon />
-                <span>{metaError}</span>
+                <span className="flex-grow-1" style={{ wordBreak: 'break-word' }}>{metaError}</span>
               </div>
               <a
                 href={`https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=PK&q=${encodeURIComponent(query)}`}
