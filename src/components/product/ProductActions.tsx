@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useCart } from '../../context/CartContext';
+import { useWishlist } from '../../context/WishlistContext';
 import { IProduct, IProductVariant } from '../../types';
 
 interface ProductActionsProps {
@@ -12,6 +13,7 @@ interface ProductActionsProps {
 
 export const ProductActions: React.FC<ProductActionsProps> = ({ product, selectedVariant }) => {
   const { addToCart, cartCount } = useCart();
+  const { toggleWishlist, isInWishlist } = useWishlist();
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
   const whatsappNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '+923001234567';
@@ -96,6 +98,29 @@ export const ProductActions: React.FC<ProductActionsProps> = ({ product, selecte
           }}>
           <i className="fab fa-whatsapp" style={{ fontSize: '1.1rem' }} />
           Order via WhatsApp
+        </button>
+
+        {/* Wishlist Toggle Button */}
+        <button onClick={() => toggleWishlist(product._id || '')}
+          style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+            border: '1.5px solid #e5e7eb', borderRadius: '8px', padding: '12px 20px',
+            fontSize: '0.88rem', fontWeight: 700, width: '100%', cursor: 'pointer',
+            background: '#fff', color: isInWishlist(product._id || '') ? '#ef4444' : '#4b5563',
+            transition: 'all 0.2s',
+            outline: 'none',
+          }}
+          onMouseEnter={e => {
+            (e.currentTarget as HTMLButtonElement).style.borderColor = isInWishlist(product._id || '') ? '#fca5a5' : '#d1d5db';
+            (e.currentTarget as HTMLButtonElement).style.background = '#f9fafb';
+          }}
+          onMouseLeave={e => {
+            (e.currentTarget as HTMLButtonElement).style.borderColor = '#e5e7eb';
+            (e.currentTarget as HTMLButtonElement).style.background = '#fff';
+          }}
+        >
+          <i className={isInWishlist(product._id || '') ? 'fas fa-heart' : 'far fa-heart'} style={{ fontSize: '1rem' }} />
+          {isInWishlist(product._id || '') ? 'Remove from Wishlist' : 'Add to Wishlist'}
         </button>
 
         {cartCount > 0 && (

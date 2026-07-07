@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { OptimizedImage } from '../common/OptimizedImage';
 import { useRouter } from 'next/navigation';
 import { useCart } from '../../context/CartContext';
+import { useWishlist } from '../../context/WishlistContext';
 import { IProduct } from '../../types';
 import { useSiteTheme } from '../common/DynamicThemeProvider';
 
@@ -12,6 +13,7 @@ interface Props { product: IProduct; priority?: boolean; }
 
 export const ProductCardClassic: React.FC<Props> = ({ product, priority }) => {
   const { addToCart, cartCount } = useCart();
+  const { toggleWishlist, isInWishlist } = useWishlist();
   const router = useRouter();
   const [adding, setAdding] = useState(false);
   const [imgSrc, setImgSrc] = useState(product.image || '/img/product-placeholder.png');
@@ -75,6 +77,29 @@ export const ProductCardClassic: React.FC<Props> = ({ product, priority }) => {
           if (img) img.style.transform = 'scale(1)';
         }}
       >
+        {/* Wishlist toggle */}
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            toggleWishlist(id);
+          }}
+          style={{
+            position: 'absolute', top: '10px', right: '10px', zIndex: 10,
+            background: 'rgba(255,255,255,0.9)', border: 'none',
+            borderRadius: '50%', width: '28px', height: '28px',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            cursor: 'pointer', boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+            color: isInWishlist(id) ? '#dc2626' : '#9ca3af',
+            transition: 'all 0.2s',
+            outline: 'none',
+          }}
+          onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1.1)'; }}
+          onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1)'; }}
+          aria-label="Toggle Wishlist"
+        >
+          <i className={isInWishlist(id) ? 'fas fa-heart' : 'far fa-heart'} style={{ fontSize: '12px' }} />
+        </button>
+
         {product.video ? (
           <video
             src={product.video}

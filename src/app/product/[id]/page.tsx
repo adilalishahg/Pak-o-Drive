@@ -6,21 +6,11 @@ import { ProductCard } from '../../../components/product/ProductCard';
 import { ProductDetailInteractive } from '../../../components/product/ProductDetailInteractive';
 import { getCachedProduct, getCachedRelatedProducts, getCachedSiteInfo } from '../../../lib/cache';
 
-import { headers } from 'next/headers';
-
-async function getDynamicSiteUrl() {
-  let activeSiteUrl = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '') || 'https://pakodrive.com';
-  try {
-    const headersList = await headers();
-    const host = headersList.get('host');
-    const proto = headersList.get('x-forwarded-proto') || 'https';
-    if (host) {
-      activeSiteUrl = `${proto}://${host}`;
-    }
-  } catch (e) {
-    // Ignore error at build time
+function getStaticSiteUrl() {
+  if (process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL}`;
   }
-  return activeSiteUrl;
+  return process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '') || 'https://pakodrive.com';
 }
 
 interface PageProps { params: Promise<{ id: string }> }
@@ -32,7 +22,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     new Promise<null>((resolve) => setTimeout(() => resolve(null), 1500))
   ]);
 
-  const siteUrl = await getDynamicSiteUrl();
+  const siteUrl = getStaticSiteUrl();
 
   let siteLogoText = 'PAKODRIVE';
   const siteInfo = await Promise.race([

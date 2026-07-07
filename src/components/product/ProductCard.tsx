@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { OptimizedImage } from '../common/OptimizedImage';
 import { useRouter } from 'next/navigation';
 import { useCart } from '../../context/CartContext';
+import { useWishlist } from '../../context/WishlistContext';
 import { IProduct } from '../../types';
 import { useSiteTheme } from '../common/DynamicThemeProvider';
 
@@ -15,6 +16,7 @@ interface ProductCardProps {
 
 export const ProductCard: React.FC<ProductCardProps> = ({ product, priority }) => {
   const { addToCart, cartCount } = useCart();
+  const { toggleWishlist, isInWishlist } = useWishlist();
   const router = useRouter();
   const [adding, setAdding] = useState(false);
   const [imgSrc, setImgSrc] = useState(product.image || '/img/product-placeholder.png');
@@ -54,6 +56,19 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, priority }) =
         ) : null}
 
         <div className="aspect-square w-full bg-slate-50 rounded-lg sm:rounded-xl overflow-hidden mb-2 sm:mb-4 flex items-center justify-center p-1.5 sm:p-2 relative">
+          {/* Wishlist toggle */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              toggleWishlist(formattedId);
+            }}
+            className="absolute top-2 right-2 sm:top-3 sm:right-3 bg-white bg-opacity-90 hover:bg-white hover:scale-110 shadow-sm rounded-full w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center transition-all z-10 border-0"
+            style={{ border: 'none', outline: 'none' }}
+            aria-label="Toggle Wishlist"
+          >
+            <i className={`${isInWishlist(formattedId) ? 'fas fa-heart text-red-500' : 'far fa-heart text-slate-400'} text-[11px] sm:text-xs`} />
+          </button>
+
           {product.video ? (
             <video
               src={product.video}
@@ -165,6 +180,29 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, priority }) =
         background: '#f5f5f5',
         flexShrink: 0,
       }}>
+        {/* Wishlist toggle */}
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            toggleWishlist(formattedId);
+          }}
+          style={{
+            position: 'absolute', top: '8px', right: '8px', zIndex: 10,
+            background: 'rgba(255,255,255,0.9)', border: 'none',
+            borderRadius: '50%', width: '28px', height: '28px',
+            display: 'flex', alignItems: 'center', justify: 'center',
+            cursor: 'pointer', boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+            color: isInWishlist(formattedId) ? '#dc2626' : '#9ca3af',
+            transition: 'all 0.2s',
+            outline: 'none',
+          }}
+          onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1.1)'; }}
+          onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1)'; }}
+          aria-label="Toggle Wishlist"
+        >
+          <i className={isInWishlist(formattedId) ? 'fas fa-heart' : 'far fa-heart'} />
+        </button>
+
         {product.video ? (
           <video
             src={product.video}

@@ -48,8 +48,9 @@ export async function generateMetadata(): Promise<Metadata> {
   // Use the build-time env var instead of reading request headers at runtime.
   // This keeps generateMetadata() fully static so Next.js can prerender /admin
   // and other routes without the "runtime data in generateMetadata" error.
-  const activeSiteUrl =
-    process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '') || SITE_URL;
+  const activeSiteUrl = process.env.VERCEL_URL
+    ? `https://${process.env.VERCEL_URL}`
+    : (process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '') || SITE_URL);
 
   let siteName = SITE_NAME;
   let defaultTitle = `${SITE_NAME} — Best Electronics Store in Pakistan`;
@@ -147,6 +148,8 @@ export async function generateMetadata(): Promise<Metadata> {
     },
   };
 }
+
+import { WishlistProvider } from '../context/WishlistContext';
 
 export default async function RootLayout({
   children,
@@ -256,24 +259,26 @@ export default async function RootLayout({
       <body suppressHydrationWarning>
         <DynamicThemeProvider initialTheme={initialTheme}>
           <SiteInfoProvider initialInfo={initialSiteInfo}>
-            <CartProvider>
-              <AnalyticsTracker />
-              <WebVitals />
-              {isAdmin ? (
-                children
-              ) : (
-                <LayoutWrapper>
-                  {children}
-                </LayoutWrapper>
-              )}
-              <TemplateScripts />
-              {process.env.NODE_ENV === 'production' && (
-                <>
-                  <Analytics />
-                  <SpeedInsights />
-                </>
-              )}
-            </CartProvider>
+            <WishlistProvider>
+              <CartProvider>
+                <AnalyticsTracker />
+                <WebVitals />
+                {isAdmin ? (
+                  children
+                ) : (
+                  <LayoutWrapper>
+                    {children}
+                  </LayoutWrapper>
+                )}
+                <TemplateScripts />
+                {process.env.NODE_ENV === 'production' && (
+                  <>
+                    <Analytics />
+                    <SpeedInsights />
+                  </>
+                )}
+              </CartProvider>
+            </WishlistProvider>
           </SiteInfoProvider>
         </DynamicThemeProvider>
       </body>

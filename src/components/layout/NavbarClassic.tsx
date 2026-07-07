@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useCart } from '../../context/CartContext';
+import { useWishlist } from '../../context/WishlistContext';
 import { useSiteInfo } from '../common/SiteInfoProvider';
 import { ThemeIcon } from '../common/ThemeIcon';
 
@@ -19,6 +20,7 @@ export const NavbarClassic: React.FC = () => {
   const pathname = usePathname();
   const router = useRouter();
   const { cartCount, cartTotal } = useCart();
+  const { wishlistCount } = useWishlist();
   const { info } = useSiteInfo();
 
   const [cats, setCats] = useState(DEFAULT_CATS);
@@ -228,7 +230,7 @@ export const NavbarClassic: React.FC = () => {
           {/* Icons — cart, wishlist */}
           <div className="d-flex align-items-center gap-2 ms-auto flex-shrink-0">
             {/* Wishlist */}
-            <Link href="/shop" aria-label="Wishlist"
+            <Link href="/wishlist" aria-label="Wishlist"
               className="d-none d-lg-flex"
               style={{
                 width: '34px', height: '34px', borderRadius: '7px',
@@ -239,7 +241,17 @@ export const NavbarClassic: React.FC = () => {
               onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.borderColor = 'var(--bs-primary, #ea580c)'; (e.currentTarget as HTMLAnchorElement).style.color = 'var(--bs-primary, #ea580c)'; }}
               onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.borderColor = '#e2e8f0'; (e.currentTarget as HTMLAnchorElement).style.color = '#64748b'; }}
             >
-              <i className="fas fa-heart" style={{ fontSize: '13px' }} />
+              <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <i className="fas fa-heart" style={{ fontSize: '13px', color: wishlistCount > 0 ? '#ef4444' : 'inherit' }} />
+                {wishlistCount > 0 && (
+                  <span style={{
+                    position: 'absolute', top: '-8px', right: '-8px',
+                    background: '#ef4444', color: '#fff',
+                    borderRadius: '10px', fontSize: '9px', fontWeight: 800,
+                    padding: '1px 5px', lineHeight: 1.5
+                  }}>{wishlistCount}</span>
+                )}
+              </div>
             </Link>
 
             {/* Cart */}

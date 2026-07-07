@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useCart } from '../../context/CartContext';
+import { useWishlist } from '../../context/WishlistContext';
 import { logInteraction } from '../common/AnalyticsTracker';
 import { useSiteInfo } from '../common/SiteInfoProvider';
 import { ThemeIcon } from '../common/ThemeIcon';
@@ -137,6 +138,7 @@ export const Navbar: React.FC = () => {
   const pathname = usePathname();
   const router = useRouter();
   const { cartCount, cartTotal } = useCart();
+  const { wishlistCount } = useWishlist();
   const { info } = useSiteInfo();
   const { theme } = useSiteTheme();
   const isModernGreen = theme.layoutTheme === 'modern-green';
@@ -672,7 +674,7 @@ export const Navbar: React.FC = () => {
             <div className="d-flex align-items-center gap-2 ms-auto flex-shrink-0">
 
               {/* Wishlist */}
-              <Link href="/shop" aria-label="Wishlist" className="d-flex"
+              <Link href="/wishlist" aria-label="Wishlist" className="d-flex"
                 style={{
                   width: '36px', height: '36px', borderRadius: '8px',
                   background: isModernGreen ? 'rgba(255,255,255,0.05)' : (isCleanWhite ? '#f8fafc' : '#f8fafc'),
@@ -688,7 +690,17 @@ export const Navbar: React.FC = () => {
                   (e.currentTarget as HTMLAnchorElement).style.borderColor = isModernGreen ? 'rgba(255,255,255,0.15)' : (isCleanWhite ? '#e2e8f0' : '#e2e8f0');
                   (e.currentTarget as HTMLAnchorElement).style.color = isModernGreen ? '#eae7db' : (isCleanWhite ? '#64748b' : '#64748b');
                 }}>
-                <i className="fas fa-heart" style={{ fontSize: '14px' }} />
+                <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <i className="fas fa-heart" style={{ fontSize: '14px', color: wishlistCount > 0 ? '#ef4444' : 'inherit' }} />
+                  {wishlistCount > 0 && (
+                    <span style={{
+                      position: 'absolute', top: '-8px', right: '-8px',
+                      background: '#ef4444', color: '#fff',
+                      borderRadius: '10px', fontSize: '9px', fontWeight: 800,
+                      padding: '1px 5px', lineHeight: 1.5
+                    }}>{wishlistCount}</span>
+                  )}
+                </div>
               </Link>
 
               {/* Cart */}
