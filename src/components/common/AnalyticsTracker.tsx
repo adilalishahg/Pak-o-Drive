@@ -11,6 +11,8 @@ export async function logInteraction(
   type:
     | 'view_product'
     | 'add_to_cart'
+    | 'add_to_wishlist'
+    | 'remove_from_wishlist'
     | 'search_intent'
     | 'scroll_depth'
     | 'checkout_abandonment'
