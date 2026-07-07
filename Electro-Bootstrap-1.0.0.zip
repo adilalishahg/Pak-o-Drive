@@ -1,0 +1,106 @@
+# Social Ads Campaign & Monitoring Master Guide (High ROI, Low Cost)
+
+This guide outlines the step-by-step workflow to launch, optimize, and track Facebook, Instagram, and TikTok ad campaigns for your e-commerce store with the absolute minimum budget and maximum conversion rate, tailored specifically for the Pakistani market.
+
+---
+
+## ── Flowchart: Research-to-Monitor Lifecycle ──
+
+```mermaid
+graph TD
+    A[1. Research Keywords & Geo] -->|Google Trends| B[2. Spying on Winning Ads]
+    B -->|AI Ads Finder| C[3. Optimize Product Page]
+    C -->|Listing Optimizer Suite| D[4. Create UTM Campaign Links]
+    D -->|Targeted Settings| E[5. Launch Budget Ads]
+    E -->|Real-Time Clicks / Sales| F[6. Monitor in Admin Dashboard]
+    F -->|Optimize ROAS| A
+```
+
+---
+
+## ── Phase 1: Budget-Saving Research & Competitor Spying ──
+
+Before spending a single rupee on ads, use the dashboard tools to find exactly **what** to sell, **where** to show it, and **which** ad copies are already converting.
+
+1. **Find High-Demand Geo-Targets (Google Trends):**
+   - Go to the **Market Intel & AI** tab.
+   - Under **Google Trends**, enter your keyword (e.g. `earbuds`).
+   - Check the **Geographic Target** dropdown. Compare the search interest in `Punjab` (covers Rawalpindi & Lahore) and `Islamabad`.
+   - **Cost-Saving Tip:** Focus your Meta Ad set settings only on the cities or provinces showing a massive interest index (>75). Do not target "Pakistan (National)" broadly; this wastes money on remote/rural regions with low courier delivery rates (RTO).
+
+2. **Spy on Already-Winning Competitors (AI Ads Finder):**
+   - Search the keyword inside **AI Ads Finder & Viral TikTok Intelligence** at the bottom of the dashboard.
+   - Look at the competitor creatives under **Meta Competitor Ads**. Look for ads with the badge **"Winning Ad"** (running for >14 days).
+   - **Cost-Saving Tip:** If a competitor has kept an ad active for more than two weeks, **it is profitable**. Copy their hooks, video styles, and selling angles. Don't waste money testing brand new, unverified concepts.
+
+---
+
+## ── Phase 2: Copywriting & Product Page Optimization ──
+
+Before sending traffic to your website, make sure the landing page is optimized for conversions. If your product page is confusing or lacks trust, your ad budget is wasted.
+
+1. **Optimize Your Product Page:**
+   - Open your product editor in **Admin > Products > Edit** (`/admin/products/[id]`).
+   - Look at the **Listing Optimization Suite** sidebar.
+   - Under **Quick Fixes**, click:
+     - **Format Description**: Automatically lists specifications in bullet points and adds trust badges (e.g., "Cash on Delivery", "7-Day Warranty").
+     - **Inject TikTok Hooks**: Appends viral hooks (e.g., "✨ POV: You found the best gadget...") and hashtags.
+   - Ensure the listing score reaches at least **85%+**.
+
+---
+
+## ── Phase 3: Launching Low-Cost, High-Engagement Ads ──
+
+### 1. Facebook & Instagram Ads Strategy (Low Budget, High Conversion)
+In Pakistan, buyers like to chat and ask questions before placing an order. Sending traffic directly to a website checkout can sometimes lead to drop-offs.
+* **Winning Strategy:** **Click-to-WhatsApp (CTW) Ads** using Instagram Reels.
+* **Settings:**
+  * **Objective:** Engagement -> Messaging Apps (WhatsApp).
+  * **Creative:** Use a vertical (9:16) video reel showing a product review or demo.
+  * **Detailed Targeting:** Online Shopping, Gadgets, or specific niches (e.g., smartwatch brand names).
+  * **Location Settings:** Select specific cities (Karachi, Lahore, Islamabad, Rawalpindi, Faisalabad, Peshawar, Multan) rather than whole country.
+  * **Budget:** Start small with PKR 500 - 1,000 per day.
+
+### 2. TikTok Ads Strategy
+* **Winning Strategy:** **TikTok Spark Ads**.
+* **Settings:**
+  * Create an organic video on your TikTok account showing the product's POV hook.
+  * Once the video gets some organic views, copy the video's **Authorization Code** inside TikTok settings and promote it as a Spark Ad.
+  * Spark ads cost up to **40% less** per click than standard upload video ads and get 3x higher engagement because they appear as native content.
+
+---
+
+## ── Phase 4: Constructing UTM Links for Monitoring ──
+
+To track your ad sales in our dashboard, you **must** append tracking parameters (UTMs) to the URL you put in your ads. 
+
+Use this format:
+`https://yourdomain.com/product/[product-id]?utm_source=[platform]&utm_medium=paid&utm_campaign=[campaign-name]`
+
+### UTM Parameter Formats to Use:
+
+| Platform | Recommended Link format |
+| :--- | :--- |
+| **Facebook Ads** | `https://localhost:3000/product/PRODUCT_ID?utm_source=facebook&utm_medium=feed&utm_campaign=watch_sale_july` |
+| **Instagram Reels** | `https://localhost:3000/product/PRODUCT_ID?utm_source=instagram&utm_medium=reels&utm_campaign=watch_sale_july` |
+| **TikTok Ads** | `https://localhost:3000/product/PRODUCT_ID?utm_source=tiktok&utm_medium=spark&utm_campaign=earbuds_viral_tiktok` |
+
+---
+
+## ── Phase 5: Monitoring in Your Admin Dashboard ──
+
+Once your ads are live and users click on your UTM links, their activity is tracked in real-time. Go to the **Marketing & Conversion** tab in your dashboard:
+
+1. **Marketing Channels (UTM):**
+   - Shows overall traffic and conversions categorized by platforms: `instagram`, `facebook`, `tiktok`.
+   - **Action:** If `instagram` has a high conversion rate but `tiktok` is bringing visits with zero sales, immediately pause the TikTok ad budget and move it to Instagram.
+
+2. **Ad Campaign Performance (UTM Campaigns):**
+   - Monitors each individual ad name (`utm_campaign`).
+   - Displays: Clicks, Add-to-Carts, Purchases, Revenue, and **Est. ROAS (Return on Ad Spend)**.
+   - **Action:**
+     - **ROAS > 2.5x (Green):** Scale this ad (increase budget by 20% every 2 days).
+     - **ROAS < 1.0x (Red):** Shut down this ad campaign immediately; it is losing money.
+
+3. **Live Customer Activity Feed:**
+   - Watch customer interactions in real-time. If you see multiple people "Click WhatsApp" but no orders are logged, check if your WhatsApp responder is active and reply quickly to close the sales!
