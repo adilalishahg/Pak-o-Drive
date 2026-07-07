@@ -190,7 +190,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, priority }) =
             position: 'absolute', top: '8px', right: '8px', zIndex: 10,
             background: 'rgba(255,255,255,0.9)', border: 'none',
             borderRadius: '50%', width: '28px', height: '28px',
-            display: 'flex', alignItems: 'center', justify: 'center',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
             cursor: 'pointer', boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
             color: isInWishlist(formattedId) ? '#dc2626' : '#9ca3af',
             transition: 'all 0.2s',

@@ -83,7 +83,7 @@ export default function WishlistPage() {
             <div style={{
               width: '64px', height: '64px', borderRadius: '50%',
               background: '#fee2e2', color: '#ef4444',
-              display: 'flex', alignItems: 'center', justify: 'center',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
               margin: '0 auto 16px',
             }}>
               <i className="far fa-heart" style={{ fontSize: '1.6rem' }} />
