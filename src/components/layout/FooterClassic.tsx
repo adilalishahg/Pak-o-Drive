@@ -126,10 +126,10 @@ export const FooterClassic: React.FC = () => {
         <div className="container">
           <div className="row">
             <div className="col-md-6 text-center text-md-start mb-3 mb-md-0">
-              <span className="text-slate-300">&copy; {new Date().getFullYear()} <a href="/" className="text-white text-decoration-none fw-bold">{info.logoText}</a>. All Rights Reserved.</span>
+              <span className="text-slate-300">&copy; {new Date().getFullYear()} <a href="/" className="text-white text-decoration-none fw-bold">{info.siteName || info.logoText || 'PAKODRIVE'}</a>. All Rights Reserved.</span>
             </div>
             <div className="col-md-6 text-center text-md-end">
-              <span className="text-slate-300">Powered by <a href="#" className="text-white text-decoration-none">Trusted Platform</a></span>
+              <span className="text-slate-300">Fast & Reliable Nationwide Delivery</span>
             </div>
           </div>
         </div>

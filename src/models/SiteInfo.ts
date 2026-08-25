@@ -47,8 +47,8 @@ export interface ISiteInfoDocument extends ISiteInfo, Document {}
 const SiteInfoSchema = new Schema<ISiteInfoDocument>(
   {
     siteName:       { type: String, default: 'PAKODRIVE' },
-    siteTagline:    { type: String, default: "Pakistan's Trusted Electronics Store" },
-    logoText:       { type: String, default: 'Electro' },
+    siteTagline:    { type: String, default: "Pakistan's Trusted Electronics & Automotive Store" },
+    logoText:       { type: String, default: 'PAKODRIVE' },
     logoIcon:       { type: String, default: 'shopping-bag' },
     logoImage:      { type: String, default: '' },
     showLogoImage:  { type: Boolean, default: false },

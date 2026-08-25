@@ -38,8 +38,8 @@ export interface SiteInfo {
 
 export const DEFAULT_SITE_INFO: SiteInfo = {
   siteName: 'PAKODRIVE',
-  siteTagline: "Pakistan's Trusted Electronics Store",
-  logoText: 'Electro',
+  siteTagline: "Pakistan's Trusted Electronics & Automotive Store",
+  logoText: 'PAKODRIVE',
   logoIcon: 'shopping-bag',
   logoImage: '',
   showLogoImage: false,
