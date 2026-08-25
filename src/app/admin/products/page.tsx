@@ -138,7 +138,10 @@ export default function AdminProductsPage() {
               </button>
             ) : null}
           </div>
-          <div className="col-12 col-md-4 text-start text-md-end">
+          <div className="col-12 col-md-4 d-flex gap-2 justify-content-start justify-content-md-end">
+            <Link href="/admin/products/import" className="btn btn-outline-success rounded-pill px-3 fw-bold small">
+              <i className="fas fa-file-import me-1" /> Bulk Import
+            </Link>
             <Link href="/admin/products/new" className="btn btn-gradient rounded-pill px-4 border-0">
               <i className="fas fa-plus me-1.5" /> Add New Product
             </Link>
