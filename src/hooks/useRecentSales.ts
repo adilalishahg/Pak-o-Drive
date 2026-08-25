@@ -8,31 +8,55 @@ export function useRecentSales() {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    let index = 0;
-    
-    // Initial delay before showing first notification
-    const initialTimeout = setTimeout(() => {
-      setCurrentSale(RECENT_SALES_NOTIFICATIONS[index]);
-      setVisible(true);
-    }, 4000);
+    // Check if user already dismissed popups in this session
+    if (typeof window !== 'undefined' && sessionStorage.getItem('pd_sales_popup_dismissed') === '1') {
+      return;
+    }
 
-    const interval = setInterval(() => {
-      setVisible(false);
-      setTimeout(() => {
+    let showCount = 0;
+    const maxShows = 2; // Show maximum 2 times per session so it never annoys real customers
+    let index = Math.floor(Math.random() * RECENT_SALES_NOTIFICATIONS.length);
+
+    // Initial subtle delay (8 seconds after landing on the page)
+    const initialTimeout = setTimeout(() => {
+      if (showCount < maxShows) {
+        setCurrentSale(RECENT_SALES_NOTIFICATIONS[index]);
+        setVisible(true);
+        showCount++;
+
+        // Auto hide after 5 seconds
+        setTimeout(() => {
+          setVisible(false);
+        }, 5000);
+      }
+    }, 8000);
+
+    // Second and final notification after 35 seconds
+    const secondTimeout = setTimeout(() => {
+      if (showCount < maxShows && sessionStorage.getItem('pd_sales_popup_dismissed') !== '1') {
         index = (index + 1) % RECENT_SALES_NOTIFICATIONS.length;
         setCurrentSale(RECENT_SALES_NOTIFICATIONS[index]);
         setVisible(true);
-      }, 1000);
-    }, 12000);
+        showCount++;
+
+        // Auto hide after 5 seconds
+        setTimeout(() => {
+          setVisible(false);
+        }, 5000);
+      }
+    }, 35000);
 
     return () => {
       clearTimeout(initialTimeout);
-      clearInterval(interval);
+      clearTimeout(secondTimeout);
     };
   }, []);
 
   const dismiss = () => {
     setVisible(false);
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('pd_sales_popup_dismissed', '1');
+    }
   };
 
   return { currentSale, visible, dismiss };
