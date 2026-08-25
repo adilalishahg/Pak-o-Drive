@@ -32,7 +32,7 @@ export async function logInteraction(
     const sessionId  = sessionStorage.getItem('pako_session_id') || '';
     const deviceType = window.innerWidth < 768 ? 'Mobile' : 'Desktop';
 
-    // Log to MongoDB (fire-and-forget — no await needed here)
+    // 1. Log to MongoDB Analytics
     fetch('/api/analytics', {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -49,7 +49,7 @@ export async function logInteraction(
       }),
     }).catch((err) => console.error('[Analytics] fetch error:', err));
 
-    // PostHog — loaded dynamically client-side only when tracking is active
+    // 2. PostHog Event Tracking
     const phKey = process.env.NEXT_PUBLIC_POSTHOG_KEY;
     if (phKey) {
       const posthog = (await import('posthog-js')).default;
@@ -65,54 +65,111 @@ export async function logInteraction(
         });
       }
     }
-    // Facebook Pixel interaction events tracking
-    if (typeof (window as any).fbq === 'function') {
+
+    // 3. Meta Pixel (Facebook & Instagram)
+    const fbq = (window as any).fbq;
+    if (typeof fbq === 'function') {
       if (type === 'add_to_cart') {
-        (window as any).fbq('track', 'AddToCart', {
-          content_name: metadata.product_name,
-          content_ids: [metadata.product_id],
+        fbq('track', 'AddToCart', {
+          content_name: metadata.product_name || metadata.name,
+          content_ids: [metadata.product_id || metadata.id],
           content_type: 'product',
           value: metadata.price,
-          currency: 'PKR'
+          currency: 'PKR',
         });
       } else if (type === 'begin_checkout') {
-        (window as any).fbq('track', 'InitiateCheckout', {
-          value: metadata.value,
+        fbq('track', 'InitiateCheckout', {
+          value: metadata.value || metadata.amount,
           currency: 'PKR',
-          num_items: metadata.num_items
+          num_items: metadata.num_items || metadata.itemsCount,
+        });
+      } else if (type === 'checkout_success') {
+        fbq('track', 'Purchase', {
+          value: metadata.amount,
+          currency: 'PKR',
+          content_type: 'product',
+          num_items: metadata.itemsCount,
+          order_id: metadata.orderId,
         });
       } else if (type === 'search_intent') {
-        (window as any).fbq('track', 'Search', {
-          search_string: metadata.keyword
+        fbq('track', 'Search', {
+          search_string: metadata.keyword,
         });
       } else if (type === 'view_product') {
-        (window as any).fbq('track', 'ViewContent', {
-          content_name: metadata.product_name,
-          content_ids: [metadata.product_id],
+        fbq('track', 'ViewContent', {
+          content_name: metadata.name || metadata.product_name,
+          content_ids: [metadata.id || metadata.product_id],
           content_type: 'product',
           value: metadata.price,
-          currency: 'PKR'
+          currency: 'PKR',
         });
       }
     }
+
+    // 4. TikTok Pixel (ttq)
+    const ttq = (window as any).ttq;
+    if (typeof ttq === 'object' && typeof ttq.track === 'function') {
+      if (type === 'view_product') {
+        ttq.track('ViewContent', {
+          content_id: metadata.id || metadata.product_id,
+          content_type: 'product',
+          content_name: metadata.name || metadata.product_name,
+          value: metadata.price,
+          currency: 'PKR',
+        });
+      } else if (type === 'add_to_cart') {
+        ttq.track('AddToCart', {
+          content_id: metadata.product_id || metadata.id,
+          content_type: 'product',
+          content_name: metadata.product_name || metadata.name,
+          value: metadata.price,
+          currency: 'PKR',
+        });
+      } else if (type === 'begin_checkout') {
+        ttq.track('InitiateCheckout', {
+          value: metadata.value || metadata.amount,
+          currency: 'PKR',
+        });
+      } else if (type === 'checkout_success') {
+        ttq.track('CompletePayment', {
+          value: metadata.amount,
+          currency: 'PKR',
+        });
+      }
+    }
+
+    // 5. Google Tag Manager / DataLayer
+    const dataLayer = (window as any).dataLayer;
+    if (Array.isArray(dataLayer)) {
+      dataLayer.push({
+        event: type,
+        event_path: path,
+        ecommerce: {
+          currency: 'PKR',
+          ...metadata,
+        },
+      });
+    }
+
   } catch (err) {
     console.error('[Analytics] logInteraction error:', err);
   }
 }
 
-// ─── Inner tracker component (needs Suspense for useSearchParams) ─────────────
+// ─── Inner tracker component ──────────────────────────────────────────────────
 
 function TrackerInner() {
   const pathname    = usePathname();
   const searchParams= useSearchParams();
 
-  // 1. Session + UTM initialisation
+  // 1. Session + UTM + Pixels initialization
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
-    // Meta Pixel injection logic
-    const pixelId = process.env.NEXT_PUBLIC_META_PIXEL_ID;
     const w = window as any;
+
+    // Meta Pixel injection
+    const pixelId = process.env.NEXT_PUBLIC_META_PIXEL_ID;
     if (pixelId && !w.fbq) {
       w.fbq = function(...args: any[]) {
         if (w.fbq.callMethod) {
@@ -140,7 +197,31 @@ function TrackerInner() {
       w.fbq('init', pixelId);
     }
 
-    // PostHog — init only once dynamically
+    // TikTok Pixel injection
+    const ttPixelId = process.env.NEXT_PUBLIC_TIKTOK_PIXEL_ID;
+    if (ttPixelId && !w.ttq) {
+      w.TiktokAnalyticsObject = 'ttq';
+      const ttq: any = (w.ttq = w.ttq || []);
+      ttq.methods = ['page', 'track', 'identify', 'instances', 'load'];
+      ttq.setAndDefer = function(t: any, e: any) {
+        t[e] = function() {
+          t.push([e].concat(Array.prototype.slice.call(arguments, 0)));
+        };
+      };
+      for (let i = 0; i < ttq.methods.length; i++) {
+        ttq.setAndDefer(ttq, ttq.methods[i]);
+      }
+      const s = document.createElement('script');
+      s.type = 'text/javascript';
+      s.async = true;
+      s.src = `https://analytics.tiktok.com/i18n/pixel/events.js?sdkid=${ttPixelId}&lib=ttq`;
+      const f = document.getElementsByTagName('script')[0];
+      if (f && f.parentNode) f.parentNode.insertBefore(s, f);
+      ttq.load(ttPixelId);
+      ttq.page();
+    }
+
+    // PostHog init
     const phKey = process.env.NEXT_PUBLIC_POSTHOG_KEY;
     if (phKey) {
       import('posthog-js').then(({ default: posthog }) => {
@@ -162,7 +243,7 @@ function TrackerInner() {
       });
     }
 
-    // Generate session ID if missing
+    // Session ID
     if (!sessionStorage.getItem('pako_session_id')) {
       sessionStorage.setItem(
         'pako_session_id',
@@ -170,7 +251,7 @@ function TrackerInner() {
       );
     }
 
-    // Persist UTM params for the lifetime of the session
+    // UTM Params
     if (searchParams) {
       const src = searchParams.get('utm_source');
       const med = searchParams.get('utm_medium');
@@ -204,51 +285,22 @@ function TrackerInner() {
         utm_campaign: utmCampaign,
         session_id:   sessionId,
         device:       deviceType,
-        landing_page: sessionStorage.getItem('pako_landing_page') || fullPath,
+        metadata: {
+          referrer:     document.referrer || '',
+          screen_width: window.innerWidth,
+        },
       }),
-    }).catch((err) => console.error('[Analytics] pageview error:', err));
+    }).catch(() => {});
 
-    // Meta PageView Tracking
-    if (typeof (window as any).fbq === 'function') {
-      (window as any).fbq('track', 'PageView');
+    // Trigger Meta Pixel PageView
+    const w = window as any;
+    if (typeof w.fbq === 'function') {
+      w.fbq('track', 'PageView');
     }
-
-    if (!sessionStorage.getItem('pako_landing_page')) {
-      sessionStorage.setItem('pako_landing_page', fullPath);
-    }
-
-    const phKey = process.env.NEXT_PUBLIC_POSTHOG_KEY;
-    if (phKey) {
-      import('posthog-js').then(({ default: posthog }) => {
-        if ((posthog as any).__loaded) {
-          posthog.capture('$pageview', {
-            path:         fullPath,
-            utm_source:   utmSource,
-            utm_medium:   utmMedium,
-            utm_campaign: utmCampaign,
-            session_id:   sessionId,
-          });
-        }
-      });
+    if (typeof w.ttq === 'object' && typeof w.ttq.page === 'function') {
+      w.ttq.page();
     }
   }, [pathname, searchParams]);
-
-  // 3. Scroll-depth tracker (60 % threshold)
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    let fired = false;
-    const onScroll = () => {
-      if (fired) return;
-      const total = document.documentElement.scrollHeight - window.innerHeight;
-      if (total <= 0) return;
-      if ((window.scrollY / total) * 100 > 60) {
-        fired = true;
-        logInteraction('scroll_depth', pathname || '', { depth: '60%' });
-      }
-    };
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
-  }, [pathname]);
 
   return null;
 }

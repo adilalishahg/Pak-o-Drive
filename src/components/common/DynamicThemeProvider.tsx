@@ -189,11 +189,50 @@ ${theme.animationsEnabled ? '' : `
 `}
 
 /* ── Typography ────────────────────────────────────────── */
-body, button, input, select, textarea,
-.btn, .nav-link {
+body, input, select, textarea {
   font-family: var(--pd-font) !important;
 }
+.btn, .nav-link, button {
+  font-family: var(--pd-font);
+}
 html { font-size: var(--pd-font-size-base); }
+
+/* ── Icon Fonts Protection (Guarantees icons never turn into empty squares) ── */
+i, [class*="fa-"], [class^="fa-"], .fa, .fas, .far, .fab, .fa-solid, .fa-regular, .fa-brands,
+.bi, [class*="bi-"], [class^="bi-"],
+.material-icons, .material-icons-round,
+[class*="ri-"], [class^="ri-"],
+[class*="ph-"], [class^="ph-"] {
+  font-style: normal;
+  font-variant: normal;
+  text-rendering: auto;
+  line-height: 1;
+}
+
+.fa, .fas, .fa-solid {
+  font-family: 'Font Awesome 6 Free' !important;
+  font-weight: 900 !important;
+}
+.fab, .fa-brands {
+  font-family: 'Font Awesome 6 Brands' !important;
+  font-weight: 400 !important;
+}
+.far, .fa-regular {
+  font-family: 'Font Awesome 6 Free' !important;
+  font-weight: 400 !important;
+}
+.material-icons, .material-icons-round {
+  font-family: 'Material Icons Round' !important;
+}
+.bi::before, [class^="bi-"]::before, [class*=" bi-"]::before {
+  font-family: 'bootstrap-icons' !important;
+}
+[class^="ri-"]::before, [class*=" ri-"]::before {
+  font-family: 'remixicon' !important;
+}
+[class^="ph-"]::before, [class*=" ph-"]::before {
+  font-family: 'Phosphor' !important;
+}
 
 /* ── Dynamic button gradients ──────────────────────────── */
 .btn-gradient {
@@ -838,33 +877,8 @@ export function DynamicThemeProvider({ children, initialTheme }: ProviderProps) 
   const iconUrl = ICON_CDNS[wantedLib];
   return (
     <ThemeContext.Provider value={{ theme, loading, refresh: fetchAndApply }}>
-      {/* Preconnect to critical domains */}
-      <link rel="preconnect" href="https://fonts.googleapis.com" />
-      <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-
-      {/* Preload FontAwesome Webfonts only when FA is the active icon library */}
-      {wantedLib === 'fontawesome' && (
-        <>
-          <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/webfonts/fa-solid-900.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
-          <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/webfonts/fa-brands-400.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
-        </>
-      )}
-
-       {/* Asynchronous font & icon CSS loading — only the SELECTED library is loaded, using print→all trick to avoid render-blocking */}
-      <script dangerouslySetInnerHTML={{ __html: `
-        (window.requestIdleCallback || function(cb) { setTimeout(cb, 100); })(function() {
-          var urls = ${JSON.stringify([fontUrl, iconUrl].filter(Boolean))};
-          urls.forEach(function(url) {
-            if (document.querySelector('link[href="' + url + '"]')) return;
-            var link = document.createElement('link');
-            link.rel = 'stylesheet';
-            link.href = url;
-            link.media = 'print';
-            link.onload = function() { this.media = 'all'; };
-            document.head.appendChild(link);
-          });
-        });
-      `}} />
+      {/* Dynamic Google Font */}
+      <link rel="stylesheet" href={fontUrl} />
 
       <style id="pd-dynamic-theme" dangerouslySetInnerHTML={{ __html: css }} />
       {children}

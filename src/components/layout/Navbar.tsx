@@ -676,22 +676,22 @@ export const Navbar: React.FC = () => {
               {/* Wishlist */}
               <Link href="/wishlist" aria-label="Wishlist" className="d-flex"
                 style={{
-                  width: '36px', height: '36px', borderRadius: '8px',
-                  background: isModernGreen ? 'rgba(255,255,255,0.05)' : (isCleanWhite ? '#f8fafc' : '#f8fafc'),
-                  border: isModernGreen ? '1px solid rgba(255,255,255,0.15)' : (isCleanWhite ? '1px solid #e2e8f0' : '1px solid #e2e8f0'),
+                  width: '38px', height: '38px', borderRadius: '8px',
+                  background: isModernGreen ? 'rgba(255,255,255,0.08)' : '#f8fafc',
+                  border: isModernGreen ? '1px solid rgba(255,255,255,0.15)' : '1px solid #e2e8f0',
                   alignItems: 'center', justifyContent: 'center',
-                  color: isModernGreen ? '#eae7db' : (isCleanWhite ? '#64748b' : '#64748b'), textDecoration: 'none', transition: 'all 0.2s', flexShrink: 0
+                  color: isModernGreen ? '#eae7db' : '#475569', textDecoration: 'none', transition: 'all 0.2s', flexShrink: 0
                 }}
                 onMouseEnter={e => {
                   (e.currentTarget as HTMLAnchorElement).style.borderColor = isModernGreen ? '#d4af37' : (isCleanWhite ? theme.primaryColor : 'var(--pd-primary)');
-                  (e.currentTarget as HTMLAnchorElement).style.color = isModernGreen ? '#d4af37' : (isCleanWhite ? theme.primaryColor : 'var(--pd-primary)');
+                  (e.currentTarget as HTMLAnchorElement).style.color = '#e11d48';
                 }}
                 onMouseLeave={e => {
-                  (e.currentTarget as HTMLAnchorElement).style.borderColor = isModernGreen ? 'rgba(255,255,255,0.15)' : (isCleanWhite ? '#e2e8f0' : '#e2e8f0');
-                  (e.currentTarget as HTMLAnchorElement).style.color = isModernGreen ? '#eae7db' : (isCleanWhite ? '#64748b' : '#64748b');
+                  (e.currentTarget as HTMLAnchorElement).style.borderColor = isModernGreen ? 'rgba(255,255,255,0.15)' : '#e2e8f0';
+                  (e.currentTarget as HTMLAnchorElement).style.color = isModernGreen ? '#eae7db' : '#475569';
                 }}>
                 <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <i className="fas fa-heart" style={{ fontSize: '14px', color: wishlistCount > 0 ? '#ef4444' : 'inherit' }} />
+                  <i className="fas fa-heart" style={{ fontSize: '15px', color: wishlistCount > 0 ? '#ef4444' : '#64748b' }} />
                   {wishlistCount > 0 && (
                     <span style={{
                       position: 'absolute', top: '-8px', right: '-8px',

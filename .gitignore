@@ -7,24 +7,36 @@
 !.yarn/plugins
 !.yarn/releases
 !.yarn/versions
+.pnpm-store/
+**/.pnpm-store/**
+*.pnpm-store*
+%USERPROFILE%/
+**/%USERPROFILE%/**
+*%USERPROFILE%*
+*pnpm*
 
-# Next.js build output
+# Next.js build & cache output
+.next/
 /.next/
 /out/
 /build
+.turbo/
+.cache/
 
-# Local uploads (Cloudinary is used for production; prevent local test uploads from going to Git)
+# Local uploads & assets
 /public/uploads/
+*.tmp
+*.temp
 
-# Environment Variables & Credentials
+# Environment Variables & Secrets
 .env
+.env*.local
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
-.env*.local
 
-# Vercel Deployment configuration
+# Vercel & Cloud deployment
 .vercel
 
 # Testing & Coverage
@@ -40,8 +52,10 @@
 *.sln
 *.sw?
 .DS_Store
+Thumbs.db
 
-# Debugging and logs
+# Logs & Debugging
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
@@ -50,3 +64,8 @@ yarn-error.log*
 # TypeScript
 *.tsbuildinfo
 next-env.d.ts
+
+# Graft & Local AI Workspace Caches
+graft/
+.agents/scratch/
+scratch/

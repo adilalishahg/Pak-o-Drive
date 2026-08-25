@@ -174,6 +174,17 @@ export const ProductCardClassic: React.FC<Props> = ({ product, priority }) => {
             <i className="fas fa-eye" style={{ fontSize: '12px' }} /> Quick View
           </Link>
         </div>
+        {/* Bottom-Left COD tag */}
+        <div style={{
+          position: 'absolute', bottom: '6px', left: '8px', zIndex: 2,
+          background: 'rgba(236,253,245,0.95)', color: '#047857',
+          fontSize: '0.62rem', fontWeight: 700, padding: '2px 6px',
+          borderRadius: '4px', border: '1px solid #a7f3d0',
+          display: 'flex', alignItems: 'center', gap: '3px',
+        }}>
+          <i className="fas fa-truck-moving" style={{ fontSize: '8px' }} />
+          <span>COD</span>
+        </div>
       </div>
 
       {/* Product info */}
@@ -204,12 +215,12 @@ export const ProductCardClassic: React.FC<Props> = ({ product, priority }) => {
 
         {/* Price row */}
         <div className="product-card-price-container" style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}>
-          <span className="product-card-price-current" style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--pd-primary-dark, #c2410c)' }}>
-            PKR {product.price.toLocaleString()}
+          <span className="product-card-price-current" style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--pd-primary-dark, #c2410c)' }}>
+            Rs. {product.price.toLocaleString()}
           </span>
           {product.originalPrice > product.price && (
             <del className="product-card-price-original" style={{ fontSize: '0.78rem', color: '#64748b' }}>
-              PKR {product.originalPrice.toLocaleString()}
+              Rs. {product.originalPrice.toLocaleString()}
             </del>
           )}
         </div>

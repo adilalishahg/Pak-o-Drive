@@ -4,13 +4,13 @@ import { SpeedInsights } from '@vercel/speed-insights/next';
 import { headers } from 'next/headers';
 import { Inter, Roboto } from 'next/font/google';
 import './bootstrap.min.css';
+import '@fortawesome/fontawesome-free/css/all.min.css';
+import 'bootstrap-icons/font/bootstrap-icons.css';
 import './style.css';
 import './globals.css';
 import { CartProvider } from '../context/CartContext';
 import { LayoutWrapper } from '../components/layout/LayoutWrapper';
 import type { Viewport } from 'next';
-
-export const instant = false;
 
 export const viewport: Viewport = {
   width: 'device-width',
@@ -68,10 +68,7 @@ export async function generateMetadata(): Promise<Metadata> {
   let ogImageUrl = `${activeSiteUrl}/img/carousel-1.png`;
 
   try {
-    const info = await Promise.race([
-      getCachedSiteInfo(),
-      new Promise<null>((resolve) => setTimeout(() => resolve(null), 1500))
-    ]);
+    const info = await getCachedSiteInfo();
     if (info) {
       if (info.siteName) siteName = info.siteName;
       if (info.seoTitle) {
@@ -241,6 +238,13 @@ export default async function RootLayout({
   return (
     <html lang="en" className={`${inter.variable} ${roboto.variable}`}>
       <head>
+        {/* Universal Icon Libraries (FontAwesome, Material Icons, Bootstrap Icons, Remix, Phosphor) */}
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossOrigin="anonymous" />
+        <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons+Round&display=swap" />
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css" />
+        <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css" />
+        
         {/* Preconnect to external image domains for ultra-fast LCP */}
         <link rel="preconnect" href="https://images.unsplash.com" crossOrigin="anonymous" />
         <link rel="preconnect" href="https://res.cloudinary.com" crossOrigin="anonymous" />

@@ -17,18 +17,11 @@ interface PageProps { params: Promise<{ id: string }> }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { id } = await params;
-  const p = await Promise.race([
-    getCachedProduct(id),
-    new Promise<null>((resolve) => setTimeout(() => resolve(null), 1500))
-  ]);
-
+  const p = await getCachedProduct(id);
   const siteUrl = getStaticSiteUrl();
 
   let siteLogoText = 'PAKODRIVE';
-  const siteInfo = await Promise.race([
-    getCachedSiteInfo(),
-    new Promise<null>((resolve) => setTimeout(() => resolve(null), 1000))
-  ]);
+  const siteInfo = await getCachedSiteInfo();
 
   if (siteInfo && siteInfo.logoText) {
     siteLogoText = siteInfo.logoText as string;
@@ -161,6 +154,45 @@ async function ProductDetailContent({ id }: { id: string }) {
       itemCondition: 'https://schema.org/NewCondition',
       availability: product.stock !== 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
       priceValidUntil: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      seller: {
+        '@type': 'Organization',
+        name: brandName,
+      },
+      shippingDetails: {
+        '@type': 'OfferShippingDetails',
+        shippingRate: {
+          '@type': 'MonetaryAmount',
+          value: '0',
+          currency: 'PKR',
+        },
+        shippingDestination: {
+          '@type': 'DefinedRegion',
+          addressCountry: 'PK',
+        },
+        deliveryTime: {
+          '@type': 'ShippingDeliveryTime',
+          handlingTime: {
+            '@type': 'QuantitativeValue',
+            minValue: 1,
+            maxValue: 2,
+            unitCode: 'DAY',
+          },
+          transitTime: {
+            '@type': 'QuantitativeValue',
+            minValue: 1,
+            maxValue: 4,
+            unitCode: 'DAY',
+          },
+        },
+      },
+      hasMerchantReturnPolicy: {
+        '@type': 'MerchantReturnPolicy',
+        applicableCountry: 'PK',
+        returnPolicyCategory: 'https://schema.org/MerchantReturnFiniteReturnWindow',
+        merchantReturnDays: 7,
+        returnMethod: 'https://schema.org/ReturnByMail',
+        returnFees: 'https://schema.org/FreeReturn',
+      },
     },
     aggregateRating: product.reviewsCount > 0 ? {
       '@type': 'AggregateRating',

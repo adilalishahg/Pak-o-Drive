@@ -2,41 +2,32 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   reactCompiler: true,
-  cacheComponents: true,
+  compress: true,
+  poweredByHeader: false,
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production' ? { exclude: ['error', 'warn'] } : false,
   },
   experimental: {
     inlineCss: true,
-    optimizePackageImports: ['canvas-confetti'],
+    optimizePackageImports: ['canvas-confetti', 'lucide-react', 'recharts', 'bootstrap-icons'],
   },
   turbopack: {
     resolveAlias: {
-      // Stub legacy polyfill packages — modern browsers don't need them
       'core-js/stable': { browser: './src/lib/empty-polyfills.js' },
       'core-js/features': { browser: './src/lib/empty-polyfills.js' },
       'regenerator-runtime/runtime': { browser: './src/lib/empty-polyfills.js' },
     },
   },
   images: {
-    // Auto-serve WebP/AVIF to supported browsers — no raw JPEG/PNG hits mobile
     formats: ["image/avif", "image/webp"],
-
-    // Breakpoints that match our responsive grid (mobile-first for PK 3G/4G)
     deviceSizes: [390, 640, 750, 828, 1080, 1200, 1920],
     imageSizes: [16, 32, 48, 64, 96, 128, 256],
-
-    // Cache optimised images for 30 days on CDN edge nodes
-    minimumCacheTTL: 2592000,
-
-    // Serve at 75 quality — sharp enough for product images, ~40% smaller than default 85
+    minimumCacheTTL: 31536000, // Cache on CDN edge for 1 year
     dangerouslyAllowSVG: false,
-
     remotePatterns: [
       {
         protocol: "https",
         hostname: "res.cloudinary.com",
-        // Allow all Cloudinary paths (any account/folder structure)
         pathname: "/**",
       },
       {
@@ -69,7 +60,25 @@ const nextConfig: NextConfig = {
           },
           {
             key: "Content-Security-Policy",
-            value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://va.vercel-scripts.com https://cdn.jsdelivr.net https://ssl.gstatic.com https://trends.google.com https://unpkg.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://unpkg.com https://ssl.gstatic.com https://trends.google.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://unpkg.com data:; img-src 'self' data: https://res.cloudinary.com https://images.unsplash.com https://ssl.gstatic.com https://trends.google.com https://unpkg.com https://a.basemaps.cartocdn.com https://b.basemaps.cartocdn.com https://c.basemaps.cartocdn.com https://d.basemaps.cartocdn.com; connect-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://trends.google.com https://ssl.gstatic.com; frame-src 'self' https://trends.google.com; upgrade-insecure-requests;",
+            value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://va.vercel-scripts.com https://cdn.jsdelivr.net https://ssl.gstatic.com https://trends.google.com https://unpkg.com https://connect.facebook.net https://analytics.tiktok.com https://*.posthog.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://unpkg.com https://ssl.gstatic.com https://trends.google.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://unpkg.com data:; img-src 'self' data: https://res.cloudinary.com https://images.unsplash.com https://ssl.gstatic.com https://trends.google.com https://unpkg.com https://a.basemaps.cartocdn.com https://b.basemaps.cartocdn.com https://c.basemaps.cartocdn.com https://d.basemaps.cartocdn.com; connect-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://trends.google.com https://ssl.gstatic.com https://*.posthog.com https://analytics.tiktok.com https://connect.facebook.net; frame-src 'self' https://trends.google.com; upgrade-insecure-requests;",
+          },
+        ],
+      },
+      {
+        source: "/_next/static/:path*",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=31536000, immutable",
+          },
+        ],
+      },
+      {
+        source: "/img/:path*",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=2592000, stale-while-revalidate=86400",
           },
         ],
       },

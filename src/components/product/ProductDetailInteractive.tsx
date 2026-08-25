@@ -251,45 +251,75 @@ export const ProductDetailInteractive: React.FC<ProductDetailInteractiveProps> =
             {/* Actions */}
             <ProductActions product={product} selectedVariant={selectedVariant} />
 
-            {/* Trust row */}
+            {/* Localized Pakistan Trust & Assurance Box */}
             <div
               style={{
-                display: 'grid',
-                gridTemplateColumns: '1fr 1fr',
-                gap: '8px',
-                marginTop: '16px',
-                paddingTop: '14px',
-                borderTop: '1px solid #f0f0f0',
+                background: '#f8fafc',
+                borderRadius: '10px',
+                padding: '14px',
+                border: '1px solid #e2e8f0',
+                marginTop: '18px',
               }}
             >
-              {[
-                { icon: 'fas fa-shield-alt', text: '100% Genuine' },
-                { icon: 'fas fa-undo', text: '30-Day Return' },
-                { icon: 'fas fa-truck', text: 'Fast Delivery' },
-                { icon: 'fas fa-lock', text: 'Secure COD' },
-              ].map((b, i) => (
-                <div
-                  key={i}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    background: '#fafafa',
-                    borderRadius: '6px',
-                    padding: '8px 10px',
-                    border: '1px solid #f0f0f0',
-                    fontSize: '0.72rem',
-                    color: '#374151',
-                    fontWeight: 600,
-                  }}
-                >
-                  <i
-                    className={b.icon}
-                    style={{ color: 'var(--pd-primary)', fontSize: '13px', flexShrink: 0 }}
-                  />
-                  {b.text}
-                </div>
-              ))}
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: '1fr 1fr',
+                  gap: '10px',
+                  marginBottom: '12px',
+                }}
+              >
+                {[
+                  { icon: 'fas fa-truck-moving', title: 'Cash on Delivery', desc: 'Pay upon parcel arrival' },
+                  { icon: 'fas fa-undo-alt', title: '7 Days Return', desc: 'Easy replacement warranty' },
+                  { icon: 'fas fa-shield-check', title: '100% Original', desc: 'Quality checked product' },
+                  { icon: 'fas fa-headset', title: 'WhatsApp Help', desc: '24/7 active customer support' },
+                ].map((b, i) => (
+                  <div
+                    key={i}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'flex-start',
+                      gap: '8px',
+                      background: '#ffffff',
+                      borderRadius: '8px',
+                      padding: '8px 10px',
+                      border: '1px solid #f1f5f9',
+                    }}
+                  >
+                    <i
+                      className={b.icon}
+                      style={{ color: 'var(--pd-primary, #ea580c)', fontSize: '14px', marginTop: '2px', flexShrink: 0 }}
+                    />
+                    <div>
+                      <span style={{ display: 'block', fontSize: '0.74rem', fontWeight: 700, color: '#0f172a', lineHeight: 1.2 }}>
+                        {b.title}
+                      </span>
+                      <span style={{ display: 'block', fontSize: '0.65rem', color: '#64748b', marginTop: '2px' }}>
+                        {b.desc}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Delivery Timeline info */}
+              <div style={{
+                background: '#f0fdf4',
+                border: '1px solid #bbf7d0',
+                borderRadius: '6px',
+                padding: '8px 10px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                fontSize: '0.72rem',
+                color: '#166534',
+              }}>
+                <i className="fas fa-shipping-fast" style={{ fontSize: '13px', color: '#16a34a' }} />
+                <span>
+                  <strong>Estimated Delivery:</strong> Lahore / Karachi: 1–2 Days | Other Cities: 2–4 Days
+                </span>
+              </div>
             </div>
           </div>
         </div>

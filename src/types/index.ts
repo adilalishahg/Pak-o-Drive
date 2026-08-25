@@ -75,6 +75,9 @@ export interface IOrder {
   statusHistory?: { status: string; changedAt: string | Date; note?: string }[];
   createdAt?: string | Date;
   whatsappSent: boolean;
+  courierName?: string;
+  trackingNumber?: string;
+  trackingUrl?: string;
   utmSource?: string;
   utmMedium?: string;
   utmCampaign?: string;

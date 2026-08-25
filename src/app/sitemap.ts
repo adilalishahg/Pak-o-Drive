@@ -1,9 +1,10 @@
 import { MetadataRoute } from 'next';
 import dbConnect from '../lib/mongodb';
 import Product from '../models/Product';
+import Category from '../models/Category';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = 'https://pakodrive.com';
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '') || 'https://pakodrive.com';
 
   // Static routes
   const staticRoutes = [
@@ -13,6 +14,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     '/checkout',
     '/contact',
     '/about',
+    '/track-order',
     '/privacy-policy',
     '/terms',
     '/shipping-policy',
@@ -24,20 +26,33 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: route === '' ? 1.0 : 0.8,
   }));
 
-  // Dynamic product routes
+  // Dynamic product & category routes
   let productRoutes: any[] = [];
+  let categoryRoutes: any[] = [];
+
   try {
     await dbConnect();
-    const products = await Product.find({}, '_id updatedAt').lean();
+    const [products, categories] = await Promise.all([
+      Product.find({}, '_id updatedAt').lean(),
+      Category.find({}, 'slug updatedAt').lean(),
+    ]);
+
     productRoutes = products.map((product) => ({
       url: `${baseUrl}/product/${product._id}`,
       lastModified: product.updatedAt ? new Date(product.updatedAt) : new Date(),
+      changeFrequency: 'daily' as const,
+      priority: 0.9,
+    }));
+
+    categoryRoutes = categories.map((cat) => ({
+      url: `${baseUrl}/shop?category=${cat.slug}`,
+      lastModified: cat.updatedAt ? new Date(cat.updatedAt) : new Date(),
       changeFrequency: 'weekly' as const,
-      priority: 0.6,
+      priority: 0.8,
     }));
   } catch (error) {
-    console.error('Error generating dynamic sitemap product routes:', error);
+    console.error('Error generating dynamic sitemap routes:', error);
   }
 
-  return [...staticRoutes, ...productRoutes];
+  return [...staticRoutes, ...categoryRoutes, ...productRoutes];
 }

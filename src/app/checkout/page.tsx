@@ -1,235 +1,383 @@
 'use client';
 
-import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { useCart } from '../../context/CartContext';
+import React from 'react';
 import Link from 'next/link';
-import { logInteraction } from '../../components/common/AnalyticsTracker';
-
-const inputStyle: React.CSSProperties = {
-  width: '100%', border: '1.5px solid #e5e7eb', borderRadius: '8px',
-  padding: '11px 14px', fontSize: '0.9rem', outline: 'none',
-  fontFamily: 'var(--pd-font)', color: '#111', background: '#fff',
-  transition: 'border-color 0.15s',
-};
-
-const labelStyle: React.CSSProperties = {
-  display: 'block', fontSize: '0.78rem', fontWeight: 700,
-  color: '#374151', marginBottom: '5px',
-};
+import { useCheckout } from '../../hooks/useCheckout';
+import { PAKISTAN_MAJOR_CITIES } from '../../lib/constants';
 
 export default function CheckoutPage() {
-  const router = useRouter();
-  const { cart, cartTotal, clearCart } = useCart();
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const [address, setAddress] = useState('');
-  const [city, setCity] = useState('');
-  const [phone, setPhone] = useState('');
-  const [email, setEmail] = useState('');
-  const [orderNotes, setOrderNotes] = useState('');
+  const {
+    cart,
+    cartTotal,
+    formData,
+    updateField,
+    loading,
+    error,
+    handlePlaceOrder,
+    handleOrderViaWhatsApp,
+  } = useCheckout();
 
   if (cart.length === 0) {
     return (
-      <div style={{ minHeight: '60vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px 20px' }}>
-        <i className="fas fa-shopping-cart" style={{ fontSize: '2.5rem', color: '#d1d5db', marginBottom: '14px' }} />
-        <h3 style={{ fontWeight: 700, color: '#111', marginBottom: '8px' }}>Cart is Empty</h3>
-        <Link href="/shop" className="btn-gradient" style={{ textDecoration: 'none', borderRadius: '8px', padding: '11px 24px', fontWeight: 700, fontSize: '0.9rem', marginTop: '12px' }}>
-          Go to Shop
+      <div style={{ minHeight: '65vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px 20px', background: '#f8fafc' }}>
+        <div style={{
+          width: '70px', height: '70px', borderRadius: '50%', background: '#f1f5f9',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px',
+        }}>
+          <i className="fas fa-shopping-cart" style={{ fontSize: '1.8rem', color: '#94a3b8' }} />
+        </div>
+        <h3 style={{ fontWeight: 800, color: '#0f172a', marginBottom: '8px', fontSize: '1.4rem' }}>Your Shopping Cart is Empty</h3>
+        <p style={{ color: '#64748b', fontSize: '0.9rem', marginBottom: '20px', textAlign: 'center', maxWidth: '400px' }}>
+          Explore our trending electronics, gadgets, and car accessories to place your order.
+        </p>
+        <Link href="/shop" className="btn-gradient" style={{ textDecoration: 'none', borderRadius: '10px', padding: '12px 28px', fontWeight: 800, fontSize: '0.92rem' }}>
+          <i className="fas fa-store me-2" /> Continue Shopping
         </Link>
       </div>
     );
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-    const name = `${firstName} ${lastName}`.trim();
-    if (!name || !phone.trim() || !address.trim() || !city.trim()) {
-      setError('Please fill in all required fields.');
-      return;
-    }
-    try {
-      setLoading(true);
-      const utmSource = sessionStorage.getItem('utm_source') || '';
-      const utmMedium = sessionStorage.getItem('utm_medium') || '';
-      const utmCampaign = sessionStorage.getItem('utm_campaign') || '';
-      const res = await fetch('/api/orders', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          customerDetails: { name, email: email.trim() || undefined, phone: phone.trim(), address: address.trim(), city: city.trim(), notes: orderNotes.trim() || undefined },
-          items: cart.map(i => ({
-            productId: i.product._id,
-            quantity: i.quantity,
-            variantName: i.variant?.name,
-            variantId: i.variant?._id,
-          })),
-          utmSource: utmSource || undefined, utmMedium: utmMedium || undefined, utmCampaign: utmCampaign || undefined,
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok || !data.success) throw new Error(data.error || 'Something went wrong.');
-      logInteraction('checkout_success', window.location.pathname, { orderId: data.orderId, amount: cartTotal, itemsCount: cart.length });
-      clearCart();
-      router.push(`/order-confirmation/${data.orderId}`);
-    } catch (err: any) {
-      setError(err.message || 'Connection failed. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   return (
-    <div style={{ background: '#f4f4f4', minHeight: '100vh', paddingBottom: '40px' }}>
+    <div style={{ background: '#f8fafc', minHeight: '100vh', paddingBottom: '50px' }}>
 
-      {/* Breadcrumb */}
-      <div style={{ background: '#fff', borderBottom: '1px solid #f0f0f0', padding: '10px 0' }}>
-        <div className="container-fluid px-3">
-          <ol className="breadcrumb mb-0" style={{ fontSize: '0.78rem' }}>
-            <li className="breadcrumb-item"><Link href="/" className="text-decoration-none text-muted">Home</Link></li>
-            <li className="breadcrumb-item"><Link href="/cart" className="text-decoration-none text-muted">Cart</Link></li>
-            <li className="breadcrumb-item active fw-semibold" style={{ color: '#111' }}>Checkout</li>
-          </ol>
+      {/* Top Breadcrumb & Trust Banner */}
+      <div style={{ background: '#fff', borderBottom: '1px solid #e2e8f0', padding: '12px 0' }}>
+        <div className="container-fluid px-3" style={{ maxWidth: '1000px', margin: '0 auto' }}>
+          <div className="d-flex align-items-center justify-content-between flex-wrap gap-2">
+            <ol className="breadcrumb mb-0" style={{ fontSize: '0.8rem' }}>
+              <li className="breadcrumb-item"><Link href="/" className="text-decoration-none text-muted">Home</Link></li>
+              <li className="breadcrumb-item"><Link href="/cart" className="text-decoration-none text-muted">Cart</Link></li>
+              <li className="breadcrumb-item active fw-bold" style={{ color: '#0f172a' }}>1-Click Checkout</li>
+            </ol>
+            <div className="d-flex align-items-center gap-2" style={{ fontSize: '0.75rem', color: '#15803d', fontWeight: 700 }}>
+              <i className="fas fa-shield-alt" />
+              <span>100% Safe & Secure Cash On Delivery</span>
+            </div>
+          </div>
         </div>
       </div>
 
-      <div style={{ maxWidth: '900px', margin: '12px auto 0', padding: '0 12px' }}>
-        <h2 style={{ fontWeight: 800, fontSize: '1.2rem', color: '#111', marginBottom: '14px', padding: '0 2px' }}>Checkout</h2>
+      <div style={{ maxWidth: '1000px', margin: '20px auto 0', padding: '0 14px' }}>
+        
+        {/* Page Title */}
+        <div style={{ marginBottom: '18px' }}>
+          <h1 style={{ fontWeight: 900, fontSize: '1.45rem', color: '#0f172a', margin: '0 0 4px', letterSpacing: '-0.3px' }}>
+            🇵🇰 Fast Cash On Delivery Checkout
+          </h1>
+          <p style={{ margin: 0, fontSize: '0.82rem', color: '#64748b' }}>
+            Fill in your delivery details below. No account or upfront card payment required.
+          </p>
+        </div>
 
+        {/* Error Alert */}
         {error && (
-          <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '8px', padding: '12px 14px', marginBottom: '14px', fontSize: '0.85rem', color: '#dc2626', display: 'flex', gap: '8px' }}>
-            <i className="fas fa-exclamation-circle" style={{ marginTop: '2px', flexShrink: 0 }} />
-            {error}
+          <div style={{
+            background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '10px',
+            padding: '12px 16px', marginBottom: '18px', fontSize: '0.88rem', color: '#dc2626',
+            display: 'flex', alignItems: 'center', gap: '10px',
+          }}>
+            <i className="fas fa-exclamation-triangle" style={{ fontSize: '16px', flexShrink: 0 }} />
+            <span>{error}</span>
           </div>
         )}
 
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handlePlaceOrder}>
           <div className="row g-3">
 
-            {/* LEFT — Shipping form */}
+            {/* LEFT COLUMN — Delivery Form */}
             <div className="col-12 col-lg-7">
-              <div style={{ background: '#fff', borderRadius: '12px', padding: '18px' }}>
-                <h4 style={{ fontWeight: 800, fontSize: '0.95rem', color: '#111', marginBottom: '16px', paddingBottom: '10px', borderBottom: '1px solid #f0f0f0' }}>
-                  <i className="fas fa-map-marker-alt me-2" style={{ color: 'var(--pd-primary)', fontSize: '14px' }} />
-                  Shipping Information
-                </h4>
+              <div style={{
+                background: '#fff', borderRadius: '14px', padding: '22px',
+                border: '1px solid #e2e8f0', boxShadow: '0 1px 4px rgba(0,0,0,0.03)',
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '18px', paddingBottom: '12px', borderBottom: '1px solid #f1f5f9' }}>
+                  <h2 style={{ fontWeight: 800, fontSize: '1rem', color: '#0f172a', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <i className="fas fa-truck-moving" style={{ color: 'var(--pd-primary, #ea580c)' }} />
+                    Shipping & Delivery Details
+                  </h2>
+                  <span style={{ fontSize: '0.72rem', background: '#f0fdf4', color: '#166534', padding: '3px 8px', borderRadius: '20px', fontWeight: 700 }}>
+                    Step 1 of 1
+                  </span>
+                </div>
 
                 <div className="row g-3">
-                  <div className="col-6">
-                    <label style={labelStyle}>First Name <span style={{ color: '#ef4444' }}>*</span></label>
-                    <input type="text" required value={firstName} onChange={e => setFirstName(e.target.value)} style={inputStyle}
-                      onFocus={e => (e.target as HTMLInputElement).style.borderColor = 'var(--pd-primary)'}
-                      onBlur={e => (e.target as HTMLInputElement).style.borderColor = '#e5e7eb'} />
-                  </div>
-                  <div className="col-6">
-                    <label style={labelStyle}>Last Name <span style={{ color: '#ef4444' }}>*</span></label>
-                    <input type="text" required value={lastName} onChange={e => setLastName(e.target.value)} style={inputStyle}
-                      onFocus={e => (e.target as HTMLInputElement).style.borderColor = 'var(--pd-primary)'}
-                      onBlur={e => (e.target as HTMLInputElement).style.borderColor = '#e5e7eb'} />
-                  </div>
+                  {/* Full Name */}
                   <div className="col-12">
-                    <label style={labelStyle}>Address <span style={{ color: '#ef4444' }}>*</span></label>
-                    <input type="text" required value={address} onChange={e => setAddress(e.target.value)} placeholder="House No, Street Name" style={inputStyle}
-                      onFocus={e => (e.target as HTMLInputElement).style.borderColor = 'var(--pd-primary)'}
-                      onBlur={e => (e.target as HTMLInputElement).style.borderColor = '#e5e7eb'} />
+                    <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>
+                      Full Name (مکمل نام) <span style={{ color: '#ef4444' }}>*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. Muhammad Ali"
+                      value={formData.fullName}
+                      onChange={e => updateField('fullName', e.target.value)}
+                      style={{
+                        width: '100%', border: '1.5px solid #cbd5e1', borderRadius: '8px',
+                        padding: '11px 14px', fontSize: '0.92rem', outline: 'none',
+                        color: '#0f172a', background: '#fff',
+                      }}
+                    />
                   </div>
+
+                  {/* Phone Number */}
                   <div className="col-12">
-                    <label style={labelStyle}>City <span style={{ color: '#ef4444' }}>*</span></label>
-                    <input type="text" required value={city} onChange={e => setCity(e.target.value)} style={inputStyle}
-                      onFocus={e => (e.target as HTMLInputElement).style.borderColor = 'var(--pd-primary)'}
-                      onBlur={e => (e.target as HTMLInputElement).style.borderColor = '#e5e7eb'} />
+                    <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>
+                      Mobile / WhatsApp Number (موبائل یا واٹس ایپ نمبر) <span style={{ color: '#ef4444' }}>*</span>
+                    </label>
+                    <div style={{ position: 'relative' }}>
+                      <input
+                        type="tel"
+                        required
+                        placeholder="03001234567 or 03XX-XXXXXXX"
+                        value={formData.phone}
+                        onChange={e => updateField('phone', e.target.value)}
+                        style={{
+                          width: '100%', border: '1.5px solid #cbd5e1', borderRadius: '8px',
+                          padding: '11px 14px 11px 42px', fontSize: '0.92rem', outline: 'none',
+                          color: '#0f172a', background: '#fff',
+                        }}
+                      />
+                      <i className="fab fa-whatsapp" style={{
+                        position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)',
+                        color: '#25D366', fontSize: '18px',
+                      }} />
+                    </div>
+                    <span style={{ fontSize: '0.7rem', color: '#64748b', marginTop: '4px', display: 'block' }}>
+                      Courier rider will call/WhatsApp on this number for delivery.
+                    </span>
                   </div>
-                  <div className="col-12">
-                    <label style={labelStyle}>Phone <span style={{ color: '#ef4444' }}>*</span></label>
-                    <input type="tel" required value={phone} onChange={e => setPhone(e.target.value)} placeholder="+923001234567" style={inputStyle}
-                      onFocus={e => (e.target as HTMLInputElement).style.borderColor = 'var(--pd-primary)'}
-                      onBlur={e => (e.target as HTMLInputElement).style.borderColor = '#e5e7eb'} />
+
+                  {/* City Selector */}
+                  <div className="col-12 col-sm-6">
+                    <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>
+                      City (شہر) <span style={{ color: '#ef4444' }}>*</span>
+                    </label>
+                    <select
+                      value={formData.city}
+                      onChange={e => updateField('city', e.target.value)}
+                      style={{
+                        width: '100%', border: '1.5px solid #cbd5e1', borderRadius: '8px',
+                        padding: '11px 14px', fontSize: '0.92rem', outline: 'none',
+                        color: '#0f172a', background: '#fff', cursor: 'pointer',
+                      }}
+                    >
+                      {PAKISTAN_MAJOR_CITIES.map(c => (
+                        <option key={c} value={c}>{c}</option>
+                      ))}
+                    </select>
                   </div>
-                  <div className="col-12">
-                    <label style={labelStyle}>Email <span style={{ color: '#9ca3af', fontWeight: 400 }}>(optional)</span></label>
-                    <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="your@email.com" style={inputStyle}
-                      onFocus={e => (e.target as HTMLInputElement).style.borderColor = 'var(--pd-primary)'}
-                      onBlur={e => (e.target as HTMLInputElement).style.borderColor = '#e5e7eb'} />
+
+                  {/* Optional Email */}
+                  <div className="col-12 col-sm-6">
+                    <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>
+                      Email Address <span style={{ color: '#94a3b8', fontWeight: 400 }}>(Optional)</span>
+                    </label>
+                    <input
+                      type="email"
+                      placeholder="For tracking updates"
+                      value={formData.email}
+                      onChange={e => updateField('email', e.target.value)}
+                      style={{
+                        width: '100%', border: '1.5px solid #cbd5e1', borderRadius: '8px',
+                        padding: '11px 14px', fontSize: '0.92rem', outline: 'none',
+                        color: '#0f172a', background: '#fff',
+                      }}
+                    />
                   </div>
+
+                  {/* Street Delivery Address */}
                   <div className="col-12">
-                    <label style={labelStyle}>Order Notes <span style={{ color: '#9ca3af', fontWeight: 400 }}>(optional)</span></label>
-                    <textarea value={orderNotes} onChange={e => setOrderNotes(e.target.value)} rows={3} placeholder="Any special instructions..." style={{ ...inputStyle, resize: 'vertical' as const }}
-                      onFocus={e => (e.target as HTMLTextAreaElement).style.borderColor = 'var(--pd-primary)'}
-                      onBlur={e => (e.target as HTMLTextAreaElement).style.borderColor = '#e5e7eb'} />
+                    <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>
+                      Complete Delivery Address (گھر یا دکان کا مکمل پتہ) <span style={{ color: '#ef4444' }}>*</span>
+                    </label>
+                    <textarea
+                      required
+                      rows={2}
+                      placeholder="House / Flat No., Street / Sector, Landmark / Area"
+                      value={formData.address}
+                      onChange={e => updateField('address', e.target.value)}
+                      style={{
+                        width: '100%', border: '1.5px solid #cbd5e1', borderRadius: '8px',
+                        padding: '11px 14px', fontSize: '0.92rem', outline: 'none',
+                        color: '#0f172a', background: '#fff', resize: 'vertical',
+                      }}
+                    />
+                  </div>
+
+                  {/* Order Notes */}
+                  <div className="col-12">
+                    <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: '#64748b', marginBottom: '4px' }}>
+                      Special Delivery Instructions (Optional)
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Call before coming or leave with neighbor"
+                      value={formData.orderNotes}
+                      onChange={e => updateField('orderNotes', e.target.value)}
+                      style={{
+                        width: '100%', border: '1px solid #e2e8f0', borderRadius: '8px',
+                        padding: '9px 12px', fontSize: '0.84rem', outline: 'none',
+                        color: '#334155', background: '#f8fafc',
+                      }}
+                    />
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* RIGHT — Order summary */}
+            {/* RIGHT COLUMN — Order Summary & Action */}
             <div className="col-12 col-lg-5">
-              <div style={{ background: '#fff', borderRadius: '12px', padding: '18px', position: 'sticky', top: '80px' }}>
-                <h4 style={{ fontWeight: 800, fontSize: '0.95rem', color: '#111', marginBottom: '14px', paddingBottom: '10px', borderBottom: '1px solid #f0f0f0' }}>
-                  <i className="fas fa-receipt me-2" style={{ color: 'var(--pd-primary)', fontSize: '14px' }} />
-                  Order Summary
-                </h4>
+              <div style={{
+                background: '#fff', borderRadius: '14px', padding: '20px',
+                border: '1px solid #e2e8f0', boxShadow: '0 1px 4px rgba(0,0,0,0.03)',
+                position: 'sticky', top: '80px',
+              }}>
+                <h3 style={{ fontWeight: 800, fontSize: '0.98rem', color: '#0f172a', marginBottom: '14px', paddingBottom: '10px', borderBottom: '1px solid #f1f5f9' }}>
+                  Order Summary ({cart.length} {cart.length === 1 ? 'Item' : 'Items'})
+                </h3>
 
-                {/* Items */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '14px' }}>
+                {/* Items List */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '16px', maxHeight: '240px', overflowY: 'auto' }}>
                   {cart.map(item => {
                     const price = item.variant ? item.variant.price : item.product.price;
                     const variantId = item.variant?._id || '';
                     return (
-                      <div key={`${item.product._id}_${variantId}`} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.82rem', alignItems: 'center' }}>
-                        <span style={{ color: '#374151', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginRight: '8px' }}>
-                          {item.product.name}
-                          {item.variant && (
-                            <span className="text-secondary ms-1 fw-semibold" style={{ fontSize: '0.78rem' }}>
-                              ({item.variant.name})
-                            </span>
-                          )}
-                          <span style={{ color: '#9ca3af' }}> ×{item.quantity}</span>
+                      <div key={`${item.product._id}_${variantId}`} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.84rem', alignItems: 'center', gap: '8px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', overflow: 'hidden' }}>
+                          <span style={{
+                            background: '#f1f5f9', color: '#475569', fontSize: '0.72rem',
+                            fontWeight: 700, padding: '2px 6px', borderRadius: '4px', flexShrink: 0,
+                          }}>
+                            {item.quantity}x
+                          </span>
+                          <span style={{ color: '#1e293b', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {item.product.name}
+                            {item.variant && (
+                              <span style={{ color: '#64748b', fontSize: '0.76rem', marginLeft: '4px' }}>
+                                ({item.variant.name})
+                              </span>
+                            )}
+                          </span>
+                        </div>
+                        <span style={{ fontWeight: 700, color: '#0f172a', flexShrink: 0 }}>
+                          Rs. {(price * item.quantity).toLocaleString()}
                         </span>
-                        <span style={{ fontWeight: 600, color: '#111', flexShrink: 0 }}>PKR {(price * item.quantity).toLocaleString()}</span>
                       </div>
                     );
                   })}
                 </div>
 
-                <div style={{ height: '1px', background: '#f0f0f0', marginBottom: '12px' }} />
+                <div style={{ height: '1px', background: '#f1f5f9', marginBottom: '14px' }} />
 
+                {/* Pricing Calculation */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem' }}>
-                    <span style={{ color: '#6b7280' }}>Subtotal</span>
-                    <span style={{ fontWeight: 600, color: '#111' }}>PKR {cartTotal.toLocaleString()}</span>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.86rem', color: '#64748b' }}>
+                    <span>Subtotal</span>
+                    <span style={{ fontWeight: 600, color: '#0f172a' }}>Rs. {cartTotal.toLocaleString()}</span>
                   </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem' }}>
-                    <span style={{ color: '#6b7280' }}>Delivery</span>
-                    <span style={{ fontWeight: 700, color: '#16a34a' }}>FREE</span>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.86rem', color: '#64748b' }}>
+                    <span>Shipping Charges (Nationwide)</span>
+                    <span style={{ fontWeight: 800, color: '#16a34a' }}>FREE SHIPPING</span>
                   </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1rem', paddingTop: '8px', borderTop: '1px solid #f0f0f0' }}>
-                    <span style={{ fontWeight: 800, color: '#111' }}>Total</span>
-                    <span style={{ fontWeight: 900, color: 'var(--pd-primary)' }}>PKR {cartTotal.toLocaleString()}</span>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1.1rem', paddingTop: '10px', borderTop: '1px solid #f1f5f9' }}>
+                    <span style={{ fontWeight: 800, color: '#0f172a' }}>Total Amount</span>
+                    <span style={{ fontWeight: 900, color: 'var(--pd-primary, #ea580c)' }}>
+                      Rs. {cartTotal.toLocaleString()}
+                    </span>
                   </div>
                 </div>
 
-                {/* COD badge */}
-                <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '8px', padding: '10px 12px', marginBottom: '14px', fontSize: '0.78rem', color: '#166534', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <i className="fas fa-money-bill-wave" style={{ flexShrink: 0 }} />
-                  <span><strong>Cash on Delivery (COD)</strong> — Pay when you receive</span>
+                {/* COD Guarantee Box */}
+                <div style={{
+                  background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '8px',
+                  padding: '10px 12px', marginBottom: '16px', fontSize: '0.78rem', color: '#166534',
+                  display: 'flex', alignItems: 'center', gap: '8px',
+                }}>
+                  <i className="fas fa-hand-holding-usd" style={{ fontSize: '18px', flexShrink: 0, color: '#16a34a' }} />
+                  <div>
+                    <strong>Cash on Delivery (COD)</strong>
+                    <div style={{ fontSize: '0.7rem', color: '#15803d' }}>Pay with cash only when your parcel reaches your doorstep.</div>
+                  </div>
                 </div>
 
-                <button type="submit" disabled={loading} className="btn-gradient"
-                  style={{ border: 'none', borderRadius: '8px', padding: '14px', fontWeight: 800, fontSize: '0.95rem', width: '100%', cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.8 : 1 }}>
+                {/* Primary Button: Complete COD Order */}
+                <button
+                  type="submit"
+                  disabled={loading}
+                  style={{
+                    border: 'none',
+                    borderRadius: '10px',
+                    padding: '14px',
+                    fontWeight: 800,
+                    fontSize: '1rem',
+                    width: '100%',
+                    cursor: loading ? 'not-allowed' : 'pointer',
+                    opacity: loading ? 0.85 : 1,
+                    background: 'linear-gradient(135deg, #ea580c, #c2410c)',
+                    color: '#fff',
+                    boxShadow: '0 4px 16px rgba(234,88,12,0.35)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px',
+                    marginBottom: '10px',
+                  }}
+                >
                   {loading ? (
-                    <><span className="spinner-border spinner-border-sm me-2" />Placing Order…</>
+                    <>
+                      <span className="spinner-border spinner-border-sm" />
+                      <span>Placing Your Order…</span>
+                    </>
                   ) : (
-                    <><i className="fas fa-check-circle me-2" />Place Order</>
+                    <>
+                      <i className="fas fa-check-circle" />
+                      <span>Complete Order (Cash On Delivery)</span>
+                    </>
                   )}
                 </button>
+
+                {/* Secondary Button: Order via WhatsApp */}
+                <button
+                  type="button"
+                  onClick={handleOrderViaWhatsApp}
+                  style={{
+                    border: 'none',
+                    borderRadius: '10px',
+                    padding: '12px',
+                    fontWeight: 700,
+                    fontSize: '0.88rem',
+                    width: '100%',
+                    cursor: 'pointer',
+                    background: '#25D366',
+                    color: '#fff',
+                    boxShadow: '0 3px 12px rgba(37,211,102,0.25)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px',
+                  }}
+                >
+                  <i className="fab fa-whatsapp" style={{ fontSize: '1.2rem' }} />
+                  <span>Order via WhatsApp (1-Click)</span>
+                </button>
+
+                {/* Trust assurance footer */}
+                <div style={{
+                  display: 'flex', justifyContent: 'space-around', marginTop: '16px',
+                  paddingTop: '12px', borderTop: '1px solid #f1f5f9', fontSize: '0.7rem', color: '#64748b',
+                }}>
+                  <span><i className="fas fa-undo-alt me-1 text-primary" /> 7-Day Returns</span>
+                  <span><i className="fas fa-shield-alt me-1 text-success" /> 100% Original</span>
+                  <span><i className="fas fa-truck me-1 text-warning" /> 24-48h Delivery</span>
+                </div>
+
               </div>
             </div>
 
           </div>
         </form>
+
       </div>
     </div>
   );

@@ -14,7 +14,14 @@ export async function GET() {
     if (!settings) {
       settings = await SiteSettings.create({});
     }
-    return NextResponse.json({ success: true, data: settings });
+    return NextResponse.json(
+      { success: true, data: settings },
+      {
+        headers: {
+          'Cache-Control': 'public, s-maxage=120, stale-while-revalidate=600',
+        },
+      }
+    );
   } catch (error: any) {
     console.error('GET /api/site-settings error:', error);
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });

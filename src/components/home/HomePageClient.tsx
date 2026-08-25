@@ -756,10 +756,22 @@ export function HomePageClient({ initialProducts, initialCategories }: HomePageC
               },
             ].map((box, i) => (
               <div key={i} className="col-md-6 col-lg-3 animate-on-scroll">
-                <div className="why-us-card p-4 h-100 text-center border rounded">
+                <div className="why-us-card p-4 h-100 text-center border rounded shadow-sm bg-white">
                   <div className="why-us-icon-container rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3"
-                    style={{ width: '60px', height: '60px', color: '#fff' }}>
-                    <ThemeIcon name={box.icon} style={{ fontSize: '22px' }} />
+                    style={{
+                      width: '64px',
+                      height: '64px',
+                      background: isModernGreen
+                        ? 'rgba(212, 175, 55, 0.15)'
+                        : (isCleanWhite ? 'rgba(37, 99, 235, 0.1)' : 'rgba(234, 88, 12, 0.1)'),
+                      color: isModernGreen
+                        ? '#d4af37'
+                        : (isCleanWhite ? (theme.primaryColor || '#2563eb') : 'var(--pd-primary)'),
+                      border: isModernGreen
+                        ? '1px solid rgba(212, 175, 55, 0.3)'
+                        : '1px solid rgba(234, 88, 12, 0.2)',
+                    }}>
+                    <ThemeIcon name={box.icon} style={{ fontSize: '24px' }} />
                   </div>
                   <h5 className="fw-bold mb-2">{box.title}</h5>
                   <p className="text-muted mb-0" style={{ fontSize: '0.8rem', lineHeight: 1.5 }}>{box.desc}</p>

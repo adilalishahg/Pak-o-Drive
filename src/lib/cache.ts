@@ -1,13 +1,11 @@
-import { cacheLife } from 'next/cache';
+import { cache } from 'react';
 import dbConnect from './mongodb';
 import SiteInfo from '../models/SiteInfo';
 import SiteSettings from '../models/SiteSettings';
 import Product from '../models/Product';
 import Category from '../models/Category';
 
-export async function getCachedSiteInfo() {
-  'use cache';
-  cacheLife('hours'); // stale: 5m, revalidate: 1h, expire: 1d
+export const getCachedSiteInfo = cache(async () => {
   try {
     await dbConnect();
     const info = await SiteInfo.findOne({}).lean();
@@ -16,11 +14,9 @@ export async function getCachedSiteInfo() {
     console.error('Error in getCachedSiteInfo:', err);
     return null;
   }
-}
+});
 
-export async function getCachedSiteSettings() {
-  'use cache';
-  cacheLife('hours');
+export const getCachedSiteSettings = cache(async () => {
   try {
     await dbConnect();
     const settings = await SiteSettings.findOne({}).lean();
@@ -29,11 +25,9 @@ export async function getCachedSiteSettings() {
     console.error('Error in getCachedSiteSettings:', err);
     return null;
   }
-}
+});
 
-export async function getCachedProduct(id: string) {
-  'use cache';
-  cacheLife('minutes'); // stale: 5m, revalidate: 1m, expire: 1h
+export const getCachedProduct = cache(async (id: string) => {
   try {
     await dbConnect();
     const p = await Product.findById(id).lean();
@@ -42,11 +36,9 @@ export async function getCachedProduct(id: string) {
     console.error('Error in getCachedProduct:', err);
     return null;
   }
-}
+});
 
-export async function getCachedRelatedProducts(category: string, excludeId: string) {
-  'use cache';
-  cacheLife('minutes');
+export const getCachedRelatedProducts = cache(async (category: string, excludeId: string) => {
   try {
     await dbConnect();
     const relatedObj = await Product.find({ category, _id: { $ne: excludeId } }).limit(6).lean();
@@ -55,11 +47,9 @@ export async function getCachedRelatedProducts(category: string, excludeId: stri
     console.error('Error in getCachedRelatedProducts:', err);
     return [];
   }
-}
+});
 
-export async function getCachedAllProducts() {
-  'use cache';
-  cacheLife('minutes');
+export const getCachedAllProducts = cache(async () => {
   try {
     await dbConnect();
     const list = await Product.find({}).sort({ createdAt: -1 }).lean();
@@ -68,11 +58,9 @@ export async function getCachedAllProducts() {
     console.error('Error in getCachedAllProducts:', err);
     return [];
   }
-}
+});
 
-export async function getCachedAllCategories() {
-  'use cache';
-  cacheLife('hours');
+export const getCachedAllCategories = cache(async () => {
   try {
     await dbConnect();
     const list = await Category.find({}).sort({ name: 1 }).lean();
@@ -81,4 +69,4 @@ export async function getCachedAllCategories() {
     console.error('Error in getCachedAllCategories:', err);
     return [];
   }
-}
+});

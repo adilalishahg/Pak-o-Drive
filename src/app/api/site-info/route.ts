@@ -8,7 +8,14 @@ export async function GET() {
     await dbConnect();
     let info = await SiteInfo.findOne({});
     if (!info) info = await SiteInfo.create({});
-    return NextResponse.json({ success: true, data: info });
+    return NextResponse.json(
+      { success: true, data: info },
+      {
+        headers: {
+          'Cache-Control': 'public, s-maxage=120, stale-while-revalidate=600',
+        },
+      }
+    );
   } catch (error: any) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
