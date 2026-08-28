@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { useSiteTheme } from '../common/DynamicThemeProvider';
 import { useSiteInfo } from '../common/SiteInfoProvider';
+import { PakODriveLogo } from '../common/PakODriveLogo';
 
 /* ── Inline SVG icons (zero CDN dependency) ─────────────────── */
 const IconMap: Record<string, React.FC<{ size?: number; color?: string }>> = {
@@ -127,9 +128,15 @@ export const Footer: React.FC = () => {
             
             {/* Logo and info */}
             <div>
-              <Link href="/" className="text-2xl font-extrabold tracking-wider text-white flex items-center gap-2 mb-6 text-decoration-none">
-                <span className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white text-base font-black">{firstLetter}</span>
-                {info.logoText || 'ALPHA'}
+              <Link href="/" className="d-inline-flex align-items-center mb-6 text-decoration-none">
+                {theme.svgLogo?.enabled !== false ? (
+                  <PakODriveLogo height={Math.min(theme.svgLogo?.height || 36, 36)} />
+                ) : (
+                  <span className="text-2xl font-extrabold tracking-wider text-white flex items-center gap-2">
+                    <span className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white text-base font-black">{firstLetter}</span>
+                    {info.logoText || 'ALPHA'}
+                  </span>
+                )}
               </Link>
               <p className="text-slate-400 text-xs sm:text-sm leading-relaxed mb-6">
                 Premium electronics, smart home accessories, and wearable technology tailored to elevate your digital lifestyle.
@@ -140,13 +147,13 @@ export const Footer: React.FC = () => {
                     <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
                     <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
                   </svg>
-                  {info.address || '786 Commercial Plaza, Karachi, Pakistan'}
+                  {info.address || 'Main Muslim Town, Sadiqabad, Rawalpindi, Punjab, Pakistan'}
                 </p>
                 <p className="flex items-center gap-2.5">
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" className="w-4 h-4 text-blue-500 flex-shrink-0">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-2.824-1.502-5.184-3.864-6.687-6.687l1.293-.97c.362-.272.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
                   </svg>
-                  {info.phone || '+92-300-1234567'}
+                  {info.phone || '03185205667'}
                 </p>
                 <p className="flex items-center gap-2.5">
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" className="w-4 h-4 text-blue-500 flex-shrink-0">

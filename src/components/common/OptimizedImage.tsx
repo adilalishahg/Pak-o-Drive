@@ -46,21 +46,10 @@ export const cloudinaryLoader = ({ src, width, quality }: { src: string; width: 
 };
 
 /**
- * Generates a tiny, blurred placeholder URL for Cloudinary images.
- * For local/other images, returns a tiny SVG data-URI.
+ * Generates an instant, zero-network-cost blurred shimmer SVG data-URI.
  */
-const getBlurPlaceholder = (src: string): string => {
-  if (src.includes('res.cloudinary.com')) {
-    const uploadIndex = src.indexOf('/upload/');
-    if (uploadIndex !== -1) {
-      const prefix = src.substring(0, uploadIndex + 8);
-      const suffix = src.substring(uploadIndex + 8);
-      // Generate a tiny 20px blurred image
-      return `${prefix}f_auto,q_30,w_20,e_blur:1000/${suffix}`;
-    }
-  }
-  // Generic grey placeholder base64/SVG data URI for non-Cloudinary images
-  return 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMCIgaGVpZ2h0PSIxMCI+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0iI2UzZTFlMSIvPjwvc3ZnPg==';
+const getBlurPlaceholder = (_src: string): string => {
+  return 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMCIgaGVpZ2h0PSIxMCI+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0iI2YxZjVmOSIvPjwvc3ZnPg==';
 };
 
 /**
@@ -75,7 +64,7 @@ export const OptimizedImage: React.FC<OptimizedImageProps> = ({
   alt,
   sizes,
   loading = 'lazy',
-  placeholder = 'blur',
+  placeholder = 'empty',
   blurDataURL,
   fallbackSrc = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIj48cmVjdCB3aWR0aD0iMTAwJSIgZmlsbD0iI2UzZTFlMSIvPjwvc3ZnPg==',
   onError,
@@ -99,12 +88,10 @@ export const OptimizedImage: React.FC<OptimizedImageProps> = ({
           s = parsed[0];
         }
       } catch (e) {
-        // Fallback: regex to find the first image URL or path in the brackets
         const match = s.match(/["']([^"']+)["']/);
         if (match && match[1]) {
           s = match[1];
         } else {
-          // If regex fails, clean out brackets/quotes
           s = s.replace(/[\[\]"']/g, '').split(',')[0].trim();
         }
       }
@@ -143,14 +130,11 @@ export const OptimizedImage: React.FC<OptimizedImageProps> = ({
   };
 
   // Determine standard responsive sizes string if not provided
-  // Standard breakpoints: mobile (< 768px) -> 100vw, desktop (>= 768px) -> 50vw or custom
   const defaultSizes = sizes || '(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw';
-
-  // Generate blur placeholder if using blur placeholder but no custom blurDataURL is provided
-  const finalBlurDataURL = placeholder === 'blur' ? (blurDataURL || getBlurPlaceholder(finalSrc)) : undefined;
 
   // Check if we can use custom loader (only for Cloudinary assets)
   const isCloudinary = finalSrc.includes('res.cloudinary.com');
+  const isLocalOrData = finalSrc.startsWith('/') || finalSrc.startsWith('data:');
 
   // Next.js: If priority is true, completely omit loading prop and force fetchPriority="high"
   const isPriority = props.priority === true;
@@ -161,14 +145,14 @@ export const OptimizedImage: React.FC<OptimizedImageProps> = ({
     alt: alt || 'Product Image',
     sizes: defaultSizes,
     placeholder,
-    blurDataURL: finalBlurDataURL,
+    blurDataURL: placeholder === 'blur' ? (blurDataURL || getBlurPlaceholder(finalSrc)) : undefined,
     loader: isCloudinary ? cloudinaryLoader : undefined,
+    unoptimized: props.unoptimized !== undefined ? props.unoptimized : isLocalOrData,
     onError: handleImageError,
     ...props,
   };
 
   if (isPriority) {
-    // Ensure loading is completely absent and fetchPriority is high
     delete imageProps.loading;
     imageProps.fetchPriority = 'high';
     imageProps.priority = true;

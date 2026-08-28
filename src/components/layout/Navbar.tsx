@@ -10,6 +10,7 @@ import { useSiteInfo } from '../common/SiteInfoProvider';
 import { ThemeIcon } from '../common/ThemeIcon';
 import { useSiteTheme } from '../common/DynamicThemeProvider';
 import { OptimizedImage } from '../common/OptimizedImage';
+import { PakODriveLogo } from '../common/PakODriveLogo';
 
 /* ── Category maps ─────────────────────────────────────────── */
 const CAT_ICONS: Record<string, string> = {
@@ -158,10 +159,10 @@ export const Navbar: React.FC = () => {
   useEffect(() => {
     (async () => {
       try {
-        const r = await fetch('/api/categories');
-        const j = await r.json();
-        if (j.success && j.data.length > 0) {
-          setCats(j.data);
+        const { fetchCategoriesClient } = await import('../../lib/client-cache');
+        const data = await fetchCategoriesClient();
+        if (data && data.length > 0) {
+          setCats(data);
         }
       } catch { }
     })();
@@ -316,6 +317,10 @@ export const Navbar: React.FC = () => {
                       alt={info.logoText || 'ALPHA'}
                       style={{ maxHeight: '42px', width: 'auto', objectFit: 'contain' }}
                     />
+                  </Link>
+                ) : theme.svgLogo?.enabled !== false ? (
+                  <Link href="/" aria-label={`${theme.svgLogo?.text1 || 'PAKO'} ${theme.svgLogo?.text2 || 'DRIVE'} Home`} className="flex items-center text-decoration-none">
+                    <PakODriveLogo height={theme.svgLogo?.height || 38} />
                   </Link>
                 ) : (
                   <Link href="/" aria-label={`${info.logoText || 'ALPHA'} Home`} className="text-2xl font-extrabold tracking-wider text-slate-900 flex items-center gap-2 text-decoration-none">
@@ -570,6 +575,10 @@ export const Navbar: React.FC = () => {
                   alt={info.logoText || 'PAKODRIVE'}
                   style={{ maxHeight: '38px', width: 'auto', objectFit: 'contain' }}
                 />
+              </Link>
+            ) : theme.svgLogo?.enabled !== false ? (
+              <Link href="/" aria-label={`${theme.svgLogo?.text1 || 'PAKO'} ${theme.svgLogo?.text2 || 'DRIVE'} Home`} className="text-decoration-none flex-shrink-0 d-flex align-items-center" style={{ minWidth: '130px' }}>
+                <PakODriveLogo height={theme.svgLogo?.height || 38} />
               </Link>
             ) : (
               <Link href="/" aria-label={`${info.logoText || 'PAKODRIVE'} Home`} className="text-decoration-none flex-shrink-0" style={{ minWidth: '130px' }}>

@@ -1,8 +1,9 @@
 'use client';
 
 import React, { useEffect, useState, useCallback } from 'react';
-import { DEFAULT_THEME, IconLibrary, SiteTheme } from '../../../components/common/DynamicThemeProvider';
+import { DEFAULT_THEME, DEFAULT_SVG_LOGO, IconLibrary, SiteTheme, SvgLogoSettings } from '../../../components/common/DynamicThemeProvider';
 import { optimizeImageBeforeUpload } from '../../../utils/imageOptimizer';
+import { PakODriveLogo } from '../../../components/common/PakODriveLogo';
 
 /* ─── Helpers ────────────────────────────────────────────────── */
 const FONT_OPTIONS = [
@@ -35,6 +36,45 @@ function stepToPx(idx: number): string {
 const SHADOW_OPTIONS: SiteTheme['shadowIntensity'][] = ['none', 'light', 'medium', 'strong'];
 const NAVBAR_STYLE_OPTIONS: SiteTheme['navbarStyle'][] = ['dark', 'light', 'gradient'];
 const FOOTER_STYLE_OPTIONS: SiteTheme['footerStyle'][] = ['dark', 'light'];
+
+const LOGO_PRESETS = [
+  {
+    name: '⚡ Cyber Cyan & Neon Orange (Default)',
+    primaryColor: '#00A8E8',
+    secondaryColor: '#0066CC',
+    accentColor: '#FF7A00',
+  },
+  {
+    name: '🏎️ Flame Red & Pitch Black',
+    primaryColor: '#EF4444',
+    secondaryColor: '#991B1B',
+    accentColor: '#F97316',
+  },
+  {
+    name: '👑 Royal Gold & Deep Navy',
+    primaryColor: '#D4AF37',
+    secondaryColor: '#0F172A',
+    accentColor: '#F59E0B',
+  },
+  {
+    name: '🌿 Emerald Green & Lime Glow',
+    primaryColor: '#10B981',
+    secondaryColor: '#065F46',
+    accentColor: '#84CC16',
+  },
+  {
+    name: '💎 Electric Violet & Hot Pink',
+    primaryColor: '#A855F7',
+    secondaryColor: '#6B21A8',
+    accentColor: '#EC4899',
+  },
+  {
+    name: '⚪ Minimalist Clean Monochrome',
+    primaryColor: '#F8FAFC',
+    secondaryColor: '#94A3B8',
+    accentColor: '#38BDF8',
+  },
+];
 
 /* ─── Icon Library definitions ───────────────────────────────── */
 const ICON_LIBRARIES: {
@@ -229,15 +269,35 @@ function LivePreview({ theme }: { theme: SiteTheme }) {
           justifyContent: 'space-between',
         }}
       >
-        <span
-          style={{
-            color: logoColor,
-            fontWeight: 800,
-            fontSize: '0.9rem',
-          }}
-        >
-          🛒 PAKODRIVE
-        </span>
+        {theme.svgLogo?.enabled !== false ? (
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <PakODriveLogo
+              primaryColor={theme.svgLogo?.primaryColor}
+              secondaryColor={theme.svgLogo?.secondaryColor}
+              accentColor={theme.svgLogo?.accentColor}
+              text1={theme.svgLogo?.text1}
+              text2={theme.svgLogo?.text2}
+              fontFamily={theme.svgLogo?.fontFamily}
+              fontWeight={theme.svgLogo?.fontWeight}
+              letterSpacing={theme.svgLogo?.letterSpacing}
+              fontSize={theme.svgLogo?.fontSize}
+              fontStyle={theme.svgLogo?.fontStyle}
+              showIcon={theme.svgLogo?.showIcon}
+              showText={theme.svgLogo?.showText}
+              height={Math.min(theme.svgLogo?.height || 26, 28)}
+            />
+          </div>
+        ) : (
+          <span
+            style={{
+              color: logoColor,
+              fontWeight: 800,
+              fontSize: '0.9rem',
+            }}
+          >
+            🛒 PAKODRIVE
+          </span>
+        )}
         <div style={{ display: 'flex', gap: '12px' }}>
           {['Home', 'Shop', 'Contact'].map((l) => (
             <span
@@ -363,6 +423,16 @@ export default function ThemeSettingsPage() {
 
   const set = useCallback(<K extends keyof SiteTheme>(key: K, val: SiteTheme[K]) => {
     setForm((prev) => ({ ...prev, [key]: val }));
+  }, []);
+
+  const setSvgLogo = useCallback(<K extends keyof SvgLogoSettings>(key: K, val: SvgLogoSettings[K]) => {
+    setForm((prev) => ({
+      ...prev,
+      svgLogo: {
+        ...(prev.svgLogo || DEFAULT_SVG_LOGO),
+        [key]: val,
+      },
+    }));
   }, []);
 
   const applyPreset = (presetName: 'classic' | 'modern-green' | 'theme1') => {
@@ -603,6 +673,311 @@ export default function ThemeSettingsPage() {
                   <p className="mb-0 text-muted small" style={{ fontSize: '0.72rem' }}>
                     Theme 1 layout with clean white background, dynamic blue accents, light card borders, and minimalistic structure.
                   </p>
+                </div>
+              </div>
+            </div>
+          </SectionCard>
+
+          {/* ⚡ Dynamic Vector SVG Logo Studio */}
+          <SectionCard title="⚡ SVG Vector Logo Studio (Dynamic Colors, Fonts & Style)" icon="fas fa-bolt">
+            <p className="text-muted mb-3" style={{ fontSize: '0.82rem' }}>
+              Customize your storefront&apos;s dynamic Pak-o-Drive vector SVG logo in real time. Adjust bolt gradients, speed swooshes, typography fonts, letter spacing, and sizing.
+            </p>
+
+            {/* Live Interactive Logo Canvas Preview */}
+            <div className="mb-4 p-3 rounded-4" style={{ background: '#090d16', border: '1.5px solid #1e293b' }}>
+              <div className="d-flex align-items-center justify-content-between mb-2">
+                <span className="badge bg-primary-subtle text-primary fw-bold" style={{ fontSize: '0.72rem' }}>
+                  <i className="fas fa-eye me-1" /> Live Studio Vector Canvas
+                </span>
+                <span className="text-muted small" style={{ fontSize: '0.72rem' }}>
+                  Height: {form.svgLogo?.height || 38}px | Spacing: {form.svgLogo?.letterSpacing || 5}px
+                </span>
+              </div>
+              <div className="p-3 text-center rounded-3 d-flex align-items-center justify-content-center" style={{ minHeight: '85px', background: 'radial-gradient(ellipse at center, #1e293b 0%, #0b0f19 100%)' }}>
+                <PakODriveLogo
+                  primaryColor={form.svgLogo?.primaryColor}
+                  secondaryColor={form.svgLogo?.secondaryColor}
+                  accentColor={form.svgLogo?.accentColor}
+                  text1={form.svgLogo?.text1}
+                  text2={form.svgLogo?.text2}
+                  fontFamily={form.svgLogo?.fontFamily}
+                  fontWeight={form.svgLogo?.fontWeight}
+                  letterSpacing={form.svgLogo?.letterSpacing}
+                  fontSize={form.svgLogo?.fontSize}
+                  fontStyle={form.svgLogo?.fontStyle}
+                  showIcon={form.svgLogo?.showIcon}
+                  showText={form.svgLogo?.showText}
+                  height={Math.max(form.svgLogo?.height || 38, 38)}
+                />
+              </div>
+            </div>
+
+            {/* Enable / Disable Dynamic SVG Logo */}
+            <div className="form-check form-switch mb-3 p-2 bg-light rounded-3 d-flex align-items-center justify-content-between">
+              <label className="form-check-label fw-bold text-dark mb-0 ms-2" htmlFor="svgLogoEnabled" style={{ fontSize: '0.85rem' }}>
+                Enable Dynamic Vector SVG Logo on Website
+              </label>
+              <input
+                type="checkbox"
+                id="svgLogoEnabled"
+                className="form-check-input ms-0"
+                role="switch"
+                checked={form.svgLogo?.enabled ?? true}
+                onChange={(e) => setSvgLogo('enabled', e.target.checked)}
+                style={{ width: '2.5em', height: '1.3em', cursor: 'pointer' }}
+              />
+            </div>
+
+            {/* Quick Color Presets */}
+            <div className="mb-4">
+              <label className="form-label small fw-bold text-secondary mb-2" style={{ fontSize: '0.8rem' }}>
+                ⚡ Quick 1-Click Logo Color Palettes:
+              </label>
+              <div className="d-flex flex-wrap gap-2">
+                {LOGO_PRESETS.map((preset) => (
+                  <button
+                    key={preset.name}
+                    type="button"
+                    onClick={() => {
+                      setSvgLogo('primaryColor', preset.primaryColor);
+                      setSvgLogo('secondaryColor', preset.secondaryColor);
+                      setSvgLogo('accentColor', preset.accentColor);
+                    }}
+                    className="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1.5 rounded-pill px-2.5 py-1"
+                    style={{ fontSize: '0.75rem' }}
+                  >
+                    <span
+                      style={{
+                        width: '12px',
+                        height: '12px',
+                        borderRadius: '50%',
+                        background: `linear-gradient(135deg, ${preset.primaryColor} 0%, ${preset.accentColor} 100%)`,
+                        display: 'inline-block',
+                      }}
+                    />
+                    {preset.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Text Inputs */}
+            <div className="row g-3 mb-3">
+              <div className="col-6">
+                <label className="form-label small fw-medium mb-1">Word 1 (Top Text / Bolt)</label>
+                <input
+                  type="text"
+                  className="form-control form-control-sm fw-bold"
+                  value={form.svgLogo?.text1 ?? 'PAKO'}
+                  onChange={(e) => setSvgLogo('text1', e.target.value)}
+                  placeholder="e.g. PAKO"
+                />
+              </div>
+              <div className="col-6">
+                <label className="form-label small fw-medium mb-1">Word 2 (Bottom Text / Drive)</label>
+                <input
+                  type="text"
+                  className="form-control form-control-sm fw-bold"
+                  value={form.svgLogo?.text2 ?? 'DRIVE'}
+                  onChange={(e) => setSvgLogo('text2', e.target.value)}
+                  placeholder="e.g. DRIVE"
+                />
+              </div>
+            </div>
+
+            {/* SVG Logo Colors */}
+            <div className="border rounded-3 p-3 mb-3 bg-light-subtle">
+              <h6 className="fw-bold small mb-2 text-dark">Logo Vector Colors</h6>
+              
+              <div className="d-flex align-items-center justify-content-between py-2 border-bottom">
+                <span className="small fw-medium text-dark">Primary (Bolt Glow, Word 1 & Top Wave)</span>
+                <div className="d-flex align-items-center gap-2">
+                  <input
+                    type="color"
+                    value={form.svgLogo?.primaryColor || '#00A8E8'}
+                    onChange={(e) => setSvgLogo('primaryColor', e.target.value)}
+                    className="form-control form-control-color"
+                    style={{ width: '38px', height: '32px', padding: '2px', cursor: 'pointer' }}
+                  />
+                  <input
+                    type="text"
+                    value={form.svgLogo?.primaryColor || '#00A8E8'}
+                    onChange={(e) => setSvgLogo('primaryColor', e.target.value)}
+                    className="form-control form-control-sm"
+                    style={{ width: '90px', fontFamily: 'monospace', fontSize: '0.8rem' }}
+                  />
+                </div>
+              </div>
+
+              <div className="d-flex align-items-center justify-content-between py-2 border-bottom">
+                <span className="small fw-medium text-dark">Secondary Depth (3D Bolt Base & Dark Arc)</span>
+                <div className="d-flex align-items-center gap-2">
+                  <input
+                    type="color"
+                    value={form.svgLogo?.secondaryColor || '#0066CC'}
+                    onChange={(e) => setSvgLogo('secondaryColor', e.target.value)}
+                    className="form-control form-control-color"
+                    style={{ width: '38px', height: '32px', padding: '2px', cursor: 'pointer' }}
+                  />
+                  <input
+                    type="text"
+                    value={form.svgLogo?.secondaryColor || '#0066CC'}
+                    onChange={(e) => setSvgLogo('secondaryColor', e.target.value)}
+                    className="form-control form-control-sm"
+                    style={{ width: '90px', fontFamily: 'monospace', fontSize: '0.8rem' }}
+                  />
+                </div>
+              </div>
+
+              <div className="d-flex align-items-center justify-content-between py-2">
+                <span className="small fw-medium text-dark">Accent (Speed Swoosh, Arrow, Word 2 & Tail)</span>
+                <div className="d-flex align-items-center gap-2">
+                  <input
+                    type="color"
+                    value={form.svgLogo?.accentColor || '#FF7A00'}
+                    onChange={(e) => setSvgLogo('accentColor', e.target.value)}
+                    className="form-control form-control-color"
+                    style={{ width: '38px', height: '32px', padding: '2px', cursor: 'pointer' }}
+                  />
+                  <input
+                    type="text"
+                    value={form.svgLogo?.accentColor || '#FF7A00'}
+                    onChange={(e) => setSvgLogo('accentColor', e.target.value)}
+                    className="form-control form-control-sm"
+                    style={{ width: '90px', fontFamily: 'monospace', fontSize: '0.8rem' }}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Typography & Font Styling */}
+            <div className="border rounded-3 p-3 mb-3 bg-light-subtle">
+              <h6 className="fw-bold small mb-3 text-dark">Typography & Font Styling</h6>
+              <div className="row g-3">
+                <div className="col-12 col-md-6">
+                  <label className="form-label small fw-medium mb-1">Logo Font Family</label>
+                  <select
+                    className="form-select form-select-sm"
+                    value={form.svgLogo?.fontFamily || 'Montserrat'}
+                    onChange={(e) => setSvgLogo('fontFamily', e.target.value)}
+                    style={{ fontFamily: `'${form.svgLogo?.fontFamily || 'Montserrat'}', sans-serif` }}
+                  >
+                    {FONT_OPTIONS.map((f) => (
+                      <option key={f} value={f} style={{ fontFamily: `'${f}', sans-serif` }}>{f}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="col-6 col-md-3">
+                  <label className="form-label small fw-medium mb-1">Font Weight</label>
+                  <select
+                    className="form-select form-select-sm"
+                    value={form.svgLogo?.fontWeight || '900'}
+                    onChange={(e) => setSvgLogo('fontWeight', e.target.value)}
+                  >
+                    <option value="900">900 (Black)</option>
+                    <option value="800">800 (Extra Bold)</option>
+                    <option value="700">700 (Bold)</option>
+                    <option value="600">600 (Semi Bold)</option>
+                    <option value="500">500 (Medium)</option>
+                  </select>
+                </div>
+
+                <div className="col-6 col-md-3">
+                  <label className="form-label small fw-medium mb-1">Font Style</label>
+                  <select
+                    className="form-select form-select-sm"
+                    value={form.svgLogo?.fontStyle || 'normal'}
+                    onChange={(e) => setSvgLogo('fontStyle', e.target.value as 'normal' | 'italic')}
+                  >
+                    <option value="normal">Normal</option>
+                    <option value="italic">Italic</option>
+                  </select>
+                </div>
+
+                <div className="col-12 col-md-6">
+                  <div className="d-flex justify-content-between align-items-center mb-1">
+                    <label className="form-label small fw-medium mb-0">Letter Spacing: {form.svgLogo?.letterSpacing ?? 5}px</label>
+                  </div>
+                  <input
+                    type="range"
+                    className="form-range"
+                    min={0}
+                    max={15}
+                    step={1}
+                    value={form.svgLogo?.letterSpacing ?? 5}
+                    onChange={(e) => setSvgLogo('letterSpacing', Number(e.target.value))}
+                    style={{ accentColor: 'var(--pd-primary, #ea580c)' }}
+                  />
+                </div>
+
+                <div className="col-12 col-md-6">
+                  <div className="d-flex justify-content-between align-items-center mb-1">
+                    <label className="form-label small fw-medium mb-0">SVG Font Size: {form.svgLogo?.fontSize ?? 105}px</label>
+                  </div>
+                  <input
+                    type="range"
+                    className="form-range"
+                    min={70}
+                    max={135}
+                    step={5}
+                    value={form.svgLogo?.fontSize ?? 105}
+                    onChange={(e) => setSvgLogo('fontSize', Number(e.target.value))}
+                    style={{ accentColor: 'var(--pd-primary, #ea580c)' }}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Elements & Sizing */}
+            <div className="border rounded-3 p-3 bg-light-subtle">
+              <h6 className="fw-bold small mb-2 text-dark">Display Elements & Header Scale</h6>
+              <div className="row g-3">
+                <div className="col-6">
+                  <div className="form-check">
+                    <input
+                      className="form-check-input"
+                      type="checkbox"
+                      id="showLogoIcon"
+                      checked={form.svgLogo?.showIcon ?? true}
+                      onChange={(e) => setSvgLogo('showIcon', e.target.checked)}
+                    />
+                    <label className="form-check-label small fw-medium text-dark" htmlFor="showLogoIcon">
+                      Show Bolt & Speed Swoosh Icon
+                    </label>
+                  </div>
+                </div>
+                <div className="col-6">
+                  <div className="form-check">
+                    <input
+                      className="form-check-input"
+                      type="checkbox"
+                      id="showLogoText"
+                      checked={form.svgLogo?.showText ?? true}
+                      onChange={(e) => setSvgLogo('showText', e.target.checked)}
+                    />
+                    <label className="form-check-label small fw-medium text-dark" htmlFor="showLogoText">
+                      Show Logo Typography Text
+                    </label>
+                  </div>
+                </div>
+                <div className="col-12">
+                  <div className="d-flex justify-content-between align-items-center mb-1">
+                    <label className="form-label small fw-medium mb-0">
+                      Header Logo Height: {form.svgLogo?.height ?? 38}px
+                    </label>
+                  </div>
+                  <input
+                    type="range"
+                    className="form-range"
+                    min={24}
+                    max={55}
+                    step={1}
+                    value={form.svgLogo?.height ?? 38}
+                    onChange={(e) => setSvgLogo('height', Number(e.target.value))}
+                    style={{ accentColor: 'var(--pd-primary, #ea580c)' }}
+                  />
                 </div>
               </div>
             </div>

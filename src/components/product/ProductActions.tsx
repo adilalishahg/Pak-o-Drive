@@ -19,7 +19,7 @@ export const ProductActions: React.FC<ProductActionsProps> = ({ product, selecte
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
   const [showSticky, setShowSticky] = useState(false);
-  const whatsappNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '+923001234567';
+  const whatsappNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '+923185205667';
 
   const stockLimit = selectedVariant !== undefined ? selectedVariant.stock : product.stock;
   const outOfStock = stockLimit === 0;

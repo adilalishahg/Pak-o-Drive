@@ -23,17 +23,18 @@ export const PAYMENT_METHODS = {
 export type PaymentMethodType = typeof PAYMENT_METHODS[keyof typeof PAYMENT_METHODS];
 
 export const PAKISTAN_MAJOR_CITIES = [
-  'Karachi',
-  'Lahore',
-  'Islamabad',
   'Rawalpindi',
+  'Islamabad',
+  'Lahore',
+  'Karachi',
+  'Peshawar',
   'Faisalabad',
   'Multan',
-  'Peshawar',
-  'Quetta',
-  'Sialkot',
   'Gujranwala',
-  'Hyderabad',
+  'Sialkot',
+  'Wah Cantt',
+  'Attock',
+  'Jhelum',
   'Abbottabad',
   'Bahawalpur',
   'Sargodha',
@@ -86,7 +87,7 @@ export const DEFAULT_SHIPPING_RATES = {
 export const PAKISTAN_PHONE_REGEX = /^((\+92)|(0092)|(92)|(0))?3[0-9]{2}[-]?[0-9]{7}$/;
 
 export const WHATSAPP_CONFIG = {
-  DEFAULT_SUPPORT_NUMBER: '923000000000', // Override in DB / .env
+  DEFAULT_SUPPORT_NUMBER: '923185205667', // Override in DB / .env
   GREETING_TEMPLATE: (productName?: string, sku?: string, price?: number) => {
     if (productName) {
       return encodeURIComponent(

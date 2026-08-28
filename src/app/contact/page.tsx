@@ -113,7 +113,7 @@ export default function ContactPage() {
                 </div>
                 <div>
                   <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Address</h4>
-                  <p className="text-slate-700 font-semibold mt-0.5 text-sm">{info.address || '786 Commercial Plaza, Karachi, Pakistan'}</p>
+                  <p className="text-slate-700 font-semibold mt-0.5 text-sm">{info.address || 'Main Muslim Town, Sadiqabad, Rawalpindi, Punjab, Pakistan'}</p>
                 </div>
               </div>
 
@@ -125,8 +125,11 @@ export default function ContactPage() {
                   </svg>
                 </div>
                 <div>
-                  <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Phone</h4>
-                  <p className="text-slate-700 font-semibold mt-0.5 text-sm">{info.phone || '+92-300-1234567'}</p>
+                  <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Phone / WhatsApp</h4>
+                  <p className="text-slate-700 font-semibold mt-0.5 text-sm">
+                    {info.phone || '03185205667'}
+                    {info.phone2 && <span className="block text-slate-500 font-normal text-xs mt-0.5">Alt: {info.phone2}</span>}
+                  </p>
                 </div>
               </div>
 

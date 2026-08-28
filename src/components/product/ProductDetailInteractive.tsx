@@ -317,7 +317,7 @@ export const ProductDetailInteractive: React.FC<ProductDetailInteractiveProps> =
               }}>
                 <i className="fas fa-shipping-fast" style={{ fontSize: '13px', color: '#16a34a' }} />
                 <span>
-                  <strong>Estimated Delivery:</strong> Lahore / Karachi: 1–2 Days | Other Cities: 2–4 Days
+                  <strong>Estimated Delivery:</strong> Rawalpindi / Islamabad: 24 Hours (1 Day) | Lahore, Karachi & Nationwide: 2–3 Days
                 </span>
               </div>
             </div>

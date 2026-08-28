@@ -44,6 +44,23 @@ export interface IOfferBanner {
   imageUrl: string;
 }
 
+export interface ISvgLogoSettings {
+  enabled: boolean;
+  primaryColor: string;
+  secondaryColor: string;
+  accentColor: string;
+  text1: string;
+  text2: string;
+  fontFamily: string;
+  fontWeight: string;
+  letterSpacing: number;
+  fontSize: number;
+  fontStyle: 'normal' | 'italic';
+  showIcon: boolean;
+  showText: boolean;
+  height: number;
+}
+
 export interface IHomepageSections {
   heroBig: IHeroBigSection;
   heroSmall: IHeroSmallSection;
@@ -80,6 +97,7 @@ export interface ISiteSettings {
   announcementBarText: string;
   announcementBarEnabled: boolean;
   layoutTheme: 'classic' | 'modern-green' | 'theme1';
+  svgLogo: ISvgLogoSettings;
   homepageSections: IHomepageSections;
   updatedAt?: Date;
 }
@@ -87,6 +105,23 @@ export interface ISiteSettings {
 export interface ISiteSettingsDocument extends ISiteSettings, Document {}
 
 /* ── Sub-schemas ─────────────────────────────────────────────── */
+const SvgLogoSchema = new Schema({
+  enabled:        { type: Boolean, default: true },
+  primaryColor:   { type: String,  default: '#00A8E8' },
+  secondaryColor: { type: String,  default: '#0066CC' },
+  accentColor:    { type: String,  default: '#FF7A00' },
+  text1:          { type: String,  default: 'PAKO' },
+  text2:          { type: String,  default: 'DRIVE' },
+  fontFamily:     { type: String,  default: 'Montserrat' },
+  fontWeight:     { type: String,  default: '900' },
+  letterSpacing:  { type: Number,  default: 5 },
+  fontSize:       { type: Number,  default: 105 },
+  fontStyle:      { type: String,  enum: ['normal', 'italic'], default: 'normal' },
+  showIcon:       { type: Boolean, default: true },
+  showText:       { type: Boolean, default: true },
+  height:         { type: Number,  default: 38 },
+}, { _id: false });
+
 const HeroBigSchema = new Schema({
   enabled:    { type: Boolean, default: true },
   badge:      { type: String,  default: 'Featured Product' },
@@ -163,6 +198,7 @@ const SiteSettingsSchema = new Schema<ISiteSettingsDocument>(
     announcementBarText:   { type: String, default: '🎉 Free Shipping on orders above PKR 5,000 | 📦 30-Day Easy Returns | Shop Now →' },
     announcementBarEnabled:{ type: Boolean, default: true },
     layoutTheme:           { type: String, enum: ['classic', 'modern-green', 'theme1'], default: 'classic' },
+    svgLogo:               { type: SvgLogoSchema, default: () => ({}) },
     homepageSections: {
       heroBig:          { type: HeroBigSchema,       default: () => ({}) },
       heroSmall:        { type: HeroSmallSchema,     default: () => ({}) },

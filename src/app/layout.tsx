@@ -162,11 +162,11 @@ export default async function RootLayout({
   let initialSiteInfo = null;
   let siteName = SITE_NAME;
   let siteUrl = SITE_URL;
-  let sitePhone = '+92-123-456-7890';
-  let siteAddress = '123 Street';
-  let siteCity = 'Karachi';
+  let sitePhone = '03185205667';
+  let siteAddress = 'Main Muslim Town, Sadiqabad';
+  let siteCity = 'Rawalpindi';
   let siteCountry = 'PK';
-  let siteWhatsapp = 'https://wa.me/923001234567';
+  let siteWhatsapp = 'https://wa.me/923185205667';
 
   try {
     const [settings, info] = await Promise.all([

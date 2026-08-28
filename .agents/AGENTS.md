@@ -38,8 +38,13 @@ This repository contains the full-stack Pak-o-Drive application. All work must f
    - ALL business logic, form state, cart mutations, API requests, and side-effects must reside in custom hooks in `src/hooks/` or context providers in `src/context/`.
    - Admin override flags (`isAdmin`) must cleanly propagate across access control boundaries.
 
+9. 🖥️ **Desktop & POS Electron Isolation**:
+   - All desktop logic in `desktop/` must strictly maintain `contextIsolation: true` and `nodeIntegration: false`.
+   - Expose native functionalities (POS thermal receipt printing, WhatsApp external deep linking, local state storage) only via typed `window.electronAPI` bridge in `desktop/src/preload/index.ts`.
+
 ---
 
 ## Dynamic Memory & Changelog Directive
 - Update `.agents/LEARNINGS.md` in 3-bullet resolution format (`Issue`, `Root Cause`, `Verified Fix`) with date-stamped entries on every completed task.
 - Run `graft build` after architectural or knowledge updates to ensure the graph and code build pass with 0 errors.
+

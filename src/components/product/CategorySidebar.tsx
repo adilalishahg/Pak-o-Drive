@@ -51,10 +51,10 @@ export const CategorySidebar: React.FC<CategorySidebarProps> = ({
   useEffect(() => {
     (async () => {
       try {
-        const res = await fetch('/api/categories');
-        const json = await res.json();
-        if (json.success && json.data.length > 0) {
-          setCategories(json.data.map((c: any) => ({
+        const { fetchCategoriesClient } = await import('../../lib/client-cache');
+        const data = await fetchCategoriesClient();
+        if (data && data.length > 0) {
+          setCategories(data.map((c: any) => ({
             name: c.name,
             slug: c.slug,
             icon: c.icon || 'fas fa-tag',

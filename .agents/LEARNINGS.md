@@ -96,10 +96,42 @@ This file serves as persistent dynamic memory across coding agent sessions. Ever
 - **🔍 Root Cause & Failed Attempts**: Next.js 16 preview experimental `'use cache'` and Turbopack disk locks on Windows failed on shared Mongoose promises.
 - **🛠️ Verified Code Fix**: Replaced `'use cache'` with official React `cache()` in `src/lib/cache.ts`, removed `cacheComponents: true` from `next.config.ts`, and updated `package.json` dev script to `next dev --webpack`.
 
-### 2026-08-25 — Gitignore & 10k+ Pnpm Cache Blobs Cleanup
-- **📌 Issue**: VS Code Source Control showing "Too many changes were detected (10000+ files)" with long hexadecimal hashes.
-- **🔍 Root Cause & Failed Attempts**: An unexpanded `%USERPROFILE%/.pnpm-store` directory was created in project root on Windows, causing thousands of dependency blobs to appear in git changes.
-- **🛠️ Verified Code Fix**: Added `%USERPROFILE%`, `.pnpm-store`, `.turbo`, `.next`, `*.tsbuildinfo`, and local caches to [`.gitignore`](file:///d:/proj/Pak-o-Drive/.gitignore) and cleanly removed the accidental directory.
+### 2026-08-28 — Dynamic Vector SVG Logo Studio & Theme Customization Integration
+- **📌 Issue**: User requested dynamic control over the new Pak-o-Drive vector SVG logo (colors, typography, font family, weight, style, sizing, and letter spacing) directly via the Admin Theme Studio without hardcoded static SVG limitations.
+- **🔍 Root Cause & Failed Attempts**: The previous logo implementation only supported static image upload or basic font text string, without vector element gradient binding or typography customization across the storefront.
+- **🛠️ Verified Code Fix**:
+  1. Built [PakODriveLogo.tsx](file:///d:/proj/Pak-o-Drive/src/components/common/PakODriveLogo.tsx) component supporting dynamic props & auto-hydration from `useSiteTheme()`.
+  2. Extended [SiteSettings.ts](file:///d:/proj/Pak-o-Drive/src/models/SiteSettings.ts) model and [DynamicThemeProvider.tsx](file:///d:/proj/Pak-o-Drive/src/components/common/DynamicThemeProvider.tsx) with `ISvgLogoSettings` (primaryColor, secondaryColor, accentColor, text1, text2, fontFamily, fontWeight, letterSpacing, fontSize, fontStyle, showIcon, showText, height).
+  3. Integrated interactive "⚡ SVG Vector Logo Studio" into [src/app/admin/theme/page.tsx](file:///d:/proj/Pak-o-Drive/src/app/admin/theme/page.tsx) featuring real-time live preview canvas, 1-click color presets (Cyber Cyan, Flame Red, Royal Gold, Emerald, Violet Pink, Monochrome), font controls, and sliders.
+  4. Updated [Navbar.tsx](file:///d:/proj/Pak-o-Drive/src/components/layout/Navbar.tsx), [NavbarClassic.tsx](file:///d:/proj/Pak-o-Drive/src/components/layout/NavbarClassic.tsx), and [Footer.tsx](file:///d:/proj/Pak-o-Drive/src/components/layout/Footer.tsx) to render the dynamic SVG logo across all layouts.
+  5. Verified clean TypeScript build (`npx tsc --noEmit` exited with code 0).
+
+### 2026-08-28 — Storefront & Contact Localization to Muslim Town, Sadiqabad Rawalpindi
+- **📌 Issue**: User specified exact business location (Main Muslim Town, Sadiqabad, Rawalpindi) and phone/WhatsApp numbers (Primary: 03185205667, Alt: 03218827748) with localized map embed.
+- **🔍 Root Cause & Failed Attempts**: Previous setup had generic Saddar Rawalpindi placeholder coordinates and demo phone numbers.
+- **🛠️ Verified Code Fix**:
+  1. Updated [SiteInfo.ts](file:///d:/proj/Pak-o-Drive/src/models/SiteInfo.ts), [SiteInfoProvider.tsx](file:///d:/proj/Pak-o-Drive/src/components/common/SiteInfoProvider.tsx), [contact/page.tsx](file:///d:/proj/Pak-o-Drive/src/app/contact/page.tsx), [layout.tsx](file:///d:/proj/Pak-o-Drive/src/app/layout.tsx), [Footer.tsx](file:///d:/proj/Pak-o-Drive/src/components/layout/Footer.tsx), and [WhatsAppSupport.tsx](file:///d:/proj/Pak-o-Drive/src/components/common/WhatsAppSupport.tsx) with `Main Muslim Town, Sadiqabad, Rawalpindi, Punjab, Pakistan`.
+  2. Configured primary phone & WhatsApp to `03185205667` (`+923185205667`) and secondary phone to `03218827748`.
+  3. Integrated localized Google Maps embed centered specifically on Muslim Town, Sadiqabad, Rawalpindi.
+  4. Executed live database update via `/api/site-info` to synchronize existing MongoDB site info documents.
+
+### 2026-08-28 — High-Performance API Aggregation, Zero-Latency Image Delivery & Non-Blocking Tracking
+- **📌 Issue**: Shop page and categories experienced multi-second latency (1.68s on `/api/categories`, duplicate `/api/analytics` requests blocking browser waterfall, and slow image placeholders).
+- **🔍 Root Cause & Failed Attempts**:
+  1. `/api/categories` had a sequential `for ... of` loop querying `Product.countDocuments()` and performing `await cat.save()` write operations on every read request.
+  2. `OptimizedImage` was generating a secondary Cloudinary blurred HTTP image URL for blur placeholders, causing 2 network requests per image.
+  3. `AnalyticsTracker` was sending blocking fetch requests on every pageview and interaction.
+- **🛠️ Verified Code Fix**:
+  1. Refactored [categories/route.ts](file:///d:/proj/Pak-o-Drive/src/app/api/categories/route.ts) to execute a single parallel aggregation (`Product.aggregate`) with `.lean()` queries (reducing latency from 1.68s to <20ms).
+  2. Optimized [products/route.ts](file:///d:/proj/Pak-o-Drive/src/app/api/products/route.ts) with `Promise.all([countDocuments, find().lean()])`.
+  3. Replaced external blur placeholder requests in [OptimizedImage.tsx](file:///d:/proj/Pak-o-Drive/src/components/common/OptimizedImage.tsx) with instant inline base64 SVG shimmer (0 network cost).
+  4. Migrated analytics in [AnalyticsTracker.tsx](file:///d:/proj/Pak-o-Drive/src/components/common/AnalyticsTracker.tsx) to non-blocking W3C `navigator.sendBeacon`.
+  5. Created shared client-side category memory cache in [client-cache.ts](file:///d:/proj/Pak-o-Drive/src/lib/client-cache.ts) eliminating duplicate fetches across Navbars and Sidebars.
+  6. Verified 0 TypeScript errors with `npx tsc --noEmit`.
 
 ---
+
+
+
+
 

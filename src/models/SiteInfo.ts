@@ -42,37 +42,37 @@ export interface ISiteInfo {
   updatedAt?: Date;
 }
 
-export interface ISiteInfoDocument extends ISiteInfo, Document {}
+export interface ISiteInfoDocument extends ISiteInfo, Document { }
 
 const SiteInfoSchema = new Schema<ISiteInfoDocument>(
   {
-    siteName:       { type: String, default: 'PAKODRIVE' },
-    siteTagline:    { type: String, default: "Pakistan's Trusted Electronics & Automotive Store" },
-    logoText:       { type: String, default: 'PAKODRIVE' },
-    logoIcon:       { type: String, default: 'shopping-bag' },
-    logoImage:      { type: String, default: '' },
-    showLogoImage:  { type: Boolean, default: false },
-    favicon:        { type: String, default: '/favicon.ico' },
-    seoTitle:       { type: String, default: 'PAKODRIVE Electronics — Best Electronics Store in Pakistan' },
+    siteName: { type: String, default: 'PAKODRIVE' },
+    siteTagline: { type: String, default: "Pakistan's Trusted Electronics & Automotive Store" },
+    logoText: { type: String, default: 'PAKODRIVE' },
+    logoIcon: { type: String, default: 'shopping-bag' },
+    logoImage: { type: String, default: '' },
+    showLogoImage: { type: Boolean, default: false },
+    favicon: { type: String, default: '/favicon.ico' },
+    seoTitle: { type: String, default: 'PAKODRIVE Electronics — Best Electronics Store in Pakistan' },
     seoDescription: { type: String, default: "PAKODRIVE — Pakistan's trusted electronics store. Shop headphones, chargers, smartwatches, automotive electronics & more with free shipping and 30-day returns." },
-    seoKeywords:    { type: String, default: 'electronics Pakistan, buy headphones Pakistan, smartwatches online, chargers cables Pakistan, automotive electronics, PAKODRIVE, online shopping Pakistan' },
-    address:        { type: String, default: '123 Street Karachi, Pakistan' },
-    city:           { type: String, default: 'Karachi' },
-    country:        { type: String, default: 'Pakistan' },
-    phone:          { type: String, default: '+0123 456 7890' },
-    phone2:         { type: String, default: '' },
-    email:          { type: String, default: 'support@pakodrive.com' },
-    supportEmail:   { type: String, default: 'support@pakodrive.com' },
-    website:        { type: String, default: 'pakodrive.com' },
-    whatsapp:       { type: String, default: '+923001234567' },
-    facebook:       { type: String, default: '#' },
-    instagram:      { type: String, default: '#' },
-    twitter:        { type: String, default: '#' },
-    youtube:        { type: String, default: '#' },
+    seoKeywords: { type: String, default: 'electronics Pakistan, buy headphones Pakistan, smartwatches online, chargers cables Pakistan, automotive electronics, PAKODRIVE, online shopping Pakistan' },
+    address: { type: String, default: 'Main Muslim Town, Sadiqabad, Rawalpindi, Punjab, Pakistan' },
+    city: { type: String, default: 'Rawalpindi' },
+    country: { type: String, default: 'Pakistan' },
+    phone: { type: String, default: '03185205667' },
+    phone2: { type: String, default: '03218827748' },
+    email: { type: String, default: 'support@pakodrive.com' },
+    supportEmail: { type: String, default: 'support@pakodrive.com' },
+    website: { type: String, default: 'pakodrive.com' },
+    whatsapp: { type: String, default: '03185205667' },
+    facebook: { type: String, default: '#' },
+    instagram: { type: String, default: '#' },
+    twitter: { type: String, default: '#' },
+    youtube: { type: String, default: '#' },
     mapEmbedUrl: {
       type: String,
       default:
-        'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3618.137684698506!2d67.0601449!3d24.860965!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMjTCsDUxJzM5LjUiTiA2N8KwMDMnMzYuNSJFCg!5e0!3m2!1sen!2s!4v1694259649153!5m2!1sen!2s',
+        'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d13284.629471168434!2d73.0735!3d33.6268!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x38df952136e4f3a7%3A0xb35a09c2dbad7d72!2sMuslim%20Town%2C%20Rawalpindi%2C%20Punjab!5e0!3m2!1sen!2s!4v1700000000000!5m2!1sen!2s',
     },
     privacyPolicy: {
       type: String,
@@ -88,7 +88,7 @@ const SiteInfoSchema = new Schema<ISiteInfoDocument>(
     },
     shippingPolicy: {
       type: String,
-      default: `## Shipping Policy\n\n### Delivery Areas\nWe deliver nationwide across Pakistan.\n\n### Delivery Time\n- Karachi: 1-2 business days\n- Major cities: 2-3 business days\n- Remote areas: 4-7 business days\n\n### Shipping Charges\n- Free shipping on orders above PKR 5,000\n- Standard shipping: PKR 200 for orders below PKR 5,000\n\n### Tracking\nYou will receive tracking information via WhatsApp once your order is dispatched.`,
+      default: `## Shipping Policy\n\n### Delivery Areas\nWe deliver nationwide across Pakistan with priority fast dispatch from our Rawalpindi fulfillment hub.\n\n### Delivery Timeline\n- **Rawalpindi & Islamabad (Twin Cities):** Same-day / 24 hours (1 business day)\n- **Lahore, Peshawar, Gujranwala, Faisalabad:** 1-2 business days\n- **Karachi, Multan, Sialkot, Quetta & Major Cities:** 2-3 business days\n- **Remote Areas & AJK / Gilgit-Baltistan:** 3-5 business days\n\n### Shipping Charges\n- **Free Shipping** on all orders above PKR 5,000\n- **Standard Flat Delivery:** PKR 199 for orders below PKR 5,000\n\n### Real-Time Tracking\nYou will receive real-time courier tracking via WhatsApp and SMS immediately once your parcel is dispatched from Rawalpindi.`,
     },
     aboutUs: {
       type: String,

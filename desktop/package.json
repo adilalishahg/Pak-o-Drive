@@ -1,0 +1,36 @@
+{
+  "name": "pak-o-drive-desktop",
+  "version": "1.0.0",
+  "description": "Pak-o-Drive E-Commerce Desktop & POS Application",
+  "main": "dist/main/index.js",
+  "private": true,
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "start": "tsc -p tsconfig.json && electron .",
+    "dev": "tsc -p tsconfig.json && electron .",
+    "desktop:dev": "tsc -p tsconfig.json && electron .",
+    "desktop:build": "tsc -p tsconfig.json",
+    "desktop:pack": "npm run pack",
+    "desktop:dist": "npm run dist",
+    "pack": "tsc -p tsconfig.json && electron-builder --win --dir",
+    "dist": "tsc -p tsconfig.json && electron-builder --win"
+  },
+  "keywords": [
+    "pak-o-drive",
+    "electron",
+    "desktop",
+    "ecommerce",
+    "pos"
+  ],
+  "author": "Pak-o-Drive Team",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "dotenv": "^16.4.7"
+  },
+  "devDependencies": {
+    "@types/node": "^20.17.19",
+    "electron": "^34.2.0",
+    "electron-builder": "^25.1.8",
+    "typescript": "^5.7.3"
+  }
+}

@@ -118,7 +118,7 @@ export function useCheckout() {
   };
 
   const handleOrderViaWhatsApp = () => {
-    const whatsappNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '+923001234567';
+    const whatsappNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '+923185205667';
     const itemsSummary = cart
       .map(i => `• ${i.product.name}${i.variant ? ` (${i.variant.name})` : ''} x${i.quantity} = Rs. ${((i.variant ? i.variant.price : i.product.price) * i.quantity).toLocaleString()}`)
       .join('\n');

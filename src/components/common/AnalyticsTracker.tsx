@@ -32,22 +32,29 @@ export async function logInteraction(
     const sessionId  = sessionStorage.getItem('pako_session_id') || '';
     const deviceType = window.innerWidth < 768 ? 'Mobile' : 'Desktop';
 
-    // 1. Log to MongoDB Analytics
-    fetch('/api/analytics', {
-      method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        type:            'interaction',
-        path,
-        interactionType: type,
-        utm_source:      utmSource,
-        utm_medium:      utmMedium,
-        utm_campaign:    utmCampaign,
-        session_id:      sessionId,
-        device:          deviceType,
-        metadata,
-      }),
-    }).catch((err) => console.error('[Analytics] fetch error:', err));
+    // 1. Log to MongoDB Analytics asynchronously via sendBeacon (zero blocking)
+    const payload = JSON.stringify({
+      type:            'interaction',
+      path,
+      interactionType: type,
+      utm_source:      utmSource,
+      utm_medium:      utmMedium,
+      utm_campaign:    utmCampaign,
+      session_id:      sessionId,
+      device:          deviceType,
+      metadata,
+    });
+
+    if (typeof navigator !== 'undefined' && navigator.sendBeacon) {
+      navigator.sendBeacon('/api/analytics', new Blob([payload], { type: 'application/json' }));
+    } else {
+      fetch('/api/analytics', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: payload,
+        keepalive: true,
+      }).catch(() => {});
+    }
 
     // 2. PostHog Event Tracking
     const phKey = process.env.NEXT_PUBLIC_POSTHOG_KEY;
@@ -274,23 +281,30 @@ function TrackerInner() {
     const sessionId  = sessionStorage.getItem('pako_session_id') || '';
     const deviceType = window.innerWidth < 768 ? 'Mobile' : 'Desktop';
 
-    fetch('/api/analytics', {
-      method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        type:         'pageview',
-        path:         fullPath,
-        utm_source:   utmSource,
-        utm_medium:   utmMedium,
-        utm_campaign: utmCampaign,
-        session_id:   sessionId,
-        device:       deviceType,
-        metadata: {
-          referrer:     document.referrer || '',
-          screen_width: window.innerWidth,
-        },
-      }),
-    }).catch(() => {});
+    const payload = JSON.stringify({
+      type:         'pageview',
+      path:         fullPath,
+      utm_source:   utmSource,
+      utm_medium:   utmMedium,
+      utm_campaign: utmCampaign,
+      session_id:   sessionId,
+      device:       deviceType,
+      metadata: {
+        referrer:     document.referrer || '',
+        screen_width: window.innerWidth,
+      },
+    });
+
+    if (typeof navigator !== 'undefined' && navigator.sendBeacon) {
+      navigator.sendBeacon('/api/analytics', new Blob([payload], { type: 'application/json' }));
+    } else {
+      fetch('/api/analytics', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: payload,
+        keepalive: true,
+      }).catch(() => {});
+    }
 
     // Trigger Meta Pixel PageView
     const w = window as any;

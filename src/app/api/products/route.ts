@@ -65,11 +65,14 @@ export async function GET(request: Request) {
     const page = Math.max(1, parseInt(searchParams.get('page') || '1'));
     const skip = (page - 1) * limit;
 
-    const totalProducts = await Product.countDocuments(query);
-    const products = await Product.find(query)
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limit);
+    const [totalProducts, products] = await Promise.all([
+      Product.countDocuments(query),
+      Product.find(query)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .lean(),
+    ]);
 
     return NextResponse.json({ 
       success: true, 
@@ -83,7 +86,7 @@ export async function GET(request: Request) {
       data: products 
     }, {
       headers: {
-        'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=30, must-revalidate'
+        'Cache-Control': 'public, s-maxage=120, stale-while-revalidate=300'
       }
     });
   } catch (error: any) {

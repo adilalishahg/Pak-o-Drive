@@ -199,7 +199,7 @@ export default function OrderConfirmationPage() {
                   <span style={{ fontWeight: 800, fontSize: '1.1rem', color: 'var(--pd-primary)' }}>Electro</span>
                 </div>
                 <p style={{ margin: 0, fontSize: '0.72rem', color: '#6b7280', lineHeight: 1.6 }}>
-                  support@pakodrive.com<br />+0123 456 7890
+                  support@pakodrive.com<br />03185205667
                 </p>
               </div>
               {/* Order meta */}

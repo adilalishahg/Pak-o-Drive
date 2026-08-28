@@ -7,20 +7,26 @@ export async function GET() {
   try {
     await dbConnect();
 
-    const categories = await Category.find({}).sort({ name: 1 });
+    const [categories, counts] = await Promise.all([
+      Category.find({}).sort({ name: 1 }).lean(),
+      Product.aggregate([
+        { $group: { _id: '$category', count: { $sum: 1 } } }
+      ])
+    ]);
 
-    // Refresh count dynamically to ensure consistency
-    for (const cat of categories) {
-      const count = await Product.countDocuments({ category: cat.slug });
-      if (cat.productCount !== count) {
-        cat.productCount = count;
-        await cat.save();
-      }
-    }
+    const countMap: Record<string, number> = {};
+    counts.forEach((c: any) => {
+      if (c._id) countMap[c._id] = c.count;
+    });
 
-    return NextResponse.json({ success: true, count: categories.length, data: categories }, {
+    const populatedCategories = categories.map((cat: any) => ({
+      ...cat,
+      productCount: countMap[cat.slug] ?? cat.productCount ?? 0,
+    }));
+
+    return NextResponse.json({ success: true, count: populatedCategories.length, data: populatedCategories }, {
       headers: {
-        'Cache-Control': 'public, s-maxage=180, stale-while-revalidate=60, must-revalidate'
+        'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600'
       }
     });
   } catch (error: any) {

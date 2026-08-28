@@ -109,11 +109,11 @@ export const FooterClassic: React.FC = () => {
             <div className="d-flex flex-column gap-2 mt-3">
               <div className="d-flex gap-2 align-items-center">
                 <i className="fas fa-phone text-primary"></i>
-                <a href={`tel:${info.phone}`} className="text-slate-100 hover:text-white transition-colors text-decoration-none">{info.phone}</a>
+                <a href={`tel:${info.phone || '03185205667'}`} className="text-slate-100 hover:text-white transition-colors text-decoration-none">{info.phone || '03185205667'}</a>
               </div>
               <div className="d-flex gap-2 align-items-center">
                 <i className="fas fa-envelope text-primary"></i>
-                <a href={`mailto:${info.email}`} className="text-slate-100 hover:text-white transition-colors text-decoration-none">{info.email}</a>
+                <a href={`mailto:${info.email || 'support@pakodrive.com'}`} className="text-slate-100 hover:text-white transition-colors text-decoration-none">{info.email || 'support@pakodrive.com'}</a>
               </div>
             </div>
           </div>

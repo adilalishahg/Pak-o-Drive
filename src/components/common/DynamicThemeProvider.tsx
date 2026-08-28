@@ -5,6 +5,40 @@ import React, { createContext, useContext, useEffect, useState, useCallback } fr
 /* ─── Types ─────────────────────────────────────────────────── */
 export type IconLibrary = 'fontawesome' | 'material' | 'bootstrap' | 'remix' | 'phosphor';
 
+export interface SvgLogoSettings {
+  enabled: boolean;
+  primaryColor: string;
+  secondaryColor: string;
+  accentColor: string;
+  text1: string;
+  text2: string;
+  fontFamily: string;
+  fontWeight: string;
+  letterSpacing: number;
+  fontSize: number;
+  fontStyle: 'normal' | 'italic';
+  showIcon: boolean;
+  showText: boolean;
+  height: number;
+}
+
+export const DEFAULT_SVG_LOGO: SvgLogoSettings = {
+  enabled: true,
+  primaryColor: '#00A8E8',
+  secondaryColor: '#0066CC',
+  accentColor: '#FF7A00',
+  text1: 'PAKO',
+  text2: 'DRIVE',
+  fontFamily: 'Montserrat',
+  fontWeight: '900',
+  letterSpacing: 5,
+  fontSize: 105,
+  fontStyle: 'normal',
+  showIcon: true,
+  showText: true,
+  height: 38,
+};
+
 export interface SiteTheme {
   primaryColor: string;
   secondaryColor: string;
@@ -27,6 +61,7 @@ export interface SiteTheme {
   announcementBarText: string;
   announcementBarEnabled: boolean;
   layoutTheme: 'classic' | 'modern-green' | 'theme1';
+  svgLogo?: SvgLogoSettings;
   homepageSections: {
     heroBig:          { enabled: boolean; badge: string; title: string; subtitle: string; buttonText: string; buttonLink: string; imageUrl: string };
     heroSmall:        { enabled: boolean; badge: string; title: string; highlight: string; imageUrl: string };
@@ -63,6 +98,7 @@ export const DEFAULT_THEME: SiteTheme = {
   announcementBarText: '🎉 Free Shipping on orders above PKR 5,000 | 📦 30-Day Easy Returns | Shop Now →',
   announcementBarEnabled: true,
   layoutTheme: 'classic',
+  svgLogo: DEFAULT_SVG_LOGO,
   homepageSections: {
     heroBig: {
       enabled: true,

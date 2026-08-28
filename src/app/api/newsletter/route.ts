@@ -60,11 +60,11 @@ export async function POST(request: Request) {
         return;
       }
       try {
-        let siteName = 'Electro';
-        let logoText = 'Electro';
+        let siteName = 'PAKODRIVE';
+        let logoText = 'PAKODRIVE';
         let supportEmail = 'support@pakodrive.com';
-        let phone = '+0123 456 7890';
-        let whatsapp = '+923001234567';
+        let phone = '03185205667';
+        let whatsapp = '03185205667';
         let website = 'pakodrive.com';
 
         try {

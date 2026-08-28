@@ -6,7 +6,7 @@ import { useSiteTheme } from '../common/DynamicThemeProvider';
 export const AnnouncementBar: React.FC = () => {
   const { theme } = useSiteTheme();
   const isModernGreen = theme.layoutTheme === 'modern-green';
-  const whatsappNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '+923001234567';
+  const whatsappNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '+923185205667';
 
   return (
     <aside

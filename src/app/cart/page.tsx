@@ -64,6 +64,7 @@ export default function CartPage() {
                   <div style={{ width: '80px', height: '80px', borderRadius: '8px', background: '#f5f5f5', position: 'relative', overflow: 'hidden' }}>
                     <OptimizedImage src={itemImage} alt={prod.name} fill
                       sizes="80px" style={{ objectFit: 'contain', padding: '4px' }}
+                      priority={idx < 8}
                       fallbackSrc="/img/product-placeholder.png" />
                   </div>
                 </Link>

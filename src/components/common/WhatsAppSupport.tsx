@@ -6,7 +6,7 @@ import { logInteraction } from './AnalyticsTracker';
 export const WhatsAppSupport: React.FC = () => {
   const [showTooltip, setShowTooltip] = useState(false);
   const [hovered, setHovered] = useState(false);
-  const number = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '+923001234567';
+  const number = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '+923185205667';
 
   useEffect(() => {
     // Show tooltip after 3 seconds to prompt interaction

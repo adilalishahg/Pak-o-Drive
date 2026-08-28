@@ -501,7 +501,7 @@ export default function AdminSiteInfoPage() {
                       value={info.phone2}
                       onChange={handleChange}
                       className="form-control rounded-3"
-                      placeholder="e.g. +0123 456 7890"
+                      placeholder="e.g. 03218827748"
                     />
                   </div>
                   <div className="col-12 col-md-6">

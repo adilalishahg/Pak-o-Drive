@@ -1,0 +1,36 @@
+{
+  "appId": "pk.pakodrive.desktop",
+  "productName": "Pak-o-Drive",
+  "copyright": "Copyright © 2026 Pak-o-Drive",
+  "directories": {
+    "output": "dist-package",
+    "buildResources": "assets"
+  },
+  "files": [
+    "dist/**/*",
+    "package.json",
+    "assets/**/*"
+  ],
+  "forceCodeSigning": false,
+  "win": {
+    "target": [
+      {
+        "target": "portable",
+        "arch": ["x64"]
+      },
+      {
+        "target": "dir",
+        "arch": ["x64"]
+      }
+    ],
+    "requestedExecutionLevel": "asInvoker",
+    "signAndEditExecutable": false
+  },
+  "nsis": {
+    "oneClick": false,
+    "allowToChangeInstallationDirectory": true,
+    "createDesktopShortcut": true,
+    "createStartMenuShortcut": true,
+    "shortcutName": "Pak-o-Drive"
+  }
+}

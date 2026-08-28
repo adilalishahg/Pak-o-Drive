@@ -15,13 +15,16 @@
 *%USERPROFILE%*
 *pnpm*
 
-# Next.js build & cache output
+# Next.js & Desktop build & cache output
 .next/
 /.next/
 /out/
 /build
 .turbo/
 .cache/
+desktop/dist/
+desktop/dist-package/
+desktop/node_modules/
 
 # Local uploads & assets
 /public/uploads/

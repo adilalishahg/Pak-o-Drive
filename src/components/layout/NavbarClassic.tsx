@@ -7,6 +7,8 @@ import { useCart } from '../../context/CartContext';
 import { useWishlist } from '../../context/WishlistContext';
 import { useSiteInfo } from '../common/SiteInfoProvider';
 import { ThemeIcon } from '../common/ThemeIcon';
+import { useSiteTheme } from '../common/DynamicThemeProvider';
+import { PakODriveLogo } from '../common/PakODriveLogo';
 
 const DEFAULT_CATS = [
   { name: 'Headphones', slug: 'headphones' },
@@ -22,6 +24,7 @@ export const NavbarClassic: React.FC = () => {
   const { cartCount, cartTotal } = useCart();
   const { wishlistCount } = useWishlist();
   const { info } = useSiteInfo();
+  const { theme } = useSiteTheme();
 
   const [cats, setCats] = useState(DEFAULT_CATS);
   const [catOpen, setCatOpen] = useState(false);
@@ -36,9 +39,11 @@ export const NavbarClassic: React.FC = () => {
   useEffect(() => {
     (async () => {
       try {
-        const r = await fetch('/api/categories');
-        const j = await r.json();
-        if (j.success && j.data.length > 0) setCats(j.data.map((c: any) => ({ name: c.name, slug: c.slug })));
+        const { fetchCategoriesClient } = await import('../../lib/client-cache');
+        const data = await fetchCategoriesClient();
+        if (data && data.length > 0) {
+          setCats(data.map((c: any) => ({ name: c.name, slug: c.slug })));
+        }
       } catch {}
     })();
   }, []);
@@ -62,16 +67,11 @@ export const NavbarClassic: React.FC = () => {
 
   return (
     <>
-      {/* ── Single combined header bar ── */}
-      <div
-        className="container-fluid px-0"
+      <header
+        className="sticky-top bg-white border-bottom"
         style={{
-          position: 'sticky',
-          top: 0,
           zIndex: 1030,
-          background: '#fff',
-          borderBottom: '1px solid #e8edf2',
-          boxShadow: scrolled ? '0 2px 12px rgba(0,0,0,0.08)' : '0 1px 4px rgba(0,0,0,0.04)',
+          boxShadow: scrolled ? '0 4px 20px rgba(0,0,0,0.08)' : 'none',
           transition: 'box-shadow 0.3s ease',
         }}
       >
@@ -85,6 +85,10 @@ export const NavbarClassic: React.FC = () => {
                 alt={info.logoText || 'PAKODRIVE'}
                 style={{ maxHeight: '36px', width: 'auto', objectFit: 'contain' }}
               />
+            </Link>
+          ) : theme.svgLogo?.enabled !== false ? (
+            <Link href="/" aria-label={`${theme.svgLogo?.text1 || 'PAKO'} ${theme.svgLogo?.text2 || 'DRIVE'} Home`} className="text-decoration-none flex-shrink-0 d-flex align-items-center" style={{ minWidth: '130px' }}>
+              <PakODriveLogo height={theme.svgLogo?.height || 36} />
             </Link>
           ) : (
             <Link href="/" aria-label={`${info.logoText || 'PAKODRIVE'} Home`} className="text-decoration-none flex-shrink-0 d-flex align-items-center gap-2" style={{ minWidth: '130px' }}>
@@ -335,7 +339,7 @@ export const NavbarClassic: React.FC = () => {
             ))}
           </div>
         )}
-      </div>
+      </header>
 
       {/* Back to Top */}
       {showTop && (
