@@ -141,13 +141,33 @@ export async function POST(request: Request) {
         );
       }
 
+      // Auto-create category if it does not exist in the database
+      const categoryName = (category || 'General').trim();
+      const categorySlug = categoryName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+
+      let existingCategory = await Category.findOne({
+        $or: [{ slug: categorySlug }, { name: new RegExp(`^${categoryName}$`, 'i') }],
+      });
+
+      if (!existingCategory) {
+        existingCategory = await Category.create({
+          name: categoryName,
+          slug: categorySlug,
+          icon: 'fas fa-tag',
+          image: image || '',
+          productCount: 1,
+        });
+      } else {
+        await Category.updateOne({ _id: existingCategory._id }, { $inc: { productCount: 1 } });
+      }
+
       // Create new product
       const newProduct = new Product({
         name,
         description,
         price: Number(price),
         originalPrice: originalPrice !== undefined ? Number(originalPrice) : Number(price),
-        category: category.toLowerCase().trim(),
+        category: existingCategory.slug,
         image,
         images: images || [],
         video: video || '',
