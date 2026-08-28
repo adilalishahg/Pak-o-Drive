@@ -78,17 +78,17 @@ export const NavbarClassic: React.FC = () => {
         <div className="d-flex align-items-center gap-2 gap-lg-3 px-3 px-lg-4" style={{ height: '60px', maxWidth: '1440px', margin: '0 auto' }}>
 
           {/* Logo */}
-          {info.showLogoImage && info.logoImage ? (
+          {theme.svgLogo?.enabled !== false ? (
+            <Link href="/" aria-label={`${theme.svgLogo?.text1 || 'PAKO'} ${theme.svgLogo?.text2 || 'DRIVE'} Home`} className="text-decoration-none flex-shrink-0 d-flex align-items-center" style={{ minWidth: '130px' }}>
+              <PakODriveLogo height={theme.svgLogo?.height || 36} />
+            </Link>
+          ) : info.showLogoImage && info.logoImage ? (
             <Link href="/" aria-label={`${info.logoText || 'PAKODRIVE'} Home`} className="text-decoration-none flex-shrink-0 d-flex align-items-center" style={{ minWidth: '130px' }}>
               <img
                 src={info.logoImage}
                 alt={info.logoText || 'PAKODRIVE'}
                 style={{ maxHeight: '36px', width: 'auto', objectFit: 'contain' }}
               />
-            </Link>
-          ) : theme.svgLogo?.enabled !== false ? (
-            <Link href="/" aria-label={`${theme.svgLogo?.text1 || 'PAKO'} ${theme.svgLogo?.text2 || 'DRIVE'} Home`} className="text-decoration-none flex-shrink-0 d-flex align-items-center" style={{ minWidth: '130px' }}>
-              <PakODriveLogo height={theme.svgLogo?.height || 36} />
             </Link>
           ) : (
             <Link href="/" aria-label={`${info.logoText || 'PAKODRIVE'} Home`} className="text-decoration-none flex-shrink-0 d-flex align-items-center gap-2" style={{ minWidth: '130px' }}>

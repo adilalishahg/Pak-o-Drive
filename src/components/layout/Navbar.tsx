@@ -310,17 +310,17 @@ export const Navbar: React.FC = () => {
               
               {/* Logo */}
               <div className="flex-shrink-0 flex items-center">
-                {info.showLogoImage && info.logoImage ? (
+                {theme.svgLogo?.enabled !== false ? (
+                  <Link href="/" aria-label={`${theme.svgLogo?.text1 || 'PAKO'} ${theme.svgLogo?.text2 || 'DRIVE'} Home`} className="flex items-center text-decoration-none">
+                    <PakODriveLogo height={theme.svgLogo?.height || 38} />
+                  </Link>
+                ) : info.showLogoImage && info.logoImage ? (
                   <Link href="/" aria-label={`${info.logoText || 'ALPHA'} Home`} className="flex items-center text-decoration-none">
                     <img
                       src={info.logoImage}
                       alt={info.logoText || 'ALPHA'}
                       style={{ maxHeight: '42px', width: 'auto', objectFit: 'contain' }}
                     />
-                  </Link>
-                ) : theme.svgLogo?.enabled !== false ? (
-                  <Link href="/" aria-label={`${theme.svgLogo?.text1 || 'PAKO'} ${theme.svgLogo?.text2 || 'DRIVE'} Home`} className="flex items-center text-decoration-none">
-                    <PakODriveLogo height={theme.svgLogo?.height || 38} />
                   </Link>
                 ) : (
                   <Link href="/" aria-label={`${info.logoText || 'ALPHA'} Home`} className="text-2xl font-extrabold tracking-wider text-slate-900 flex items-center gap-2 text-decoration-none">
@@ -568,17 +568,17 @@ export const Navbar: React.FC = () => {
           <div className="d-flex align-items-center gap-2 gap-lg-3" style={{ height: '64px' }}>
 
             {/* 1. LOGO */}
-            {info.showLogoImage && info.logoImage ? (
+            {theme.svgLogo?.enabled !== false ? (
+              <Link href="/" aria-label={`${theme.svgLogo?.text1 || 'PAKO'} ${theme.svgLogo?.text2 || 'DRIVE'} Home`} className="text-decoration-none flex-shrink-0 d-flex align-items-center" style={{ minWidth: '130px' }}>
+                <PakODriveLogo height={theme.svgLogo?.height || 38} />
+              </Link>
+            ) : info.showLogoImage && info.logoImage ? (
               <Link href="/" aria-label={`${info.logoText || 'PAKODRIVE'} Home`} className="text-decoration-none flex-shrink-0 d-flex align-items-center" style={{ minWidth: '130px' }}>
                 <img
                   src={info.logoImage}
                   alt={info.logoText || 'PAKODRIVE'}
                   style={{ maxHeight: '38px', width: 'auto', objectFit: 'contain' }}
                 />
-              </Link>
-            ) : theme.svgLogo?.enabled !== false ? (
-              <Link href="/" aria-label={`${theme.svgLogo?.text1 || 'PAKO'} ${theme.svgLogo?.text2 || 'DRIVE'} Home`} className="text-decoration-none flex-shrink-0 d-flex align-items-center" style={{ minWidth: '130px' }}>
-                <PakODriveLogo height={theme.svgLogo?.height || 38} />
               </Link>
             ) : (
               <Link href="/" aria-label={`${info.logoText || 'PAKODRIVE'} Home`} className="text-decoration-none flex-shrink-0" style={{ minWidth: '130px' }}>
