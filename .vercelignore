@@ -1,0 +1,9 @@
+# Desktop Electron App (Built separately for desktop / POS)
+desktop/
+desktop/dist-package/
+
+# Local Dev and Docs
+admin_UI/
+.agents/
+scratch/
+*.md
