@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { OptimizedImage } from '@/components/common/OptimizedImage';
 import { optimizeImageBeforeUpload } from '@/utils/imageOptimizer';
+import { DeleteConfirmModal } from '@/components/admin/common/DeleteConfirmModal';
 
 interface CategoryData {
   id: string;
@@ -155,22 +156,27 @@ export default function AdminCategoriesPage() {
     }
   };
 
-  const handleDelete = async (id: string, catName: string) => {
-    if (!confirm(`Are you sure you want to delete "${catName}"?`)) return;
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+    setDeleteLoading(true);
     try {
-      const res = await fetch(`/api/categories/${id}`, {
+      const res = await fetch(`/api/categories/${deleteTarget.id}`, {
         method: 'DELETE',
       });
       const json = await res.json();
       if (json.success) {
-        setCategories(categories.filter((c) => c.id !== id));
+        setCategories((prev) => prev.filter((c) => c.id !== deleteTarget.id));
       } else {
-        alert(json.error || 'Failed to delete category');
+        setError(json.error || 'Failed to delete category.');
       }
-    } catch (err) {
-      console.error(err);
-      alert('Network error, could not delete category.');
+    } catch {
+      setError('Network error, could not delete category.');
+    } finally {
+      setDeleteLoading(false);
+      setDeleteTarget(null);
     }
   };
 
@@ -256,7 +262,8 @@ export default function AdminCategoriesPage() {
                           <i className="fas fa-edit small" />
                         </button>
                         <button
-                          onClick={() => handleDelete(cat.id, cat.name)}
+                          type="button"
+                          onClick={() => setDeleteTarget({ id: cat.id, name: cat.name })}
                           disabled={cat.productCount > 0}
                           className="btn btn-sm btn-outline-danger border-0 rounded-circle"
                           style={{ width: '32px', height: '32px' }}
@@ -414,6 +421,17 @@ export default function AdminCategoriesPage() {
           </div>
         </div>
       </div>
+
+      {/* Reusable Delete Modal */}
+      <DeleteConfirmModal
+        isOpen={Boolean(deleteTarget)}
+        title="Delete Category?"
+        message="Are you sure you want to permanently delete this category?"
+        itemName={deleteTarget?.name}
+        onCancel={() => setDeleteTarget(null)}
+        onConfirm={confirmDelete}
+        loading={deleteLoading}
+      />
     </div>
   );
 }

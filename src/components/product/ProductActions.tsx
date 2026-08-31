@@ -59,7 +59,7 @@ export const ProductActions: React.FC<ProductActionsProps> = ({ product, selecte
     const url = typeof window !== 'undefined' ? window.location.href : '';
     const displayName = selectedVariant ? `${product.name} (${selectedVariant.name})` : product.name;
     const text = encodeURIComponent(
-      `السلام علیکم! Mujhe yeh product order karna hai:\n\n*Product:* ${displayName}\n*Price:* Rs. ${finalPrice.toLocaleString()} (Cash On Delivery)\n*Link:* ${url}\n\nDelivery Address aur details share kar raha hoon:`
+      `السلام علیکم! Mujhe yeh product order karna hai:\n\n*Product:* ${displayName}\n*Price:* Rs. ${finalPrice.toLocaleString()} (Cash On Delivery)\n\n${url}\n\nDelivery Address aur details share kar raha hoon:`
     );
     window.open(`https://wa.me/${whatsappNumber.replace('+', '')}?text=${text}`, '_blank');
   };

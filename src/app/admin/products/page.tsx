@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { OptimizedImage } from '@/components/common/OptimizedImage';
+import { DeleteConfirmModal } from '../../../components/admin/common/DeleteConfirmModal';
 
 interface ProductData {
   _id: string;
@@ -59,22 +60,30 @@ export default function AdminProductsPage() {
     }
   }
 
-  const handleDelete = async (id: string, name: string) => {
-    if (!confirm(`Are you sure you want to delete "${name}"?`)) return;
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
 
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+    setDeleteLoading(true);
     try {
-      const res = await fetch(`/api/products/${id}`, {
+      const res = await fetch(`/api/products/${deleteTarget.id}`, {
         method: 'DELETE',
       });
       const json = await res.json();
       if (json.success) {
-        setProducts(products.filter((p) => p._id !== id));
+        setProducts((prev) => prev.filter((p) => p._id !== deleteTarget.id));
+        setToast(`Product "${deleteTarget.name}" deleted successfully.`);
+        setTimeout(() => setToast(null), 3500);
       } else {
-        alert(json.error || 'Failed to delete product.');
+        setError(json.error || 'Failed to delete product.');
       }
-    } catch (err) {
-      console.error(err);
-      alert('Network error, could not delete product.');
+    } catch {
+      setError('Network error, could not delete product.');
+    } finally {
+      setDeleteLoading(false);
+      setDeleteTarget(null);
     }
   };
 
@@ -251,7 +260,8 @@ export default function AdminProductsPage() {
                           <i className="fas fa-edit small" />
                         </Link>
                         <button
-                          onClick={() => handleDelete(product._id, product.name)}
+                          type="button"
+                          onClick={() => setDeleteTarget({ id: product._id, name: product.name })}
                           className="btn btn-sm btn-outline-danger rounded-circle d-flex align-items-center justify-content-center border-0"
                           style={{ width: '32px', height: '32px' }}
                           title="Delete"
@@ -267,6 +277,17 @@ export default function AdminProductsPage() {
           </table>
         </div>
       </div>
+
+      {/* Reusable Delete Modal */}
+      <DeleteConfirmModal
+        isOpen={Boolean(deleteTarget)}
+        title="Delete Product?"
+        message="Are you sure you want to permanently remove this product from the inventory?"
+        itemName={deleteTarget?.name}
+        onCancel={() => setDeleteTarget(null)}
+        onConfirm={confirmDelete}
+        loading={deleteLoading}
+      />
     </div>
   );
 }
