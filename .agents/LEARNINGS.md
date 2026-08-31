@@ -333,6 +333,26 @@ This file serves as persistent dynamic memory across coding agent sessions. Ever
   1. Updated [product/[id]/opengraph-image.tsx](file:///d:/proj/Pak-o-Drive/src/app/product/[id]/opengraph-image.tsx) and [opengraph-image.tsx](file:///d:/proj/Pak-o-Drive/src/app/opengraph-image.tsx) to use `export const runtime = 'nodejs';`.
   2. Executed full Next.js production build (`npm run build`). Verified **53/53 static/dynamic routes** generated successfully with **Exit Code 0**.
 
+### 2026-08-31 — Dual-Mode (Personal + Store) Gemini AI WhatsApp Bot Architecture
+- **📌 Issue**: The WhatsApp bot number is shared between personal/family chats and store customers. Regular bot setups reply with menus to personal friend/family chatter or leak commercial pitches.
+- **🔍 Root Cause & Failed Attempts**: Rule engines trigger on loose keywords, while static bots lack real-time MongoDB catalog access and context classification.
+- **🛠️ Verified Code Fix**:
+  1. Built [geminiAssistant.ts](file:///d:/proj/Pak-o-Drive/src/lib/geminiAssistant.ts) implementing a 2-step AI pipeline:
+     - `classifyMessageIntent`: Classifies if a message is store/automotive related vs personal chatter. **Personal/family talk returns `is_store_related: false` and keeps the bot 100% silent.**
+     - `searchStoreProducts`: Real-time MongoDB queries matching active in-stock products with exact PKR prices and links.
+     - `generateGeminiStoreResponse`: Generates sales-closing Roman Urdu replies using Gemini 1.5 Flash grounded in Pak-o-Drive policies (Free COD, 7-day warranty).
+  2. Upgraded [bot.mjs](file:///d:/proj/Pak-o-Drive/src/worker/bot.mjs) with group chat ignore (`@g.us`), personal number whitelist exclusion (`WHATSAPP_EXCLUDED_NUMBERS`), 24-hour owner manual takeover mute (`msg.key.fromMe`), and intent branching.
+  3. Upgraded Admin Bot Test Simulator in [route.ts](file:///d:/proj/Pak-o-Drive/src/app/api/whatsapp-bot/test/route.ts).
+  4. Verified TypeScript compilation passing with code 0 (`npx tsc --noEmit`).
+
+### 2026-08-31 — Dedicated 24/7 WhatsApp Bot Server Note
+- **📌 Infrastructure Architecture**:
+  - The frontend website, Admin Studio, and API routes deploy to **Vercel**.
+  - The Baileys WhatsApp WebSocket engine (`src/worker/bot.mjs`) runs 24/7 on a **Dedicated Worker Server**.
+  - The dedicated server must have `GEMINI_API_KEY` and `MONGODB_URI` set in its `.env` to execute the dual-mode personal-vs-store Gemini AI intelligence.
+
+
+
 
 
 
