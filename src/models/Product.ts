@@ -25,6 +25,7 @@ const ProductSchema = new Schema<IProductDocument>(
     isFeatured: { type: Boolean, default: false, index: true },
     isTopSelling: { type: Boolean, default: false, index: true },
     stock: { type: Number, required: true, default: 10 },
+    heroText: { type: String, default: '' },
     specifications: { type: Map, of: String, default: {} },
     variants: [
       {

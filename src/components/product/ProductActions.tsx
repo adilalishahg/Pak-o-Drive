@@ -130,115 +130,121 @@ export const ProductActions: React.FC<ProductActionsProps> = ({ product, selecte
       </div>
 
       {/* Main Action Buttons */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-        {/* 1. Direct Buy Now (COD) - High Priority Button */}
-        <button
-          type="button"
-          onClick={handleBuyNow}
-          disabled={outOfStock}
-          style={{
-            border: 'none',
-            borderRadius: '10px',
-            padding: '14px 20px',
-            fontSize: '1rem',
-            fontWeight: 800,
-            width: '100%',
-            cursor: outOfStock ? 'not-allowed' : 'pointer',
-            opacity: outOfStock ? 0.6 : 1,
-            background: 'linear-gradient(135deg, #ea580c, #c2410c)',
-            color: '#fff',
-            boxShadow: '0 4px 16px rgba(234,88,12,0.35)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '8px',
-            transition: 'transform 0.15s ease',
-          }}
-          onMouseEnter={e => { if (!outOfStock) (e.currentTarget as HTMLElement).style.transform = 'translateY(-1px)'; }}
-          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = 'translateY(0)'; }}
-        >
-          <i className="fas fa-bolt" style={{ fontSize: '1.1rem' }} />
-          <span>{outOfStock ? 'Currently Out of Stock' : '⚡ Buy Now (Cash On Delivery)'}</span>
-        </button>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        {/* Row 1: Dual Primary Actions (Add to Cart + Buy Now) */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+          {/* 1. Add to Cart Button */}
+          <button
+            type="button"
+            onClick={handleAdd}
+            disabled={outOfStock || added}
+            className="product-card-btn"
+            style={{
+              border: '1.5px solid #0f172a',
+              borderRadius: '10px',
+              padding: '11px 12px',
+              fontSize: '0.86rem',
+              fontWeight: 700,
+              width: '100%',
+              cursor: outOfStock ? 'not-allowed' : 'pointer',
+              opacity: outOfStock ? 0.6 : 1,
+              background: added ? '#10b981' : '#fff',
+              color: added ? '#fff' : '#0f172a',
+              borderColor: added ? '#10b981' : '#0f172a',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '6px',
+              transition: 'all 0.2s ease',
+            }}
+          >
+            <i className={`fas ${added ? 'fa-check' : 'fa-shopping-bag'}`} />
+            <span>{added ? 'Added!' : 'Add to Cart'}</span>
+          </button>
 
-        {/* 2. Add to Cart Button */}
-        <button
-          type="button"
-          onClick={handleAdd}
-          disabled={outOfStock || added}
-          style={{
-            border: '1.5px solid #0f172a',
-            borderRadius: '10px',
-            padding: '12px 20px',
-            fontSize: '0.92rem',
-            fontWeight: 700,
-            width: '100%',
-            cursor: outOfStock ? 'not-allowed' : 'pointer',
-            opacity: outOfStock ? 0.6 : 1,
-            background: added ? '#10b981' : '#fff',
-            color: added ? '#fff' : '#0f172a',
-            borderColor: added ? '#10b981' : '#0f172a',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '8px',
-            transition: 'all 0.2s ease',
-          }}
-        >
-          <i className={`fas ${added ? 'fa-check' : 'fa-shopping-bag'}`} />
-          <span>{added ? 'Added to Cart!' : 'Add to Cart'}</span>
-        </button>
+          {/* 2. Direct Buy Now (COD) */}
+          <button
+            type="button"
+            onClick={handleBuyNow}
+            disabled={outOfStock}
+            className="product-card-btn"
+            style={{
+              border: 'none',
+              borderRadius: '10px',
+              padding: '11px 12px',
+              fontSize: '0.86rem',
+              fontWeight: 800,
+              width: '100%',
+              cursor: outOfStock ? 'not-allowed' : 'pointer',
+              opacity: outOfStock ? 0.6 : 1,
+              background: 'linear-gradient(135deg, #ea580c, #c2410c)',
+              color: '#fff',
+              boxShadow: '0 4px 14px rgba(234,88,12,0.3)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '6px',
+              transition: 'transform 0.15s ease',
+            }}
+          >
+            <i className="fas fa-bolt" />
+            <span>{outOfStock ? 'Out of Stock' : '⚡ Buy Now'}</span>
+          </button>
+        </div>
 
-        {/* 3. WhatsApp Direct Order Button */}
-        <button
-          type="button"
-          onClick={handleWhatsApp}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '8px',
-            border: 'none',
-            borderRadius: '10px',
-            padding: '12px 20px',
-            fontSize: '0.9rem',
-            fontWeight: 700,
-            width: '100%',
-            cursor: 'pointer',
-            background: '#25D366',
-            color: '#fff',
-            boxShadow: '0 4px 14px rgba(37,211,102,0.28)',
-          }}
-        >
-          <i className="fab fa-whatsapp" style={{ fontSize: '1.2rem' }} />
-          <span>Order via WhatsApp</span>
-        </button>
+        {/* Row 2: WhatsApp 1-Click Order + Wishlist Heart */}
+        <div style={{ display: 'flex', gap: '8px' }}>
+          {/* 3. WhatsApp Direct Order Button */}
+          <button
+            type="button"
+            onClick={handleWhatsApp}
+            className="product-card-btn"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px',
+              border: 'none',
+              borderRadius: '10px',
+              padding: '11px 16px',
+              fontSize: '0.86rem',
+              fontWeight: 700,
+              flex: 1,
+              cursor: 'pointer',
+              background: '#25D366',
+              color: '#fff',
+              boxShadow: '0 3px 12px rgba(37,211,102,0.25)',
+            }}
+          >
+            <i className="fab fa-whatsapp" style={{ fontSize: '1.15rem' }} />
+            <span>Order via WhatsApp</span>
+          </button>
 
-        {/* Wishlist Button */}
-        <button
-          type="button"
-          onClick={() => toggleWishlist(product._id || '')}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '8px',
-            border: '1px solid #e2e8f0',
-            borderRadius: '10px',
-            padding: '10px 16px',
-            fontSize: '0.82rem',
-            fontWeight: 600,
-            width: '100%',
-            cursor: 'pointer',
-            background: '#f8fafc',
-            color: isInWishlist(product._id || '') ? '#ef4444' : '#64748b',
-            transition: 'all 0.2s',
-            outline: 'none',
-          }}
-        >
-          <i className={isInWishlist(product._id || '') ? 'fas fa-heart' : 'far fa-heart'} />
-          <span>{isInWishlist(product._id || '') ? 'Saved to Wishlist' : 'Add to Wishlist'}</span>
-        </button>
+          {/* Wishlist Button */}
+          <button
+            type="button"
+            onClick={() => toggleWishlist(product._id || '')}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              border: '1.5px solid #e2e8f0',
+              borderRadius: '10px',
+              padding: '10px 14px',
+              width: '46px',
+              flexShrink: 0,
+              cursor: 'pointer',
+              background: '#fff',
+              color: isInWishlist(product._id || '') ? '#ef4444' : '#64748b',
+              transition: 'all 0.2s',
+              outline: 'none',
+            }}
+            title="Save to Wishlist"
+            aria-label="Wishlist"
+          >
+            <i className={isInWishlist(product._id || '') ? 'fas fa-heart' : 'far fa-heart'} style={{ fontSize: '1.1rem' }} />
+          </button>
+        </div>
       </div>
 
       {/* ── Mobile Sticky Bottom Bar ── */}
@@ -249,26 +255,27 @@ export const ProductActions: React.FC<ProductActionsProps> = ({ product, selecte
           bottom: 0,
           left: 0,
           right: 0,
-          zIndex: 1050,
+          zIndex: 1040,
           background: 'rgba(255, 255, 255, 0.98)',
-          backdropFilter: 'blur(10px)',
+          backdropFilter: 'blur(12px)',
+          WebkitBackdropFilter: 'blur(12px)',
           borderTop: '1px solid #e2e8f0',
-          padding: '10px 14px',
-          boxShadow: '0 -4px 20px rgba(0,0,0,0.12)',
+          padding: '8px 12px',
+          boxShadow: '0 -4px 20px rgba(0,0,0,0.1)',
           display: showSticky ? 'flex' : 'none',
           alignItems: 'center',
           gap: '10px',
           transition: 'all 0.25s ease',
         }}
       >
-        <div style={{ flex: '0 0 auto', minWidth: '85px' }}>
-          <span style={{ fontSize: '0.65rem', color: '#64748b', display: 'block', fontWeight: 600 }}>Total Price</span>
-          <span style={{ fontSize: '1rem', fontWeight: 900, color: 'var(--pd-primary, #ea580c)', lineHeight: 1 }}>
+        <div style={{ flex: '0 0 auto', minWidth: '78px' }}>
+          <span style={{ fontSize: '0.62rem', color: '#64748b', display: 'block', fontWeight: 600 }}>Total Price</span>
+          <span style={{ fontSize: '0.96rem', fontWeight: 900, color: 'var(--pd-primary, #ea580c)', lineHeight: 1 }}>
             Rs. {finalPrice.toLocaleString()}
           </span>
         </div>
 
-        <div style={{ display: 'flex', gap: '8px', flex: 1 }}>
+        <div style={{ display: 'flex', gap: '6px', flex: 1 }}>
           <button
             type="button"
             onClick={handleWhatsApp}
@@ -277,18 +284,39 @@ export const ProductActions: React.FC<ProductActionsProps> = ({ product, selecte
               color: '#fff',
               border: 'none',
               borderRadius: '8px',
-              padding: '10px 12px',
-              fontSize: '0.8rem',
-              fontWeight: 700,
+              width: '40px',
+              height: '38px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              gap: '6px',
-              flex: '0 0 42px',
+              flexShrink: 0,
             }}
             aria-label="Order on WhatsApp"
           >
             <i className="fab fa-whatsapp" style={{ fontSize: '1.2rem' }} />
+          </button>
+
+          <button
+            type="button"
+            onClick={handleAdd}
+            disabled={outOfStock || added}
+            style={{
+              background: '#fff',
+              color: '#0f172a',
+              border: '1.5px solid #0f172a',
+              borderRadius: '8px',
+              padding: '8px 10px',
+              fontSize: '0.78rem',
+              fontWeight: 700,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '4px',
+              flex: 1,
+            }}
+          >
+            <i className={`fas ${added ? 'fa-check' : 'fa-shopping-bag'}`} style={{ fontSize: '10px' }} />
+            <span>{added ? 'Added!' : 'Add'}</span>
           </button>
 
           <button
@@ -300,19 +328,19 @@ export const ProductActions: React.FC<ProductActionsProps> = ({ product, selecte
               color: '#fff',
               border: 'none',
               borderRadius: '8px',
-              padding: '10px 14px',
-              fontSize: '0.85rem',
+              padding: '8px 10px',
+              fontSize: '0.78rem',
               fontWeight: 800,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              gap: '6px',
-              flex: 1,
+              gap: '4px',
+              flex: 1.2,
               boxShadow: '0 2px 8px rgba(234,88,12,0.3)',
             }}
           >
-            <i className="fas fa-bolt" />
-            <span>{outOfStock ? 'Out of Stock' : '⚡ Buy Now (COD)'}</span>
+            <i className="fas fa-bolt" style={{ fontSize: '10px' }} />
+            <span>{outOfStock ? 'Out of Stock' : '⚡ Buy Now'}</span>
           </button>
         </div>
       </div>

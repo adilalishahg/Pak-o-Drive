@@ -173,7 +173,27 @@ This file serves as persistent dynamic memory across coding agent sessions. Ever
   3. Redesigned the [ShopClient.tsx](file:///d:/proj/Pak-o-Drive/src/components/shop/ShopClient.tsx) toolbar into a compact 2-tier bar with inline search, mobile filter trigger, sort selector, and `[⊞ Grid / ☰ List]` toggle.
   4. Verified with `npx tsc --noEmit` exiting with code 0.
 
+### 2026-08-31 — Product Detail Page Mobile CTAs & Bottom Sticky Bar Overlap Fix
+- **📌 Issue**: On mobile product detail pages (`/product/[id]`), the bottom floating cart pill, sticky purchase bar, and floating WhatsApp support widget all overlapped and collided at the bottom of the screen. In addition, 4 large full-width stacked buttons caused visual clutter and excessive scrolling.
+- **🔍 Root Cause & Failed Attempts**: `FloatingCartButton` rendered globally without excluding `/product/*` routes. `WhatsAppSupport` stayed fixed at `bottom: 28px`, colliding with the product sticky bar at `bottom: 0`. `ProductActions` used 4 vertically stacked buttons instead of a 2x2 grid.
+- **🛠️ Verified Code Fix**:
+  1. Updated [FloatingCartButton.tsx](file:///d:/proj/Pak-o-Drive/src/components/common/FloatingCartButton.tsx) to return `null` on `pathname.startsWith('/product/')`.
+  2. Updated [WhatsAppSupport.tsx](file:///d:/proj/Pak-o-Drive/src/components/common/WhatsAppSupport.tsx) to shift `bottom: 78px` on product pages so it never overlaps the sticky purchase bar.
+  3. Reorganized [ProductActions.tsx](file:///d:/proj/Pak-o-Drive/src/components/product/ProductActions.tsx) action buttons into a clean 2x2 grid (Row 1: `[ Add to Cart ]` + `[ Buy Now ]`, Row 2: `[ Order via WhatsApp ]` + `[ ♡ Wishlist ]`).
+  4. Refined the mobile sticky bottom bar with `Price`, `WhatsApp icon`, `Add to Cart`, and `⚡ Buy Now` with blur backdrop and 0 overlaps.
+  5. Verified with `npx tsc --noEmit` exiting with code 0.
+
+### 2026-08-31 — Product Detail Gallery HD Fullscreen Lightbox & Mobile Zoom Fix
+- **📌 Issue**: On mobile screens, tapping the product image applied an in-place `transform: scale(2.4)` inside a small square container with `overflow: hidden`, causing aggressive clipping, blurriness, and trapping finger touch/scroll gestures.
+- **🔍 Root Cause & Failed Attempts**: In-place container zoom is tailored for desktop mouse hover lens but breaks UX on touch screens where fingers cover the zoomed view and prevent page scroll.
+- **🛠️ Verified Code Fix**:
+  1. Refactored [ProductImageGallery.tsx](file:///d:/proj/Pak-o-Drive/src/components/product/ProductImageGallery.tsx) to implement an Amazon/Shopify-standard **Fullscreen HD Lightbox Modal**.
+  2. Maintained subtle hover lens on desktop (`scale(1.8)`), and on mobile/desktop tap opens the Fullscreen Modal with image counter (`1 / 3`), swipe left/right navigation, bottom thumbnail strip, tap-to-zoom, and instant `✕` / `Escape` close.
+  3. Verified with `npx tsc --noEmit` exiting with code 0.
+
 ---
+
+
 
 
 

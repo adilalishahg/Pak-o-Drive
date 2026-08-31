@@ -12,8 +12,9 @@ export const FloatingCartButton: React.FC = () => {
   const { theme } = useSiteTheme();
   
   const isCartOrCheckout = pathname === '/cart' || pathname === '/checkout' || pathname.startsWith('/order-confirmation');
+  const isProductPage = pathname?.startsWith('/product/');
   
-  if (cartCount === 0 || isCartOrCheckout) {
+  if (cartCount === 0 || isCartOrCheckout || isProductPage) {
     return null;
   }
 

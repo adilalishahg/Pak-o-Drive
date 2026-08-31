@@ -27,6 +27,7 @@ export interface IProduct {
   isFeatured: boolean;
   isTopSelling: boolean;
   stock: number;
+  heroText?: string;
   specifications: Record<string, string>;
   variants?: IProductVariant[];
 }

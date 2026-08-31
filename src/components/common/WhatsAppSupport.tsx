@@ -1,9 +1,12 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 import { logInteraction } from './AnalyticsTracker';
 
 export const WhatsAppSupport: React.FC = () => {
+  const pathname = usePathname();
+  const isProductPage = pathname?.startsWith('/product/');
   const [showTooltip, setShowTooltip] = useState(false);
   const [hovered, setHovered] = useState(false);
   const number = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '+923185205667';
@@ -29,8 +32,8 @@ export const WhatsAppSupport: React.FC = () => {
     <div
       style={{
         position: 'fixed',
-        bottom: '28px',
-        right: '28px',
+        bottom: isProductPage ? '78px' : '28px',
+        right: '20px',
         zIndex: 9999,
         display: 'flex',
         flexDirection: 'column',

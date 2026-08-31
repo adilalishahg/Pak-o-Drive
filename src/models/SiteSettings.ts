@@ -1,6 +1,20 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
 /* ── Homepage section interfaces ─────────────────────────────── */
+export interface IHeroSlideItem {
+  _id?: string;
+  enabled: boolean;
+  productId?: string;
+  badge: string;
+  title: string;
+  subtitle: string;
+  buttonText: string;
+  buttonLink: string;
+  imageType: 'product' | 'custom';
+  imageUrl: string;
+  bgGradient?: string;
+}
+
 export interface IHeroBigSection {
   enabled: boolean;
   badge: string;
@@ -62,6 +76,7 @@ export interface ISvgLogoSettings {
 }
 
 export interface IHomepageSections {
+  heroSlides?: IHeroSlideItem[];
   heroBig: IHeroBigSection;
   heroSmall: IHeroSmallSection;
   trendingProducts: IProductSection;
@@ -121,6 +136,19 @@ const SvgLogoSchema = new Schema({
   showText:       { type: Boolean, default: true },
   height:         { type: Number,  default: 38 },
 }, { _id: false });
+
+const HeroSlideItemSchema = new Schema({
+  enabled:    { type: Boolean, default: true },
+  productId:  { type: String,  default: '' },
+  badge:      { type: String,  default: 'Featured Product' },
+  title:      { type: String,  default: '' },
+  subtitle:   { type: String,  default: '' },
+  buttonText: { type: String,  default: 'Shop Now' },
+  buttonLink: { type: String,  default: '/shop' },
+  imageType:  { type: String,  enum: ['product', 'custom'], default: 'product' },
+  imageUrl:   { type: String,  default: '' },
+  bgGradient: { type: String,  default: '' },
+});
 
 const HeroBigSchema = new Schema({
   enabled:    { type: Boolean, default: true },
@@ -200,6 +228,7 @@ const SiteSettingsSchema = new Schema<ISiteSettingsDocument>(
     layoutTheme:           { type: String, enum: ['classic', 'modern-green', 'theme1'], default: 'classic' },
     svgLogo:               { type: SvgLogoSchema, default: () => ({}) },
     homepageSections: {
+      heroSlides:       { type: [HeroSlideItemSchema], default: [] },
       heroBig:          { type: HeroBigSchema,       default: () => ({}) },
       heroSmall:        { type: HeroSmallSchema,     default: () => ({}) },
       trendingProducts: { type: ProductSectionSchema, default: () => ({ title: 'Trending Products', limit: 4 }) },
