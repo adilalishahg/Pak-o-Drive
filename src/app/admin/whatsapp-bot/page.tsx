@@ -384,6 +384,14 @@ export default function AdminWhatsAppBotPage() {
               </div>
             </div>
 
+            {/* Error banner if any */}
+            {botState.error && (
+              <div className="alert alert-danger rounded-3 py-2 px-3 mb-3 small d-flex align-items-center gap-2">
+                <i className="fas fa-exclamation-circle" />
+                <span>{botState.error}</span>
+              </div>
+            )}
+
             {/* Connection Body */}
             {isConnected ? (
               <div className="text-center py-4 bg-light rounded-4 border border-success border-opacity-25">
