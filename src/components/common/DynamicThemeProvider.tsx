@@ -78,6 +78,12 @@ export interface SiteTheme {
   svgLogo?: SvgLogoSettings;
   homepageSections: {
     heroSlides?:       IHeroSlideItem[];
+    heroSliderSettings?: {
+      autoSlideEnabled?: boolean;
+      autoSlideIntervalSec?: number;
+      showArrows?: boolean;
+      showDots?: boolean;
+    };
     heroBig:          { enabled: boolean; badge: string; title: string; subtitle: string; buttonText: string; buttonLink: string; imageUrl: string };
     heroSmall:        { enabled: boolean; badge: string; title: string; highlight: string; imageUrl: string };
     trendingProducts: { enabled: boolean; title: string; limit: number };
@@ -115,6 +121,12 @@ export const DEFAULT_THEME: SiteTheme = {
   layoutTheme: 'classic',
   svgLogo: DEFAULT_SVG_LOGO,
   homepageSections: {
+    heroSliderSettings: {
+      autoSlideEnabled: true,
+      autoSlideIntervalSec: 5,
+      showArrows: true,
+      showDots: true,
+    },
     heroBig: {
       enabled: true,
       badge: 'Featured Product',

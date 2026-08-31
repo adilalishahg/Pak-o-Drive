@@ -585,7 +585,28 @@ export function HomePageClient({ initialProducts, initialCategories }: HomePageC
       {/* ── Hero Slider ───────────────────────────────── */}
       <section aria-label="Featured Products Carousel">
         <div className="container-fluid px-0">
-          <HeroSlider slides={dynamicHeroSlides} autoPlayMs={5500} />
+          {(() => {
+            const sliderCfg = hs?.heroSliderSettings ?? {
+              autoSlideEnabled: true,
+              autoSlideIntervalSec: 5,
+              showArrows: true,
+              showDots: true,
+            };
+            const autoPlayMs = Math.max((sliderCfg.autoSlideIntervalSec ?? 5), 2) * 1000;
+            const autoPlayEnabled = sliderCfg.autoSlideEnabled !== false;
+            const showArrows = sliderCfg.showArrows !== false;
+            const showDots = sliderCfg.showDots !== false;
+
+            return (
+              <HeroSlider
+                slides={dynamicHeroSlides}
+                autoPlayMs={autoPlayMs}
+                autoPlayEnabled={autoPlayEnabled}
+                showArrows={showArrows}
+                showDots={showDots}
+              />
+            );
+          })()}
         </div>
       </section>
 

@@ -75,8 +75,16 @@ export interface ISvgLogoSettings {
   height: number;
 }
 
+export interface IHeroSliderSettings {
+  autoSlideEnabled?: boolean;
+  autoSlideIntervalSec?: number;
+  showArrows?: boolean;
+  showDots?: boolean;
+}
+
 export interface IHomepageSections {
   heroSlides?: IHeroSlideItem[];
+  heroSliderSettings?: IHeroSliderSettings;
   heroBig: IHeroBigSection;
   heroSmall: IHeroSmallSection;
   trendingProducts: IProductSection;
@@ -202,6 +210,13 @@ const OfferBannerSchema = new Schema({
   imageUrl:   { type: String,  default: '' },
 }, { _id: false });
 
+const HeroSliderSettingsSchema = new Schema({
+  autoSlideEnabled:     { type: Boolean, default: true },
+  autoSlideIntervalSec: { type: Number,  default: 5 },
+  showArrows:           { type: Boolean, default: true },
+  showDots:             { type: Boolean, default: true },
+}, { _id: false });
+
 /* ── Main schema ─────────────────────────────────────────────── */
 const SiteSettingsSchema = new Schema<ISiteSettingsDocument>(
   {
@@ -228,8 +243,9 @@ const SiteSettingsSchema = new Schema<ISiteSettingsDocument>(
     layoutTheme:           { type: String, enum: ['classic', 'modern-green', 'theme1'], default: 'classic' },
     svgLogo:               { type: SvgLogoSchema, default: () => ({}) },
     homepageSections: {
-      heroSlides:       { type: [HeroSlideItemSchema], default: [] },
-      heroBig:          { type: HeroBigSchema,       default: () => ({}) },
+      heroSlides:         { type: [HeroSlideItemSchema], default: [] },
+      heroSliderSettings: { type: HeroSliderSettingsSchema, default: () => ({}) },
+      heroBig:            { type: HeroBigSchema,       default: () => ({}) },
       heroSmall:        { type: HeroSmallSchema,     default: () => ({}) },
       trendingProducts: { type: ProductSectionSchema, default: () => ({ title: 'Trending Products', limit: 4 }) },
       collections:      { type: CollectionsSchema,   default: () => ({}) },

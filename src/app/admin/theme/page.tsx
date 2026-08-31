@@ -532,6 +532,23 @@ export default function ThemeSettingsPage() {
     });
   };
 
+  const updateHeroSliderSetting = (key: string, val: any) => {
+    setForm((prev) => ({
+      ...prev,
+      homepageSections: {
+        ...prev.homepageSections,
+        heroSliderSettings: {
+          autoSlideEnabled: true,
+          autoSlideIntervalSec: 5,
+          showArrows: true,
+          showDots: true,
+          ...(prev.homepageSections?.heroSliderSettings || {}),
+          [key]: val,
+        },
+      },
+    }));
+  };
+
   const set = useCallback(<K extends keyof SiteTheme>(key: K, val: SiteTheme[K]) => {
     setForm((prev) => ({ ...prev, [key]: val }));
   }, []);
@@ -1556,7 +1573,115 @@ export default function ThemeSettingsPage() {
                         </button>
                       </div>
 
-                      <div className="card-body p-4 bg-white">
+                      <div className="card-body p-3 p-md-4 bg-white">
+                        {/* ⚙️ Hero Slider Controls & Behavior Settings */}
+                        {(() => {
+                          const sliderCfg = form.homepageSections?.heroSliderSettings || {
+                            autoSlideEnabled: true,
+                            autoSlideIntervalSec: 5,
+                            showArrows: true,
+                            showDots: true,
+                          };
+                          const autoPlay = sliderCfg.autoSlideEnabled !== false;
+                          const intervalSec = sliderCfg.autoSlideIntervalSec ?? 5;
+                          const showArrows = sliderCfg.showArrows !== false;
+                          const showDots = sliderCfg.showDots !== false;
+
+                          return (
+                            <div className="bg-light p-3 rounded-3 border mb-3">
+                              <div className="d-flex align-items-center justify-content-between mb-2 flex-wrap gap-2">
+                                <span className="fw-bold text-dark small d-flex align-items-center gap-1.5">
+                                  <i className="fas fa-sliders-h text-primary" /> Slider Timing & Navigation Controls
+                                </span>
+                                <span className="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25" style={{ fontSize: '0.72rem' }}>
+                                  Live Auto-Sync
+                                </span>
+                              </div>
+
+                              <div className="row g-3 pt-1">
+                                {/* Auto-Slide Interval */}
+                                <div className="col-12 col-md-6">
+                                  <div className="d-flex align-items-center justify-content-between mb-1">
+                                    <label className="form-label mb-0 text-muted fw-semibold" style={{ fontSize: '0.78rem' }}>
+                                      Auto-Slide Interval (Rotation Time)
+                                    </label>
+                                    <span className="badge bg-primary rounded-pill px-2 py-0.5" style={{ fontSize: '0.75rem' }}>
+                                      {intervalSec} Seconds
+                                    </span>
+                                  </div>
+                                  <input
+                                    type="range"
+                                    className="form-range"
+                                    min={2}
+                                    max={15}
+                                    step={1}
+                                    value={intervalSec}
+                                    onChange={(e) => updateHeroSliderSetting('autoSlideIntervalSec', Number(e.target.value))}
+                                  />
+                                  <div className="d-flex justify-content-between text-muted" style={{ fontSize: '0.68rem' }}>
+                                    <span>2s (Fast)</span>
+                                    <span>5s (Recommended)</span>
+                                    <span>15s (Slow)</span>
+                                  </div>
+                                </div>
+
+                                {/* Switches Container */}
+                                <div className="col-12 col-md-6">
+                                  <div className="d-flex flex-column gap-2 h-100 justify-content-center">
+                                    {/* Auto-Slide Switch */}
+                                    <div className="d-flex align-items-center justify-content-between bg-white p-2 rounded-2 border">
+                                      <span className="small text-dark fw-medium" style={{ fontSize: '0.78rem' }}>
+                                        <i className="fas fa-play-circle text-success me-1.5" /> Auto-Slide Enabled
+                                      </span>
+                                      <div className="form-check form-switch mb-0">
+                                        <input
+                                          className="form-check-input my-0"
+                                          type="checkbox"
+                                          role="switch"
+                                          checked={autoPlay}
+                                          onChange={(e) => updateHeroSliderSetting('autoSlideEnabled', e.target.checked)}
+                                        />
+                                      </div>
+                                    </div>
+
+                                    {/* Navigation Handles (Left/Right Arrows) Switch */}
+                                    <div className="d-flex align-items-center justify-content-between bg-white p-2 rounded-2 border">
+                                      <span className="small text-dark fw-medium" style={{ fontSize: '0.78rem' }}>
+                                        <i className="fas fa-arrows-alt-h text-primary me-1.5" /> Left / Right Handles (Arrows)
+                                      </span>
+                                      <div className="form-check form-switch mb-0">
+                                        <input
+                                          className="form-check-input my-0"
+                                          type="checkbox"
+                                          role="switch"
+                                          checked={showArrows}
+                                          onChange={(e) => updateHeroSliderSetting('showArrows', e.target.checked)}
+                                        />
+                                      </div>
+                                    </div>
+
+                                    {/* Slide Dots Switch */}
+                                    <div className="d-flex align-items-center justify-content-between bg-white p-2 rounded-2 border">
+                                      <span className="small text-dark fw-medium" style={{ fontSize: '0.78rem' }}>
+                                        <i className="fas fa-ellipsis-h text-muted me-1.5" /> Slide Indicator Dots
+                                      </span>
+                                      <div className="form-check form-switch mb-0">
+                                        <input
+                                          className="form-check-input my-0"
+                                          type="checkbox"
+                                          role="switch"
+                                          checked={showDots}
+                                          onChange={(e) => updateHeroSliderSetting('showDots', e.target.checked)}
+                                        />
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })()}
+
                         {heroSlidesList.length === 0 ? (
                           <div className="text-center py-4 px-3 border border-dashed rounded-3 bg-light">
                             <i className="fas fa-images text-muted mb-2" style={{ fontSize: '2rem' }} />

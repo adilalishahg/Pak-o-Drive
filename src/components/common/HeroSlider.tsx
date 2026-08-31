@@ -20,30 +20,45 @@ export interface HeroSlide {
 interface HeroSliderProps {
   slides: HeroSlide[];
   autoPlayMs?: number;
+  autoPlayEnabled?: boolean;
+  showArrows?: boolean;
+  showDots?: boolean;
 }
 
-export function HeroSlider({ slides, autoPlayMs = 5000 }: HeroSliderProps) {
+export function HeroSlider({
+  slides,
+  autoPlayMs = 5000,
+  autoPlayEnabled = true,
+  showArrows = true,
+  showDots = true,
+}: HeroSliderProps) {
   const [current, setCurrent] = useState(0);
   const [animating, setAnimating] = useState(false);
   const [dir, setDir] = useState<'next' | 'prev'>('next');
+  const [isPaused, setIsPaused] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const goTo = useCallback((idx: number, direction: 'next' | 'prev' = 'next') => {
-    if (animating) return;
+    if (animating || slides.length <= 1) return;
     setDir(direction);
     setAnimating(true);
     setTimeout(() => { setCurrent(idx); setAnimating(false); }, 450);
-  }, [animating]);
+  }, [animating, slides.length]);
 
   const next = useCallback(() => goTo((current + 1) % slides.length, 'next'), [current, slides.length, goTo]);
   const prev = useCallback(() => goTo((current - 1 + slides.length) % slides.length, 'prev'), [current, slides.length, goTo]);
 
   useEffect(() => {
-    timerRef.current = setTimeout(next, autoPlayMs);
+    if (!autoPlayEnabled || slides.length <= 1 || isPaused) {
+      if (timerRef.current) clearTimeout(timerRef.current);
+      return;
+    }
+    timerRef.current = setTimeout(next, Math.max(autoPlayMs, 2000));
     return () => { if (timerRef.current) clearTimeout(timerRef.current); };
-  }, [current, next, autoPlayMs]);
+  }, [current, next, autoPlayMs, autoPlayEnabled, slides.length, isPaused]);
 
-  const slide = slides[current];
+  if (!slides || slides.length === 0) return null;
+  const slide = slides[current] || slides[0];
 
   return (
     <>
@@ -90,8 +105,16 @@ export function HeroSlider({ slides, autoPlayMs = 5000 }: HeroSliderProps) {
         .hero-dot.active { background: var(--pd-primary); }
 
         /* Nav buttons */
-        .hero-nav { cursor: pointer; transition: opacity 0.2s; }
-        .hero-nav:hover { opacity: 0.8; }
+        .hero-nav {
+          cursor: pointer;
+          transition: all 0.25s ease;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+          z-index: 10;
+        }
+        .hero-nav:hover {
+          transform: translateY(-50%) scale(1.08) !important;
+          box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+        }
 
         /* Desktop */
         @media (min-width: 992px) {
@@ -108,7 +131,7 @@ export function HeroSlider({ slides, autoPlayMs = 5000 }: HeroSliderProps) {
           .hero-badge { font-size: 9px !important; padding: 4px 10px !important; margin-bottom: 8px !important; }
           .hero-cta { padding: 9px 18px !important; font-size: 0.78rem !important; }
           .hero-view-all { display: none !important; }
-          .hero-nav { display: none !important; }
+          .hero-nav { width: 30px !important; height: 30px !important; }
         }
 
         @media (max-width: 480px) {
@@ -116,8 +139,13 @@ export function HeroSlider({ slides, autoPlayMs = 5000 }: HeroSliderProps) {
         }
       `}</style>
 
-      <div style={{ position: 'relative', background: slide.bg, transition: 'background 0.5s ease', overflow: 'hidden' }}>
-
+      <div
+        onMouseEnter={() => setIsPaused(true)}
+        onMouseLeave={() => setIsPaused(false)}
+        onTouchStart={() => setIsPaused(true)}
+        onTouchEnd={() => setIsPaused(false)}
+        style={{ position: 'relative', background: slide.bg, transition: 'background 0.5s ease', overflow: 'hidden' }}
+      >
         {/* Slide content */}
         <div className={`hero-slide-inner${animating && dir === 'prev' ? ' anim-prev' : ''}`}>
 
@@ -201,47 +229,78 @@ export function HeroSlider({ slides, autoPlayMs = 5000 }: HeroSliderProps) {
         </div>
 
         {/* Bottom — dots + progress */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center',
-          padding: '8px 0 10px', position: 'relative', gap: '6px' }}>
-          {slides.map((_, i) => (
-            <button key={i}
-              className={`hero-dot${i === current ? ' active' : ''}`}
-              onClick={() => goTo(i, i > current ? 'next' : 'prev')}
-              aria-label={`Slide ${i + 1}`}
-              style={{ width: i === current ? '22px' : '7px' }}
-            />
-          ))}
-          {/* Progress bar */}
-          <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '2px', background: 'rgba(0,0,0,0.06)' }}>
-            <div style={{
-              height: '100%', background: 'var(--pd-primary)',
-              width: `${((current + 1) / slides.length) * 100}%`,
-              transition: 'width 0.5s ease',
-            }} />
+        {showDots && slides.length > 1 && (
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center',
+            padding: '8px 0 10px', position: 'relative', gap: '6px' }}>
+            {slides.map((_, i) => (
+              <button key={i}
+                className={`hero-dot${i === current ? ' active' : ''}`}
+                onClick={() => goTo(i, i > current ? 'next' : 'prev')}
+                aria-label={`Slide ${i + 1}`}
+                style={{ width: i === current ? '22px' : '7px' }}
+              />
+            ))}
+            {/* Progress bar */}
+            {autoPlayEnabled && (
+              <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '2px', background: 'rgba(0,0,0,0.06)' }}>
+                <div style={{
+                  height: '100%', background: 'var(--pd-primary)',
+                  width: `${((current + 1) / slides.length) * 100}%`,
+                  transition: 'width 0.5s ease',
+                }} />
+              </div>
+            )}
           </div>
-        </div>
+        )}
 
-        {/* Prev / Next arrows */}
-        <button onClick={prev} className="hero-nav position-absolute d-flex align-items-center justify-content-center"
-          style={{ left: '12px', top: '50%', transform: 'translateY(-50%)',
-            width: '38px', height: '38px', borderRadius: '50%',
-            background: 'rgba(255,255,255,0.65)', backdropFilter: 'blur(6px)',
-            border: '1px solid rgba(255,255,255,0.4)' }}
-          aria-label="Previous slide">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0f172a" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <polyline points="15 18 9 12 15 6"/>
-          </svg>
-        </button>
-        <button onClick={next} className="hero-nav position-absolute d-flex align-items-center justify-content-center"
-          style={{ right: '12px', top: '50%', transform: 'translateY(-50%)',
-            width: '38px', height: '38px', borderRadius: '50%',
-            background: 'linear-gradient(135deg, var(--pd-primary), color-mix(in srgb, var(--pd-primary) 75%, #000))',
-            border: 'none' }}
-          aria-label="Next slide">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <polyline points="9 18 15 12 9 6"/>
-          </svg>
-        </button>
+        {/* Prev / Next arrows (Handles) */}
+        {showArrows && slides.length > 1 && (
+          <>
+            <button
+              type="button"
+              onClick={prev}
+              className="hero-nav position-absolute d-flex align-items-center justify-content-center"
+              style={{
+                left: '10px',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                width: '38px',
+                height: '38px',
+                borderRadius: '50%',
+                background: 'rgba(255,255,255,0.85)',
+                backdropFilter: 'blur(8px)',
+                border: '1px solid rgba(0,0,0,0.08)',
+                cursor: 'pointer',
+              }}
+              aria-label="Previous slide"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0f172a" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="15 18 9 12 15 6"/>
+              </svg>
+            </button>
+            <button
+              type="button"
+              onClick={next}
+              className="hero-nav position-absolute d-flex align-items-center justify-content-center"
+              style={{
+                right: '10px',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                width: '38px',
+                height: '38px',
+                borderRadius: '50%',
+                background: 'linear-gradient(135deg, var(--pd-primary), color-mix(in srgb, var(--pd-primary) 75%, #000))',
+                border: 'none',
+                cursor: 'pointer',
+              }}
+              aria-label="Next slide"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="9 18 15 12 9 6"/>
+              </svg>
+            </button>
+          </>
+        )}
       </div>
     </>
   );
