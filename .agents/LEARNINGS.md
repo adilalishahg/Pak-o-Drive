@@ -129,7 +129,46 @@ This file serves as persistent dynamic memory across coding agent sessions. Ever
   5. Created shared client-side category memory cache in [client-cache.ts](file:///d:/proj/Pak-o-Drive/src/lib/client-cache.ts) eliminating duplicate fetches across Navbars and Sidebars.
   6. Verified 0 TypeScript errors with `npx tsc --noEmit`.
 
+### 2026-08-28 — Vercel Production Build & Desktop Isolation Resolution
+- **📌 Issue**: Vercel web deployment failed with `Cannot find module 'electron' or its corresponding type declarations` on `./desktop/src/main/index.ts`.
+- **🔍 Root Cause & Failed Attempts**: Root `tsconfig.json` included `**/*.ts` without excluding the `desktop/` directory, causing Next.js to scan desktop Electron files in the cloud server environment where Electron is not installed.
+- **🛠️ Verified Code Fix**:
+  1. Updated [tsconfig.json](file:///d:/proj/Pak-o-Drive/tsconfig.json) to exclude `"desktop"`, `"desktop/dist-package"`, and `"admin_UI"`.
+  2. Created [.vercelignore](file:///d:/proj/Pak-o-Drive/.vercelignore) to exclude desktop and local folders from Vercel deployment bundle.
+  3. Ran full production build (`pnpm run build`) locally — successfully compiled all 47 routes in Next.js 16 with 0 errors.
+
+### 2026-08-28 — Automatic Category Provisioning on Product Import & Creation
+- **📌 Issue**: When importing products from JSON or creating products with new category names not already present in the MongoDB database, products needed their categories automatically created and counted.
+- **🔍 Root Cause & Failed Attempts**: Previously `POST /api/products` only saved string values without provisioning missing category records in the `Category` model.
+- **🛠️ Verified Code Fix**:
+  1. Enhanced [products/import/route.ts](file:///d:/proj/Pak-o-Drive/src/app/api/products/import/route.ts) and [products/route.ts](file:///d:/proj/Pak-o-Drive/src/app/api/products/route.ts) with automatic category lookup and provisioning.
+  2. If a category does not exist by slug or case-insensitive regex name, it is created with proper slugification, default icon (`fas fa-box` / `fas fa-tag`), and `productCount: 1`. If it already exists, its `productCount` is incremented.
+  3. Verified TypeScript compilation passing with code 0.
+
+### 2026-08-31 — Searchable & Type-to-Filter City Combobox Engine
+- **📌 Issue**: City selection during checkout and order entry was a rigid HTML `<select>` dropdown with 50+ items, making it tedious for users on mobile/desktop to scroll and locate their city, without type-ahead search or custom city support for smaller towns.
+- **🔍 Root Cause & Failed Attempts**: Standard `<select>` elements lack responsive real-time filtering, top popular city quick-chips, keyboard navigation (`ArrowUp`/`ArrowDown`/`Enter`), and custom town/village fallback input.
+- **🛠️ Verified Code Fix**:
+  1. Created reusable [SearchableCitySelect.tsx](file:///d:/proj/Pak-o-Drive/src/components/common/SearchableCitySelect.tsx) component supporting real-time prefix & substring filtering, 1-tap popular hubs (Rawalpindi, Islamabad, Lahore, Karachi, Peshawar, Faisalabad, Multan, Sialkot, Quetta), full keyboard navigation, clear button (`✕`), and dynamic custom city entry (`Deliver to custom city: "[typed]"`).
+  2. Deduplicated and expanded `PAKISTAN_MAJOR_CITIES` in [constants.ts](file:///d:/proj/Pak-o-Drive/src/lib/constants.ts) across 70+ Pakistani cities & urban centers.
+  3. Integrated [SearchableCitySelect.tsx](file:///d:/proj/Pak-o-Drive/src/components/common/SearchableCitySelect.tsx) into [checkout/page.tsx](file:///d:/proj/Pak-o-Drive/src/app/checkout/page.tsx) and [admin/site-info/page.tsx](file:///d:/proj/Pak-o-Drive/src/app/admin/site-info/page.tsx).
+  4. Added smooth `@keyframes cityDropdownFadeIn` animation in [globals.css](file:///d:/proj/Pak-o-Drive/src/app/globals.css).
+  5. Verified production build passed across all 47 routes in Next.js 16 (Turbopack) with 0 errors.
+
+### 2026-08-31 — Homepage Product Tab Filtering & Dynamic Animation Visibility Fix
+- **📌 Issue**: Selecting tabs on the homepage ("All Products", "New Arrivals", "Featured", "Top Selling") caused products to disappear or fail to show data when switching between tabs.
+- **🔍 Root Cause & Failed Attempts**: Product cards were wrapped in `<div className="animate-on-scroll">`. The `IntersectionObserver` only ran once on initial mount with `[]` deps. When switching tabs, newly mounted DOM elements had `.animate-on-scroll` without `.visible`, leaving their CSS computed opacity stuck at `0` (completely invisible). Additionally, `isNewArrival`, `isFeatured`, and `isTopSelling` required resilient boolean handling.
+- **🛠️ Verified Code Fix**:
+  1. Replaced `.animate-on-scroll` on dynamic product grid cards with `.fade-in` so filtered products are immediately visible upon tab transition.
+  2. Wrapped `filtered` with `useMemo` checking `Boolean(p.isFeatured)` / `Boolean(p.isNewArrival)` / `Boolean(p.isTopSelling)` against `[products, activeTab]`.
+  3. Added an enhanced empty state with a "Show All Products" fallback button if a selected tab has no matching items.
+  4. Verified with TypeScript compilation passing with code 0.
+
 ---
+
+
+
+
 
 
 

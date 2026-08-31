@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { optimizeImageBeforeUpload } from '../../../utils/imageOptimizer';
+import { SearchableCitySelect } from '@/components/common/SearchableCitySelect';
 
 interface SiteInfo {
   siteName: string;
@@ -561,14 +562,11 @@ export default function AdminSiteInfoPage() {
                     />
                   </div>
                   <div className="col-12 col-md-6">
-                    <label className="form-label text-muted small fw-semibold">City</label>
-                    <input
-                      type="text"
-                      name="city"
+                    <label className="form-label text-muted small fw-semibold">Base City</label>
+                    <SearchableCitySelect
                       value={info.city}
-                      onChange={handleChange}
-                      className="form-control rounded-3"
-                      placeholder="e.g. Islamabad"
+                      onChange={val => setInfo(prev => ({ ...prev, city: val }))}
+                      placeholder="e.g. Rawalpindi, Islamabad, Lahore"
                     />
                   </div>
                   <div className="col-12 col-md-6">

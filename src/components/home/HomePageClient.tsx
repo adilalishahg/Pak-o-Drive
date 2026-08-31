@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { OptimizedImage } from '../common/OptimizedImage';
@@ -187,14 +187,18 @@ export function HomePageClient({ initialProducts, initialCategories }: HomePageC
     return () => io.disconnect();
   }, []);
 
-  const filtered = (() => {
+  const filtered = useMemo(() => {
     switch (activeTab) {
-      case 'new': return products.filter(p => p.isNewArrival);
-      case 'featured': return products.filter(p => p.isFeatured);
-      case 'selling': return products.filter(p => p.isTopSelling);
-      default: return products;
+      case 'new':
+        return products.filter(p => Boolean(p.isNewArrival) || (p as any).isNewArrival === 'true');
+      case 'featured':
+        return products.filter(p => Boolean(p.isFeatured) || (p as any).isFeatured === 'true');
+      case 'selling':
+        return products.filter(p => Boolean(p.isTopSelling) || (p as any).isTopSelling === 'true');
+      default:
+        return products;
     }
-  })();
+  }, [products, activeTab]);
 
   const tabs: { key: typeof activeTab; label: string }[] = [
     { key: 'all', label: 'All Products' },
@@ -593,9 +597,16 @@ export function HomePageClient({ initialProducts, initialCategories }: HomePageC
 
           {/* Grid */}
           {filtered.length === 0 ? (
-            <div className="text-center py-5">
+            <div className="text-center py-5 bg-light rounded-4 my-3">
               <i className="fas fa-box-open fa-3x text-muted mb-3 d-block" />
-              <p className="text-muted">No products in this category.</p>
+              <p className="text-muted fw-semibold mb-3">No products found in &quot;{tabs.find(t => t.key === activeTab)?.label}&quot;.</p>
+              <button
+                type="button"
+                onClick={() => setActiveTab('all')}
+                className="btn btn-sm btn-outline-primary rounded-pill px-3 py-1.5"
+              >
+                Show All Products
+              </button>
             </div>
           ) : (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px' }}
@@ -606,7 +617,7 @@ export function HomePageClient({ initialProducts, initialCategories }: HomePageC
                 @media (min-width: 1400px) { .products-grid { grid-template-columns: repeat(5, 1fr) !important; gap: 14px !important; } }
               `}</style>
               {filtered.map((prod, idx) => (
-                <div key={prod._id} className="animate-on-scroll">
+                <div key={prod._id} className="fade-in">
                   <ProductCardAuto product={prod} priority={idx < 4} />
                 </div>
               ))}

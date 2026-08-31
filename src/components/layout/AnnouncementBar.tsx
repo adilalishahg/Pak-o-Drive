@@ -38,7 +38,7 @@ export const AnnouncementBar: React.FC = () => {
         {/* Main Trust Message */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ fontSize: '13px' }}>🇵🇰</span>
+            <i className="fas fa-truck-moving" style={{ color: '#38bdf8', fontSize: '12px' }} />
             <span style={{ color: '#38bdf8' }}>Cash On Delivery</span>
             <span style={{ opacity: 0.8 }}>Available Nationwide</span>
           </div>

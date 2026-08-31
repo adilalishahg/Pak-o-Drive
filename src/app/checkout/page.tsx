@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { useCheckout } from '../../hooks/useCheckout';
-import { PAKISTAN_MAJOR_CITIES } from '../../lib/constants';
+import { SearchableCitySelect } from '@/components/common/SearchableCitySelect';
 
 export default function CheckoutPage() {
   const {
@@ -62,7 +62,7 @@ export default function CheckoutPage() {
         {/* Page Title */}
         <div style={{ marginBottom: '18px' }}>
           <h1 style={{ fontWeight: 900, fontSize: '1.45rem', color: '#0f172a', margin: '0 0 4px', letterSpacing: '-0.3px' }}>
-            🇵🇰 Fast Cash On Delivery Checkout
+            Fast Cash On Delivery Checkout
           </h1>
           <p style={{ margin: 0, fontSize: '0.82rem', color: '#64748b' }}>
             Fill in your delivery details below. No account or upfront card payment required.
@@ -148,24 +148,17 @@ export default function CheckoutPage() {
                     </span>
                   </div>
 
-                  {/* City Selector */}
+                  {/* City Selector with Type-to-Search Filter */}
                   <div className="col-12 col-sm-6">
                     <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>
                       City (شہر) <span style={{ color: '#ef4444' }}>*</span>
                     </label>
-                    <select
+                    <SearchableCitySelect
                       value={formData.city}
-                      onChange={e => updateField('city', e.target.value)}
-                      style={{
-                        width: '100%', border: '1.5px solid #cbd5e1', borderRadius: '8px',
-                        padding: '11px 14px', fontSize: '0.92rem', outline: 'none',
-                        color: '#0f172a', background: '#fff', cursor: 'pointer',
-                      }}
-                    >
-                      {PAKISTAN_MAJOR_CITIES.map(c => (
-                        <option key={c} value={c}>{c}</option>
-                      ))}
-                    </select>
+                      onChange={val => updateField('city', val)}
+                      required
+                      placeholder="Type or select city (e.g. Lahore, Karachi...)"
+                    />
                   </div>
 
                   {/* Optional Email */}
