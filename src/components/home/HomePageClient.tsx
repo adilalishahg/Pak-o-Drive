@@ -222,34 +222,71 @@ export function HomePageClient({ initialProducts, initialCategories }: HomePageC
 
   /* ── Construct Dynamic Hero Slides for default layout ── */
   const dynamicHeroSlides = [];
-  if (heroBig && heroBig.enabled !== false) {
-    dynamicHeroSlides.push({
-      badge: heroBig.badge || '🔥 Limited Time Deal',
-      tagline: '',
-      title: heroBig.title || 'Premium Laptops & Smartphones',
-      desc: heroBig.subtitle || 'Top-tier devices at unbeatable prices. Free shipping on all orders above PKR 5,000.',
-      btnLink: heroBig.buttonLink || '/shop',
-      btnLabel: heroBig.buttonText || 'Shop Now',
-      accent: 'var(--pd-primary)',
-      bg: 'linear-gradient(135deg, var(--pd-hero-grad-start) 0%, color-mix(in srgb, var(--pd-hero-grad-start) 80%, #fff) 50%, var(--pd-hero-grad-end) 100%)',
-      productImage: heroBig.imageUrl || '/img/product-1.png',
-      productImageAlt: heroBig.title || 'Premium Headphones',
-    });
+
+  // 1. Check if admin configured multiple heroSlides
+  if (hs?.heroSlides && Array.isArray(hs.heroSlides) && hs.heroSlides.length > 0) {
+    const enabledSlides = hs.heroSlides.filter((s: any) => s.enabled !== false);
+    for (const slide of enabledSlides) {
+      const linkedProduct = slide.productId ? initialProducts.find((p) => String(p._id) === String(slide.productId)) : undefined;
+
+      const resolvedImg = slide.imageType === 'custom' && slide.imageUrl
+        ? slide.imageUrl
+        : (linkedProduct?.image || slide.imageUrl || '/img/product-1.png');
+
+      const resolvedBadge = slide.badge || linkedProduct?.heroText || '🔥 Featured Deal';
+      const resolvedTitle = slide.title || linkedProduct?.name || 'Exclusive Product';
+      const resolvedDesc = slide.subtitle || (linkedProduct?.description ? linkedProduct.description.slice(0, 120) : 'Get the ultimate performance package.');
+      const resolvedLink = slide.buttonLink || (linkedProduct ? `/product/${linkedProduct._id}` : '/shop');
+      const resolvedBtnText = slide.buttonText || 'Shop Now';
+
+      dynamicHeroSlides.push({
+        badge: resolvedBadge,
+        tagline: '',
+        title: resolvedTitle,
+        desc: resolvedDesc,
+        btnLink: resolvedLink,
+        btnLabel: resolvedBtnText,
+        accent: 'var(--pd-primary, #ea580c)',
+        bg: slide.bgGradient || 'linear-gradient(135deg, var(--pd-hero-grad-start) 0%, color-mix(in srgb, var(--pd-hero-grad-start) 80%, #fff) 50%, var(--pd-hero-grad-end) 100%)',
+        productImage: resolvedImg,
+        productImageAlt: resolvedTitle,
+      });
+    }
   }
-  if (deal && deal.enabled !== false) {
-    dynamicHeroSlides.push({
-      badge: deal.label || '⚡ Flash Sale',
-      tagline: '',
-      title: deal.title || 'Fast Chargers & Premium Cables',
-      desc: deal.description || 'Power your devices faster.',
-      btnLink: deal.buttonLink || '/shop',
-      btnLabel: deal.buttonText || 'Explore Deals',
-      accent: 'var(--pd-accent)',
-      bg: 'linear-gradient(135deg, color-mix(in srgb, var(--pd-accent) 10%, #fff) 0%, color-mix(in srgb, var(--pd-accent) 5%, #fff) 50%, #fff 100%)',
-      productImage: deal.imageUrl || '/img/product-2.png',
-      productImageAlt: deal.title || 'Smart Watch',
-    });
+
+  // 2. Fallback to legacy heroBig / deal configuration if heroSlides is empty
+  if (dynamicHeroSlides.length === 0) {
+    if (heroBig && heroBig.enabled !== false) {
+      dynamicHeroSlides.push({
+        badge: heroBig.badge || '🔥 Limited Time Deal',
+        tagline: '',
+        title: heroBig.title || 'Premium Laptops & Smartphones',
+        desc: heroBig.subtitle || 'Top-tier devices at unbeatable prices. Free shipping on all orders above PKR 5,000.',
+        btnLink: heroBig.buttonLink || '/shop',
+        btnLabel: heroBig.buttonText || 'Shop Now',
+        accent: 'var(--pd-primary)',
+        bg: 'linear-gradient(135deg, var(--pd-hero-grad-start) 0%, color-mix(in srgb, var(--pd-hero-grad-start) 80%, #fff) 50%, var(--pd-hero-grad-end) 100%)',
+        productImage: heroBig.imageUrl || '/img/product-1.png',
+        productImageAlt: heroBig.title || 'Premium Headphones',
+      });
+    }
+    if (deal && deal.enabled !== false) {
+      dynamicHeroSlides.push({
+        badge: deal.label || '⚡ Flash Sale',
+        tagline: '',
+        title: deal.title || 'Fast Chargers & Premium Cables',
+        desc: deal.description || 'Power your devices faster.',
+        btnLink: deal.buttonLink || '/shop',
+        btnLabel: deal.buttonText || 'Explore Deals',
+        accent: 'var(--pd-accent)',
+        bg: 'linear-gradient(135deg, color-mix(in srgb, var(--pd-accent) 10%, #fff) 0%, color-mix(in srgb, var(--pd-accent) 5%, #fff) 50%, #fff 100%)',
+        productImage: deal.imageUrl || '/img/product-2.png',
+        productImageAlt: deal.title || 'Smart Watch',
+      });
+    }
   }
+
+  // 3. Fallback to default slides
   if (dynamicHeroSlides.length === 0) {
     dynamicHeroSlides.push(...HERO_SLIDES);
   }

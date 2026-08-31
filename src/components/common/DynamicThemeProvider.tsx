@@ -39,6 +39,20 @@ export const DEFAULT_SVG_LOGO: SvgLogoSettings = {
   height: 38,
 };
 
+export interface IHeroSlideItem {
+  _id?: string;
+  enabled: boolean;
+  productId?: string;
+  badge: string;
+  title: string;
+  subtitle: string;
+  buttonText: string;
+  buttonLink: string;
+  imageType: 'product' | 'custom';
+  imageUrl: string;
+  bgGradient?: string;
+}
+
 export interface SiteTheme {
   primaryColor: string;
   secondaryColor: string;
@@ -63,6 +77,7 @@ export interface SiteTheme {
   layoutTheme: 'classic' | 'modern-green' | 'theme1';
   svgLogo?: SvgLogoSettings;
   homepageSections: {
+    heroSlides?:       IHeroSlideItem[];
     heroBig:          { enabled: boolean; badge: string; title: string; subtitle: string; buttonText: string; buttonLink: string; imageUrl: string };
     heroSmall:        { enabled: boolean; badge: string; title: string; highlight: string; imageUrl: string };
     trendingProducts: { enabled: boolean; title: string; limit: number };

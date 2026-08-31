@@ -196,6 +196,7 @@ export default function AdminEditProductPage() {
     }
   };
   const [stock, setStock] = useState('');
+  const [heroText, setHeroText] = useState('');
   const [isFeatured, setIsFeatured] = useState(false);
   const [isNewArrival, setIsNewArrival] = useState(false);
   const [isTopSelling, setIsTopSelling] = useState(false);
@@ -237,6 +238,7 @@ export default function AdminEditProductPage() {
           setImages(p.images || []);
           setVideo(p.video || '');
           setStock(p.stock.toString());
+          setHeroText(p.heroText || '');
           setIsFeatured(!!p.isFeatured);
           setIsNewArrival(!!p.isNewArrival);
           setIsTopSelling(!!p.isTopSelling);
@@ -360,6 +362,7 @@ export default function AdminEditProductPage() {
       seoDescription,
       seoKeywords,
       stock: Number(stock),
+      heroText: heroText.trim(),
       isFeatured,
       isNewArrival,
       isTopSelling,
@@ -739,6 +742,61 @@ export default function AdminEditProductPage() {
                 {validationErrors.stock && (
                   <div className="invalid-feedback">{validationErrors.stock}</div>
                 )}
+              </div>
+            </div>
+
+            {/* Storefront Badges & Hero */}
+            <div className="card border-0 shadow-sm rounded-4 bg-white p-4 mb-4">
+              <h6 className="fw-bold text-dark border-bottom pb-2 mb-3">Storefront Badges & Hero</h6>
+              <div className="mb-3">
+                <label className="form-label text-muted small fw-semibold">Hero Badge / Deal Tagline (heroText)</label>
+                <input
+                  type="text"
+                  value={heroText}
+                  onChange={(e) => setHeroText(e.target.value)}
+                  className="form-control rounded-3"
+                  placeholder="e.g. THE BIG DEAL THIS WEEK, 50% OFF FLASH SALE"
+                />
+                <div className="form-text small">Shows as the top badge when this product is featured in the Hero Carousel.</div>
+              </div>
+
+              <div className="d-flex flex-column gap-2.5 pt-2 border-top">
+                <div className="form-check form-switch">
+                  <input
+                    className="form-check-input"
+                    type="checkbox"
+                    id="isFeatured"
+                    checked={isFeatured}
+                    onChange={(e) => setIsFeatured(e.target.checked)}
+                  />
+                  <label className="form-check-label text-muted small fw-semibold" htmlFor="isFeatured">
+                    Featured Product (Show on Homepage)
+                  </label>
+                </div>
+                <div className="form-check form-switch">
+                  <input
+                    className="form-check-input"
+                    type="checkbox"
+                    id="isNewArrival"
+                    checked={isNewArrival}
+                    onChange={(e) => setIsNewArrival(e.target.checked)}
+                  />
+                  <label className="form-check-label text-muted small fw-semibold" htmlFor="isNewArrival">
+                    New Arrival Badge
+                  </label>
+                </div>
+                <div className="form-check form-switch">
+                  <input
+                    className="form-check-input"
+                    type="checkbox"
+                    id="isTopSelling"
+                    checked={isTopSelling}
+                    onChange={(e) => setIsTopSelling(e.target.checked)}
+                  />
+                  <label className="form-check-label text-muted small fw-semibold" htmlFor="isTopSelling">
+                    Top Selling / Best Seller
+                  </label>
+                </div>
               </div>
             </div>
 

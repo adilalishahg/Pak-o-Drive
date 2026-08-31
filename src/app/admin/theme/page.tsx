@@ -400,18 +400,26 @@ function LivePreview({ theme }: { theme: SiteTheme }) {
 /* ─── Main Page ──────────────────────────────────────────────── */
 export default function ThemeSettingsPage() {
   const [form, setForm] = useState<SiteTheme>(DEFAULT_THEME);
+  const [availableProducts, setAvailableProducts] = useState<any[]>([]);
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState<{ msg: string; type: 'success' | 'error' } | null>(null);
 
-  /* Load settings on mount */
+  /* Load settings and products on mount */
   useEffect(() => {
     (async () => {
       try {
-        const res = await fetch('/api/site-settings');
-        const json = await res.json();
+        const [themeRes, prodRes] = await Promise.all([
+          fetch('/api/site-settings'),
+          fetch('/api/products?limit=150'),
+        ]);
+        const json = await themeRes.json();
         if (json.success && json.data) {
           setForm({ ...DEFAULT_THEME, ...json.data });
+        }
+        const prodJson = await prodRes.json();
+        if (prodJson.success && Array.isArray(prodJson.data)) {
+          setAvailableProducts(prodJson.data);
         }
       } catch {
         /* use defaults */
@@ -420,6 +428,109 @@ export default function ThemeSettingsPage() {
       }
     })();
   }, []);
+
+  const addHeroSlide = () => {
+    setForm((prev) => {
+      const currentSlides = prev.homepageSections?.heroSlides || [];
+      const newSlide = {
+        enabled: true,
+        productId: '',
+        badge: '🔥 HOT DEAL',
+        title: 'New Featured Product',
+        subtitle: 'Experience top-tier quality at unbeatable prices.',
+        buttonText: 'Shop Now',
+        buttonLink: '/shop',
+        imageType: 'product' as const,
+        imageUrl: '/img/product-1.png',
+        bgGradient: '',
+      };
+      return {
+        ...prev,
+        homepageSections: {
+          ...prev.homepageSections,
+          heroSlides: [...currentSlides, newSlide],
+        },
+      };
+    });
+  };
+
+  const updateHeroSlide = (idx: number, field: string, value: any) => {
+    setForm((prev) => {
+      const currentSlides = [...(prev.homepageSections?.heroSlides || [])];
+      if (!currentSlides[idx]) return prev;
+      currentSlides[idx] = { ...currentSlides[idx], [field]: value };
+      return {
+        ...prev,
+        homepageSections: {
+          ...prev.homepageSections,
+          heroSlides: currentSlides,
+        },
+      };
+    });
+  };
+
+  const selectProductForHeroSlide = (idx: number, productId: string) => {
+    const product = availableProducts.find((p) => String(p._id) === String(productId));
+    setForm((prev) => {
+      const currentSlides = [...(prev.homepageSections?.heroSlides || [])];
+      if (!currentSlides[idx]) return prev;
+      if (!product) {
+        currentSlides[idx] = {
+          ...currentSlides[idx],
+          productId: '',
+        };
+      } else {
+        currentSlides[idx] = {
+          ...currentSlides[idx],
+          productId: String(product._id),
+          title: product.name,
+          buttonLink: `/product/${product._id}`,
+          badge: product.heroText || '🔥 THE BIG DEAL THIS WEEK',
+          subtitle: product.description ? (product.description.length > 110 ? product.description.slice(0, 110) + '...' : product.description) : '',
+          imageType: 'product',
+          imageUrl: product.image || '',
+        };
+      }
+      return {
+        ...prev,
+        homepageSections: {
+          ...prev.homepageSections,
+          heroSlides: currentSlides,
+        },
+      };
+    });
+  };
+
+  const deleteHeroSlide = (idx: number) => {
+    setForm((prev) => {
+      const currentSlides = (prev.homepageSections?.heroSlides || []).filter((_, i) => i !== idx);
+      return {
+        ...prev,
+        homepageSections: {
+          ...prev.homepageSections,
+          heroSlides: currentSlides,
+        },
+      };
+    });
+  };
+
+  const moveHeroSlide = (idx: number, direction: 'up' | 'down') => {
+    setForm((prev) => {
+      const currentSlides = [...(prev.homepageSections?.heroSlides || [])];
+      const targetIdx = direction === 'up' ? idx - 1 : idx + 1;
+      if (targetIdx < 0 || targetIdx >= currentSlides.length) return prev;
+      const temp = currentSlides[idx];
+      currentSlides[idx] = currentSlides[targetIdx];
+      currentSlides[targetIdx] = temp;
+      return {
+        ...prev,
+        homepageSections: {
+          ...prev.homepageSections,
+          heroSlides: currentSlides,
+        },
+      };
+    });
+  };
 
   const set = useCallback(<K extends keyof SiteTheme>(key: K, val: SiteTheme[K]) => {
     setForm((prev) => ({ ...prev, [key]: val }));
@@ -1420,8 +1531,326 @@ export default function ThemeSettingsPage() {
                     ],
                   },
                 ];
+                const heroSlidesList = hs.heroSlides || [];
+
                 return (
                   <div className="d-flex flex-column gap-3">
+                    {/* 🎡 Multiple Hero Carousel Slides Manager */}
+                    <div className="card border-primary border-opacity-25 shadow-sm rounded-4 overflow-hidden mb-2">
+                      <div className="card-header bg-primary bg-opacity-10 py-3 px-4 d-flex align-items-center justify-content-between flex-wrap gap-2">
+                        <div>
+                          <h6 className="fw-bold text-primary mb-1 d-flex align-items-center gap-2">
+                            <i className="fas fa-layer-group" />
+                            Hero Carousel Slides ({heroSlidesList.length} Slides)
+                          </h6>
+                          <div className="text-muted small" style={{ fontSize: '0.78rem' }}>
+                            Add multiple slides to cycle on the homepage Hero section. Link directly to any product to auto-sync title, badge & product image!
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={addHeroSlide}
+                          className="btn btn-primary btn-sm rounded-pill px-3 d-flex align-items-center gap-1.5 shadow-sm"
+                        >
+                          <i className="fas fa-plus" /> Add New Slide
+                        </button>
+                      </div>
+
+                      <div className="card-body p-4 bg-white">
+                        {heroSlidesList.length === 0 ? (
+                          <div className="text-center py-4 px-3 border border-dashed rounded-3 bg-light">
+                            <i className="fas fa-images text-muted mb-2" style={{ fontSize: '2rem' }} />
+                            <h6 className="fw-bold text-secondary mb-1">No Custom Hero Slides Yet</h6>
+                            <p className="text-muted small mb-3">
+                              Currently using the fallback banners. Click below to add multiple dynamic product slides!
+                            </p>
+                            <button
+                              type="button"
+                              onClick={addHeroSlide}
+                              className="btn btn-outline-primary btn-sm rounded-pill px-4"
+                            >
+                              <i className="fas fa-plus me-1" /> Create First Hero Slide
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="d-flex flex-column gap-3">
+                            {heroSlidesList.map((slide: any, idx: number) => {
+                              const linkedProd = slide.productId
+                                ? availableProducts.find((p) => String(p._id) === String(slide.productId))
+                                : null;
+                              const isProductImg = slide.imageType !== 'custom';
+                              const displayImg = isProductImg
+                                ? (linkedProd?.image || slide.imageUrl || '/img/product-1.png')
+                                : (slide.imageUrl || '/img/product-1.png');
+
+                              return (
+                                <div
+                                  key={idx}
+                                  className={`border rounded-3 overflow-hidden shadow-xs ${
+                                    slide.enabled !== false ? 'border-secondary-subtle' : 'border-danger-subtle opacity-75'
+                                  }`}
+                                >
+                                  {/* Slide Header Bar */}
+                                  <div className="bg-light px-3 py-2 border-bottom d-flex align-items-center justify-content-between flex-wrap gap-2">
+                                    <div className="d-flex align-items-center gap-2">
+                                      <span className="badge bg-secondary rounded-pill px-2 py-1" style={{ fontSize: '0.72rem' }}>
+                                        Slide #{idx + 1}
+                                      </span>
+                                      <span className="fw-bold text-dark small">
+                                        {slide.title || (linkedProd?.name ? linkedProd.name : 'Untitled Slide')}
+                                      </span>
+                                      {linkedProd && (
+                                        <span className="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25" style={{ fontSize: '0.7rem' }}>
+                                          <i className="fas fa-box me-1" /> {linkedProd.name.slice(0, 20)}...
+                                        </span>
+                                      )}
+                                    </div>
+
+                                    <div className="d-flex align-items-center gap-2">
+                                      <button
+                                        type="button"
+                                        disabled={idx === 0}
+                                        onClick={() => moveHeroSlide(idx, 'up')}
+                                        className="btn btn-light btn-sm border py-0 px-2 text-muted"
+                                        title="Move Up"
+                                        style={{ fontSize: '0.75rem' }}
+                                      >
+                                        <i className="fas fa-arrow-up" />
+                                      </button>
+                                      <button
+                                        type="button"
+                                        disabled={idx === heroSlidesList.length - 1}
+                                        onClick={() => moveHeroSlide(idx, 'down')}
+                                        className="btn btn-light btn-sm border py-0 px-2 text-muted"
+                                        title="Move Down"
+                                        style={{ fontSize: '0.75rem' }}
+                                      >
+                                        <i className="fas fa-arrow-down" />
+                                      </button>
+
+                                      <div className="form-check form-switch mb-0 ms-1">
+                                        <input
+                                          className="form-check-input"
+                                          type="checkbox"
+                                          role="switch"
+                                          checked={slide.enabled !== false}
+                                          onChange={(e) => updateHeroSlide(idx, 'enabled', e.target.checked)}
+                                          title="Enable/Disable Slide"
+                                        />
+                                      </div>
+
+                                      <button
+                                        type="button"
+                                        onClick={() => deleteHeroSlide(idx)}
+                                        className="btn btn-outline-danger btn-sm py-0 px-2 ms-1"
+                                        title="Delete Slide"
+                                        style={{ fontSize: '0.75rem' }}
+                                      >
+                                        <i className="fas fa-trash-alt" />
+                                      </button>
+                                    </div>
+                                  </div>
+
+                                  {/* Slide Form Body */}
+                                  <div className="p-3 bg-white">
+                                    <div className="row g-3">
+                                      {/* Product Link Dropdown */}
+                                      <div className="col-12">
+                                        <label className="form-label mb-1 text-primary fw-semibold" style={{ fontSize: '0.8rem' }}>
+                                          <i className="fas fa-link me-1" /> Select Product to Feature (Auto-fills Title, Badge & Image)
+                                        </label>
+                                        <select
+                                          className="form-select form-select-sm rounded-3"
+                                          value={slide.productId || ''}
+                                          onChange={(e) => selectProductForHeroSlide(idx, e.target.value)}
+                                          style={{ fontSize: '0.84rem' }}
+                                        >
+                                          <option value="">-- Custom Banner (No Product Linked) --</option>
+                                          {availableProducts.map((p: any) => (
+                                            <option key={p._id} value={p._id}>
+                                              📦 {p.name} — PKR {p.price?.toLocaleString()} {p.heroText ? `[Badge: "${p.heroText}"]` : ''}
+                                            </option>
+                                          ))}
+                                        </select>
+                                        <div className="text-muted small mt-1" style={{ fontSize: '0.72rem' }}>
+                                          Selecting a product will automatically link to its detail page and load its headline, hero badge & image.
+                                        </div>
+                                      </div>
+
+                                      {/* Image Selection Mode */}
+                                      <div className="col-md-6">
+                                        <label className="form-label mb-1 text-muted fw-semibold" style={{ fontSize: '0.78rem' }}>
+                                          Slide Image Option
+                                        </label>
+                                        <div className="d-flex gap-2 mb-2">
+                                          <button
+                                            type="button"
+                                            onClick={() => updateHeroSlide(idx, 'imageType', 'product')}
+                                            className={`btn btn-sm rounded-3 flex-fill text-nowrap ${
+                                              isProductImg ? 'btn-primary' : 'btn-outline-secondary'
+                                            }`}
+                                            style={{ fontSize: '0.78rem' }}
+                                          >
+                                            <i className="fas fa-box me-1" /> Product Image
+                                          </button>
+                                          <button
+                                            type="button"
+                                            onClick={() => updateHeroSlide(idx, 'imageType', 'custom')}
+                                            className={`btn btn-sm rounded-3 flex-fill text-nowrap ${
+                                              !isProductImg ? 'btn-primary' : 'btn-outline-secondary'
+                                            }`}
+                                            style={{ fontSize: '0.78rem' }}
+                                          >
+                                            <i className="fas fa-upload me-1" /> Custom Banner
+                                          </button>
+                                        </div>
+
+                                        {!isProductImg ? (
+                                          <div>
+                                            <input
+                                              type="file"
+                                              accept="image/*"
+                                              className="form-control form-control-sm"
+                                              onChange={async (e) => {
+                                                const file = e.target.files?.[0];
+                                                if (!file) return;
+                                                try {
+                                                  const opt = await optimizeImageBeforeUpload(file);
+                                                  const fd = new FormData();
+                                                  fd.append('file', opt);
+                                                  const res = await fetch('/api/upload', { method: 'POST', body: fd });
+                                                  const j = await res.json();
+                                                  if (j.success) {
+                                                    updateHeroSlide(idx, 'imageUrl', j.url);
+                                                  }
+                                                } catch (err) {
+                                                  console.error(err);
+                                                }
+                                              }}
+                                              style={{ fontSize: '0.8rem' }}
+                                            />
+                                          </div>
+                                        ) : (
+                                          <div className="text-muted small" style={{ fontSize: '0.75rem' }}>
+                                            {linkedProd ? 'Using product primary image.' : 'Select a product above or switch to Custom Banner.'}
+                                          </div>
+                                        )}
+                                      </div>
+
+                                      {/* Image Preview Box */}
+                                      <div className="col-md-6 d-flex align-items-center">
+                                        <div className="d-flex align-items-center gap-3 w-100 bg-light p-2 rounded-3 border">
+                                          <div
+                                            className="border rounded bg-white p-1 position-relative flex-shrink-0"
+                                            style={{ width: '60px', height: '60px' }}
+                                          >
+                                            <img
+                                              src={displayImg}
+                                              alt="Slide preview"
+                                              style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                                            />
+                                          </div>
+                                          <div className="small text-truncate" style={{ fontSize: '0.75rem' }}>
+                                            <div className="fw-semibold text-dark text-truncate">
+                                              {isProductImg ? (linkedProd?.name || 'Default Asset') : 'Custom Banner Asset'}
+                                            </div>
+                                            <div className="text-muted text-truncate">{displayImg}</div>
+                                          </div>
+                                        </div>
+                                      </div>
+
+                                      {/* Badge / Tagline */}
+                                      <div className="col-md-6">
+                                        <label className="form-label mb-1 text-muted fw-semibold" style={{ fontSize: '0.75rem' }}>
+                                          Hero Badge / Deal Tagline
+                                        </label>
+                                        <input
+                                          type="text"
+                                          className="form-control form-control-sm"
+                                          value={slide.badge || ''}
+                                          onChange={(e) => updateHeroSlide(idx, 'badge', e.target.value)}
+                                          placeholder="e.g. 🔥 THE BIG DEAL THIS WEEK"
+                                          style={{ fontSize: '0.82rem' }}
+                                        />
+                                      </div>
+
+                                      {/* Button Text */}
+                                      <div className="col-md-6">
+                                        <label className="form-label mb-1 text-muted fw-semibold" style={{ fontSize: '0.75rem' }}>
+                                          Button Text
+                                        </label>
+                                        <input
+                                          type="text"
+                                          className="form-control form-control-sm"
+                                          value={slide.buttonText || ''}
+                                          onChange={(e) => updateHeroSlide(idx, 'buttonText', e.target.value)}
+                                          placeholder="e.g. Shop Now, Claim Deal"
+                                          style={{ fontSize: '0.82rem' }}
+                                        />
+                                      </div>
+
+                                      {/* Main Heading / Title */}
+                                      <div className="col-12">
+                                        <label className="form-label mb-1 text-muted fw-semibold" style={{ fontSize: '0.75rem' }}>
+                                          Main Heading / Title
+                                        </label>
+                                        <input
+                                          type="text"
+                                          className="form-control form-control-sm"
+                                          value={slide.title || ''}
+                                          onChange={(e) => updateHeroSlide(idx, 'title', e.target.value)}
+                                          placeholder="e.g. Apple iPhone 12 Pro Max 128GB Blue Edition"
+                                          style={{ fontSize: '0.82rem' }}
+                                        />
+                                      </div>
+
+                                      {/* Subtitle / Description */}
+                                      <div className="col-12">
+                                        <label className="form-label mb-1 text-muted fw-semibold" style={{ fontSize: '0.75rem' }}>
+                                          Subtitle / Description
+                                        </label>
+                                        <input
+                                          type="text"
+                                          className="form-control form-control-sm"
+                                          value={slide.subtitle || ''}
+                                          onChange={(e) => updateHeroSlide(idx, 'subtitle', e.target.value)}
+                                          placeholder="e.g. Experience unmatched sound and high performance."
+                                          style={{ fontSize: '0.82rem' }}
+                                        />
+                                      </div>
+
+                                      {/* Button Link */}
+                                      <div className="col-12">
+                                        <label className="form-label mb-1 text-muted fw-semibold" style={{ fontSize: '0.75rem' }}>
+                                          Button Link / Redirect URL
+                                        </label>
+                                        <input
+                                          type="text"
+                                          className="form-control form-control-sm"
+                                          value={slide.buttonLink || ''}
+                                          onChange={(e) => updateHeroSlide(idx, 'buttonLink', e.target.value)}
+                                          placeholder="e.g. /product/123 or /shop"
+                                          style={{ fontSize: '0.82rem' }}
+                                        />
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Other Homepage Sections */}
+                    <div className="d-flex align-items-center justify-content-between pt-2 pb-1">
+                      <h6 className="fw-bold text-secondary mb-0" style={{ fontSize: '0.88rem' }}>
+                        <i className="fas fa-th-large me-2 text-primary" />
+                        Other Homepage Banners & Sections
+                      </h6>
+                    </div>
+
                     {sections.map(sec => (
                       <div key={sec.key} className="border rounded-3 overflow-hidden">
                         <div className="px-3 pt-2 pb-1 bg-white"><Toggle s={sec.key} label={sec.label} icon={sec.icon} /></div>

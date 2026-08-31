@@ -191,6 +191,17 @@ This file serves as persistent dynamic memory across coding agent sessions. Ever
   2. Maintained subtle hover lens on desktop (`scale(1.8)`), and on mobile/desktop tap opens the Fullscreen Modal with image counter (`1 / 3`), swipe left/right navigation, bottom thumbnail strip, tap-to-zoom, and instant `✕` / `Escape` close.
   3. Verified with `npx tsc --noEmit` exiting with code 0.
 
+### 2026-08-31 — Dynamic Multi-Slide Hero Carousel & Product `heroText` Linkage
+- **📌 Issue**: The storefront hero carousel was statically tied to legacy `heroBig`/`deal` schema or hardcoded values without allowing the admin to easily configure multiple slides, link products directly, choose product main image vs custom banners, or specify a custom `heroText` promotional badge per product.
+- **🔍 Root Cause & Failed Attempts**: Product schema and site settings lacked a dedicated `heroText` property and a scalable `heroSlides: IHeroSlideItem[]` array in the Mongoose schema, theme provider, and admin UI.
+- **🛠️ Verified Code Fix**:
+  1. Added `heroText: { type: String, default: '' }` to [Product.ts](file:///d:/proj/Pak-o-Drive/src/models/Product.ts) & `heroText?: string` to [types/index.ts](file:///d:/proj/Pak-o-Drive/src/types/index.ts).
+  2. Added `IHeroSlideItem` and `heroSlides: { type: [HeroSlideItemSchema], default: [] }` in [SiteSettings.ts](file:///d:/proj/Pak-o-Drive/src/models/SiteSettings.ts) and [DynamicThemeProvider.tsx](file:///d:/proj/Pak-o-Drive/src/components/common/DynamicThemeProvider.tsx).
+  3. Added `Hero Badge / Deal Tagline (heroText)` field and storefront badge switches in both [new/page.tsx](file:///d:/proj/Pak-o-Drive/src/app/admin/products/new/page.tsx) and [[id]/page.tsx](file:///d:/proj/Pak-o-Drive/src/app/admin/products/[id]/page.tsx).
+  4. Built a rich **Multiple Hero Carousel Slides Manager** in [theme/page.tsx](file:///d:/proj/Pak-o-Drive/src/app/admin/theme/page.tsx) supporting product auto-sync, `Product Image` vs `Custom Banner` toggle, reordering, and slide deletion.
+  5. Updated [HomePageClient.tsx](file:///d:/proj/Pak-o-Drive/src/components/home/HomePageClient.tsx) to dynamically resolve and render configured hero slides with fallback resiliency.
+  6. Verified compilation with `npx tsc --noEmit` exiting with code 0.
+
 ---
 
 
