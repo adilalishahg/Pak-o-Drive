@@ -157,14 +157,23 @@ async function start() {
 
         console.log(`[Incoming Message] From: ${senderPhone} | Text: "${messageText}"`);
 
-        // Check if paused
+        // If user explicitly asks for menu or greeting, reset human pause mode
+        const clean = messageText.toLowerCase().trim();
+        const unpauseKeywords = ['hi', 'hello', 'salam', 'assalam', 'aoa', 'menu', 'start', 'help', 'restart', '0'];
+        if (unpauseKeywords.some((k) => clean === k || clean.startsWith(k))) {
+          if (pausedContacts[senderPhone]) {
+            delete pausedContacts[senderPhone];
+            console.log(`[Bot] Unpaused Human Mode for ${senderPhone} (User requested Menu/Greeting).`);
+          }
+        }
+
+        // Check if paused for human agent mode
         if (pausedContacts[senderPhone] && Date.now() < pausedContacts[senderPhone]) {
           console.log(`[Bot] Paused for ${senderPhone} (Human Agent Mode).`);
           continue;
         }
 
         const rules = await WhatsAppRule.find({ enabled: true }).sort({ priority: 1 });
-        const clean = messageText.toLowerCase().trim();
         let matchedRule = null;
 
         for (const r of rules) {
@@ -253,8 +262,9 @@ async function start() {
         console.log(`[Outgoing Reply] Sent to ${senderPhone} successfully!\n`);
 
         if (matchedRule.dynamicAction === 'agent_handoff') {
-          pausedContacts[senderPhone] = Date.now() + 24 * 60 * 60 * 1000;
-          console.log(`[Bot] Paused replies for ${senderPhone} for 24 hours.`);
+          // Pause auto-replies for 60 minutes so human agent can talk
+          pausedContacts[senderPhone] = Date.now() + 60 * 60 * 1000;
+          console.log(`[Bot] Paused replies for ${senderPhone} for 60 minutes (Human Mode).`);
         }
       } catch (err) {
         console.error('[Bot] Error processing message:', err);
