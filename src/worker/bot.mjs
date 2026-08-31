@@ -13,9 +13,13 @@ process.on('unhandledRejection', (err) => console.error('[Bot unhandledRejection
 dotenv.config({ path: path.join(process.cwd(), '.env') });
 dotenv.config({ path: path.join(process.cwd(), '.env.local') });
 
-const MONGODB_URI = process.env.MONGODB_URI;
+let MONGODB_URI = process.env.MONGODB_URI || '';
+if (MONGODB_URI && !MONGODB_URI.includes('/ecommerceStore') && !MONGODB_URI.includes('/pakodrive')) {
+  MONGODB_URI = MONGODB_URI.replace('27017/?', '27017/ecommerceStore?');
+}
 const AUTH_DIR = path.join(process.cwd(), '.whatsapp_auth');
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || process.env.Gemini_API_KEY || '';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://pakodrive.pk';
 const EXCLUDED_NUMBERS = (process.env.WHATSAPP_EXCLUDED_NUMBERS || '')
   .split(',')
   .map((n) => n.trim().replace(/[^0-9]/g, ''))
@@ -286,31 +290,28 @@ async function generateGeminiStoreResponse(userMessage, senderPhone, searchQuery
         products
           .map(
             (p) =>
-              `• Name: ${p.name} | Price: Rs. ${p.price.toLocaleString()} ${
-                p.originalPrice ? `(Discounted from Rs. ${p.originalPrice.toLocaleString()})` : ''
-              } | Link: https://pakodrive.com/product/${p.slug || p._id}`
+              `• Name: ${p.name}\n  Price: Rs. ${p.price.toLocaleString()}${p.originalPrice ? ` (Original: Rs. ${p.originalPrice.toLocaleString()})` : ''}\n  Link: ${SITE_URL}/product/${p._id || p.slug}`
           )
-          .join('\n');
+          .join('\n\n');
     }
 
     const history = conversationHistories.get(senderPhone) || [];
     const formattedHistory = history.map((h) => `${h.role === 'user' ? 'Customer' : 'Ali (Pak-o-Drive)'}: ${h.text}`).join('\n');
 
-    const systemInstruction = `You are "Ali", the friendly, knowledgeable senior sales & customer support executive at Pak-o-Drive (pakodrive.com), Pakistan's #1 automotive accessories and tech gadget store.
+    const systemInstruction = `You are "Ali", the friendly, knowledgeable senior sales executive at Pak-o-Drive (${SITE_URL}), Pakistan's top store for automotive electronics & car accessories.
 
 Store Policies:
 - 🚚 Nationwide Free Cash On Delivery (COD) on all orders.
 - 🛡️ 7-Day Replacement & Checking Warranty on every single item.
-- ⏱️ Delivery Time: 2-3 working days in major cities (Karachi, Lahore, Rawalpindi/Islamabad), 3-4 days in other areas.
-- 📍 Base Warehouse: Rawalpindi / Islamabad.
+- ⏱️ Delivery: 2-3 working days in major cities (Karachi, Lahore, Rawalpindi/Islamabad), 3-4 days in other areas.
+- 📍 Base: Rawalpindi / Islamabad.
 - 💳 Payment Methods: Cash on Delivery (COD), JazzCash & Easypaisa (0318-5205667), Bank Transfer.
 
-Guidelines:
-1. Respond in natural, polite, respectful Pakistani Roman Urdu (e.g. "Jee bilkul bhai!", "Assalam-o-Alaikum!", "Aap befikr rahein").
-2. If products were found in the database, present their exact names, PKR prices, and links naturally to help close the sale.
-3. Keep responses concise, clear, and easy to read on mobile WhatsApp (use bullet points and emojis tastefully).
-4. Never make up fake prices or invent imaginary products. If an item is not found, politely offer to check with the warehouse team or suggest browsing pakodrive.com.
-5. If customer asks for live human or owner, say that their request is noted and an agent will call/reply soon.
+Instructions:
+1. Speak in friendly, respectful, natural Pakistani Roman Urdu ("Jee bilkul bhai!", "Assalam-o-Alaikum!").
+2. ALWAYS recommend the matching in-stock products with their EXACT name, PKR price, and full clickable link (${SITE_URL}/product/...).
+3. Keep the message clean, formatted with bullet points and friendly emojis.
+4. Ask if they want to book Cash on Delivery order right now. If customer asks for live human or owner, say that their request is noted and an agent will call/reply soon.
 
 ${productCatalogContext ? `[CURRENT CATALOG CONTEXT]\n${productCatalogContext}\n` : ''}
 ${formattedHistory ? `[CONVERSATION HISTORY]\n${formattedHistory}\n` : ''}
