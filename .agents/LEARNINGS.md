@@ -164,7 +164,17 @@ This file serves as persistent dynamic memory across coding agent sessions. Ever
   3. Added an enhanced empty state with a "Show All Products" fallback button if a selected tab has no matching items.
   4. Verified with TypeScript compilation passing with code 0.
 
+### 2026-08-31 — Mobile Responsive Cards, Compact Toolbar & Grid/List View Toggle
+- **📌 Issue**: On mobile screens (/shop and homepage), cards rendered tall vertically due to duplicate stacked "Checkout" buttons when items were in cart. Additionally, the filter and search bar took up multiple rows of vertical screen real estate, and 1-item filter results left empty grid space.
+- **🔍 Root Cause & Failed Attempts**: `ProductCardClassic` contained a redundant secondary `<Link href="/cart">Checkout</Link>` button inside every card whenever `cartCount > 0`, conflicting with the global floating cart bar and top cart button. `/shop` lacked a 1-column list view toggle.
+- **🛠️ Verified Code Fix**:
+  1. Removed redundant secondary Checkout button from [ProductCardClassic.tsx](file:///d:/proj/Pak-o-Drive/src/components/product/ProductCardClassic.tsx), leaving a sleek, compact single `Add to Cart` button with responsive padding.
+  2. Created [ProductCardList.tsx](file:///d:/proj/Pak-o-Drive/src/components/product/ProductCardList.tsx) for Daraz/Amazon-style horizontal row presentation (image left, info & buy button right).
+  3. Redesigned the [ShopClient.tsx](file:///d:/proj/Pak-o-Drive/src/components/shop/ShopClient.tsx) toolbar into a compact 2-tier bar with inline search, mobile filter trigger, sort selector, and `[⊞ Grid / ☰ List]` toggle.
+  4. Verified with `npx tsc --noEmit` exiting with code 0.
+
 ---
+
 
 
 

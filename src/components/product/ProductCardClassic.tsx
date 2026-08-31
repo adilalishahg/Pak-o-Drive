@@ -242,53 +242,27 @@ export const ProductCardClassic: React.FC<Props> = ({ product, priority }) => {
         </div>
       </div>
 
-      {/* Add to cart button and Checkout button */}
-      <div className="product-card-actions" style={{ padding: '0 14px 14px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+      {/* Add to cart button */}
+      <div className="product-card-actions" style={{ padding: '0 10px 10px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
         <button
           onClick={handleAdd}
           disabled={adding}
           className="product-card-btn"
           style={{
             width: '100%', border: 'none', borderRadius: '8px',
-            padding: '9px 0', fontSize: '0.82rem', fontWeight: 700,
+            padding: '8px 0', fontSize: '0.78rem', fontWeight: 700,
             cursor: adding ? 'default' : 'pointer', transition: 'all 0.2s',
             background: buttonBg,
             color: isModernGreen ? '#0d231d' : '#fff',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '7px',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
             boxShadow: adding 
               ? '0 3px 10px rgba(16,185,129,0.3)' 
               : `0 3px 10px color-mix(in srgb, ${primaryColor} 20%, transparent)`,
           }}
         >
-          <i className={`fas ${adding ? 'fa-check' : 'fa-shopping-cart'}`} style={{ fontSize: '12px' }} />
+          <i className={`fas ${adding ? 'fa-check' : 'fa-shopping-cart'}`} style={{ fontSize: '11px' }} />
           {adding ? 'Added to Cart!' : 'Add to Cart'}
         </button>
-
-        {cartCount > 0 && (
-          <Link
-            href="/cart"
-            onClick={e => e.stopPropagation()}
-            className="d-flex align-items-center justify-content-center product-card-btn"
-            style={{
-              width: '100%', border: '1.5px solid #111', borderRadius: '8px',
-              padding: '8px 0', fontSize: '0.78rem', fontWeight: 800,
-              textDecoration: 'none', color: '#111', background: '#fff',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
-              transition: 'all 0.2s',
-            }}
-            onMouseEnter={e => {
-              (e.currentTarget as HTMLElement).style.background = '#111';
-              (e.currentTarget as HTMLElement).style.color = '#fff';
-            }}
-            onMouseLeave={e => {
-              (e.currentTarget as HTMLElement).style.background = '#fff';
-              (e.currentTarget as HTMLElement).style.color = '#111';
-            }}
-          >
-            <i className="fas fa-lock" style={{ fontSize: '10px' }} />
-            Checkout
-          </Link>
-        )}
       </div>
 
       <style>{`
