@@ -255,6 +255,15 @@ This file serves as persistent dynamic memory across coding agent sessions. Ever
   3. Added an automatic rollback mechanism (`rollbackStock`) that reverses previous item deductions if a subsequent item in the cart runs out of stock mid-transaction.
   4. Verified with `npx tsc --noEmit` exiting with code 0.
 
+### 2026-08-31 — Vercel Serverless `/tmp` Storage & Synchronous QR Code Delivery
+- **📌 Issue**: On Vercel production (`pakodrive.pk/admin/whatsapp-bot`), clicking "Start WhatsApp Bot & Scan QR" did not render the QR Code because Vercel's root directory is read-only (EPERM when writing to `./.whatsapp_auth/`) and serverless execution terminated before the asynchronous Baileys QR event fired.
+- **🔍 Root Cause & Failed Attempts**: Local disk paths (`process.cwd() + '/.whatsapp_auth'`) fail on AWS Lambda/Vercel serverless read-only filesystems, and `startBot()` returned `CONNECTING` immediately without awaiting the first socket handshake event.
+- **🛠️ Verified Code Fix**:
+  1. Updated `authDir` in [engine.ts](file:///d:/proj/Pak-o-Drive/src/lib/whatsappBot/engine.ts) to `path.join(os.tmpdir(), 'pakodrive_whatsapp_auth')` so credentials write seamlessly into Vercel's writable `/tmp` directory.
+  2. Wrapped `startBot()` in a Promise that explicitly awaits the `connection.update` QR event (with a 5.5s fallback safety timer) so the QR code base64 image is returned directly in the first HTTP POST response.
+  3. Added an error alert banner in [whatsapp-bot/page.tsx](file:///d:/proj/Pak-o-Drive/src/app/admin/whatsapp-bot/page.tsx) to surface any initialization issues transparently.
+  4. Verified with `pnpm run build` compiling with 0 errors.
+
 ---
 
 
