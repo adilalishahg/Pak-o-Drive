@@ -271,7 +271,7 @@ async function searchStoreProducts(query) {
  * 3. Gemini Conversational Sales & Support Generator
  */
 async function generateGeminiStoreResponse(userMessage, senderPhone, searchQuery) {
-  if (!genAI) {
+  if (!GEMINI_API_KEY) {
     return 'وعلیکم السلام! Pak-o-Drive Support par khush-amdeed. Hum aapki kia madad kar sakte hain? (1. Order Status | 2. Payment Details | 3. Return Policy | 4. Live Agent)';
   }
 
