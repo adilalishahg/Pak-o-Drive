@@ -182,7 +182,7 @@ const FALLBACK_RULES = [
  * 1. Smart Intent Classifier using Gemini 1.5 Flash
  */
 async function classifyMessageIntent(messageText) {
-  if (!genAI) {
+  if (!GEMINI_API_KEY) {
     const lower = messageText.toLowerCase();
     const storeKeywords = [
       'product', 'price', 'order', 'delivery', 'cost', 'buy', 'shop', 'sound', 'speaker',
@@ -198,7 +198,6 @@ async function classifyMessageIntent(messageText) {
   }
 
   try {
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
     const prompt = `You are a binary intent classifier for an e-commerce WhatsApp number used for BOTH personal family chats and an automotive store ("Pak-o-Drive").
 
 Evaluate this incoming message: "${messageText}"
@@ -215,8 +214,10 @@ Return ONLY a valid JSON object:
   "search_query": "search query terms if store related, else empty"
 }`;
 
-    const res = await model.generateContent(prompt);
-    const text = res.response.text().trim();
+    const text = await callGeminiDirect(prompt);
+    if (!text) {
+      return { is_store_related: false, search_query: '' };
+    }
     const cleanJson = text.replace(/^```json\s*|\s*```$/g, '').trim();
     const parsed = JSON.parse(cleanJson);
     return {
@@ -313,9 +314,10 @@ Customer: "${userMessage}"
 
 Reply as Ali (Pak-o-Drive):`;
 
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
-    const result = await model.generateContent(systemInstruction);
-    const responseText = result.response.text().trim();
+    const responseText = await callGeminiDirect(systemInstruction);
+    if (!responseText) {
+      return 'Jee bhai! Pak-o-Drive par Free Cash On Delivery aur 7-Day Warranty available hai. Hamari team foran aapse rabta karegi ya aap pakodrive.com par browse kar sakte hain.';
+    }
 
     // Update conversation buffer
     const updatedHistory = [...history, { role: 'user', text: userMessage }, { role: 'model', text: responseText }].slice(-6);
