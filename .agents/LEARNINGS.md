@@ -202,6 +202,20 @@ This file serves as persistent dynamic memory across coding agent sessions. Ever
   5. Updated [HomePageClient.tsx](file:///d:/proj/Pak-o-Drive/src/components/home/HomePageClient.tsx) to dynamically resolve and render configured hero slides with fallback resiliency.
   6. Verified compilation with `npx tsc --noEmit` exiting with code 0.
 
+### 2026-08-31 — Checkout 1-Click WhatsApp Order Full Customer Details Integration
+- **📌 Issue**: When a customer clicked the "Order via WhatsApp (1-Click)" button on the checkout page (`/checkout`), the generated WhatsApp message only included partial information and lacked their entered Email, formatted Complete Delivery Address, City, and Order Notes / Special Instructions.
+- **🔍 Root Cause & Failed Attempts**: `handleOrderViaWhatsApp` in `src/hooks/useCheckout.ts` only checked for `formData.fullName` and concatenated a basic string without checking `email`, `orderNotes`, and clear bulleted formatting for Pakistani courier dispatch.
+- **🛠️ Verified Code Fix**:
+  1. Updated `handleOrderViaWhatsApp` in [useCheckout.ts](file:///d:/proj/Pak-o-Drive/src/hooks/useCheckout.ts) to dynamically construct a comprehensive `👤 Customer & Delivery Details` section containing:
+     - `• Name`: Full name
+     - `• Phone / WhatsApp`: Mobile number
+     - `• Email`: Email address (if entered)
+     - `• City`: Selected Pakistani city
+     - `• Complete Delivery Address`: House #, street, area
+     - `• Special Instructions`: Order notes (if entered)
+  2. Updated [order-confirmation/[id]/page.tsx](file:///d:/proj/Pak-o-Drive/src/app/order-confirmation/[id]/page.tsx) to also include customer email in WhatsApp verification links.
+  3. Verified with `npx tsc --noEmit` exiting with code 0.
+
 ---
 
 

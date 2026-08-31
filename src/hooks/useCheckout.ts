@@ -123,12 +123,36 @@ export function useCheckout() {
       .map(i => `• ${i.product.name}${i.variant ? ` (${i.variant.name})` : ''} x${i.quantity} = Rs. ${((i.variant ? i.variant.price : i.product.price) * i.quantity).toLocaleString()}`)
       .join('\n');
 
-    const customerSummary = formData.fullName
-      ? `\n\n*Customer Details:*\nName: ${formData.fullName}\nPhone: ${formData.phone}\nCity: ${formData.city}\nAddress: ${formData.address}`
+    const customerDetailsList: string[] = [];
+    if (formData.fullName?.trim()) {
+      customerDetailsList.push(`• *Name:* ${formData.fullName.trim()}`);
+    }
+    if (formData.phone?.trim()) {
+      customerDetailsList.push(`• *Phone / WhatsApp:* ${formData.phone.trim()}`);
+    }
+    if (formData.email?.trim()) {
+      customerDetailsList.push(`• *Email:* ${formData.email.trim()}`);
+    }
+    if (formData.city?.trim()) {
+      customerDetailsList.push(`• *City:* ${formData.city.trim()}`);
+    }
+    if (formData.address?.trim()) {
+      customerDetailsList.push(`• *Complete Delivery Address:* ${formData.address.trim()}`);
+    }
+    if (formData.orderNotes?.trim()) {
+      customerDetailsList.push(`• *Special Instructions:* ${formData.orderNotes.trim()}`);
+    }
+
+    const customerSection = customerDetailsList.length > 0
+      ? `\n\n👤 *Customer & Delivery Details:*\n${customerDetailsList.join('\n')}`
       : '';
 
     const text = encodeURIComponent(
-      `السلام علیکم! Mujhe Pak-o-Drive se Cash On Delivery par order karna hai:\n\n*Order Items:*\n${itemsSummary}\n\n*Total Amount:* Rs. ${cartTotal.toLocaleString()} (Cash On Delivery)${customerSummary}\n\nKindly confirm my order and dispatch date.`
+      `السلام علیکم! Mujhe Pak-o-Drive se Cash On Delivery par order confirm karna hai:\n\n` +
+      `📦 *Order Items:*\n${itemsSummary}\n\n` +
+      `💰 *Total Amount:* Rs. ${cartTotal.toLocaleString()} (Cash On Delivery - Free Delivery)` +
+      `${customerSection}\n\n` +
+      `Baraye meharbani mera order confirm karein aur dispatch date bata dein. Shukriya!`
     );
 
     window.open(`https://wa.me/${whatsappNumber.replace('+', '')}?text=${text}`, '_blank');

@@ -80,7 +80,8 @@ export default function OrderConfirmationPage() {
       const productLink = `${siteUrl}/product/${i.productId}`;
       return `- ${i.quantity}x ${i.name} (PKR ${i.price.toLocaleString()})\n  Link: ${productLink}`;
     }).join('\n');
-    const msg = `*Order Confirmation*\nOrder ID: #${order._id?.slice(-8).toUpperCase()}\nName: ${order.customerDetails.name}\nPhone: ${order.customerDetails.phone}\nAddress: ${order.customerDetails.address}, ${order.customerDetails.city}\n\nItems:\n${items}\n\nTotal: PKR ${order.totalAmount.toLocaleString()}\nPayment: COD`;
+    const emailLine = order.customerDetails.email ? `\nEmail: ${order.customerDetails.email}` : '';
+    const msg = `*Order Confirmation*\nOrder ID: #${order._id?.slice(-8).toUpperCase()}\nName: ${order.customerDetails.name}\nPhone: ${order.customerDetails.phone}${emailLine}\nAddress: ${order.customerDetails.address}, ${order.customerDetails.city}\n\nItems:\n${items}\n\nTotal: PKR ${order.totalAmount.toLocaleString()}\nPayment: COD`;
     window.open(`https://wa.me/${whatsappNumber.replace('+', '')}?text=${encodeURIComponent(msg)}`, '_blank');
   };
 
