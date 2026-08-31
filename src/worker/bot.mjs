@@ -29,8 +29,11 @@ const EXCLUDED_NUMBERS = (process.env.WHATSAPP_EXCLUDED_NUMBERS || '')
  * Direct Zero-Dependency Google Gemini REST API Client with Multi-Model Fallback
  */
 async function callGeminiDirect(prompt) {
-  if (!GEMINI_API_KEY) return null;
-  const models = ['gemini-2.5-flash', 'gemini-3.6-flash', 'gemini-3.7-flash', 'gemini-flash-latest'];
+  if (!GEMINI_API_KEY) {
+    console.log('⚠️ [callGeminiDirect] No GEMINI_API_KEY provided in env.');
+    return null;
+  }
+  const models = ['gemini-2.5-flash', 'gemini-1.5-flash', 'gemini-2.0-flash', 'gemini-flash-latest', 'gemini-3.7-flash', 'gemini-pro-latest'];
   for (const model of models) {
     try {
       const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`;
@@ -44,10 +47,16 @@ async function callGeminiDirect(prompt) {
       if (res.ok) {
         const data = await res.json();
         const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-        if (text) return text.trim();
+        if (text) {
+          console.log(`✅ [Gemini Model ${model}] Generated response successfully.`);
+          return text.trim();
+        }
+      } else {
+        const errText = await res.text();
+        console.log(`⚠️ [Gemini ${model} HTTP ${res.status}]:`, errText.slice(0, 120));
       }
     } catch (err) {
-      // Continue to next model fallback
+      console.log(`⚠️ [Gemini ${model} Network Error]:`, err.message);
     }
   }
   return null;
@@ -269,6 +278,13 @@ async function searchStoreProducts(query) {
       .lean();
 
     if (products.length > 0) {
+      // Sort by relevance (products whose name matches the keyword come first)
+      products.sort((a, b) => {
+        const aMatches = terms.filter((t) => (a.name || '').toLowerCase().includes(t)).length;
+        const bMatches = terms.filter((t) => (b.name || '').toLowerCase().includes(t)).length;
+        return bMatches - aMatches;
+      });
+
       console.log(`📦 [DB Search Result] Found ${products.length} matching in-stock products:`);
       products.forEach((p, idx) => {
         console.log(`   ${idx + 1}. ${p.name} | Rs. ${p.price} | Stock: ${p.stock} | ID: ${p._id}`);
@@ -288,11 +304,6 @@ async function searchStoreProducts(query) {
  * 3. Gemini Conversational Sales & Support Generator
  */
 async function generateGeminiStoreResponse(userMessage, senderPhone, searchQuery) {
-  if (!GEMINI_API_KEY) {
-    console.log('⚠️ [Gemini AI] GEMINI_API_KEY missing. Returning fallback menu.');
-    return 'وعلیکم السلام! Pak-o-Drive Support par khush-amdeed. Hum aapki kia madad kar sakte hain? (1. Order Status | 2. Payment Details | 3. Return Policy | 4. Live Agent)';
-  }
-
   try {
     const query = searchQuery || userMessage;
     const products = await searchStoreProducts(query);
@@ -337,7 +348,11 @@ Reply as Ali (Pak-o-Drive):`;
     console.log(`🤖 [Gemini AI] Generating sales response with ${products.length} products in context...`);
     const responseText = await callGeminiDirect(systemInstruction);
     if (!responseText) {
-      console.log('⚠️ [Gemini AI] callGeminiDirect returned empty. Returning standard fallback.');
+      console.log('⚠️ [Gemini AI] callGeminiDirect returned empty. Generating direct product card.');
+      if (products.length > 0) {
+        const list = products.map((p) => `• *${p.name}*\n  💰 *Price:* Rs. ${p.price.toLocaleString()}${p.originalPrice ? ` (Original: Rs. ${p.originalPrice.toLocaleString()})` : ''}\n  👉 *Order Link:* ${SITE_URL}/product/${p._id || p.slug}`).join('\n\n');
+        return `وعلیکم السلام! Jee bilkul bhai, hamare pas yeh items in-stock available hain:\n\n${list}\n\n🚚 *Nationwide Free Cash On Delivery (COD)* & 🛡️ 7-Day Checking Warranty.\nKya aapko Cash on Delivery par order book karwana hai?`;
+      }
       return 'Jee bhai! Pak-o-Drive par Free Cash On Delivery aur 7-Day Warranty available hai. Hamari team foran aapse rabta karegi ya aap pakodrive.pk par browse kar sakte hain.';
     }
 
