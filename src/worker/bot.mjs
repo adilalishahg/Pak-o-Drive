@@ -443,10 +443,10 @@ async function start() {
         continue;
       }
 
-      // 👑 ADMIN HUMAN TAKEOVER: If store owner sends any message from their phone, pause bot for 30 minutes from last message
+      // 👑 ADMIN HUMAN TAKEOVER: If store owner sends any message from their phone, pause bot for 5 minutes from last message
       if (msg.key.fromMe) {
-        humanTakeover[senderPhone] = Date.now() + 30 * 60 * 1000;
-        console.log(`[Admin Takeover] Store owner messaged ${senderPhone}. Bot paused for 30 minutes.`);
+        humanTakeover[senderPhone] = Date.now() + 5 * 60 * 1000;
+        console.log(`[Admin Takeover] Store owner messaged ${senderPhone}. Bot paused for 5 minutes.`);
         continue;
       }
 
@@ -584,8 +584,8 @@ async function start() {
         console.log(`[Outgoing Reply] Sent to ${senderPhone} successfully!\n`);
 
         if (matchedRule && matchedRule.dynamicAction === 'agent_handoff') {
-          humanTakeover[senderPhone] = Date.now() + 30 * 60 * 1000;
-          console.log(`[Bot] Agent Handoff active. Bot paused for ${senderPhone} for 30 minutes.`);
+          humanTakeover[senderPhone] = Date.now() + 5 * 60 * 1000;
+          console.log(`[Bot] Agent Handoff active. Bot paused for ${senderPhone} for 5 minutes.`);
         }
       } catch (err) {
         console.error('[Bot] Error processing message:', err);
