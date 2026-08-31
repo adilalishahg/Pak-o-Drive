@@ -7,6 +7,7 @@ const nextConfig: NextConfig = {
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production' ? { exclude: ['error', 'warn'] } : false,
   },
+  serverExternalPackages: ['@whiskeysockets/baileys', 'pino', 'qrcode', 'jimp', 'sharp'],
   experimental: {
     inlineCss: true,
     optimizePackageImports: ['canvas-confetti', 'lucide-react', 'recharts', 'bootstrap-icons'],
