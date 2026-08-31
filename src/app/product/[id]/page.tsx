@@ -60,7 +60,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     if (imageUrl.endsWith('.webp')) {
       imageUrl = imageUrl.slice(0, -5) + '.jpg';
     } else if (imageUrl.includes('/upload/')) {
-      imageUrl = imageUrl.replace('/upload/', '/upload/f_jpg,q_85/');
+      imageUrl = imageUrl.replace('/upload/', '/upload/f_jpg,q_85,w_1200,h_630,c_fill/');
     }
   }
 
@@ -76,7 +76,17 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       description: metaDesc,
       url: productUrl,
       type: 'website',
-      images: [{ url: imageUrl, alt: p.name }],
+      siteName: siteLogoText,
+      images: [
+        {
+          url: imageUrl,
+          secureUrl: imageUrl,
+          width: 1200,
+          height: 630,
+          type: imageUrl.toLowerCase().endsWith('.png') ? 'image/png' : 'image/jpeg',
+          alt: p.name,
+        },
+      ],
     },
     twitter: {
       card: 'summary_large_image',

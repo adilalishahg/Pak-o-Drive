@@ -55,6 +55,8 @@ export const ProductActions: React.FC<ProductActionsProps> = ({ product, selecte
     router.push('/checkout');
   };
 
+  const [copied, setCopied] = useState(false);
+
   const handleWhatsApp = () => {
     const url = typeof window !== 'undefined' ? window.location.href : '';
     const displayName = selectedVariant ? `${product.name} (${selectedVariant.name})` : product.name;
@@ -62,6 +64,30 @@ export const ProductActions: React.FC<ProductActionsProps> = ({ product, selecte
       `السلام علیکم! Mujhe yeh product order karna hai:\n\n*Product:* ${displayName}\n*Price:* Rs. ${finalPrice.toLocaleString()} (Cash On Delivery)\n\n${url}\n\nDelivery Address aur details share kar raha hoon:`
     );
     window.open(`https://wa.me/${whatsappNumber.replace('+', '')}?text=${text}`, '_blank');
+  };
+
+  const handleNativeShare = async () => {
+    const url = typeof window !== 'undefined' ? window.location.href : '';
+    const displayName = selectedVariant ? `${product.name} (${selectedVariant.name})` : product.name;
+    const shareData = {
+      title: `${displayName} — Pak-o-Drive`,
+      text: `Check out ${displayName} (PKR ${finalPrice.toLocaleString()}) on Pak-o-Drive:`,
+      url,
+    };
+
+    if (typeof navigator !== 'undefined' && navigator.share && navigator.canShare && navigator.canShare(shareData)) {
+      try {
+        await navigator.share(shareData);
+      } catch {
+        // User cancelled or aborted native share
+      }
+    } else {
+      if (typeof navigator !== 'undefined' && navigator.clipboard) {
+        await navigator.clipboard.writeText(`${shareData.text}\n\n${url}`);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      }
+    }
   };
 
   return (
@@ -236,6 +262,32 @@ export const ProductActions: React.FC<ProductActionsProps> = ({ product, selecte
           >
             <i className="fab fa-whatsapp" style={{ fontSize: '1.15rem' }} />
             <span>Order via WhatsApp</span>
+          </button>
+
+          {/* 4. Native Share Button (Attaches rich preview card on WhatsApp/Social) */}
+          <button
+            type="button"
+            onClick={handleNativeShare}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              border: '1.5px solid #e2e8f0',
+              borderRadius: '10px',
+              padding: '10px 14px',
+              width: '46px',
+              flexShrink: 0,
+              cursor: 'pointer',
+              background: copied ? '#10b981' : '#fff',
+              color: copied ? '#fff' : '#0284c7',
+              borderColor: copied ? '#10b981' : '#e2e8f0',
+              transition: 'all 0.2s',
+              outline: 'none',
+            }}
+            title={copied ? 'Link Copied!' : 'Share with Photo on WhatsApp'}
+            aria-label="Share product"
+          >
+            <i className={`fas ${copied ? 'fa-check' : 'fa-share-alt'}`} />
           </button>
 
           {/* Wishlist Button */}

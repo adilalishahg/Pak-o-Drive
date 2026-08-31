@@ -326,6 +326,14 @@ This file serves as persistent dynamic memory across coding agent sessions. Ever
   3. Added `priority={idx < 4}` to above-the-fold product grids in [HomePageClient.tsx](file:///d:/proj/Pak-o-Drive/src/components/home/HomePageClient.tsx) to accelerate Largest Contentful Paint (LCP).
   4. Verified TypeScript compilation passing with code 0 (`npx tsc --noEmit`).
 
+### 2026-08-31 — OpenGraph Edge Runtime Build Error Fix (Production Deployment)
+- **📌 Issue**: Vercel production build failed on `npm run build` with `Error: Failed to collect configuration for /product/[id]/opengraph-image: A Node.js API is used (process.getBuiltinModule) which is not supported in the Edge Runtime`.
+- **🔍 Root Cause & Failed Attempts**: `src/app/product/[id]/opengraph-image.tsx` had `export const runtime = 'edge';` while importing `getCachedProduct` which connects to MongoDB via Mongoose (a Node.js native driver not compatible with V8 Edge isolates).
+- **🛠️ Verified Code Fix**:
+  1. Updated [product/[id]/opengraph-image.tsx](file:///d:/proj/Pak-o-Drive/src/app/product/[id]/opengraph-image.tsx) and [opengraph-image.tsx](file:///d:/proj/Pak-o-Drive/src/app/opengraph-image.tsx) to use `export const runtime = 'nodejs';`.
+  2. Executed full Next.js production build (`npm run build`). Verified **53/53 static/dynamic routes** generated successfully with **Exit Code 0**.
+
+
 
 
 

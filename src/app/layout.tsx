@@ -85,14 +85,16 @@ export async function generateMetadata(): Promise<Metadata> {
       if (info.seoKeywords) {
         keywords = info.seoKeywords.split(',').map((k: string) => k.trim()).filter(Boolean);
       }
-      if (info.logoImage) {
+      if (info.logoImage && !info.logoImage.toLowerCase().endsWith('.svg')) {
         ogImageUrl = info.logoImage.startsWith('http') ? info.logoImage : `${activeSiteUrl}${info.logoImage}`;
+      } else {
+        ogImageUrl = `${activeSiteUrl}/img/carousel-1.jpg`;
       }
       if (ogImageUrl.includes('res.cloudinary.com')) {
         if (ogImageUrl.endsWith('.webp')) {
           ogImageUrl = ogImageUrl.slice(0, -5) + '.jpg';
         } else if (ogImageUrl.includes('/upload/')) {
-          ogImageUrl = ogImageUrl.replace('/upload/', '/upload/f_jpg,q_85/');
+          ogImageUrl = ogImageUrl.replace('/upload/', '/upload/f_jpg,q_85,w_1200,h_630,c_fill/');
         }
       }
       if (info.favicon) {
@@ -126,7 +128,16 @@ export async function generateMetadata(): Promise<Metadata> {
       siteName: siteName,
       title: defaultTitle,
       description,
-      images: [{ url: ogImageUrl, width: 1200, height: 630, alt: siteName }],
+      images: [
+        {
+          url: ogImageUrl,
+          secureUrl: ogImageUrl,
+          width: 1200,
+          height: 630,
+          type: ogImageUrl.toLowerCase().endsWith('.png') ? 'image/png' : 'image/jpeg',
+          alt: siteName,
+        },
+      ],
     },
     twitter: {
       card: 'summary_large_image',
