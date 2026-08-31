@@ -5,7 +5,6 @@ import mongoose from 'mongoose';
 import qrcodeTerminal from 'qrcode-terminal';
 import makeWASocket, { useMultiFileAuthState, DisconnectReason, fetchLatestBaileysVersion } from '@whiskeysockets/baileys';
 import pino from 'pino';
-import { GoogleGenerativeAI } from '@google/generative-ai';
 
 // Prevent unexpected process crashes
 process.on('uncaughtException', (err) => console.error('[Bot uncaughtException]', err));
@@ -16,14 +15,39 @@ dotenv.config({ path: path.join(process.cwd(), '.env.local') });
 
 const MONGODB_URI = process.env.MONGODB_URI;
 const AUTH_DIR = path.join(process.cwd(), '.whatsapp_auth');
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY || '';
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY || process.env.Gemini_API_KEY || '';
 const EXCLUDED_NUMBERS = (process.env.WHATSAPP_EXCLUDED_NUMBERS || '')
   .split(',')
   .map((n) => n.trim().replace(/[^0-9]/g, ''))
   .filter(Boolean);
 
-// Initialize Gemini Client
-const genAI = GEMINI_API_KEY ? new GoogleGenerativeAI(GEMINI_API_KEY) : null;
+/**
+ * Direct Zero-Dependency Google Gemini REST API Client using Native fetch()
+ */
+async function callGeminiDirect(prompt, model = 'gemini-2.5-flash') {
+  if (!GEMINI_API_KEY) return null;
+  try {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`;
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+      }),
+    });
+    if (!res.ok) {
+      const errText = await res.text();
+      console.error(`[Gemini API Error HTTP ${res.status}]:`, errText);
+      return null;
+    }
+    const data = await res.json();
+    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+    return text ? text.trim() : null;
+  } catch (err) {
+    console.error('[Gemini Fetch Error]:', err.message);
+    return null;
+  }
+}
 
 const WhatsAppRuleSchema = new mongoose.Schema(
   {
