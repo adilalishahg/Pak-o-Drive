@@ -22,31 +22,31 @@ const EXCLUDED_NUMBERS = (process.env.WHATSAPP_EXCLUDED_NUMBERS || '')
   .filter(Boolean);
 
 /**
- * Direct Zero-Dependency Google Gemini REST API Client using Native fetch()
+ * Direct Zero-Dependency Google Gemini REST API Client with Multi-Model Fallback
  */
-async function callGeminiDirect(prompt, model = 'gemini-2.5-flash') {
+async function callGeminiDirect(prompt) {
   if (!GEMINI_API_KEY) return null;
-  try {
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`;
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-      }),
-    });
-    if (!res.ok) {
-      const errText = await res.text();
-      console.error(`[Gemini API Error HTTP ${res.status}]:`, errText);
-      return null;
+  const models = ['gemini-2.5-flash', 'gemini-3.6-flash', 'gemini-3.7-flash', 'gemini-flash-latest'];
+  for (const model of models) {
+    try {
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`;
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+        }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (text) return text.trim();
+      }
+    } catch (err) {
+      // Continue to next model fallback
     }
-    const data = await res.json();
-    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-    return text ? text.trim() : null;
-  } catch (err) {
-    console.error('[Gemini Fetch Error]:', err.message);
-    return null;
   }
+  return null;
 }
 
 const WhatsAppRuleSchema = new mongoose.Schema(
@@ -123,7 +123,7 @@ const FALLBACK_RULES = [
       '2️⃣ *Payment & Bank / JazzCash Details*\n' +
       '3️⃣ *7-Day Return Policy*\n' +
       '4️⃣ *Live Agent se Rabta Karein*\n\n' +
-      '👉 Ya apna sawal direct type karein (e.g. "Civic ke liye ambient lights hain?").',
+      '👉 Ya apna sawal direct type karein (e.g. "Mehran mirror" ya "Civic lights").',
     dynamicAction: 'interactive_menu',
     enabled: true,
     priority: 1,
@@ -178,22 +178,21 @@ const FALLBACK_RULES = [
   },
 ];
 
-/**
- * 1. Smart Intent Classifier using Gemini 1.5 Flash
- */
+const STORE_KEYWORDS = [
+  'mehran', 'suzuki', 'civic', 'corolla', 'alto', 'yaris', 'cultus', 'city', 'wagonr', 'vitz', 'car', 'gari', 'bike',
+  'mirror', 'mirro', 'sheesha', 'light', 'ambient', 'speaker', 'sound', 'panel', 'android', 'cover', 'seat', 'mat',
+  'towel', 'microfiber', 'spray', 'paint', 'perfume', 'freshener', 'aseel', 'charger', 'cable', 'camera', 'led', 'cob',
+  'product', 'price', 'kitne', 'rate', 'pkr', 'rs', 'rupay', 'cod', 'order', 'delivery', 'warranty', 'wapsi', 'buy', 'shop', 'pakodrive'
+];
+
 async function classifyMessageIntent(messageText) {
+  const lower = messageText.toLowerCase();
+  const hasStoreKeyword = STORE_KEYWORDS.some((k) => lower.includes(k));
+
   if (!GEMINI_API_KEY) {
-    const lower = messageText.toLowerCase();
-    const storeKeywords = [
-      'product', 'price', 'order', 'delivery', 'cost', 'buy', 'shop', 'sound', 'speaker',
-      'light', 'ambient', 'panel', 'charger', 'camera', 'seat', 'cover', 'perfume', 'freshener',
-      'warranty', 'wapsi', 'replace', 'civic', 'corolla', 'alto', 'yaris', 'car', 'gari', 'pakodrive',
-      'rate', 'kitne', 'rupay', 'pkr', 'rs', 'cod', 'cash', 'jazzcash', 'easypaisa', 'track', 'parcel'
-    ];
-    const isStore = storeKeywords.some((k) => lower.includes(k));
     return {
-      is_store_related: isStore,
-      search_query: isStore ? messageText : '',
+      is_store_related: hasStoreKeyword,
+      search_query: hasStoreKeyword ? messageText : '',
     };
   }
 
@@ -204,9 +203,7 @@ Evaluate this incoming message: "${messageText}"
 
 Rules:
 1. Return is_store_related = false if the message is casual personal talk, family conversation, greeting between personal friends, asking where someone is, daily life chatter (e.g. "kahan ho", "ghar kab ao ge", "khana khaya", "call karo", "pic bhejo", "theek ho", "bhai kidhar ho").
-2. Return is_store_related = true ONLY if the message asks about:
-   - Cars, bikes, automobile accessories, sound systems, ambient lights, dash cams, chargers, seat covers, gadgets.
-   - Prices, purchasing, discounts, order tracking, shipping, Cash on Delivery, warranties, website.
+2. Return is_store_related = true if the message asks about cars, bikes, accessories, mirrors, lights, speakers, parts, prices, purchasing, discounts, order tracking, shipping, Cash on Delivery, warranties, website.
 
 Return ONLY a valid JSON object:
 {
@@ -215,39 +212,47 @@ Return ONLY a valid JSON object:
 }`;
 
     const text = await callGeminiDirect(prompt);
-    if (!text) {
-      return { is_store_related: false, search_query: '' };
+    if (text) {
+      const cleanJson = text.replace(/^```json\s*|\s*```$/g, '').trim();
+      const parsed = JSON.parse(cleanJson);
+      return {
+        is_store_related: Boolean(parsed.is_store_related) || hasStoreKeyword,
+        search_query: parsed.search_query || messageText,
+      };
     }
-    const cleanJson = text.replace(/^```json\s*|\s*```$/g, '').trim();
-    const parsed = JSON.parse(cleanJson);
-    return {
-      is_store_related: Boolean(parsed.is_store_related),
-      search_query: parsed.search_query || '',
-    };
   } catch (err) {
     console.error('[Gemini Intent Classifier Error]:', err.message);
-    return { is_store_related: false, search_query: '' };
   }
+
+  // Fallback to store keywords
+  return { is_store_related: hasStoreKeyword, search_query: hasStoreKeyword ? messageText : '' };
 }
 
 /**
- * 2. Live MongoDB Product Search
+ * 2. Smart MongoDB Product Search with Stop-Word Removal
  */
 async function searchStoreProducts(query) {
   if (!query || !query.trim()) return [];
-
   try {
-    const cleanQuery = query.replace(/[^\w\s]/gi, '').trim();
-    const terms = cleanQuery.split(/\s+/).filter((t) => t.length > 2);
+    const stopWords = new Set(['mujhy', 'mujhe', 'chahye', 'chahiye', 'hai', 'hain', 'ka', 'ki', 'ke', 'ko', 'bhai', 'karo', 'den', 'kya', 'kia', 'for', 'the', 'and', 'with']);
+    const cleanQuery = query.replace(/[^\w\s]/gi, '').toLowerCase().trim();
+    const rawTerms = cleanQuery.split(/\s+/).filter((t) => t.length >= 3 && !stopWords.has(t));
+    const terms = rawTerms.length > 0 ? rawTerms : cleanQuery.split(/\s+/).filter(Boolean);
+
     if (terms.length === 0) return [];
 
-    const regexArray = terms.map((t) => new RegExp(t, 'i'));
+    // Construct broad regex matches for each search term
+    const regexArray = terms.map((t) => {
+      // If term is "mirro", match "mirr" to cover "mirror" and "mirro"
+      const stem = t.length > 4 ? t.slice(0, 4) : t;
+      return new RegExp(stem, 'i');
+    });
 
     const products = await Product.find({
       $or: [
         { name: { $in: regexArray } },
-        { category: { $in: regexArray } },
         { description: { $in: regexArray } },
+        { category: { $in: regexArray } },
       ],
       stock: { $gt: 0 },
     })
