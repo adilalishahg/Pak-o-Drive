@@ -1,7 +1,7 @@
 import { ImageResponse } from 'next/og';
 import { getCachedProduct } from '../../../lib/cache';
 
-export const runtime = 'edge';
+export const runtime = 'nodejs';
 export const alt = 'Pak-o-Drive Product Showcase';
 export const size = {
   width: 1200,

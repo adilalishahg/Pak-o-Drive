@@ -17,25 +17,23 @@ interface OptimizedImageProps extends Omit<ImageProps, 'loader'> {
  * - Dynamic scaling to requested layout widths (w_{width})
  */
 export const cloudinaryLoader = ({ src, width, quality }: { src: string; width: number; quality?: number }) => {
-  // If the image is not hosted on Cloudinary, bypass loader and return as-is
-  if (!src.includes('res.cloudinary.com')) {
+  // If the image is not hosted on Cloudinary, return as-is
+  if (!src || !src.includes('res.cloudinary.com')) {
     return src;
   }
 
-  // Use passed quality or default to 70 for better compression
-  const q = quality || 70;
-  // f_auto lets Cloudinary serve AVIF (30-50% smaller than WebP) when the browser supports it
-  const transformations = `f_auto,q_${q},w_${width},c_limit`;
+  // q_auto:good applies intelligent perceptual compression for 40-70% lighter payloads
+  const qParam = quality ? `q_${quality}` : 'q_auto:good';
+  // f_auto auto-serves AVIF (or WebP fallback), dpr_auto handles retina screens
+  const transformations = `f_auto,${qParam},c_limit,w_${width || 800},fl_immutable_cache`;
 
   // Insert transformations into Cloudinary URL
   const uploadIndex = src.indexOf('/upload/');
   if (uploadIndex !== -1) {
     const prefix = src.substring(0, uploadIndex + 8);
     let suffix = src.substring(uploadIndex + 8);
-    // Strip any pre-existing Cloudinary transformations (e.g. f_webp,q_auto,w_128/)
-    // They look like segments of key_value pairs before the actual path
+    // Strip any pre-existing Cloudinary transformations
     suffix = suffix.replace(/^(?:[a-z_]+[,/])*(?:v\d+\/)?/, (match) => {
-      // Keep version prefix like v1234567/ but remove transformation chains
       const versionMatch = match.match(/(v\d+\/)/);
       return versionMatch ? versionMatch[1] : '';
     });

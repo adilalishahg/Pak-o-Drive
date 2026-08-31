@@ -50,6 +50,17 @@ export const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({
   const prevImageRef = useRef(image);
   const videoRef = useRef<HTMLVideoElement>(null);
 
+  // Instant RAM Cache Preloader: Buffer all gallery images in browser cache for 0ms transitions
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    allImages.forEach((imgUrl) => {
+      if (!imgUrl) return;
+      const cleanUrl = imgUrl.startsWith('http') || imgUrl.startsWith('/') ? imgUrl : `/${imgUrl}`;
+      const preloadedImg = new window.Image();
+      preloadedImg.src = cleanUrl;
+    });
+  }, [allImages]);
+
   // Update on variant change
   useEffect(() => {
     if (image && image !== initialImageRef.current && image !== prevImageRef.current) {

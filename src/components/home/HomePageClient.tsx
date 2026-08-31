@@ -521,8 +521,8 @@ export function HomePageClient({ initialProducts, initialCategories }: HomePageC
               </Link>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-              {products.slice(0, featSec.limit || 8).map(prod => (
-                <ProductCard key={prod._id} product={prod} />
+              {products.slice(0, featSec.limit || 8).map((prod, idx) => (
+                <ProductCard key={prod._id} product={prod} priority={idx < 4} />
               ))}
             </div>
             {products.length > 0 && (
