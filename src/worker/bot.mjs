@@ -243,11 +243,15 @@ async function searchStoreProducts(query) {
     const rawTerms = cleanQuery.split(/\s+/).filter((t) => t.length >= 3 && !stopWords.has(t));
     const terms = rawTerms.length > 0 ? rawTerms : cleanQuery.split(/\s+/).filter(Boolean);
 
-    if (terms.length === 0) return [];
+    if (terms.length === 0) {
+      console.log(`🔎 [DB Search] No valid keyword terms extracted from: "${query}"`);
+      return [];
+    }
+
+    console.log(`🔎 [DB Search] Query: "${query}" | Extracted Search Terms: [ ${terms.join(', ')} ]`);
 
     // Construct broad regex matches for each search term
     const regexArray = terms.map((t) => {
-      // If term is "mirro", match "mirr" to cover "mirror" and "mirro"
       const stem = t.length > 4 ? t.slice(0, 4) : t;
       return new RegExp(stem, 'i');
     });
@@ -264,9 +268,18 @@ async function searchStoreProducts(query) {
       .limit(3)
       .lean();
 
+    if (products.length > 0) {
+      console.log(`📦 [DB Search Result] Found ${products.length} matching in-stock products:`);
+      products.forEach((p, idx) => {
+        console.log(`   ${idx + 1}. ${p.name} | Rs. ${p.price} | Stock: ${p.stock} | ID: ${p._id}`);
+      });
+    } else {
+      console.log(`⚠️ [DB Search Result] 0 products found matching terms: [ ${terms.join(', ')} ]`);
+    }
+
     return products;
   } catch (err) {
-    console.error('[Product Search Error]:', err.message);
+    console.error('❌ [Product Search Error]:', err.message);
     return [];
   }
 }
@@ -276,6 +289,7 @@ async function searchStoreProducts(query) {
  */
 async function generateGeminiStoreResponse(userMessage, senderPhone, searchQuery) {
   if (!GEMINI_API_KEY) {
+    console.log('⚠️ [Gemini AI] GEMINI_API_KEY missing. Returning fallback menu.');
     return 'وعلیکم السلام! Pak-o-Drive Support par khush-amdeed. Hum aapki kia madad kar sakte hain? (1. Order Status | 2. Payment Details | 3. Return Policy | 4. Live Agent)';
   }
 
@@ -320,10 +334,14 @@ Customer: "${userMessage}"
 
 Reply as Ali (Pak-o-Drive):`;
 
+    console.log(`🤖 [Gemini AI] Generating sales response with ${products.length} products in context...`);
     const responseText = await callGeminiDirect(systemInstruction);
     if (!responseText) {
-      return 'Jee bhai! Pak-o-Drive par Free Cash On Delivery aur 7-Day Warranty available hai. Hamari team foran aapse rabta karegi ya aap pakodrive.com par browse kar sakte hain.';
+      console.log('⚠️ [Gemini AI] callGeminiDirect returned empty. Returning standard fallback.');
+      return 'Jee bhai! Pak-o-Drive par Free Cash On Delivery aur 7-Day Warranty available hai. Hamari team foran aapse rabta karegi ya aap pakodrive.pk par browse kar sakte hain.';
     }
+
+    console.log(`💬 [Gemini AI Generated Reply]:\n${responseText}\n`);
 
     // Update conversation buffer
     const updatedHistory = [...history, { role: 'user', text: userMessage }, { role: 'model', text: responseText }].slice(-6);
@@ -331,8 +349,8 @@ Reply as Ali (Pak-o-Drive):`;
 
     return responseText;
   } catch (err) {
-    console.error('[Gemini Gen Error]:', err.message);
-    return 'Jee bhai! Pak-o-Drive par Free Cash On Delivery aur 7-Day Warranty available hai. Hamari team foran aapse rabta karegi ya aap pakodrive.com par browse kar sakte hain.';
+    console.error('❌ [Gemini Gen Error]:', err.message);
+    return 'Jee bhai! Pak-o-Drive par Free Cash On Delivery aur 7-Day Warranty available hai. Hamari team foran aapse rabta karegi ya aap pakodrive.pk par browse kar sakte hain.';
   }
 }
 
