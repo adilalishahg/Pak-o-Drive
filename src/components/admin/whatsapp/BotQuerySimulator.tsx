@@ -39,18 +39,26 @@ export function BotQuerySimulator({
             <input
               type="text"
               className="form-control"
-              placeholder="Type simulated customer message (e.g. 'salam', 'track order', '1', 'jazzcash')..."
+              placeholder="Type customer message (e.g. 'salam', 'track order', '1')..."
               value={simQuery}
               onChange={(e) => setSimQuery(e.target.value)}
+              style={{ fontSize: '0.88rem' }}
             />
-            <button type="submit" disabled={simLoading || !simQuery.trim()} className="btn btn-primary px-4">
+            <button
+              type="submit"
+              disabled={simLoading || !simQuery.trim()}
+              className="btn btn-primary px-3 px-md-4"
+              style={{ fontSize: '0.85rem' }}
+            >
               {simLoading ? (
                 <>
-                  <span className="spinner-border spinner-border-sm me-1" /> Simulating...
+                  <span className="spinner-border spinner-border-sm me-1" />
+                  <span className="d-none d-sm-inline">Simulating...</span>
                 </>
               ) : (
                 <>
-                  <i className="fas fa-paper-plane me-1" /> Test Rule
+                  <i className="fas fa-paper-plane me-1" />
+                  <span className="d-none d-sm-inline">Test Rule</span>
                 </>
               )}
             </button>

@@ -6,6 +6,7 @@ import { optimizeImageBeforeUpload } from '@/utils/imageOptimizer';
 import { DeleteConfirmModal } from '@/components/admin/common/DeleteConfirmModal';
 
 interface CategoryData {
+  _id?: string;
   id: string;
   name: string;
   slug: string;
@@ -69,7 +70,11 @@ export default function AdminCategoriesPage() {
       const res = await fetch('/api/categories');
       const json = await res.json();
       if (json.success) {
-        setCategories(json.data);
+        const normalized = (json.data || []).map((c: any) => ({
+          ...c,
+          id: c.id || c._id || c.slug,
+        }));
+        setCategories(normalized);
       } else {
         throw new Error(json.error || 'Failed to fetch categories');
       }
@@ -214,7 +219,7 @@ export default function AdminCategoriesPage() {
                 </thead>
                 <tbody>
                   {categories.map((cat) => (
-                    <tr key={cat.id}>
+                    <tr key={cat.id || cat._id || cat.slug}>
                       <td>
                         <div
                           className="rounded bg-light d-flex align-items-center justify-content-center overflow-hidden border position-relative"
@@ -326,7 +331,7 @@ export default function AdminCategoriesPage() {
                   {categories
                     .filter((c) => !c.parentCategory) // only root categories as parents
                     .map((c) => (
-                      <option key={c.id} value={c.slug}>
+                      <option key={c._id || c.id || c.slug} value={c.slug}>
                         {c.name}
                       </option>
                     ))}

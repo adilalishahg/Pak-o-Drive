@@ -73,12 +73,12 @@ export const PakODriveLogo: React.FC<PakODriveLogoProps> = ({
     return (
       <svg
         xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 340 320"
+        viewBox="0 0 320 320"
         height={configuredHeight}
-        width={width || 'auto'}
+        width={width || undefined}
         fill="none"
         className={className}
-        style={{ display: 'inline-block', verticalAlign: 'middle', ...style }}
+        style={{ display: 'inline-block', verticalAlign: 'middle', width: width ? width : 'auto', height: configuredHeight, ...style }}
         {...props}
       >
         <defs>
@@ -96,7 +96,7 @@ export const PakODriveLogo: React.FC<PakODriveLogoProps> = ({
           </linearGradient>
         </defs>
 
-        <g id="logo-icon" transform="translate(10, 10)">
+        <g id="standalone-icon" transform="translate(10, 10)">
           <path d="M 175 65 A 95 95 0 0 1 250 170" stroke={accentColor} strokeWidth="12" strokeLinecap="round" fill="none" opacity="0.95" />
           <path d="M 70 210 A 95 95 0 0 1 110 260" stroke={accentColor} strokeWidth="12" strokeLinecap="round" fill="none" opacity="0.9" />
           <path d="M 85 105 A 85 85 0 0 1 200 70" stroke={`url(#${darkBlueArcId})`} strokeWidth="10" strokeLinecap="round" fill="none" />
@@ -121,10 +121,10 @@ export const PakODriveLogo: React.FC<PakODriveLogoProps> = ({
         xmlns="http://www.w3.org/2000/svg"
         viewBox="0 0 580 340"
         height={configuredHeight}
-        width={width || 'auto'}
+        width={width || undefined}
         fill="none"
         className={className}
-        style={{ display: 'inline-block', verticalAlign: 'middle', ...style }}
+        style={{ display: 'inline-block', verticalAlign: 'middle', width: width ? width : 'auto', height: configuredHeight, ...style }}
         {...props}
       >
         <g id="logo-text" transform="translate(10, 140)">
@@ -165,10 +165,10 @@ export const PakODriveLogo: React.FC<PakODriveLogoProps> = ({
       xmlns="http://www.w3.org/2000/svg"
       viewBox="0 0 980 360"
       height={configuredHeight}
-      width={width || 'auto'}
+      width={width || undefined}
       fill="none"
       className={className}
-      style={{ display: 'inline-block', verticalAlign: 'middle', ...style }}
+      style={{ display: 'inline-block', verticalAlign: 'middle', width: width ? width : 'auto', height: configuredHeight, ...style }}
       {...props}
     >
       <defs>

@@ -300,6 +300,15 @@ This file serves as persistent dynamic memory across coding agent sessions. Ever
   4. **Analytics Intelligence**: Extracted [useAdminAnalytics.ts](file:///d:/proj/Pak-o-Drive/src/hooks/useAdminAnalytics.ts) and 5 categorized tabs ([AnalyticsKPIHeader.tsx](file:///d:/proj/Pak-o-Drive/src/components/admin/analytics/AnalyticsKPIHeader.tsx), [RevenueTab.tsx](file:///d:/proj/Pak-o-Drive/src/components/admin/analytics/RevenueTab.tsx), [TrafficTab.tsx](file:///d:/proj/Pak-o-Drive/src/components/admin/analytics/TrafficTab.tsx), [CitySalesMapTab.tsx](file:///d:/proj/Pak-o-Drive/src/components/admin/analytics/CitySalesMapTab.tsx), [ConversionFunnelTab.tsx](file:///d:/proj/Pak-o-Drive/src/components/admin/analytics/ConversionFunnelTab.tsx), [MarketIntelligenceTab.tsx](file:///d:/proj/Pak-o-Drive/src/components/admin/analytics/MarketIntelligenceTab.tsx)).
   5. Verified 0 TypeScript compilation errors (`npx tsc --noEmit` exited with code 0).
 
+### 2026-08-31 — SVG Width Attribute & React Select Key Console Errors Fix
+- **📌 Issue**: Browser DevTools Console threw `Error: <svg> attribute width: Expected length, "auto"` in `PakODriveLogo.tsx` and `Each child in a list should have a unique "key" prop` in `AdminCategoriesPage`.
+- **🔍 Root Cause & Failed Attempts**: SVG elements do not accept `"auto"` for the `width` XML attribute (it only accepts length units). In `AdminCategoriesPage`, `<option>` elements relied on `c.id` which was undefined when categories came with MongoDB `_id`.
+- **🛠️ Verified Code Fix**:
+  1. Updated [PakODriveLogo.tsx](file:///d:/proj/Pak-o-Drive/src/components/common/PakODriveLogo.tsx) to pass `width={width || undefined}` on the `<svg>` node and set `style={{ width: width ? width : 'auto', height: configuredHeight }}` so aspect ratio is preserved cleanly without DOM attribute syntax errors.
+  2. Normalized category items in [categories/page.tsx](file:///d:/proj/Pak-o-Drive/src/app/admin/categories/page.tsx) to guarantee a unique `id` (`c.id || c._id || c.slug`) across both table rows and `<select>` dropdown options.
+  3. Verified TypeScript compilation passing with code 0 (`npx tsc --noEmit`).
+
+
 
 
 
