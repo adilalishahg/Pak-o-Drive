@@ -238,6 +238,23 @@ This file serves as persistent dynamic memory across coding agent sessions. Ever
   5. Enhanced [HeroSlider.tsx](file:///d:/proj/Pak-o-Drive/src/components/common/HeroSlider.tsx) with `badge-shimmer` on hero deals.
   6. Verified compilation with `npx tsc --noEmit` exiting with code 0.
 
+### 2026-08-31 — Vercel Turbopack Build Fix for `@whiskeysockets/baileys` & `jimp`
+- **📌 Issue**: Vercel production deployment failed during `pnpm run build` with error: `Error: Turbopack build failed with 1 error: Can't resolve 'jimp'` caused by internal dynamic imports in `@whiskeysockets/baileys/lib/Utils/messages-media.js`.
+- **🔍 Root Cause & Failed Attempts**: Next.js Turbopack attempts to statically trace all optional dynamic imports inside client/server bundles unless libraries are explicitly marked as external server packages in `next.config.ts`.
+- **🛠️ Verified Code Fix**:
+  1. Installed `jimp` via `pnpm add jimp`.
+  2. Configured `serverExternalPackages: ['@whiskeysockets/baileys', 'pino', 'qrcode', 'jimp', 'sharp']` in [next.config.ts](file:///d:/proj/Pak-o-Drive/next.config.ts).
+  3. Verified production build locally with `pnpm run build`, which compiled all 52 static and dynamic pages with 0 errors.
+
+### 2026-08-31 — ACID Concurrency: Atomic Stock Decrement & Idempotency Protection
+- **📌 Issue**: Under high concurrency (e.g. TikTok / Facebook Flash Sales), concurrent checkout requests could suffer from race-condition overselling (read-modify-write) and accidental duplicate order creation when customers spam "Confirm Order" on slow mobile networks.
+- **🔍 Root Cause & Failed Attempts**: The order creation API previously fetched products, checked stock limits in JS memory, and saved products individually without atomic database-level locks or automatic rollback in multi-item carts.
+- **🛠️ Verified Code Fix**:
+  1. Implemented **Idempotency Check** in [orders/route.ts](file:///d:/proj/Pak-o-Drive/src/app/api/orders/route.ts) that detects identical submissions within 20s from the same phone and returns the existing order safely.
+  2. Converted stock deductions to **Atomic `$inc` operations** (`Product.findOneAndUpdate({ _id, stock: { $gte: qty } }, { $inc: { stock: -qty } })`) for both standalone products and product variants.
+  3. Added an automatic rollback mechanism (`rollbackStock`) that reverses previous item deductions if a subsequent item in the cart runs out of stock mid-transaction.
+  4. Verified with `npx tsc --noEmit` exiting with code 0.
+
 ---
 
 

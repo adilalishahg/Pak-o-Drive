@@ -22,7 +22,7 @@ export async function POST(request: Request) {
 
     const { customerDetails, items, utmSource, utmMedium, utmCampaign } = body;
 
-    // Validate inputs
+    // 1. Validate inputs
     if (!customerDetails || !customerDetails.name || !customerDetails.phone || !customerDetails.address || !customerDetails.city) {
       return NextResponse.json(
         { success: false, error: 'Please provide all required shipping details: Name, Phone, Address, and City.' },
@@ -37,9 +37,27 @@ export async function POST(request: Request) {
       );
     }
 
-    // Resolve product info from DB to ensure prices and names are accurate and secure
+    // 2. Idempotency & Double-Click Guard:
+    // Check if an identical order was placed by this phone within the last 20 seconds
+    const cleanPhone = customerDetails.phone.trim();
+    const recentDuplicate = await Order.findOne({
+      'customerDetails.phone': cleanPhone,
+      createdAt: { $gte: new Date(Date.now() - 20 * 1000) },
+    }).sort({ createdAt: -1 });
+
+    if (recentDuplicate) {
+      return NextResponse.json({
+        success: true,
+        message: 'Order already processed!',
+        orderId: recentDuplicate._id.toString(),
+        data: recentDuplicate,
+      });
+    }
+
+    // 3. Resolve product info & calculate totals
     const resolvedItems = [];
     let calculatedTotal = 0;
+    const stockDecrementsToRollback: { productId: string; variantId?: string; quantity: number }[] = [];
 
     for (const cartItem of items) {
       const dbProduct = await Product.findById(cartItem.productId);
@@ -75,8 +93,10 @@ export async function POST(request: Request) {
         stockLimit = matchedVariant.stock;
       }
 
-      // Check stock
+      // Check stock before atomic operation
       if (stockLimit >= 0 && stockLimit < cartItem.quantity) {
+        // Rollback any earlier decremented items in this transaction
+        await rollbackStock(stockDecrementsToRollback);
         return NextResponse.json(
           {
             success: false,
@@ -84,6 +104,67 @@ export async function POST(request: Request) {
           },
           { status: 400 }
         );
+      }
+
+      // 4. Atomic Stock Decrement (prevents race-condition overselling in flash sales)
+      if (stockLimit >= 0) {
+        if (matchedVariant && matchedVariant._id) {
+          const updated = await Product.findOneAndUpdate(
+            {
+              _id: dbProduct._id,
+              'variants._id': matchedVariant._id,
+              'variants.stock': { $gte: cartItem.quantity },
+            },
+            {
+              $inc: { 'variants.$.stock': -cartItem.quantity },
+            },
+            { new: true }
+          );
+
+          if (!updated) {
+            await rollbackStock(stockDecrementsToRollback);
+            return NextResponse.json(
+              {
+                success: false,
+                error: `Stock ran out for "${dbProduct.name} (${matchedVariant.name})" just now. Please adjust your cart.`,
+              },
+              { status: 400 }
+            );
+          }
+
+          stockDecrementsToRollback.push({
+            productId: dbProduct._id.toString(),
+            variantId: matchedVariant._id.toString(),
+            quantity: cartItem.quantity,
+          });
+        } else {
+          const updated = await Product.findOneAndUpdate(
+            {
+              _id: dbProduct._id,
+              stock: { $gte: cartItem.quantity },
+            },
+            {
+              $inc: { stock: -cartItem.quantity },
+            },
+            { new: true }
+          );
+
+          if (!updated) {
+            await rollbackStock(stockDecrementsToRollback);
+            return NextResponse.json(
+              {
+                success: false,
+                error: `Stock ran out for "${dbProduct.name}" just now. Please adjust your cart.`,
+              },
+              { status: 400 }
+            );
+          }
+
+          stockDecrementsToRollback.push({
+            productId: dbProduct._id.toString(),
+            quantity: cartItem.quantity,
+          });
+        }
       }
 
       const itemTotal = resolvedPrice * cartItem.quantity;
@@ -98,20 +179,9 @@ export async function POST(request: Request) {
         variantName: matchedVariant ? matchedVariant.name : undefined,
         variantId: matchedVariant ? matchedVariant._id?.toString() : undefined,
       });
-
-      // Decrement stock if not unlimited
-      if (stockLimit >= 0) {
-        if (matchedVariant) {
-          matchedVariant.stock -= cartItem.quantity;
-          dbProduct.markModified('variants');
-        } else {
-          dbProduct.stock -= cartItem.quantity;
-        }
-        await dbProduct.save();
-      }
     }
 
-    // Save order
+    // 5. Save order in MongoDB
     const order = new Order({
       customerDetails,
       items: resolvedItems,
@@ -126,11 +196,7 @@ export async function POST(request: Request) {
 
     const savedOrder = await order.save();
 
-    // ── SERVER-SIDE CONVERSION TRACKING (Meta CAPI + TikTok Events API) ───────
-    // TRUE fire-and-forget: we intentionally do NOT await this Promise.
-    // The customer receives their 201 Order Success response immediately after
-    // the DB write. CAPI/TikTok calls execute asynchronously in the background
-    // without blocking the response or risking a Vercel 30 s function timeout.
+    // 6. Asynchronous Conversion Tracking (Meta CAPI + TikTok)
     void fireConversionEvent({
       orderId: savedOrder._id.toString(),
       value: calculatedTotal,
@@ -145,10 +211,8 @@ export async function POST(request: Request) {
       contentNames: resolvedItems.map((i) => i.name),
       utmSource: utmSource,
     }).catch((capiErr) => {
-      // Silently log — a CAPI failure must never surface to the customer.
       console.error('[CAPI] Non-blocking conversion event failed:', capiErr);
     });
-    // ─────────────────────────────────────────────────────────────────────────
 
     return NextResponse.json({
       success: true,
@@ -159,5 +223,28 @@ export async function POST(request: Request) {
   } catch (error: any) {
     console.error('Error creating order:', error);
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+  }
+}
+
+/**
+ * Helper to roll back stock in case a later item fails in a multi-item checkout
+ */
+async function rollbackStock(decrements: { productId: string; variantId?: string; quantity: number }[]) {
+  for (const dec of decrements) {
+    try {
+      if (dec.variantId) {
+        await Product.updateOne(
+          { _id: dec.productId, 'variants._id': dec.variantId },
+          { $inc: { 'variants.$.stock': dec.quantity } }
+        );
+      } else {
+        await Product.updateOne(
+          { _id: dec.productId },
+          { $inc: { stock: dec.quantity } }
+        );
+      }
+    } catch (err) {
+      console.error('Failed to rollback stock item:', dec, err);
+    }
   }
 }
