@@ -209,41 +209,41 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </div>
 
         {/* Main Workspace Area */}
-        <div className="flex-grow-1 d-flex flex-column min-w-0" style={{ height: '100vh', overflowY: 'auto' }}>
+        <div className="flex-grow-1 d-flex flex-column min-w-0 overflow-x-hidden" style={{ height: '100vh', overflowY: 'auto' }}>
           {/* Top Navbar Header */}
           <header
-            className="bg-white border-bottom px-4 py-3 d-flex align-items-center justify-content-between sticky-top"
-            style={{ height: '70px', zIndex: 99 }}
+            className="bg-white border-bottom px-3 px-md-4 py-2 py-md-3 d-flex align-items-center justify-content-between sticky-top flex-wrap gap-2"
+            style={{ minHeight: '64px', zIndex: 99 }}
           >
-            <div className="d-flex align-items-center gap-3">
+            <div className="d-flex align-items-center gap-2 gap-sm-3 min-w-0">
               <button
                 onClick={() => setSidebarOpen(!sidebarOpen)}
-                className="btn btn-light rounded-circle d-flex align-items-center justify-content-center"
-                style={{ width: '40px', height: '40px' }}
+                className="btn btn-light rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
+                style={{ width: '38px', height: '38px' }}
                 aria-label="Toggle sidebar"
               >
                 <i className="fas fa-bars text-dark" />
               </button>
-              <h4 className="fw-bold mb-0 text-secondary admin-header-title" style={{ letterSpacing: '-0.3px' }}>
+              <h4 className="fw-bold mb-0 text-secondary admin-header-title text-truncate" style={{ letterSpacing: '-0.3px', fontSize: '1.1rem' }}>
                 {menuItems.find((item) => item.path === pathname)?.name || 'Admin Panel'}
               </h4>
             </div>
 
-            <div className="d-flex align-items-center gap-3">
+            <div className="d-flex align-items-center gap-2 gap-sm-3 flex-shrink-0">
               <Link
                 href="/"
                 target="_blank"
-                className="btn btn-outline-secondary btn-sm rounded-pill px-3 d-flex align-items-center gap-1.5"
-                style={{ fontWeight: 500 }}
+                className="btn btn-outline-secondary btn-sm rounded-pill px-2.5 px-sm-3 d-flex align-items-center gap-1.5"
+                style={{ fontWeight: 500, fontSize: '0.8rem' }}
               >
                 <i className="fas fa-external-link-alt" />
                 <span className="d-none d-sm-inline">View Storefront</span>
               </Link>
-              <div className="vr text-muted my-2" />
+              <div className="vr text-muted my-2 d-none d-sm-block" />
               <div className="d-flex align-items-center gap-2">
                 <div
-                  className="rounded-circle bg-secondary d-flex align-items-center justify-content-center text-white fw-bold"
-                  style={{ width: '38px', height: '38px', fontSize: '0.9rem' }}
+                  className="rounded-circle bg-secondary d-flex align-items-center justify-content-center text-white fw-bold flex-shrink-0"
+                  style={{ width: '34px', height: '34px', fontSize: '0.85rem' }}
                 >
                   AD
                 </div>
@@ -260,7 +260,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </header>
 
           {/* Content Body */}
-          <main className="p-4 flex-grow-1" style={{ maxWidth: '1600px', width: '100%', margin: '0 auto' }}>
+          <main className="p-2 p-sm-3 p-md-4 flex-grow-1 w-100 min-w-0 overflow-x-hidden" style={{ maxWidth: '1600px', margin: '0 auto' }}>
             {authorized ? children : (
               <div className="d-flex align-items-center justify-content-center" style={{ minHeight: '300px' }}>
                 <div className="spinner-border text-primary" role="status">

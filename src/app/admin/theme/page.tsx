@@ -170,15 +170,15 @@ function ColorRow({
   label, name, value, onChange,
 }: { label: string; name: keyof SiteTheme; value: string; onChange: (k: keyof SiteTheme, v: string) => void }) {
   return (
-    <div className="d-flex align-items-center justify-content-between py-2 border-bottom">
-      <label className="fw-medium text-dark mb-0" style={{ fontSize: '0.88rem' }}>{label}</label>
+    <div className="d-flex align-items-center justify-content-between py-2 border-bottom flex-wrap gap-2">
+      <label className="fw-medium text-dark mb-0" style={{ fontSize: '0.85rem' }}>{label}</label>
       <div className="d-flex align-items-center gap-2">
         <input
           type="color"
           value={value}
           onChange={(e) => onChange(name, e.target.value)}
-          className="form-control form-control-color"
-          style={{ width: '44px', height: '36px', padding: '2px', cursor: 'pointer', borderRadius: '8px' }}
+          className="form-control form-control-color flex-shrink-0"
+          style={{ width: '40px', height: '34px', padding: '2px', cursor: 'pointer', borderRadius: '8px' }}
           aria-label={label}
         />
         <input
@@ -186,7 +186,7 @@ function ColorRow({
           value={value}
           onChange={(e) => onChange(name, e.target.value)}
           className="form-control form-control-sm"
-          style={{ width: '100px', fontFamily: 'monospace', fontSize: '0.82rem' }}
+          style={{ width: '85px', fontFamily: 'monospace', fontSize: '0.8rem' }}
           aria-label={`${label} hex value`}
           maxLength={7}
         />
@@ -198,8 +198,8 @@ function ColorRow({
 /* ─── Section Card ───────────────────────────────────────────── */
 function SectionCard({ title, icon, children }: { title: string; icon: string; children: React.ReactNode }) {
   return (
-    <div className="card border-0 shadow-sm rounded-4 mb-4">
-      <div className="card-body p-4">
+    <div className="card border-0 shadow-sm rounded-4 mb-4 overflow-hidden w-100">
+      <div className="card-body p-3 p-md-4">
         <h6 className="fw-bold text-secondary mb-3 d-flex align-items-center gap-2" style={{ fontSize: '0.9rem', letterSpacing: '-0.2px' }}>
           <i className={`${icon} text-primary`} />
           {title}
@@ -665,14 +665,14 @@ export default function ThemeSettingsPage() {
             Customize colors, fonts, shapes, and effects. Changes apply site-wide instantly.
           </p>
         </div>
-        <div className="d-flex gap-2">
-          <button onClick={handleReset} className="btn btn-outline-secondary rounded-pill px-4" style={{ fontWeight: 500 }}>
+        <div className="d-flex gap-2 w-100 w-sm-auto flex-wrap">
+          <button onClick={handleReset} className="btn btn-outline-secondary btn-sm rounded-pill px-3 px-sm-4 flex-fill flex-sm-grow-0" style={{ fontWeight: 500 }}>
             <i className="fas fa-undo me-1" /> Reset Defaults
           </button>
           <button
             onClick={handleSave}
             disabled={saving}
-            className="btn rounded-pill px-4 text-white"
+            className="btn btn-sm rounded-pill px-3 px-sm-4 text-white flex-fill flex-sm-grow-0"
             style={{
               background: 'linear-gradient(135deg, #ea580c, #c2410c)',
               fontWeight: 600,
@@ -1586,32 +1586,32 @@ export default function ThemeSettingsPage() {
                               return (
                                 <div
                                   key={idx}
-                                  className={`border rounded-3 overflow-hidden shadow-xs ${
+                                  className={`border rounded-3 overflow-hidden shadow-xs w-100 ${
                                     slide.enabled !== false ? 'border-secondary-subtle' : 'border-danger-subtle opacity-75'
                                   }`}
                                 >
                                   {/* Slide Header Bar */}
                                   <div className="bg-light px-3 py-2 border-bottom d-flex align-items-center justify-content-between flex-wrap gap-2">
-                                    <div className="d-flex align-items-center gap-2">
-                                      <span className="badge bg-secondary rounded-pill px-2 py-1" style={{ fontSize: '0.72rem' }}>
+                                    <div className="d-flex align-items-center gap-2 min-w-0 flex-grow-1">
+                                      <span className="badge bg-secondary rounded-pill px-2 py-1 flex-shrink-0" style={{ fontSize: '0.72rem' }}>
                                         Slide #{idx + 1}
                                       </span>
-                                      <span className="fw-bold text-dark small">
+                                      <span className="fw-bold text-dark small text-truncate">
                                         {slide.title || (linkedProd?.name ? linkedProd.name : 'Untitled Slide')}
                                       </span>
                                       {linkedProd && (
-                                        <span className="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25" style={{ fontSize: '0.7rem' }}>
-                                          <i className="fas fa-box me-1" /> {linkedProd.name.slice(0, 20)}...
+                                        <span className="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 text-truncate d-none d-sm-inline-block" style={{ fontSize: '0.7rem', maxWidth: '130px' }}>
+                                          <i className="fas fa-box me-1" /> {linkedProd.name}
                                         </span>
                                       )}
                                     </div>
 
-                                    <div className="d-flex align-items-center gap-2">
+                                    <div className="d-flex align-items-center gap-1.5 flex-shrink-0 ms-auto">
                                       <button
                                         type="button"
                                         disabled={idx === 0}
                                         onClick={() => moveHeroSlide(idx, 'up')}
-                                        className="btn btn-light btn-sm border py-0 px-2 text-muted"
+                                        className="btn btn-light btn-sm border py-1 px-2 text-muted"
                                         title="Move Up"
                                         style={{ fontSize: '0.75rem' }}
                                       >
@@ -1621,16 +1621,16 @@ export default function ThemeSettingsPage() {
                                         type="button"
                                         disabled={idx === heroSlidesList.length - 1}
                                         onClick={() => moveHeroSlide(idx, 'down')}
-                                        className="btn btn-light btn-sm border py-0 px-2 text-muted"
+                                        className="btn btn-light btn-sm border py-1 px-2 text-muted"
                                         title="Move Down"
                                         style={{ fontSize: '0.75rem' }}
                                       >
                                         <i className="fas fa-arrow-down" />
                                       </button>
 
-                                      <div className="form-check form-switch mb-0 ms-1">
+                                      <div className="form-check form-switch mb-0 ms-1 d-flex align-items-center">
                                         <input
-                                          className="form-check-input"
+                                          className="form-check-input my-0"
                                           type="checkbox"
                                           role="switch"
                                           checked={slide.enabled !== false}
@@ -1642,7 +1642,7 @@ export default function ThemeSettingsPage() {
                                       <button
                                         type="button"
                                         onClick={() => deleteHeroSlide(idx)}
-                                        className="btn btn-outline-danger btn-sm py-0 px-2 ms-1"
+                                        className="btn btn-outline-danger btn-sm py-1 px-2 ms-1"
                                         title="Delete Slide"
                                         style={{ fontSize: '0.75rem' }}
                                       >
@@ -1660,7 +1660,7 @@ export default function ThemeSettingsPage() {
                                           <i className="fas fa-link me-1" /> Select Product to Feature (Auto-fills Title, Badge & Image)
                                         </label>
                                         <select
-                                          className="form-select form-select-sm rounded-3"
+                                          className="form-select form-select-sm rounded-3 w-100"
                                           value={slide.productId || ''}
                                           onChange={(e) => selectProductForHeroSlide(idx, e.target.value)}
                                           style={{ fontSize: '0.84rem' }}
@@ -1678,28 +1678,28 @@ export default function ThemeSettingsPage() {
                                       </div>
 
                                       {/* Image Selection Mode */}
-                                      <div className="col-md-6">
+                                      <div className="col-12 col-md-6">
                                         <label className="form-label mb-1 text-muted fw-semibold" style={{ fontSize: '0.78rem' }}>
                                           Slide Image Option
                                         </label>
-                                        <div className="d-flex gap-2 mb-2">
+                                        <div className="d-flex flex-wrap gap-2 mb-2 w-100">
                                           <button
                                             type="button"
                                             onClick={() => updateHeroSlide(idx, 'imageType', 'product')}
-                                            className={`btn btn-sm rounded-3 flex-fill text-nowrap ${
+                                            className={`btn btn-sm rounded-3 flex-fill ${
                                               isProductImg ? 'btn-primary' : 'btn-outline-secondary'
                                             }`}
-                                            style={{ fontSize: '0.78rem' }}
+                                            style={{ fontSize: '0.78rem', minWidth: '120px' }}
                                           >
                                             <i className="fas fa-box me-1" /> Product Image
                                           </button>
                                           <button
                                             type="button"
                                             onClick={() => updateHeroSlide(idx, 'imageType', 'custom')}
-                                            className={`btn btn-sm rounded-3 flex-fill text-nowrap ${
+                                            className={`btn btn-sm rounded-3 flex-fill ${
                                               !isProductImg ? 'btn-primary' : 'btn-outline-secondary'
                                             }`}
-                                            style={{ fontSize: '0.78rem' }}
+                                            style={{ fontSize: '0.78rem', minWidth: '120px' }}
                                           >
                                             <i className="fas fa-upload me-1" /> Custom Banner
                                           </button>
@@ -1710,7 +1710,7 @@ export default function ThemeSettingsPage() {
                                             <input
                                               type="file"
                                               accept="image/*"
-                                              className="form-control form-control-sm"
+                                              className="form-control form-control-sm w-100"
                                               onChange={async (e) => {
                                                 const file = e.target.files?.[0];
                                                 if (!file) return;
@@ -1738,11 +1738,11 @@ export default function ThemeSettingsPage() {
                                       </div>
 
                                       {/* Image Preview Box */}
-                                      <div className="col-md-6 d-flex align-items-center">
-                                        <div className="d-flex align-items-center gap-3 w-100 bg-light p-2 rounded-3 border">
+                                      <div className="col-12 col-md-6 d-flex align-items-center">
+                                        <div className="d-flex align-items-center gap-3 w-100 bg-light p-2 rounded-3 border overflow-hidden">
                                           <div
                                             className="border rounded bg-white p-1 position-relative flex-shrink-0"
-                                            style={{ width: '60px', height: '60px' }}
+                                            style={{ width: '56px', height: '56px' }}
                                           >
                                             <img
                                               src={displayImg}
@@ -1750,7 +1750,7 @@ export default function ThemeSettingsPage() {
                                               style={{ width: '100%', height: '100%', objectFit: 'contain' }}
                                             />
                                           </div>
-                                          <div className="small text-truncate" style={{ fontSize: '0.75rem' }}>
+                                          <div className="small text-truncate min-w-0 flex-grow-1" style={{ fontSize: '0.75rem' }}>
                                             <div className="fw-semibold text-dark text-truncate">
                                               {isProductImg ? (linkedProd?.name || 'Default Asset') : 'Custom Banner Asset'}
                                             </div>

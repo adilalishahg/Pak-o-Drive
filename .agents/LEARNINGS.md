@@ -264,7 +264,15 @@ This file serves as persistent dynamic memory across coding agent sessions. Ever
   3. Added an error alert banner in [whatsapp-bot/page.tsx](file:///d:/proj/Pak-o-Drive/src/app/admin/whatsapp-bot/page.tsx) to surface any initialization issues transparently.
   4. Verified with `pnpm run build` compiling with 0 errors.
 
----
+### 2026-08-31 — 24/7 Alwaysdata Background Bot Daemon & Mobile Admin Layout Fix
+- **📌 Issue**: WhatsApp Bot Baileys WebSocket required 24/7 continuous uptime without paid credit card requirements, and the Admin Theme & Appearance page experienced horizontal overflow clipping on mobile viewports (Hero Slide buttons and header actions cutting off).
+- **🔍 Root Cause & Failed Attempts**: Vercel serverless functions terminate execution after 15s, making them unsuitable for persistent WebSockets. Alwaysdata interactive Web SSH shell terminates long-running foreground processes (`Killed`). In the Admin Panel, rigid `text-nowrap` on slide buttons, non-wrapping slide headers, and `p-4` layout padding exceeded 360-390px mobile viewport widths.
+- **🛠️ Verified Code Fix**:
+  1. Configured dedicated lightweight bot service on Alwaysdata (`node --max-old-space-size=96 bot.mjs`) managed by the 24/7 daemon process runner with pre-seeded Pakistani e-commerce rules and automated Human Support mode unpause on `['hi', 'menu', 'salam', '0']`.
+  2. Updated [admin/layout.tsx](file:///d:/proj/Pak-o-Drive/src/app/admin/layout.tsx) with responsive padding (`p-2 p-sm-3 p-md-4`), `overflow-x-hidden`, and mobile header title truncation.
+  3. Redesigned [theme/page.tsx](file:///d:/proj/Pak-o-Drive/src/app/admin/theme/page.tsx) hero slide manager with flexible button wrapping, responsive `SectionCard` container, and fluid Image Selection toggles eliminating horizontal screen clipping.
+  4. Verified all changes render with 0 compile errors.
+
 
 
 
