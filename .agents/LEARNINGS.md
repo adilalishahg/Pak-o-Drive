@@ -345,11 +345,13 @@ This file serves as persistent dynamic memory across coding agent sessions. Ever
   3. Upgraded Admin Bot Test Simulator in [route.ts](file:///d:/proj/Pak-o-Drive/src/app/api/whatsapp-bot/test/route.ts).
   4. Verified TypeScript compilation passing with code 0 (`npx tsc --noEmit`).
 
-### 2026-08-31 — Dedicated 24/7 WhatsApp Bot Server Note
-- **📌 Infrastructure Architecture**:
-  - The frontend website, Admin Studio, and API routes deploy to **Vercel**.
-  - The Baileys WhatsApp WebSocket engine (`src/worker/bot.mjs`) runs 24/7 on a **Dedicated Worker Server**.
-  - The dedicated server must have `GEMINI_API_KEY` and `MONGODB_URI` set in its `.env` to execute the dual-mode personal-vs-store Gemini AI intelligence.
+### 2026-08-31 — WhatsApp Bot 30-Minute Owner Takeover & Direct Product Delivery Engine
+- **Issue**: Owner takeover mute previously kept bot silent for 24 hours on manual messages, which was too long; MongoDB database default URI connected to empty `test` database instead of `ecommerceStore`.
+- **Root Cause**: Hardcoded 24h duration in `msg.key.fromMe` handler, and omission of `/ecommerceStore` database segment in Atlas URI.
+- **Verified Fix**:
+  1. Updated owner takeover timer to **30 minutes** from last active message (`humanTakeover[senderPhone] = Date.now() + 30 * 60 * 1000`).
+  2. Targeted `/ecommerceStore` database in Atlas URI and auto-sorted products by search term relevance.
+  3. Implemented zero-dependency multi-model fallback (`gemini-2.5-flash`, `gemini-1.5-flash`, `gemini-2.0-flash`) with guaranteed formatted product cards for live WhatsApp conversion.
 
 
 
