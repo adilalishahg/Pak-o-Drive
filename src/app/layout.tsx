@@ -37,6 +37,7 @@ import AnalyticsTracker from '../components/common/AnalyticsTracker';
 import { DynamicThemeProvider } from '../components/common/DynamicThemeProvider';
 import { SiteInfoProvider } from '../components/common/SiteInfoProvider';
 import { WebVitals } from '../components/common/WebVitals';
+import LiveSalesNotification from '../components/common/LiveSalesNotification';
 import { getCachedSiteInfo, getCachedSiteSettings } from '../lib/cache';
 
 const SITE_URL = 'https://pakodrive.com';
@@ -274,6 +275,7 @@ export default async function RootLayout({
                     {children}
                   </LayoutWrapper>
                 )}
+                <LiveSalesNotification />
                 <TemplateScripts />
                 {process.env.NODE_ENV === 'production' && (
                   <>

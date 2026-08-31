@@ -31,10 +31,12 @@ export const ProductCardList: React.FC<ProductCardListProps> = ({ product, prior
     setTimeout(() => setAdding(false), 800);
   };
 
+  const secondaryImg = product.images && product.images.length > 0 ? product.images[0] : null;
+
   return (
     <article
       onClick={() => router.push(`/product/${formattedId}`)}
-      className="product-card-container product-card-list-item"
+      className="product-card-container product-card-list-item card-hover-lift group"
       style={{
         background: '#ffffff',
         borderRadius: '12px',
@@ -64,19 +66,36 @@ export const ProductCardList: React.FC<ProductCardListProps> = ({ product, prior
           justifyContent: 'center',
         }}
       >
-        <OptimizedImage
-          src={product.image || '/img/product-placeholder.png'}
-          alt={product.name}
-          fill
-          sizes="96px"
-          style={{ objectFit: 'contain', padding: '4px' }}
-          priority={priority}
-          fallbackSrc="/img/product-placeholder.png"
-        />
+        <div className="dual-img-wrapper">
+          <div className={`dual-img-primary ${secondaryImg ? 'has-secondary' : ''}`} style={{ position: 'absolute', inset: 0 }}>
+            <OptimizedImage
+              src={product.image || '/img/product-placeholder.png'}
+              alt={product.name}
+              fill
+              sizes="96px"
+              style={{ objectFit: 'contain', padding: '4px' }}
+              priority={priority}
+              fallbackSrc="/img/product-placeholder.png"
+            />
+          </div>
+          {secondaryImg && (
+            <div className="dual-img-secondary">
+              <OptimizedImage
+                src={secondaryImg}
+                alt={`${product.name} alternate view`}
+                fill
+                sizes="96px"
+                style={{ objectFit: 'contain', padding: '4px' }}
+                fallbackSrc="/img/product-placeholder.png"
+              />
+            </div>
+          )}
+        </div>
 
         {/* Discount Tag */}
         {discountPercent > 0 && (
           <span
+            className="badge-shimmer"
             style={{
               position: 'absolute',
               top: '4px',
@@ -87,6 +106,7 @@ export const ProductCardList: React.FC<ProductCardListProps> = ({ product, prior
               fontWeight: 800,
               padding: '2px 5px',
               borderRadius: '4px',
+              zIndex: 2,
             }}
           >
             -{discountPercent}%

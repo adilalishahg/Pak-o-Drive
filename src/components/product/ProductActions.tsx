@@ -129,6 +129,24 @@ export const ProductActions: React.FC<ProductActionsProps> = ({ product, selecte
         )}
       </div>
 
+      {/* Live Social Viewing Urgency */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: '8px',
+        fontSize: '0.76rem',
+        color: '#334155',
+        fontWeight: 600,
+        marginBottom: '14px',
+        padding: '7px 12px',
+        background: '#f8fafc',
+        borderRadius: '8px',
+        border: '1px solid #e2e8f0',
+      }}>
+        <span className="live-pulse-dot" />
+        <span><strong style={{ color: '#0f172a' }}>14 shoppers</strong> are viewing this item right now. High demand!</span>
+      </div>
+
       {/* Main Action Buttons */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
         {/* Row 1: Dual Primary Actions (Add to Cart + Buy Now) */}

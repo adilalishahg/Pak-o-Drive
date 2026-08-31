@@ -40,27 +40,20 @@ export const ProductCardClassic: React.FC<Props> = ({ product, priority }) => {
 
   const rating = Math.min(5, Math.max(0, Math.floor(product.rating || 0)));
 
+  const secondaryImg = product.images && product.images.length > 0 ? product.images[0] : null;
+
   return (
     <div
-      className="product-card-container product-card-classic-container"
+      className="product-card-container product-card-classic-container card-hover-lift group"
       style={{
         background: '#fff',
         borderRadius: '12px',
         border: '1px solid #e8edf2',
         overflow: 'hidden',
-        transition: 'box-shadow 0.22s ease, transform 0.22s ease',
         display: 'flex',
         flexDirection: 'column',
         cursor: 'pointer',
         boxShadow: '0 1px 4px rgba(0,0,0,0.05)',
-      }}
-      onMouseEnter={e => {
-        (e.currentTarget as HTMLElement).style.boxShadow = '0 8px 28px rgba(0,0,0,0.10)';
-        (e.currentTarget as HTMLElement).style.transform = 'translateY(-3px)';
-      }}
-      onMouseLeave={e => {
-        (e.currentTarget as HTMLElement).style.boxShadow = '0 1px 4px rgba(0,0,0,0.05)';
-        (e.currentTarget as HTMLElement).style.transform = 'translateY(0)';
       }}
       onClick={() => router.push(`/product/${id}`)}
     >
@@ -68,14 +61,6 @@ export const ProductCardClassic: React.FC<Props> = ({ product, priority }) => {
       <div 
         className="product-image-container product-card-image-wrapper"
         style={{ position: 'relative', width: '100%', aspectRatio: '1/1', background: '#f8fafc', overflow: 'hidden' }}
-        onMouseEnter={e => {
-          const img = e.currentTarget.querySelector('img');
-          if (img) img.style.transform = 'scale(1.06)';
-        }}
-        onMouseLeave={e => {
-          const img = e.currentTarget.querySelector('img');
-          if (img) img.style.transform = 'scale(1)';
-        }}
       >
         {/* Wishlist toggle */}
         <button
@@ -85,15 +70,15 @@ export const ProductCardClassic: React.FC<Props> = ({ product, priority }) => {
           }}
           style={{
             position: 'absolute', top: '10px', right: '10px', zIndex: 10,
-            background: 'rgba(255,255,255,0.9)', border: 'none',
+            background: 'rgba(255,255,255,0.92)', border: 'none',
             borderRadius: '50%', width: '28px', height: '28px',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             cursor: 'pointer', boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
             color: isInWishlist(id) ? '#dc2626' : '#9ca3af',
-            transition: 'all 0.2s',
+            transition: 'transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), color 0.2s',
             outline: 'none',
           }}
-          onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1.1)'; }}
+          onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1.15)'; }}
           onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1)'; }}
           aria-label="Toggle Wishlist"
         >
@@ -116,20 +101,35 @@ export const ProductCardClassic: React.FC<Props> = ({ product, priority }) => {
             }}
           />
         ) : (
-          <OptimizedImage
-            src={imgSrc}
-            alt={product.name}
-            fill
-            sizes="(max-width: 575px) 50vw, (max-width: 992px) 33vw, 25vw"
-            style={{ objectFit: 'cover', transition: 'transform 0.4s ease' }}
-            onError={() => setImgSrc('/img/product-placeholder.png')}
-            priority={priority}
-          />
+          <div className="dual-img-wrapper">
+            <div className={`dual-img-primary ${secondaryImg ? 'has-secondary' : ''}`} style={{ position: 'absolute', inset: 0 }}>
+              <OptimizedImage
+                src={imgSrc}
+                alt={product.name}
+                fill
+                sizes="(max-width: 575px) 50vw, (max-width: 992px) 33vw, 25vw"
+                style={{ objectFit: 'cover' }}
+                onError={() => setImgSrc('/img/product-placeholder.png')}
+                priority={priority}
+              />
+            </div>
+            {secondaryImg && (
+              <div className="dual-img-secondary">
+                <OptimizedImage
+                  src={secondaryImg}
+                  alt={`${product.name} alternate view`}
+                  fill
+                  sizes="(max-width: 575px) 50vw, (max-width: 992px) 33vw, 25vw"
+                  style={{ objectFit: 'cover' }}
+                />
+              </div>
+            )}
+          </div>
         )}
 
         {/* Badge */}
         {discount > 0 && (
-          <span className="product-card-badge" style={{
+          <span className="product-card-badge badge-shimmer" style={{
             position: 'absolute', top: '10px', left: '10px',
             background: 'var(--pd-primary-dark, #c2410c)', color: '#fff',
             borderRadius: '6px', fontSize: '0.7rem', fontWeight: 700,
@@ -140,7 +140,7 @@ export const ProductCardClassic: React.FC<Props> = ({ product, priority }) => {
           </span>
         )}
         {product.isNewArrival && !discount && (
-          <span className="product-card-badge" style={{
+          <span className="product-card-badge badge-shimmer" style={{
             position: 'absolute', top: '10px', left: '10px',
             background: '#047857', color: '#fff',
             borderRadius: '6px', fontSize: '0.7rem', fontWeight: 700,

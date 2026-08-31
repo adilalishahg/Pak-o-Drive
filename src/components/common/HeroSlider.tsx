@@ -123,10 +123,10 @@ export function HeroSlider({ slides, autoPlayMs = 5000 }: HeroSliderProps) {
 
           {/* LEFT — Text */}
           <div className="hero-text">
-            <span className="hero-badge" style={{
-              display: 'inline-flex', alignItems: 'center', gap: '5px',
+            <span className="hero-badge badge-shimmer" style={{
+              display: 'inline-block',
               background: 'linear-gradient(135deg, var(--pd-primary), color-mix(in srgb, var(--pd-primary) 75%, #000))',
-              color: '#fff', fontSize: '10px', fontWeight: 700, letterSpacing: '0.8px',
+              color: '#fff', fontSize: '10px', fontWeight: 800, letterSpacing: '1px',
               padding: '5px 12px', borderRadius: '20px', textTransform: 'uppercase',
               marginBottom: '10px', boxShadow: '0 3px 10px rgba(234,88,12,0.3)',
             }}>
