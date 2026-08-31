@@ -617,7 +617,11 @@ export function HomePageClient({ initialProducts, initialCategories }: HomePageC
                 @media (min-width: 1400px) { .products-grid { grid-template-columns: repeat(5, 1fr) !important; gap: 14px !important; } }
               `}</style>
               {filtered.map((prod, idx) => (
-                <div key={prod._id} className="fade-in">
+                <div
+                  key={prod._id}
+                  className="product-card-anim"
+                  style={{ animationDelay: `${Math.min(idx * 0.04, 0.4)}s` }}
+                >
                   <ProductCardAuto product={prod} priority={idx < 4} />
                 </div>
               ))}

@@ -275,7 +275,11 @@ function ShopContent({ initialProducts }: ShopClientProps) {
                   @media (min-width: 1200px) { .shop-grid { grid-template-columns: repeat(4, 1fr) !important; gap: 12px !important; } }
                 `}</style>
               {sorted.map((prod, idx) => (
-                <div key={prod._id}>
+                <div
+                  key={prod._id}
+                  className="product-card-anim"
+                  style={{ animationDelay: `${Math.min(idx * 0.04, 0.4)}s` }}
+                >
                   <ProductCardAuto product={prod} priority={idx < 4} />
                 </div>
               ))}
