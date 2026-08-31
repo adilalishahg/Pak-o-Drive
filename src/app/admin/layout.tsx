@@ -56,6 +56,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { name: 'Inbox Messages', path: '/admin/contacts', icon: 'fas fa-envelope' },
     { name: 'Newsletter Subscribers', path: '/admin/subscribers', icon: 'fas fa-users' },
     { name: 'Analytics Deep-Dive', path: '/admin/analytics', icon: 'fas fa-chart-bar' },
+    { name: 'WhatsApp Auto-Bot', path: '/admin/whatsapp-bot', icon: 'fab fa-whatsapp' },
     { name: 'Theme & Appearance', path: '/admin/theme', icon: 'fas fa-palette' },
     { name: 'Site Info & Policies', path: '/admin/site-info', icon: 'fas fa-info-circle' },
   ];

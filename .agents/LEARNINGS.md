@@ -216,6 +216,17 @@ This file serves as persistent dynamic memory across coding agent sessions. Ever
   2. Updated [order-confirmation/[id]/page.tsx](file:///d:/proj/Pak-o-Drive/src/app/order-confirmation/[id]/page.tsx) to also include customer email in WhatsApp verification links.
   3. Verified with `npx tsc --noEmit` exiting with code 0.
 
+### 2026-08-31 — 100% Free Custom WhatsApp Auto-Responder Bot with Admin QR Code & Rule Engine
+- **📌 Issue**: Store owners required an automated WhatsApp assistant to instantly answer customer queries (Order tracking, Bank/JazzCash details, Return policies, FAQs) without paying high monthly subscriptions to third-party providers (Wati, Twilio, etc.).
+- **🔍 Root Cause & Failed Attempts**: Standard Next.js e-commerce platforms lack built-in WhatsApp session lifecycle management, QR code streaming, and dynamic rule-matching engines tied directly to the store's MongoDB database.
+- **🛠️ Verified Code Fix**:
+  1. Built the core engine in [engine.ts](file:///d:/proj/Pak-o-Drive/src/lib/whatsappBot/engine.ts) powered by `@whiskeysockets/baileys` and `qrcode` with persistent auth session storage in `.whatsapp_auth/`, human presence simulation (1.5-2.5s typing delay), and dynamic MongoDB order lookup.
+  2. Created the [WhatsAppRule.ts](file:///d:/proj/Pak-o-Drive/src/models/WhatsAppRule.ts) Mongoose model pre-seeded with 5 essential Pakistani e-commerce rules (*Interactive Menu*, *Order Status Lookup*, *Bank/JazzCash Payment Details*, *7-Day Return Policy*, and *Human Agent Handoff*).
+  3. Developed full REST API controllers: `/api/whatsapp-bot/status`, `/api/whatsapp-bot/rules`, `/api/whatsapp-bot/rules/[id]`, `/api/whatsapp-bot/rules/seed`, and `/api/whatsapp-bot/test`.
+  4. Built the rich [admin/whatsapp-bot/page.tsx](file:///d:/proj/Pak-o-Drive/src/app/admin/whatsapp-bot/page.tsx) dashboard with Live QR Code scanner, Status Badge (`🟢 Connected` / `🟡 QR Ready` / `🔴 Disconnected`), Visual Rules Editor, and Real-Time Query Simulator.
+  5. Added navigation item in [admin/layout.tsx](file:///d:/proj/Pak-o-Drive/src/app/admin/layout.tsx).
+  6. Verified compilation with `npx tsc --noEmit` exiting with code 0.
+
 ---
 
 
