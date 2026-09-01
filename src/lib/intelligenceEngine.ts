@@ -184,20 +184,17 @@ function getFallbackIntelligence(storeProducts: any[], limit: number = 10): Inte
   const ambientProd = storeProducts.find((p) => /ambient|light|led/i.test(p.name));
   const chargerProd = storeProducts.find((p) => /charger|fast|cable/i.test(p.name));
 
-  return {
-    generatedAt: new Date().toISOString(),
-    marketSummary:
-      'Pakistani TikTok & Meta feeds par interior luxury aesthetics aur problem-solver car gadgets 4.2x higher conversion rate deliver kar rahe hain with Cash on Delivery focus.',
-    topTrends: [
-      {
-        id: 'trend_1',
-        productName: ambientProd?.name || 'Universal 64-Color Dynamic App-Controlled Ambient Lighting',
-        category: 'Interior Styling',
-        platform: 'TikTok',
-        isExistingInStore: Boolean(ambientProd),
-        storeProductId: ambientProd?._id?.toString(),
-        storeProductSlug: ambientProd?.slug || ambientProd?._id?.toString(),
-        estimatedDemandScore: 96,
+  const fallbackItems: Omit<TrendingAdIntelligence, 'liveAdLinks'>[] = [
+    {
+      id: 'trend_1',
+      productName: ambientProd?.name || 'Universal 64-Color Dynamic App-Controlled Ambient Lighting',
+      category: 'Interior Styling',
+      platform: 'TikTok',
+      isExistingInStore: Boolean(ambientProd),
+      storeProductId: ambientProd?._id?.toString(),
+      storeProductSlug: ambientProd?.slug || ambientProd?._id?.toString(),
+      estimatedDemandScore: 96,
+
         competitorAdAngle:
           'Luxury Interior Transformation: Meharban/Purani gari ko bina wire cut kiye Mercedes/Audi jesi luxury look dena.',
         competitorPricePKR: 3200,
@@ -508,10 +505,17 @@ function getFallbackIntelligence(storeProducts: any[], limit: number = 10): Inte
         ],
         referenceAdStyle: 'Real Road Safety POV Evidence',
       },
-    ].slice(0, limit).map((trend) => ({
+  ];
+
+  return {
+    generatedAt: new Date().toISOString(),
+    marketSummary:
+      'Pakistani TikTok & Meta feeds par interior luxury aesthetics aur problem-solver car gadgets 4.2x higher conversion rate deliver kar rahe hain with Cash on Delivery focus.',
+    topTrends: fallbackItems.slice(0, limit).map((trend) => ({
       ...trend,
       liveAdLinks: formatLiveAdLinks(trend.productName),
     })),
   };
 }
+
 
