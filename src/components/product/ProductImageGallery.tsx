@@ -18,23 +18,19 @@ export const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({
   video,
   showVideoOnFront,
 }) => {
-  // Construct a list of media items based on showVideoOnFront flag
+  // Construct a list of media items: video is strictly shown ONLY when showVideoOnFront is enabled
   const mediaItems: { type: 'video' | 'image'; url: string }[] = [];
   const allImages = Array.from(new Set([image, ...(images || [])])).filter(Boolean);
+  const hasActiveVideo = Boolean(showVideoOnFront && video && video.trim());
 
-  if (showVideoOnFront && video) {
-    mediaItems.push({ type: 'video', url: video });
-    allImages.forEach((img) => {
-      mediaItems.push({ type: 'image', url: img });
-    });
-  } else {
-    allImages.forEach((img) => {
-      mediaItems.push({ type: 'image', url: img });
-    });
-    if (video) {
-      mediaItems.push({ type: 'video', url: video });
-    }
+  if (hasActiveVideo && video) {
+    mediaItems.push({ type: 'video', url: video.trim() });
   }
+
+  allImages.forEach((img) => {
+    mediaItems.push({ type: 'image', url: img });
+  });
+
 
 
   const initialItem = mediaItems[0] || { type: 'image' as const, url: image };

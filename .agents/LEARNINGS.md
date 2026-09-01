@@ -60,7 +60,16 @@ This file serves as persistent dynamic memory across coding agent sessions. Ever
 
 ## 📝 PART 2: Project-Specific Resolution History
 
+### 2026-09-01 — Strict Backend Video Visibility Control (`showVideoOnFront`)
+- **📌 Issue**: Products with video turned OFF in admin backend still displayed the `▶ VIDEO` thumbnail tab in the frontend product gallery.
+- **🔍 Root Cause & Failed Attempts**: `ProductImageGallery.tsx` had a fallback `else` branch that appended `video` to the end of `mediaItems` even when `showVideoOnFront === false`.
+- **🛠️ Verified Code Fix**:
+  1. Updated `ProductImageGallery.tsx` so video media items are strictly added ONLY when `Boolean(showVideoOnFront && video && video.trim())` is true.
+  2. Verified that when `showVideoOnFront` is OFF in backend, gallery renders 100% clean images with zero phantom video tabs.
+  3. Verified 0 compilation errors via `pnpm tsc --noEmit`.
+
 ### 2026-09-01 — Floating Action Button (FAB) Dynamic Stacking & Collision Prevention
+
 - **📌 Issue**: On mobile product pages with the sticky bottom bar, the circular Back-to-Top button (`.back-to-top`) was partially covered by the floating green Store Chat launcher.
 - **🔍 Root Cause & Failed Attempts**: Static `bottom: 100px` positioning in CSS clashed with dynamic bottom offsets (`bottom: 78px` on product pages where sticky cart CTA is rendered).
 - **🛠️ Verified Code Fix**:
