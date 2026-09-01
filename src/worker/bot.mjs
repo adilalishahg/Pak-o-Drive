@@ -708,7 +708,8 @@ async function start() {
 
 
   socket.ev.on('messages.upsert', async (m) => {
-    if (m.type !== 'notify') return;
+    // 💡 Allow both 'notify' and 'append' so self-messages & mobile replies are captured
+    if (m.type !== 'notify' && m.type !== 'append') return;
 
     for (const msg of m.messages) {
       const senderJid = msg.key.remoteJid;
@@ -772,6 +773,7 @@ async function start() {
             });
             session.isAgentLive = true;
             session.lastActiveAt = new Date();
+            session.markModified('messages');
             await session.save();
 
             console.log(`✅ [Web Agent Bridge] Routed agent reply to Web Visitor #${targetShortCode}: "${agentReplyText}"`);
@@ -785,6 +787,7 @@ async function start() {
           console.error('[Web Agent Bridge Error]', bridgeErr);
         }
       }
+
 
 
       if (msg.key.fromMe) {
@@ -1131,6 +1134,7 @@ function startWebChatWatcher(socket) {
           }
         }
         if (modified) {
+          session.markModified('messages');
           await session.save();
         }
       }
@@ -1139,6 +1143,7 @@ function startWebChatWatcher(socket) {
     }
   }, 3000);
 }
+
 
 start().catch(console.error);
 
