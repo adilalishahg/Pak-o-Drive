@@ -29,12 +29,30 @@ const HUGGINGFACE_API_KEY = process.env.HUGGINGFACE_API_KEY || process.env.HF_TO
 const GROQ_API_KEY = process.env.GROQ_API_KEY || '';
 
 /**
+ * Clean AI response from any chain-of-thought or markdown leaks
+ */
+function cleanAiResponse(text) {
+  if (!text) return '';
+  return text
+    .replace(/<think>[\s\S]*?<\/think>/gi, '')
+    .replace(/^\*\*Reasoning:\*\*[\s\S]*?\n\n/gi, '')
+    .replace(/^Reasoning:[\s\S]*?\n\n/gi, '')
+    .trim();
+}
+
+/**
  * 1. Google Gemini Provider
  */
 async function callGeminiDirect(prompt) {
   if (!GEMINI_API_KEY) return null;
   const versions = ['v1beta', 'v1'];
-  const models = ['gemini-2.0-flash', 'gemini-1.5-flash-latest', 'gemini-1.5-flash', 'gemini-2.5-flash', 'gemini-1.5-flash-8b', 'gemini-pro'];
+  const models = [
+    'gemini-2.5-flash',
+    'gemini-3.5-flash',
+    'gemini-flash-latest',
+    'gemini-pro-latest',
+    'gemini-2.5-pro',
+  ];
 
   for (const ver of versions) {
     for (const model of models) {
@@ -51,8 +69,11 @@ async function callGeminiDirect(prompt) {
           const data = await res.json();
           const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
           if (text) {
-            console.log(`✅ [Gemini Model ${model} (${ver})] Generated response successfully.`);
-            return text.trim();
+            const cleaned = cleanAiResponse(text);
+            if (cleaned) {
+              console.log(`✅ [Gemini Model ${model} (${ver})] Generated response successfully.`);
+              return cleaned;
+            }
           }
         }
       } catch (err) {
@@ -64,13 +85,60 @@ async function callGeminiDirect(prompt) {
 }
 
 /**
- * 2. Hugging Face Router Provider (Llama-3.3-70B / Qwen-2.5-72B)
+ * 2. Groq Cloud Ultra-Fast Provider
+ */
+async function callGroqDirect(prompt) {
+  if (!GROQ_API_KEY) return null;
+  const models = [
+    'openai/gpt-oss-120b',
+    'qwen/qwen3.8-27b',
+    'openai/gpt-oss-20b',
+    'groq/compound-mini',
+    'qwen/qwen3.6-27b',
+  ];
+
+  for (const model of models) {
+    try {
+      const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${GROQ_API_KEY}`,
+        },
+        body: JSON.stringify({
+          model,
+          messages: [{ role: 'user', content: prompt }],
+          temperature: 0.6,
+          max_tokens: 500,
+        }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        const text = data?.choices?.[0]?.message?.content;
+        if (text) {
+          const cleaned = cleanAiResponse(text);
+          if (cleaned) {
+            console.log(`✅ [Groq Model ${model}] Generated response successfully.`);
+            return cleaned;
+          }
+        }
+      }
+    } catch (err) {}
+  }
+  return null;
+}
+
+/**
+ * 3. Hugging Face Router Provider
  */
 async function callHuggingFaceDirect(prompt) {
   if (!HUGGINGFACE_API_KEY) return null;
   const models = [
     process.env.HUGGINGFACE_MODEL || 'meta-llama/Llama-3.3-70B-Instruct',
     'Qwen/Qwen2.5-72B-Instruct',
+    'deepseek-ai/DeepSeek-R1-Distill-Qwen-32B',
+    'mistralai/Mistral-7B-Instruct-v0.3',
   ];
 
   for (const model of models) {
@@ -94,44 +162,11 @@ async function callHuggingFaceDirect(prompt) {
         const data = await res.json();
         const text = data?.choices?.[0]?.message?.content;
         if (text) {
-          console.log(`✅ [Hugging Face Model ${model}] Generated response successfully.`);
-          return text.trim();
-        }
-      }
-    } catch (err) {}
-  }
-  return null;
-}
-
-/**
- * 3. Groq Cloud Fast Provider (Llama-3.3-70B)
- */
-async function callGroqDirect(prompt) {
-  if (!GROQ_API_KEY) return null;
-  const models = ['llama-3.3-70b-versatile', 'llama-3.1-8b-instant'];
-
-  for (const model of models) {
-    try {
-      const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${GROQ_API_KEY}`,
-        },
-        body: JSON.stringify({
-          model,
-          messages: [{ role: 'user', content: prompt }],
-          temperature: 0.6,
-          max_tokens: 500,
-        }),
-      });
-
-      if (res.ok) {
-        const data = await res.json();
-        const text = data?.choices?.[0]?.message?.content;
-        if (text) {
-          console.log(`✅ [Groq Model ${model}] Generated response successfully.`);
-          return text.trim();
+          const cleaned = cleanAiResponse(text);
+          if (cleaned) {
+            console.log(`✅ [Hugging Face Model ${model}] Generated response successfully.`);
+            return cleaned;
+          }
         }
       }
     } catch (err) {}
@@ -147,16 +182,17 @@ async function callMultiAIWaterfall(prompt) {
   const gText = await callGeminiDirect(prompt);
   if (gText) return gText;
 
-  // 2. Try Hugging Face
-  const hfText = await callHuggingFaceDirect(prompt);
-  if (hfText) return hfText;
-
-  // 3. Try Groq
+  // 2. Try Groq (Ultra-Fast 500ms response)
   const groqText = await callGroqDirect(prompt);
   if (groqText) return groqText;
 
+  // 3. Try Hugging Face
+  const hfText = await callHuggingFaceDirect(prompt);
+  if (hfText) return hfText;
+
   return null;
 }
+
 
 
 
