@@ -1,10 +1,15 @@
 'use client';
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React from 'react';
 import { OptimizedImage } from '../common/OptimizedImage';
 import { ProductImageGalleryProps } from '@/types/product';
+import { useProductImageGallery } from '@/hooks/useProductImageGallery';
+import { ProductLightboxModal } from './ProductLightboxModal';
 
-
+/**
+ * ProductImageGallery - Pure Presentational View
+ * Adheres to Zero Logic in UI (Rule 8) and 100% Uncropped Media Presentation (Rule 3).
+ */
 export const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({
   image,
   images,
@@ -12,175 +17,44 @@ export const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({
   video,
   showVideoOnFront,
 }) => {
-  // Construct a list of media items: video is strictly shown ONLY when showVideoOnFront is enabled
-  const mediaItems: { type: 'video' | 'image'; url: string }[] = [];
-  const allImages = Array.from(new Set([image, ...(images || [])])).filter(Boolean);
-  const hasActiveVideo = Boolean(showVideoOnFront && video && video.trim());
-
-  if (hasActiveVideo && video) {
-    mediaItems.push({ type: 'video', url: video.trim() });
-  }
-
-  allImages.forEach((img) => {
-    mediaItems.push({ type: 'image', url: img });
+  const {
+    mediaItems,
+    activeItem,
+    mainImgSrc,
+    thumbnailErrors,
+    isDesktopZoomed,
+    zoomOrigin,
+    containerRef,
+    videoRef,
+    isLightboxOpen,
+    lightboxIndex,
+    isLightboxZoomed,
+    isImage,
+    handleSelectMedia,
+    handleThumbnailError,
+    handleMainImageError,
+    handleMouseMove,
+    handleMouseEnter,
+    handleMouseLeave,
+    openLightbox,
+    closeLightbox,
+    handleNextMedia,
+    handlePrevMedia,
+    toggleLightboxZoom,
+    handleLightboxTouchStart,
+    handleLightboxTouchEnd,
+    setLightboxIndex,
+    setIsLightboxZoomed,
+  } = useProductImageGallery({
+    image,
+    images,
+    video,
+    showVideoOnFront,
   });
-
-
-
-  const initialItem = mediaItems[0] || { type: 'image' as const, url: image };
-  const [activeItem, setActiveItem] = useState<{ type: 'video' | 'image'; url: string }>(initialItem);
-  const [mainImgSrc, setMainImgSrc] = useState(image || '/img/product-placeholder.png');
-  const [thumbnailErrors, setThumbnailErrors] = useState<Record<number, boolean>>({});
-
-  // Desktop Hover Zoom state
-  const [isDesktopZoomed, setIsDesktopZoomed] = useState(false);
-  const [zoomOrigin, setZoomOrigin] = useState({ x: 50, y: 50 });
-  const containerRef = useRef<HTMLDivElement>(null);
-  const cachedRect = useRef<DOMRect | null>(null);
-
-  // Fullscreen Lightbox Modal State (The standard for mobile zoom)
-  const [isLightboxOpen, setIsLightboxOpen] = useState(false);
-  const [lightboxIndex, setLightboxIndex] = useState(0);
-  const [isLightboxZoomed, setIsLightboxZoomed] = useState(false);
-
-  // Touch swipe in lightbox
-  const touchStartX = useRef(0);
-  const touchEndX = useRef(0);
-
-  const initialImageRef = useRef(image);
-  const prevImageRef = useRef(image);
-  const videoRef = useRef<HTMLVideoElement>(null);
-
-  // Instant 0ms RAM Preloader: Pre-cache all full gallery images immediately in browser memory
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    allImages.forEach((imgUrl) => {
-      if (!imgUrl) return;
-      const cleanUrl = imgUrl.startsWith('http') || imgUrl.startsWith('/') ? imgUrl : `/${imgUrl}`;
-      const preloadedImg = new window.Image();
-      preloadedImg.src = cleanUrl;
-    });
-  }, [allImages]);
-
-  // Synchronous, Instant media selector (0ms lag on mobile touch)
-  const handleSelectMedia = useCallback((item: { type: 'video' | 'image'; url: string }) => {
-    setActiveItem(item);
-    if (item.type === 'image') {
-      setMainImgSrc(item.url || '/img/product-placeholder.png');
-    }
-    setIsDesktopZoomed(false);
-  }, []);
-
-  // Update on variant change
-  useEffect(() => {
-    if (image && image !== prevImageRef.current) {
-      setActiveItem({ type: 'image', url: image });
-      setMainImgSrc(image);
-    }
-    prevImageRef.current = image;
-  }, [image]);
-
-  useEffect(() => {
-    if (activeItem.type === 'video') {
-      setTimeout(() => {
-        if (videoRef.current) {
-          videoRef.current.play().catch(() => {});
-        }
-      }, 50);
-    }
-  }, [activeItem]);
-
-
-  // Lock body scroll when lightbox is open
-  useEffect(() => {
-    if (isLightboxOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-      setIsLightboxZoomed(false);
-    }
-    return () => {
-      document.body.style.overflow = '';
-    };
-  }, [isLightboxOpen]);
-
-  // Handle keyboard events for lightbox
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (!isLightboxOpen) return;
-      if (e.key === 'Escape') setIsLightboxOpen(false);
-      if (e.key === 'ArrowRight') handleNextMedia();
-      if (e.key === 'ArrowLeft') handlePrevMedia();
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isLightboxOpen, lightboxIndex, mediaItems.length]);
-
-  const openLightbox = (index?: number) => {
-    const targetIdx = index !== undefined
-      ? index
-      : mediaItems.findIndex((m) => m.url === activeItem.url);
-    setLightboxIndex(targetIdx >= 0 ? targetIdx : 0);
-    setIsLightboxOpen(true);
-  };
-
-  const handleNextMedia = () => {
-    setLightboxIndex((prev) => (prev + 1) % mediaItems.length);
-    setIsLightboxZoomed(false);
-  };
-
-  const handlePrevMedia = () => {
-    setLightboxIndex((prev) => (prev - 1 + mediaItems.length) % mediaItems.length);
-    setIsLightboxZoomed(false);
-  };
-
-  /* ── Desktop mouse hover zoom ── */
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!cachedRect.current || !isDesktopZoomed) return;
-    const { left, top, width, height } = cachedRect.current;
-    const x = ((e.clientX - left) / width) * 100;
-    const y = ((e.clientY - top) / height) * 100;
-    setZoomOrigin({ x, y });
-  };
-
-  const handleMouseEnter = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!containerRef.current || window.innerWidth < 768) return;
-    cachedRect.current = containerRef.current.getBoundingClientRect();
-    const { left, top, width, height } = cachedRect.current;
-    const x = ((e.clientX - left) / width) * 100;
-    const y = ((e.clientY - top) / height) * 100;
-    setZoomOrigin({ x, y });
-    setIsDesktopZoomed(true);
-  };
-
-  const handleMouseLeave = () => {
-    setIsDesktopZoomed(false);
-    cachedRect.current = null;
-  };
-
-  // Lightbox swipe handlers
-  const handleLightboxTouchStart = (e: React.TouchEvent) => {
-    touchStartX.current = e.touches[0].clientX;
-  };
-
-  const handleLightboxTouchEnd = (e: React.TouchEvent) => {
-    touchEndX.current = e.changedTouches[0].clientX;
-    const diff = touchStartX.current - touchEndX.current;
-    if (Math.abs(diff) > 45 && !isLightboxZoomed) {
-      if (diff > 0) {
-        handleNextMedia();
-      } else {
-        handlePrevMedia();
-      }
-    }
-  };
-
-  const isImage = activeItem.type === 'image';
-  const currentLightboxItem = mediaItems[lightboxIndex] || activeItem;
 
   return (
     <div style={{ width: '100%', position: 'relative' }}>
-      {/* Main Viewer */}
+      {/* ── Main Dual-Layer Uncropped Media Stage ── */}
       <div
         ref={containerRef}
         onMouseEnter={isImage ? handleMouseEnter : undefined}
@@ -197,6 +71,24 @@ export const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({
           userSelect: 'none',
         }}
       >
+        {/* Layer 1: Ambient Blur Backdrop for Uncropped Dual-Layer Presentation */}
+        {isImage && (
+          <div
+            style={{
+              position: 'absolute',
+              inset: 0,
+              backgroundImage: `url(${mainImgSrc})`,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+              filter: 'blur(20px)',
+              opacity: 0.18,
+              transform: 'scale(1.2)',
+              pointerEvents: 'none',
+            }}
+          />
+        )}
+
+        {/* Layer 2: Main Media Foreground */}
         {!isImage ? (
           <video
             ref={videoRef}
@@ -213,6 +105,7 @@ export const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({
               height: '100%',
               objectFit: 'contain',
               padding: '12px',
+              zIndex: 2,
             }}
           />
         ) : (
@@ -221,6 +114,8 @@ export const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({
             alt={name}
             fill
             sizes="(max-width: 768px) 100vw, 50vw"
+            priority={true}
+            loading="eager"
             style={{
               objectFit: 'contain',
               padding: '12px',
@@ -228,9 +123,9 @@ export const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({
               transform: isDesktopZoomed ? 'scale(1.8)' : 'scale(1)',
               transformOrigin: isDesktopZoomed ? `${zoomOrigin.x}% ${zoomOrigin.y}%` : '50% 50%',
               pointerEvents: 'none',
+              zIndex: 2,
             }}
-            onError={() => setMainImgSrc('/img/product-placeholder.png')}
-            priority
+            onError={handleMainImageError}
             draggable={false}
           />
         )}
@@ -271,7 +166,7 @@ export const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({
         )}
       </div>
 
-      {/* Thumbnails */}
+      {/* ── Thumbnails Strip ── */}
       {mediaItems.length > 1 && (
         <div
           style={{
@@ -291,7 +186,6 @@ export const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({
                 key={idx}
                 onClick={() => handleSelectMedia(item)}
                 type="button"
-
                 style={{
                   width: '58px',
                   height: '58px',
@@ -330,7 +224,7 @@ export const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({
                     fill
                     sizes="58px"
                     style={{ objectFit: 'contain', padding: '4px' }}
-                    onError={() => setThumbnailErrors((p) => ({ ...p, [idx]: true }))}
+                    onError={() => handleThumbnailError(idx)}
                   />
                 )}
               </button>
@@ -339,275 +233,24 @@ export const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({
         </div>
       )}
 
-      {/* ── World-Class Fullscreen HD Lightbox Modal (Mobile & Desktop) ── */}
-      {isLightboxOpen && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          onTouchStart={handleLightboxTouchStart}
-          onTouchEnd={handleLightboxTouchEnd}
-          style={{
-            position: 'fixed',
-            inset: 0,
-            zIndex: 99999,
-            background: 'rgba(0, 0, 0, 0.95)',
-            backdropFilter: 'blur(8px)',
-            WebkitBackdropFilter: 'blur(8px)',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'space-between',
-            padding: '16px',
-            animation: 'fadeIn 0.2s ease',
-          }}
-        >
-          {/* Lightbox Top Header */}
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              width: '100%',
-              zIndex: 10,
-              padding: '4px 8px',
-            }}
-          >
-            {/* Counter */}
-            <span
-              style={{
-                background: 'rgba(255, 255, 255, 0.15)',
-                color: '#ffffff',
-                fontSize: '0.8rem',
-                fontWeight: 700,
-                padding: '4px 12px',
-                borderRadius: '20px',
-              }}
-            >
-              {lightboxIndex + 1} / {mediaItems.length}
-            </span>
-
-            {/* Product Title Clamped */}
-            <span
-              style={{
-                color: '#ffffff',
-                fontSize: '0.82rem',
-                fontWeight: 600,
-                maxWidth: '60%',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
-                opacity: 0.85,
-              }}
-            >
-              {name}
-            </span>
-
-            {/* Close Button */}
-            <button
-              type="button"
-              onClick={() => setIsLightboxOpen(false)}
-              style={{
-                background: 'rgba(255, 255, 255, 0.2)',
-                border: 'none',
-                color: '#ffffff',
-                borderRadius: '50%',
-                width: '36px',
-                height: '36px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                cursor: 'pointer',
-                fontSize: '16px',
-                transition: 'background 0.15s',
-              }}
-              aria-label="Close Lightbox"
-            >
-              ✕
-            </button>
-          </div>
-
-          {/* Lightbox Main Stage */}
-          <div
-            style={{
-              position: 'relative',
-              flex: 1,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              overflow: 'hidden',
-              margin: '10px 0',
-            }}
-          >
-            {/* Left Nav Arrow */}
-            {mediaItems.length > 1 && (
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handlePrevMedia();
-                }}
-                style={{
-                  position: 'absolute',
-                  left: '8px',
-                  zIndex: 10,
-                  background: 'rgba(255, 255, 255, 0.2)',
-                  border: 'none',
-                  color: '#ffffff',
-                  borderRadius: '50%',
-                  width: '42px',
-                  height: '42px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  cursor: 'pointer',
-                  fontSize: '18px',
-                }}
-                aria-label="Previous image"
-              >
-                ‹
-              </button>
-            )}
-
-            {/* Active Media Container */}
-            <div
-              onClick={() => setIsLightboxZoomed((prev) => !prev)}
-              style={{
-                position: 'relative',
-                width: '100%',
-                height: '100%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                cursor: currentLightboxItem.type === 'image' ? (isLightboxZoomed ? 'zoom-out' : 'zoom-in') : 'default',
-              }}
-            >
-              {currentLightboxItem.type === 'video' ? (
-                <video
-                  src={currentLightboxItem.url}
-                  autoPlay
-                  loop
-                  muted
-                  playsInline
-                  controls
-                  style={{
-                    maxWidth: '100%',
-                    maxHeight: '100%',
-                    objectFit: 'contain',
-                    borderRadius: '8px',
-                  }}
-                />
-              ) : (
-                <OptimizedImage
-                  src={currentLightboxItem.url}
-                  alt={name}
-                  fill
-                  sizes="100vw"
-                  style={{
-                    objectFit: 'contain',
-                    transition: 'transform 0.25s ease',
-                    transform: isLightboxZoomed ? 'scale(1.8)' : 'scale(1)',
-                  }}
-                  draggable={false}
-                  priority
-                />
-              )}
-            </div>
-
-            {/* Right Nav Arrow */}
-            {mediaItems.length > 1 && (
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleNextMedia();
-                }}
-                style={{
-                  position: 'absolute',
-                  right: '8px',
-                  zIndex: 10,
-                  background: 'rgba(255, 255, 255, 0.2)',
-                  border: 'none',
-                  color: '#ffffff',
-                  borderRadius: '50%',
-                  width: '42px',
-                  height: '42px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  cursor: 'pointer',
-                  fontSize: '18px',
-                }}
-                aria-label="Next image"
-              >
-                ›
-              </button>
-            )}
-          </div>
-
-          {/* Lightbox Bottom Strip: Thumbnails & Helper Hint */}
-          <div
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              gap: '8px',
-              width: '100%',
-            }}
-          >
-            <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>
-              Swipe left/right to browse · Tap image to zoom
-            </span>
-
-            {mediaItems.length > 1 && (
-              <div
-                style={{
-                  display: 'flex',
-                  gap: '8px',
-                  overflowX: 'auto',
-                  maxWidth: '100%',
-                  padding: '4px',
-                  scrollbarWidth: 'none',
-                }}
-              >
-                {mediaItems.map((item, idx) => {
-                  const isSel = lightboxIndex === idx;
-                  return (
-                    <button
-                      key={idx}
-                      type="button"
-                      onClick={() => {
-                        setLightboxIndex(idx);
-                        setIsLightboxZoomed(false);
-                      }}
-                      style={{
-                        width: '48px',
-                        height: '48px',
-                        flexShrink: 0,
-                        border: isSel ? '2px solid #ffffff' : '2px solid rgba(255,255,255,0.3)',
-                        borderRadius: '6px',
-                        overflow: 'hidden',
-                        background: '#000',
-                        position: 'relative',
-                        padding: 0,
-                        cursor: 'pointer',
-                        opacity: isSel ? 1 : 0.6,
-                        transition: 'all 0.15s ease',
-                      }}
-                    >
-                      <OptimizedImage
-                        src={item.url}
-                        alt={`${name} thumb ${idx + 1}`}
-                        fill
-                        sizes="48px"
-                        style={{ objectFit: 'contain' }}
-                      />
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        </div>
-      )}
+      {/* ── Fullscreen HD Lightbox Modal ── */}
+      <ProductLightboxModal
+        isOpen={isLightboxOpen}
+        onClose={closeLightbox}
+        name={name}
+        mediaItems={mediaItems}
+        currentIndex={lightboxIndex}
+        isZoomed={isLightboxZoomed}
+        onToggleZoom={toggleLightboxZoom}
+        onPrev={handlePrevMedia}
+        onNext={handleNextMedia}
+        onSelectIndex={(idx) => {
+          setLightboxIndex(idx);
+          setIsLightboxZoomed(false);
+        }}
+        onTouchStart={handleLightboxTouchStart}
+        onTouchEnd={handleLightboxTouchEnd}
+      />
     </div>
   );
 };

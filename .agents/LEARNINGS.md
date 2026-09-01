@@ -557,6 +557,15 @@ This file serves as persistent dynamic memory across coding agent sessions. Ever
   2. Implemented `handleSelectMedia` with synchronous `setMainImgSrc` execution on thumbnail clicks in `ProductImageGallery.tsx`.
   3. Pre-buffered full-res gallery assets in browser RAM for 0ms transitions.
 
+### 2026-09-01: ProductImageGallery Logic Extraction & Architecture Refactoring
+- **Issue**: Monolithic 616-line `ProductImageGallery.tsx` mixing zoom math, touch swipe physics, preloading side-effects, keyboard events, and modal JSX in a single component.
+- **Root Cause**: Business logic, gestures, and state transitions were embedded directly in the presentation component violating Mandatory Rule 8 (Zero Logic in UI).
+- **Verified Fix**:
+  1. Extracted all state, pre-caching, variant sync, zoom math, touch swipes, and keyboard handlers into custom hook `useProductImageGallery.ts`.
+  2. Extracted fullscreen HD Lightbox modal into dedicated `ProductLightboxModal.tsx` subcomponent.
+  3. Reduced `ProductImageGallery.tsx` from 616 lines to a clean ~220-line pure presentational view implementing dual-layer blur/contain uncropped presentation (Mandatory Rule 3).
+
+
 
 
 
