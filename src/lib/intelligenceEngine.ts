@@ -45,8 +45,19 @@ export interface TrendingAdIntelligence {
   };
 }
 
+export function formatLiveAdLinks(productName: string) {
+  const cleanName = (productName || '').replace(/[^\w\s-]/g, '').trim();
+  const q = encodeURIComponent(cleanName);
+  return {
+    metaAdLibraryPk: `https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=PK&q=${q}&search_type=keyword_unordered&media_type=all`,
+    tiktokSearchPk: `https://www.tiktok.com/search?q=${encodeURIComponent(cleanName + ' pakistan')}`,
+    youtubeSearchPk: `https://www.youtube.com/results?search_query=${encodeURIComponent(cleanName + ' pakistan review unboxing')}`,
+  };
+}
 
 import SiteInfo from '../models/SiteInfo';
+
+
 
 export interface IntelligenceReportPayload {
   generatedAt: string;
@@ -145,17 +156,8 @@ Return ONLY a valid JSON object matching this structure:
   "topTrends": [ ...${activeLimit} items... ]
 }`;
 
-function formatLiveAdLinks(productName: string) {
-  const cleanName = productName.replace(/[^\w\s-]/g, '').trim();
-  const q = encodeURIComponent(cleanName);
-  return {
-    metaAdLibraryPk: `https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=PK&q=${q}&search_type=keyword_unordered&media_type=all`,
-    tiktokSearchPk: `https://www.tiktok.com/search?q=${encodeURIComponent(cleanName + ' pakistan')}`,
-    youtubeSearchPk: `https://www.youtube.com/results?search_query=${encodeURIComponent(cleanName + ' pakistan review unboxing')}`,
-  };
-}
-
     const res = await model.generateContent(prompt);
+
     const rawText = res.response.text().trim();
     const cleanJson = rawText.replace(/^```json\s*|\s*```$/g, '').trim();
     const parsed = JSON.parse(cleanJson);
