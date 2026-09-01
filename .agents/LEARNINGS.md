@@ -60,7 +60,16 @@ This file serves as persistent dynamic memory across coding agent sessions. Ever
 
 ## 📝 PART 2: Project-Specific Resolution History
 
+### 2026-09-01 — Floating Action Button (FAB) Dynamic Stacking & Collision Prevention
+- **📌 Issue**: On mobile product pages with the sticky bottom bar, the circular Back-to-Top button (`.back-to-top`) was partially covered by the floating green Store Chat launcher.
+- **🔍 Root Cause & Failed Attempts**: Static `bottom: 100px` positioning in CSS clashed with dynamic bottom offsets (`bottom: 78px` on product pages where sticky cart CTA is rendered).
+- **🛠️ Verified Code Fix**:
+  1. Updated `Navbar.tsx` and `NavbarClassic.tsx` with dynamic page detection (`pathname?.startsWith('/product/') ? '146px' : '90px'`).
+  2. Guaranteed a 12px clean vertical spacing between the chat launcher and the back-to-top button on product and catalog pages.
+  3. Verified 0 compilation errors via `pnpm tsc --noEmit`.
+
 ### 2026-09-01 — Chat Rich Markdown Link Parsing & Next.js SPA Navigation
+
 - **📌 Issue**: Chat messages displayed raw markdown URLs (e.g. `[https://pakodrive.pk/product/...]`) as unstyled plain text that were not clickable or caused full-page reloads.
 - **🔍 Root Cause & Failed Attempts**: Plain `{msg.text}` string rendering lacked a tokenizing parser to convert markdown link brackets and absolute URLs into Next.js `<Link>` components.
 - **🛠️ Verified Code Fix**:

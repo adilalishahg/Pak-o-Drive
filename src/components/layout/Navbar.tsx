@@ -540,10 +540,18 @@ export const Navbar: React.FC = () => {
 
         {/* Back to Top */}
         {showTop && (
-          <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="back-to-top" aria-label="Back to top">
+          <button
+            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+            className={`back-to-top ${pathname?.startsWith('/product/') ? 'is-product-page' : ''}`}
+            style={{
+              bottom: pathname?.startsWith('/product/') ? '146px' : '90px',
+            }}
+            aria-label="Back to top"
+          >
             <i className="fas fa-arrow-up" />
           </button>
         )}
+
       </>
     );
   }
@@ -823,10 +831,18 @@ export const Navbar: React.FC = () => {
 
       {/* Back to Top */}
       {showTop && (
-        <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="back-to-top" aria-label="Back to top">
+        <button
+          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          className={`back-to-top ${pathname?.startsWith('/product/') ? 'is-product-page' : ''}`}
+          style={{
+            bottom: pathname?.startsWith('/product/') ? '146px' : '90px',
+          }}
+          aria-label="Back to top"
+        >
           <i className="fas fa-arrow-up" />
         </button>
       )}
+
     </>
   );
 };
