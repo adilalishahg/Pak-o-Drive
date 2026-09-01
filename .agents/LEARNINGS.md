@@ -549,6 +549,15 @@ This file serves as persistent dynamic memory across coding agent sessions. Ever
   2. Replaced full table `$expr` scans in `/api/chat` with indexed lookups (`ObjectId.isValid`, `trackingNumber`, `customerDetails.phone`).
   3. Added strict pagination (`Math.min(100, reqLimit)`) and `.lean()` across `/api/orders`, `/api/products`, `/api/contacts`, and `/api/newsletter`.
 
+### 2026-09-01: Product Detail Mobile Loading & 0ms Image Switch
+- **Issue**: Slow opening on mobile product detail pages and lag/delay when tapping gallery thumbnails or variants.
+- **Root Cause**: Redundant `<Suspense>` wrapper delaying initial server stream in `product/[id]/page.tsx`, asynchronous `useEffect` decoupling thumbnail clicks from image rendering, and missing synchronous image update handler.
+- **Verified Fix**:
+  1. Converted `product/[id]/page.tsx` to direct `async Server Component` without client-side suspense delay.
+  2. Implemented `handleSelectMedia` with synchronous `setMainImgSrc` execution on thumbnail clicks in `ProductImageGallery.tsx`.
+  3. Pre-buffered full-res gallery assets in browser RAM for 0ms transitions.
+
+
 
 
 

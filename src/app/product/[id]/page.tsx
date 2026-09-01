@@ -103,22 +103,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 
 export default async function ProductDetailPage({ params }: PageProps) {
-  return (
-    <Suspense
-      fallback={
-        <div style={{ minHeight: '100vh', background: '#f4f4f4', padding: '100px 20px' }} className="d-flex justify-content-center align-items-center">
-          <div className="spinner-border text-primary" role="status">
-            <span className="visually-hidden">Loading product...</span>
-          </div>
-        </div>
-      }
-    >
-      {params.then(({ id }) => (
-        <ProductDetailContent id={id} />
-      ))}
-    </Suspense>
-  );
+  const { id } = await params;
+  return <ProductDetailContent id={id} />;
 }
+
 
 async function ProductDetailContent({ id }: { id: string }) {
   const product = await getCachedProduct(id);

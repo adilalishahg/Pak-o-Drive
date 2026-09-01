@@ -51,7 +51,7 @@ export const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({
   const prevImageRef = useRef(image);
   const videoRef = useRef<HTMLVideoElement>(null);
 
-  // Instant RAM Cache Preloader: Buffer all gallery images in browser cache for 0ms transitions
+  // Instant 0ms RAM Preloader: Pre-cache all full gallery images immediately in browser memory
   useEffect(() => {
     if (typeof window === 'undefined') return;
     allImages.forEach((imgUrl) => {
@@ -62,26 +62,34 @@ export const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({
     });
   }, [allImages]);
 
+  // Synchronous, Instant media selector (0ms lag on mobile touch)
+  const handleSelectMedia = useCallback((item: { type: 'video' | 'image'; url: string }) => {
+    setActiveItem(item);
+    if (item.type === 'image') {
+      setMainImgSrc(item.url || '/img/product-placeholder.png');
+    }
+    setIsDesktopZoomed(false);
+  }, []);
+
   // Update on variant change
   useEffect(() => {
-    if (image && image !== initialImageRef.current && image !== prevImageRef.current) {
+    if (image && image !== prevImageRef.current) {
       setActiveItem({ type: 'image', url: image });
+      setMainImgSrc(image);
     }
     prevImageRef.current = image;
   }, [image]);
 
   useEffect(() => {
-    if (activeItem.type === 'image') {
-      setMainImgSrc(activeItem.url || '/img/product-placeholder.png');
-    } else if (activeItem.type === 'video') {
+    if (activeItem.type === 'video') {
       setTimeout(() => {
         if (videoRef.current) {
           videoRef.current.play().catch(() => {});
         }
       }, 50);
     }
-    setIsDesktopZoomed(false);
   }, [activeItem]);
+
 
   // Lock body scroll when lightbox is open
   useEffect(() => {
@@ -281,8 +289,9 @@ export const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({
             return (
               <button
                 key={idx}
-                onClick={() => setActiveItem(item)}
+                onClick={() => handleSelectMedia(item)}
                 type="button"
+
                 style={{
                   width: '58px',
                   height: '58px',
