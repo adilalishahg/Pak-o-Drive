@@ -1,9 +1,11 @@
+import mongoose from 'mongoose';
 import { cache } from 'react';
 import dbConnect from './mongodb';
 import SiteInfo from '../models/SiteInfo';
 import SiteSettings from '../models/SiteSettings';
 import Product from '../models/Product';
 import Category from '../models/Category';
+
 
 export const getCachedSiteInfo = cache(async () => {
   try {
@@ -27,16 +29,26 @@ export const getCachedSiteSettings = cache(async () => {
   }
 });
 
-export const getCachedProduct = cache(async (id: string) => {
+export const getCachedProduct = cache(async (idOrSlug: string) => {
+
   try {
     await dbConnect();
-    const p = await Product.findById(id).lean();
+    if (!idOrSlug) return null;
+    let p = null;
+    const isObjectId = mongoose.Types.ObjectId.isValid(idOrSlug);
+    if (isObjectId) {
+      p = await Product.findById(idOrSlug).lean();
+    }
+    if (!p) {
+      p = await Product.findOne({ slug: idOrSlug }).lean();
+    }
     return p ? JSON.parse(JSON.stringify(p)) : null;
   } catch (err) {
     console.error('Error in getCachedProduct:', err);
     return null;
   }
 });
+
 
 export const getCachedRelatedProducts = cache(async (category: string, excludeId: string) => {
   try {

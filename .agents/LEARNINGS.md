@@ -60,7 +60,24 @@ This file serves as persistent dynamic memory across coding agent sessions. Ever
 
 ## 📝 PART 2: Project-Specific Resolution History
 
+### 2026-09-01 — 5-Part Architectural & Feature Upgrade (Multi-Admin WhatsApp, Dynamic Slugs OpenGraph, Clean Types)
+- **📌 Issue**: City pre-selected by default on checkout, trending products search limit not configurable from admin UI, inquiry alerts limited to single phone, types/constants scattered inside TSX components, and WhatsApp link shares missing dynamic product image previews.
+- **🔍 Root Cause & Failed Attempts**:
+  1. `useCheckout.ts` initialized with `city: 'Lahore'`.
+  2. Daily trends scheduler hardcoded product count limit to 5.
+  3. `getAdminJid` only sent alerts to a single device JID.
+  4. `getCachedProduct` used `Product.findById(id)` which threw CastError on SEO slug URLs, falling back to home page metadata.
+  5. Analytics props & tabs defined inline inside `AnalyticsKPIHeader.tsx`.
+- **🛠️ Verified Code Fix**:
+  1. Set `city: ''` default in `useCheckout.ts` with required selection validation.
+  2. Added `trendingProductLimit` and `adminPhones` to `SiteInfo.ts` and Admin Settings UI.
+  3. Implemented `getAllAdminJids` in `bot.mjs` to broadcast live inquiries and new orders across multiple admin WhatsApp devices in parallel.
+  4. Updated `getCachedProduct` in `cache.ts` to query by BOTH `ObjectId` and `slug`, enabling 100% accurate Cloudinary OpenGraph rich link previews on WhatsApp/social platforms.
+  5. Extracted `src/types/analytics.ts` and centralized `ANALYTICS_TABS` in `src/lib/constants.ts`.
+  6. Verified 0 compilation errors via `pnpm tsc --noEmit`.
+
 ### 2026-09-01 — Strict Backend Video Visibility Control (`showVideoOnFront`)
+
 - **📌 Issue**: Products with video turned OFF in admin backend still displayed the `▶ VIDEO` thumbnail tab in the frontend product gallery.
 - **🔍 Root Cause & Failed Attempts**: `ProductImageGallery.tsx` had a fallback `else` branch that appended `video` to the end of `mediaItems` even when `showVideoOnFront === false`.
 - **🛠️ Verified Code Fix**:

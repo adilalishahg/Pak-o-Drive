@@ -274,10 +274,20 @@ const WebChatSessionSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+const SiteInfoSchema = new mongoose.Schema(
+  {
+    trendingProductLimit: { type: Number, default: 10 },
+    adminPhones: { type: String, default: '03185205667, 03218827748' },
+  },
+  { strict: false }
+);
+
 const WhatsAppRule = mongoose.models.WhatsAppRule || mongoose.model('WhatsAppRule', WhatsAppRuleSchema);
 const Order = mongoose.models.Order || mongoose.model('Order', OrderSchema);
 const Product = mongoose.models.Product || mongoose.model('Product', ProductSchema);
 const WebChatSession = mongoose.models.WebChatSession || mongoose.model('WebChatSession', WebChatSessionSchema);
+const SiteInfo = mongoose.models.SiteInfo || mongoose.model('SiteInfo', SiteInfoSchema);
+
 
 
 // In-memory Conversation History Buffer per Phone
@@ -965,6 +975,44 @@ let orderWatcherInterval = null;
 let trendsSchedulerInterval = null;
 let lastTrendsSentDate = '';
 
+async function getAllAdminJids(socket) {
+  const jids = new Set();
+
+  // 1. Bot's own linked phone
+  if (socket?.user?.id) {
+    const selfNum = socket.user.id.split(':')[0].split('@')[0];
+    if (selfNum) jids.add(`${selfNum}@s.whatsapp.net`);
+  }
+
+  // 2. Environment variable admin
+  const adminEnv = process.env.ADMIN_WHATSAPP_NUMBER || process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '';
+  if (adminEnv) {
+    const clean = adminEnv.replace(/[^0-9]/g, '');
+    let norm = clean;
+    if (clean.startsWith('03')) norm = '92' + clean.substring(1);
+    else if (clean.startsWith('3')) norm = '92' + clean;
+    if (norm) jids.add(`${norm}@s.whatsapp.net`);
+  }
+
+  // 3. Database SiteInfo multi-admin phones
+  try {
+    const siteInfo = await SiteInfo.findOne().lean();
+    if (siteInfo?.adminPhones) {
+      const splitPhones = siteInfo.adminPhones.split(/[,;\n]+/);
+      for (const raw of splitPhones) {
+        const clean = raw.replace(/[^0-9]/g, '');
+        if (!clean) continue;
+        let norm = clean;
+        if (clean.startsWith('03')) norm = '92' + clean.substring(1);
+        else if (clean.startsWith('3')) norm = '92' + clean;
+        if (norm) jids.add(`${norm}@s.whatsapp.net`);
+      }
+    }
+  } catch (err) {}
+
+  return Array.from(jids);
+}
+
 function getAdminJid(socket) {
   const adminEnv = process.env.ADMIN_WHATSAPP_NUMBER || process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '';
   if (adminEnv) {
@@ -974,13 +1022,12 @@ function getAdminJid(socket) {
     else if (clean.startsWith('3')) normalized = '92' + clean;
     return `${normalized}@s.whatsapp.net`;
   }
-  if (socket.user?.id) {
+  if (socket?.user?.id) {
     const pureNumber = socket.user.id.split(':')[0].split('@')[0];
     return `${pureNumber}@s.whatsapp.net`;
   }
   return null;
 }
-
 
 function startOrderWatcher(socket) {
   if (orderWatcherInterval) clearInterval(orderWatcherInterval);
@@ -995,8 +1042,8 @@ function startOrderWatcher(socket) {
 
       if (!unnotifiedOrders || unnotifiedOrders.length === 0) return;
 
-      const adminJid = getAdminJid(socket);
-      if (!adminJid) return;
+      const adminJids = await getAllAdminJids(socket);
+      if (adminJids.length === 0) return;
 
       for (const order of unnotifiedOrders) {
         const shortId = order._id?.toString().slice(-8).toUpperCase() || 'NEW';
@@ -1024,9 +1071,11 @@ function startOrderWatcher(socket) {
           `🌐 *Source:* Web Checkout\n` +
           `👉 *Admin Orders:* ${SITE_URL}/admin/orders`;
 
-        await socket.sendMessage(adminJid, { text: message });
+        for (const targetJid of adminJids) {
+          await socket.sendMessage(targetJid, { text: message }).catch(() => {});
+        }
         await Order.updateOne({ _id: order._id }, { $set: { whatsappSent: true } });
-        console.log(`✅ [Order Alert] Sent order #${shortId} notification to admin (${adminJid})`);
+        console.log(`✅ [Order Alert] Sent order #${shortId} notification to ${adminJids.length} admin numbers`);
       }
     } catch (err) {
       console.error('[Order Watcher Error]', err);
@@ -1044,24 +1093,30 @@ function startDailyTrendsScheduler(socket) {
       const pktDateStr = now.toLocaleDateString('en-CA', { timeZone: 'Asia/Karachi' }); // YYYY-MM-DD
       const pktHour = parseInt(now.toLocaleTimeString('en-GB', { hour: '2-digit', hour12: false, timeZone: 'Asia/Karachi' }), 10);
 
-      // Trigger if hour is 10 AM or later and haven't sent today
       if (lastTrendsSentDate !== pktDateStr && pktHour >= 10) {
         console.log(`[Daily Trends Scheduler] Generating and dispatching daily intelligence digest for ${pktDateStr}...`);
 
-        const adminJid = getAdminJid(socket);
-        if (!adminJid) return;
+        const adminJids = await getAllAdminJids(socket);
+        if (adminJids.length === 0) return;
 
-        // Fetch top store products
-        const storeProducts = await Product.find({ stock: { $gt: 0 } }).limit(5).lean();
+        let limit = 10;
+        try {
+          const siteInfo = await SiteInfo.findOne().lean();
+          if (siteInfo?.trendingProductLimit) {
+            limit = siteInfo.trendingProductLimit;
+          }
+        } catch (e) {}
+
+        const storeProducts = await Product.find({ stock: { $gt: 0 } }).limit(limit).lean();
         const p1 = storeProducts[0]?.name || 'Universal Ambient LED Lights';
         const p2 = storeProducts[1]?.name || '3-in-1 Fast Retractable Car Charger';
 
         const digest =
-          `🔥 *PAK-O-DRIVE DAILY VIRAL TRENDS & AD INTELLIGENCE* 🚀\n` +
+          `🔥 *PAK-O-DRIVE DAILY VIRAL TRENDS & AD INTELLIGENCE (${storeProducts.length} Products)* 🚀\n` +
           `📅 *Date:* ${pktDateStr}\n` +
           `━━━━━━━━━━━━━━━━━━━━━\n` +
           `💡 *Market Insight:* Pakistani TikTok & Meta feeds par interior luxury aesthetics aur problem-solving gadgets top converting hain with Cash On Delivery!\n\n` +
-          `🏆 *TOP 3 WINNING PRODUCTS TODAY:*\n\n` +
+          `🏆 *TOP WINNING PRODUCTS TODAY:*\n\n` +
           `1️⃣ *${p1}*\n` +
           `• 📈 *Platform:* TikTok Viral (Demand: 96%)\n` +
           `• 🎯 *Hook:* "Bhai agar aapki gari me ambient lighting nahi lagi tou aap 2026 me nahi 2010 me travel kar rahe hain!"\n` +
@@ -1078,16 +1133,18 @@ function startDailyTrendsScheduler(socket) {
           `• 💰 *Pricing:* Sell Rs. 1,650 | Profit: Rs. 900/order\n` +
           `• 🎬 *Video Angle:* Sunlight Activation Visual ASMR\n\n` +
           `━━━━━━━━━━━━━━━━━━━━━\n` +
-          `📥 *Full Video Shot Lists & Scripts:* ${SITE_URL}/admin/trending-intelligence`;
+          `📥 *Full ${storeProducts.length} Product Video Shot Lists & Scripts:* ${SITE_URL}/admin/trending-intelligence`;
 
-        await socket.sendMessage(adminJid, { text: digest });
+        for (const targetJid of adminJids) {
+          await socket.sendMessage(targetJid, { text: digest }).catch(() => {});
+        }
         lastTrendsSentDate = pktDateStr;
-        console.log(`✅ [Daily Trends Alert] Dispatched daily intelligence brief to ${adminJid}`);
+        console.log(`✅ [Daily Trends Alert] Dispatched daily intelligence brief to ${adminJids.length} admin numbers`);
       }
     } catch (err) {
       console.error('[Daily Trends Scheduler Error]', err);
     }
-  }, 10 * 60 * 1000); // Check every 10 minutes
+  }, 10 * 60 * 1000);
 }
 
 let webChatWatcherInterval = null;
@@ -1103,9 +1160,8 @@ function startWebChatWatcher(socket) {
       const sessions = await WebChatSession.find({ isAgentLive: true }).sort({ updatedAt: -1 }).limit(20);
       if (!sessions || sessions.length === 0) return;
 
-      const adminJid = getAdminJid(socket);
-      if (!adminJid) return;
-
+      const adminJids = await getAllAdminJids(socket);
+      if (adminJids.length === 0) return;
 
       for (const session of sessions) {
         let modified = false;
@@ -1120,12 +1176,14 @@ function startWebChatWatcher(socket) {
               `#${session.shortCode} Aapka reply yahan`;
 
             try {
-              console.log(`[WebChat Watcher] Forwarding live inquiry to Admin (${adminJid}) for Session #${session.shortCode}: "${msg.text}"`);
-              await socket.sendMessage(adminJid, { text: alert });
+              console.log(`[WebChat Watcher] Broadcasting live inquiry for Session #${session.shortCode} to ${adminJids.length} admin devices`);
+              for (const targetJid of adminJids) {
+                await socket.sendMessage(targetJid, { text: alert }).catch(() => {});
+              }
               msg.notifiedToAdmin = true;
               modified = true;
             } catch (sendErr) {
-              console.error('[WebChat Watcher] Failed to send message to WhatsApp:', sendErr.message);
+              console.error('[WebChat Watcher] Failed to broadcast alert to WhatsApp:', sendErr.message);
             }
           }
         }
@@ -1140,8 +1198,8 @@ function startWebChatWatcher(socket) {
   }, 3000);
 }
 
-
 start().catch(console.error);
+
 
 
 

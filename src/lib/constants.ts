@@ -155,3 +155,12 @@ export const RECENT_SALES_NOTIFICATIONS = [
   { customer: 'Danish N.', city: 'Peshawar', product: 'Car Dashboard Camera HD', timeAgo: '31 minutes ago' },
   { customer: 'Saad M.', city: 'Sialkot', product: 'Portable Wireless Powerbank', timeAgo: '42 minutes ago' },
 ];
+
+export const ANALYTICS_TABS = [
+  { key: 'revenue', label: 'Revenue & Sales', icon: 'fas fa-chart-line' },
+  { key: 'traffic', label: 'Traffic & Devices', icon: 'fas fa-users' },
+  { key: 'cities', label: 'City Logistics Map', icon: 'fas fa-map-marker-alt' },
+  { key: 'funnel', label: 'Conversion Funnel', icon: 'fas fa-filter' },
+  { key: 'market', label: 'Market Intelligence', icon: 'fas fa-brain' },
+] as const;
+

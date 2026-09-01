@@ -35,12 +35,15 @@ export interface ISiteInfo {
   returnPolicy: string;
   shippingPolicy: string;
   aboutUs: string;
-  // Footer newsletter text
+  // Misc & Automations
   newsletterText: string;
-  // Misc
+  trendingProductLimit: number;
+  adminPhones: string;
   copyrightText: string;
   updatedAt?: Date;
 }
+
+
 
 export interface ISiteInfoDocument extends ISiteInfo, Document { }
 
@@ -98,11 +101,20 @@ const SiteInfoSchema = new Schema<ISiteInfoDocument>(
       type: String,
       default: 'Subscribe to get notifications on headphones, chargers, and automotive electronic updates.',
     },
+    trendingProductLimit: {
+      type: Number,
+      default: 10,
+    },
+    adminPhones: {
+      type: String,
+      default: '03185205667, 03218827748',
+    },
     copyrightText: {
       type: String,
       default: '© 2026 PAKODRIVE. All rights reserved.',
     },
   },
+
   { timestamps: true }
 );
 

@@ -35,6 +35,8 @@ interface SiteInfo {
   shippingPolicy: string;
   aboutUs: string;
   newsletterText: string;
+  trendingProductLimit: number;
+  adminPhones: string;
   copyrightText: string;
 }
 
@@ -69,8 +71,11 @@ const DEFAULT_INFO: SiteInfo = {
   shippingPolicy: '',
   aboutUs: '',
   newsletterText: '',
+  trendingProductLimit: 10,
+  adminPhones: '03185205667, 03218827748',
   copyrightText: '',
 };
+
 
 type ActiveTab = 'general' | 'contact' | 'social' | 'policies' | 'seo';
 
@@ -366,6 +371,24 @@ export default function AdminSiteInfoPage() {
                       placeholder="Subscribe text shown in the footer..."
                     />
                   </div>
+                  <div className="col-12 col-md-6">
+                    <label className="form-label text-muted small fw-semibold">
+                      🔥 Daily Trending Products AI Discovery Limit
+                    </label>
+                    <input
+                      type="number"
+                      min={3}
+                      max={50}
+                      name="trendingProductLimit"
+                      value={info.trendingProductLimit || 10}
+                      onChange={e => setInfo(prev => ({ ...prev, trendingProductLimit: parseInt(e.target.value) || 10 }))}
+                      className="form-control rounded-3"
+                      placeholder="e.g. 10"
+                    />
+                    <div className="text-muted" style={{ fontSize: '0.72rem', marginTop: '3px' }}>
+                      Controls how many viral trending products AI intelligence finds & sends via WhatsApp daily.
+                    </div>
+                  </div>
                   <div className="col-12">
                     <label className="form-label text-muted small fw-semibold">Footer Copyright Text</label>
                     <input
@@ -380,6 +403,7 @@ export default function AdminSiteInfoPage() {
                 </div>
               </div>
             )}
+
 
             {activeTab === 'seo' && (
               <div className="fade-in">
@@ -529,7 +553,7 @@ export default function AdminSiteInfoPage() {
                     />
                   </div>
                   <div className="col-12 col-md-6">
-                    <label className="form-label text-muted small fw-semibold">WhatsApp Number (e.g. +923185205667)</label>
+                    <label className="form-label text-muted small fw-semibold">Primary WhatsApp Number (e.g. +923185205667)</label>
                     <input
                       type="text"
                       name="whatsapp"
@@ -539,6 +563,23 @@ export default function AdminSiteInfoPage() {
                       placeholder="e.g. +923185205667"
                     />
                   </div>
+                  <div className="col-12 col-md-6">
+                    <label className="form-label text-muted small fw-semibold">
+                      📱 Multi-Admin Live Chat WhatsApp Numbers
+                    </label>
+                    <input
+                      type="text"
+                      name="adminPhones"
+                      value={info.adminPhones}
+                      onChange={handleChange}
+                      className="form-control rounded-3"
+                      placeholder="e.g. 03185205667, 03218827748"
+                    />
+                    <div className="text-muted" style={{ fontSize: '0.72rem', marginTop: '3px' }}>
+                      Separate multiple numbers with commas. Live customer inquiries will be broadcast to all these numbers, and any admin can reply from WhatsApp!
+                    </div>
+                  </div>
+
                   <div className="col-12 col-md-6">
                     <label className="form-label text-muted small fw-semibold">Website Domain Link</label>
                     <input

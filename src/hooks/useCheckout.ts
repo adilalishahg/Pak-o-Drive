@@ -25,10 +25,11 @@ export function useCheckout() {
     fullName: '',
     phone: '',
     address: '',
-    city: 'Lahore',
+    city: '',
     email: '',
     orderNotes: '',
   });
+
 
   const updateField = (field: keyof CheckoutFormData, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));

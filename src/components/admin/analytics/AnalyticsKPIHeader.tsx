@@ -2,25 +2,9 @@
 
 import React from 'react';
 import MetricCard from '@/components/common/MetricCard';
-import { AnalyticsData, AnalyticsTabKey } from '../../../hooks/useAdminAnalytics';
+import { AnalyticsKPIHeaderProps } from '@/types/analytics';
+import { ANALYTICS_TABS } from '@/lib/constants';
 
-interface AnalyticsKPIHeaderProps {
-  data: AnalyticsData | null;
-  timeframe: '7d' | '30d' | '90d' | 'all';
-  setTimeframe: (t: '7d' | '30d' | '90d' | 'all') => void;
-  activeTab: AnalyticsTabKey;
-  setActiveTab: (t: AnalyticsTabKey) => void;
-  onRefresh: () => void;
-  refreshing: boolean;
-}
-
-const TABS: { key: AnalyticsTabKey; label: string; icon: string }[] = [
-  { key: 'revenue', label: 'Revenue & Sales', icon: 'fas fa-chart-line' },
-  { key: 'traffic', label: 'Traffic & Devices', icon: 'fas fa-users' },
-  { key: 'cities', label: 'City Logistics Map', icon: 'fas fa-map-marker-alt' },
-  { key: 'funnel', label: 'Conversion Funnel', icon: 'fas fa-filter' },
-  { key: 'market', label: 'Market Intelligence', icon: 'fas fa-brain' },
-];
 
 export function AnalyticsKPIHeader({
   data,
@@ -128,8 +112,9 @@ export function AnalyticsKPIHeader({
       {/* Categorized Tab Navigation Bar */}
       <div className="bg-white p-2 p-md-3 rounded-4 shadow-sm border mb-4">
         <div className="d-flex align-items-center gap-1.5 gap-md-2 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
-          {TABS.map((tab) => {
+          {ANALYTICS_TABS.map((tab) => {
             const isActive = activeTab === tab.key;
+
             return (
               <button
                 key={tab.key}
