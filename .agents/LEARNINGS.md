@@ -525,6 +525,15 @@ This file serves as persistent dynamic memory across coding agent sessions. Ever
   2. Fixed default canonical site URL to `https://www.pakodrive.pk` across `layout.tsx` and `product/[id]/page.tsx`.
   3. Enhanced `src/worker/bot.mjs` so when customer asks about an item (e.g., "mehran mirror"), the bot dispatches a rich WhatsApp media message containing the actual product photo with price caption.
 
+### 2026-09-01: Modular Domain-Driven Types & Constants Centralization
+- **Issue**: Scattered inline interfaces and types across 15+ pages and hooks causing circular dependencies, code duplication, and maintenance overhead.
+- **Root Cause**: Interfaces (`SiteInfo`, `DashboardData`, `Subscriber`, `PromoData`, `ContactData`, `CategoryData`, `OrderData`, `CheckoutFormData`, `FunnelStep`, `TikTokPostResult`, `MetaAdResult`) were defined locally inside UI component and hook files rather than centralized domain modules.
+- **Verified Fix**:
+  1. Created compact, domain-focused modules under `src/types/`: `siteInfo.ts`, `admin.ts`, `order.ts`, `product.ts`, `analytics.ts`, `whatsapp.ts`, `theme.ts`, `marketIntelligence.ts`, with clean barrel re-export via `src/types/index.ts`.
+  2. Decoupled all hooks (`useAdminAnalytics`, `useAdminOrders`, `useProductForm`, `useStoreChatBot`, `useWhatsAppBot`, `useCheckout`) and pages (`admin/site-info`, `admin/categories`, `admin/subscribers`, `admin/promotions`, `admin/contacts`, `admin/theme`, `track-order`) to consume from `@/types` while re-exporting for backward compatibility.
+  3. Verified complete type safety with `pnpm tsc --noEmit` passing with 0 errors.
+
+
 
 
 
