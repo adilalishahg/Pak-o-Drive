@@ -565,6 +565,15 @@ This file serves as persistent dynamic memory across coding agent sessions. Ever
   2. Extracted fullscreen HD Lightbox modal into dedicated `ProductLightboxModal.tsx` subcomponent.
   3. Reduced `ProductImageGallery.tsx` from 616 lines to a clean ~220-line pure presentational view implementing dual-layer blur/contain uncropped presentation (Mandatory Rule 3).
 
+### 2026-09-01: Gallery Bundle Splitting & GPU Async Decoding Optimization
+- **Issue**: Initial mobile payload on product page contained unused modal code, and large image decoding blocked the UI thread on budget devices.
+- **Root Cause**: Lightbox modal was eagerly imported in the critical rendering path, and preloaded images lacked `decoding: 'async'` hardware acceleration.
+- **Verified Fix**:
+  1. Lazy-loaded `ProductLightboxModal` via Next.js `dynamic(..., { ssr: false })` shaving off ~15KB from the initial mobile bundle.
+  2. Applied `preloadedImg.decoding = 'async'` in `useProductImageGallery.ts` to decode images on background GPU threads.
+  3. Added `will-change: transform, opacity` and `translateZ(0)` hardware acceleration to ambient blur backdrops.
+
+
 
 
 

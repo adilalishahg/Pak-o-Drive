@@ -56,17 +56,19 @@ export function useProductImageGallery({
   const prevImageRef = useRef(image);
   const videoRef = useRef<HTMLVideoElement>(null);
 
-  // Instant 0ms RAM Preloader: Pre-cache all full gallery images immediately in browser memory
+  // Instant 0ms RAM Preloader: Pre-cache all full gallery images immediately in browser memory with async decoding
   useEffect(() => {
     if (typeof window === 'undefined') return;
     mediaItems.forEach((item) => {
       if (item.type === 'image' && item.url) {
         const cleanUrl = item.url.startsWith('http') || item.url.startsWith('/') ? item.url : `/${item.url}`;
         const preloadedImg = new window.Image();
+        preloadedImg.decoding = 'async';
         preloadedImg.src = cleanUrl;
       }
     });
   }, [mediaItems]);
+
 
   // Synchronous, Instant media selector (0ms lag on mobile touch)
   const handleSelectMedia = useCallback((item: GalleryMediaItem) => {
