@@ -948,8 +948,13 @@ function getAdminJid(socket) {
     else if (clean.startsWith('3')) normalized = '92' + clean;
     return `${normalized}@s.whatsapp.net`;
   }
-  return socket.user?.id;
+  if (socket.user?.id) {
+    const pureNumber = socket.user.id.split(':')[0].split('@')[0];
+    return `${pureNumber}@s.whatsapp.net`;
+  }
+  return null;
 }
+
 
 function startOrderWatcher(socket) {
   if (orderWatcherInterval) clearInterval(orderWatcherInterval);
