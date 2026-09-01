@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { generateTrendingIntelligence } from '@/lib/intelligenceEngine';
 import { sendAdminDailyTrendsDigest, getAdminWhatsAppNumber } from '@/lib/whatsappNotification';
 
+import SiteInfo from '@/models/SiteInfo';
+
 let cachedReport: any = null;
 let lastGeneratedAt: number = 0;
 const CACHE_TTL_MS = 30 * 60 * 1000; // 30 minutes cache
@@ -9,9 +11,11 @@ const CACHE_TTL_MS = 30 * 60 * 1000; // 30 minutes cache
 export async function GET(req: NextRequest) {
   try {
     const forceRefresh = req.nextUrl.searchParams.get('refresh') === 'true';
+    const limitParam = req.nextUrl.searchParams.get('limit');
+    const requestedLimit = limitParam ? parseInt(limitParam, 10) : undefined;
     const now = Date.now();
 
-    if (!forceRefresh && cachedReport && now - lastGeneratedAt < CACHE_TTL_MS) {
+    if (!forceRefresh && !requestedLimit && cachedReport && now - lastGeneratedAt < CACHE_TTL_MS) {
       return NextResponse.json({
         success: true,
         data: cachedReport,
@@ -19,9 +23,11 @@ export async function GET(req: NextRequest) {
       });
     }
 
-    const report = await generateTrendingIntelligence();
-    cachedReport = report;
-    lastGeneratedAt = now;
+    const report = await generateTrendingIntelligence(requestedLimit);
+    if (!requestedLimit) {
+      cachedReport = report;
+      lastGeneratedAt = now;
+    }
 
     return NextResponse.json({
       success: true,
@@ -42,6 +48,19 @@ export async function POST(req: NextRequest) {
     const body = await req.json().catch(() => ({}));
     const action = body.action || 'send_whatsapp';
 
+    if (action === 'update_limit') {
+      const newLimit = parseInt(body.limit, 10) || 10;
+      await SiteInfo.findOneAndUpdate({}, { trendingProductLimit: newLimit }, { upsert: true });
+      cachedReport = null; // Invalidate cache so new limit takes effect
+      const updatedReport = await generateTrendingIntelligence(newLimit);
+      return NextResponse.json({
+        success: true,
+        limit: newLimit,
+        data: updatedReport,
+        message: `Daily trending product limit updated to ${newLimit}`,
+      });
+    }
+
     if (action === 'send_whatsapp') {
       const report = cachedReport || (await generateTrendingIntelligence());
       const adminPhone = getAdminWhatsAppNumber();
@@ -57,6 +76,7 @@ export async function POST(req: NextRequest) {
           : `Bot connected nahi tha ya message queue me chala gaya. (${adminPhone})`,
       });
     }
+
 
     return NextResponse.json({ success: false, error: 'Unknown action' }, { status: 400 });
   } catch (err: any) {

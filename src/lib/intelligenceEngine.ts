@@ -40,19 +40,34 @@ export interface TrendingAdIntelligence {
   referenceAdStyle: string;
 }
 
+import SiteInfo from '../models/SiteInfo';
+
 export interface IntelligenceReportPayload {
   generatedAt: string;
   marketSummary: string;
   topTrends: TrendingAdIntelligence[];
+  limit?: number;
 }
 
-export async function generateTrendingIntelligence(): Promise<IntelligenceReportPayload> {
+export async function generateTrendingIntelligence(requestedLimit?: number): Promise<IntelligenceReportPayload> {
   await dbConnect();
 
-  // Fetch some products from store to cross-reference
+  let limit = requestedLimit;
+  if (!limit || limit <= 0) {
+    try {
+      const siteInfo = await SiteInfo.findOne().lean();
+      limit = siteInfo?.trendingProductLimit || 10;
+    } catch {
+      limit = 10;
+    }
+  }
+
+  const activeLimit: number = limit || 10;
+
+  // Fetch products from store according to limit
   const storeProducts = await Product.find({ stock: { $gt: 0 } })
     .select('name price slug category image')
-    .limit(10)
+    .limit(activeLimit)
     .lean();
 
   const storeProductSummary = storeProducts
@@ -62,12 +77,16 @@ export async function generateTrendingIntelligence(): Promise<IntelligenceReport
   const apiKey = getApiKey();
 
   if (!apiKey) {
-    return getFallbackIntelligence(storeProducts);
+    return getFallbackIntelligence(storeProducts, activeLimit);
   }
 
   try {
     const genAI = new GoogleGenerativeAI(apiKey);
     const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+
+    const existingCount = Math.max(1, Math.ceil(activeLimit * 0.6));
+    const newCount = Math.max(1, activeLimit - existingCount);
+
 
     const prompt = `You are a master Pakistani E-Commerce Growth Hacker, Media Buyer, and Viral Creative Director specializing in automotive accessories and tech gadgets for the Pakistani market (TikTok Ads, Instagram Reels, Facebook Ads).
 
@@ -76,9 +95,9 @@ ${storeProductSummary || 'Universal Ambient LED Lights, Fast Car Charger, Solar 
 
 Task:
 Analyze current high-performing viral ad trends in Pakistan (2026) for automotive & gadget e-commerce.
-Generate 5 detailed trend intelligence dossiers:
-- 3 based on existing store products (or closely related items)
-- 2 high-demand new winning products not yet in the store
+Generate EXACTLY ${activeLimit} detailed trend intelligence dossiers:
+- ${existingCount} based on existing store products (or closely related items)
+- ${newCount} high-demand new winning products not yet in the store
 
 For EACH item, provide in valid JSON format:
 1. id (string)
@@ -117,7 +136,7 @@ Return ONLY a valid JSON object matching this structure:
 {
   "generatedAt": "${new Date().toISOString()}",
   "marketSummary": "Brief 2-line executive summary of Pakistani automotive TikTok/Meta trends today",
-  "topTrends": [ ...5 items... ]
+  "topTrends": [ ...${activeLimit} items... ]
 }`;
 
     const res = await model.generateContent(prompt);
@@ -125,17 +144,19 @@ Return ONLY a valid JSON object matching this structure:
     const cleanJson = rawText.replace(/^```json\s*|\s*```$/g, '').trim();
     const parsed = JSON.parse(cleanJson);
 
-    return parsed;
+    return { ...parsed, limit: activeLimit };
   } catch (err) {
     console.error('[IntelligenceEngine] Gemini generation error, using curated fallback:', err);
-    return getFallbackIntelligence(storeProducts);
+    return getFallbackIntelligence(storeProducts, activeLimit);
   }
 }
+
 
 /**
  * High-quality curated default intelligence for Pakistani market
  */
-function getFallbackIntelligence(storeProducts: any[]): IntelligenceReportPayload {
+function getFallbackIntelligence(storeProducts: any[], limit: number = 10): IntelligenceReportPayload {
+
   const ambientProd = storeProducts.find((p) => /ambient|light|led/i.test(p.name));
   const chargerProd = storeProducts.find((p) => /charger|fast|cable/i.test(p.name));
 

@@ -12,8 +12,10 @@ export function useTrendingIntelligence() {
   const [selectedPlatform, setSelectedPlatform] = useState<'All' | 'TikTok' | 'Meta' | 'Instagram'>('All');
   const [filterType, setFilterType] = useState<'all' | 'existing' | 'recommended'>('all');
   const [selectedItem, setSelectedItem] = useState<TrendingAdIntelligence | null>(null);
+  const [limit, setLimit] = useState<number>(10);
+  const [isUpdatingLimit, setIsUpdatingLimit] = useState<boolean>(false);
 
-  const fetchIntelligence = useCallback(async (forceRefresh = false) => {
+  const fetchIntelligence = useCallback(async (forceRefresh = false, customLimit?: number) => {
     if (forceRefresh) {
       setIsRefreshing(true);
     } else {
@@ -21,12 +23,16 @@ export function useTrendingIntelligence() {
     }
 
     try {
-      const url = `/api/admin/trending-intelligence${forceRefresh ? '?refresh=true' : ''}`;
+      const activeLimit = customLimit || limit;
+      const url = `/api/admin/trending-intelligence?refresh=${forceRefresh}&limit=${activeLimit}`;
       const res = await fetch(url);
       const json = await res.json();
 
       if (json.success && json.data) {
         setReport(json.data);
+        if (json.data.limit) {
+          setLimit(json.data.limit);
+        }
       }
     } catch (err) {
       console.error('[useTrendingIntelligence] Error fetching data:', err);
@@ -34,11 +40,35 @@ export function useTrendingIntelligence() {
       setIsLoading(false);
       setIsRefreshing(false);
     }
-  }, []);
+  }, [limit]);
+
+  const updateLimit = async (newLimit: number) => {
+    if (newLimit <= 0 || newLimit > 100) return;
+    setIsUpdatingLimit(true);
+    setLimit(newLimit);
+    try {
+      const res = await fetch('/api/admin/trending-intelligence', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'update_limit', limit: newLimit }),
+      });
+      const json = await res.json();
+      if (json.success && json.data) {
+        setReport(json.data);
+        setWhatsappStatusMsg(`✅ Daily product limit updated to ${newLimit}!`);
+      }
+    } catch (err) {
+      console.error('[useTrendingIntelligence] Failed to update limit:', err);
+    } finally {
+      setIsUpdatingLimit(false);
+      setTimeout(() => setWhatsappStatusMsg(null), 4000);
+    }
+  };
 
   useEffect(() => {
     fetchIntelligence(false);
-  }, [fetchIntelligence]);
+  }, []);
+
 
   // Filtered list
   const filteredTrends = useMemo(() => {
@@ -191,5 +221,9 @@ export function useTrendingIntelligence() {
     downloadCSV,
     downloadCreativeBrief,
     filteredTrends,
+    limit,
+    updateLimit,
+    isUpdatingLimit,
   };
 }
+

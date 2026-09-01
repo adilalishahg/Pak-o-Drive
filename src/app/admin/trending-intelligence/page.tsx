@@ -23,7 +23,11 @@ export default function TrendingIntelligencePage() {
     downloadCSV,
     downloadCreativeBrief,
     filteredTrends,
+    limit,
+    updateLimit,
+    isUpdatingLimit,
   } = useTrendingIntelligence();
+
 
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
@@ -72,6 +76,50 @@ export default function TrendingIntelligencePage() {
 
         {/* Action Buttons */}
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center' }}>
+          {/* Daily Products Limit Selector */}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              background: '#f8fafc',
+              border: '1px solid #cbd5e1',
+              padding: '6px 12px',
+              borderRadius: '10px',
+              fontSize: '13px',
+              fontWeight: 600,
+              color: '#334155',
+            }}
+          >
+            <span style={{ fontSize: '14px' }}>📊</span>
+            <span>Limit:</span>
+            <select
+              value={limit}
+              onChange={(e) => updateLimit(parseInt(e.target.value, 10))}
+              disabled={isUpdatingLimit || isLoading}
+              style={{
+                border: '1px solid #94a3b8',
+                borderRadius: '6px',
+                padding: '2px 8px',
+                fontSize: '13px',
+                fontWeight: 700,
+                color: '#ea580c',
+                background: '#ffffff',
+                cursor: 'pointer',
+                outline: 'none',
+              }}
+            >
+              <option value="5">5 Trends</option>
+              <option value="10">10 Trends (Default)</option>
+              <option value="15">15 Trends</option>
+              <option value="20">20 Trends</option>
+              <option value="21">21 Trends</option>
+              <option value="25">25 Trends</option>
+              <option value="30">30 Trends</option>
+              <option value="50">50 Trends</option>
+            </select>
+          </div>
+
           {/* Refresh AI Analysis */}
           <button
             onClick={() => fetchIntelligence(true)}
@@ -96,6 +144,7 @@ export default function TrendingIntelligencePage() {
             </span>
             {isRefreshing ? 'Analyzing...' : 'Refresh AI Analysis'}
           </button>
+
 
           {/* Download CSV (Excel) */}
           <button
