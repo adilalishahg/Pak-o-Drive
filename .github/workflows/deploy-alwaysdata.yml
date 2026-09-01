@@ -12,7 +12,7 @@ jobs:
       - name: Deploy to Alwaysdata via SSH
         uses: appleboy/ssh-action@master
         with:
-          host: ssh2.alwaysdata.net
+          host: ssh-adilalishahg.alwaysdata.net
           username: adilalishahg
           password: ${{ secrets.ALWAYSDATA_SSH_PASSWORD }}
           port: 22
@@ -26,4 +26,5 @@ jobs:
             echo "🔄 [Auto-Deploy] Reloading WhatsApp Bot Service..."
             pkill -f "bot.mjs" || true
             echo "✅ [Auto-Deploy] Successfully deployed and restarted!"
+
 
