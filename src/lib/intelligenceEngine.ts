@@ -38,7 +38,13 @@ export interface TrendingAdIntelligence {
   voiceoverScriptUrdu: string;
   adTargetingKeywords: string[];
   referenceAdStyle: string;
+  liveAdLinks?: {
+    metaAdLibraryPk: string;
+    tiktokSearchPk: string;
+    youtubeSearchPk: string;
+  };
 }
+
 
 import SiteInfo from '../models/SiteInfo';
 
@@ -139,17 +145,33 @@ Return ONLY a valid JSON object matching this structure:
   "topTrends": [ ...${activeLimit} items... ]
 }`;
 
+function formatLiveAdLinks(productName: string) {
+  const cleanName = productName.replace(/[^\w\s-]/g, '').trim();
+  const q = encodeURIComponent(cleanName);
+  return {
+    metaAdLibraryPk: `https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=PK&q=${q}&search_type=keyword_unordered&media_type=all`,
+    tiktokSearchPk: `https://www.tiktok.com/search?q=${encodeURIComponent(cleanName + ' pakistan')}`,
+    youtubeSearchPk: `https://www.youtube.com/results?search_query=${encodeURIComponent(cleanName + ' pakistan review unboxing')}`,
+  };
+}
+
     const res = await model.generateContent(prompt);
     const rawText = res.response.text().trim();
     const cleanJson = rawText.replace(/^```json\s*|\s*```$/g, '').trim();
     const parsed = JSON.parse(cleanJson);
 
-    return { ...parsed, limit: activeLimit };
+    const trendsWithLinks = (parsed.topTrends || []).map((t: any) => ({
+      ...t,
+      liveAdLinks: formatLiveAdLinks(t.productName),
+    }));
+
+    return { ...parsed, topTrends: trendsWithLinks, limit: activeLimit };
   } catch (err) {
     console.error('[IntelligenceEngine] Gemini generation error, using curated fallback:', err);
     return getFallbackIntelligence(storeProducts, activeLimit);
   }
 }
+
 
 
 /**
@@ -484,6 +506,10 @@ function getFallbackIntelligence(storeProducts: any[], limit: number = 10): Inte
         ],
         referenceAdStyle: 'Real Road Safety POV Evidence',
       },
-    ],
+    ].slice(0, limit).map((trend) => ({
+      ...trend,
+      liveAdLinks: formatLiveAdLinks(trend.productName),
+    })),
   };
 }
+

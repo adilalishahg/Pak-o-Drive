@@ -273,7 +273,7 @@ export default function TrendingIntelligencePage() {
                 </div>
 
                 {/* Target Keywords Tags */}
-                <div className="d-flex flex-wrap gap-1 mb-3">
+                <div className="d-flex flex-wrap gap-1 mb-2">
                   {(trend.adTargetingKeywords || []).slice(0, 4).map((k, idx) => (
                     <span
                       key={idx}
@@ -282,6 +282,42 @@ export default function TrendingIntelligencePage() {
                       #{k}
                     </span>
                   ))}
+                </div>
+
+                {/* Live Competitor Ads in Pakistan Links */}
+                <div className="trend-live-ads-box">
+                  <span className="trend-live-ads-label">
+                    🇵🇰 Live Competitor Ads (Pakistan):
+                  </span>
+                  <div className="d-flex flex-wrap gap-1.5 mt-1.5">
+                    <a
+                      href={trend.liveAdLinks?.metaAdLibraryPk || `https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=PK&q=${encodeURIComponent(trend.productName)}&search_type=keyword_unordered&media_type=all`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="trend-ad-link meta"
+                      title="View active competitor ads in Meta Ad Library (Pakistan)"
+                    >
+                      <span>📘</span> Meta Ads (PK) ↗
+                    </a>
+                    <a
+                      href={trend.liveAdLinks?.tiktokSearchPk || `https://www.tiktok.com/search?q=${encodeURIComponent(trend.productName + ' pakistan')}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="trend-ad-link tiktok"
+                      title="View viral video ads on TikTok Pakistan"
+                    >
+                      <span>🎵</span> TikTok (PK) ↗
+                    </a>
+                    <a
+                      href={trend.liveAdLinks?.youtubeSearchPk || `https://www.youtube.com/results?search_query=${encodeURIComponent(trend.productName + ' pakistan review unboxing')}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="trend-ad-link youtube"
+                      title="Watch product video reviews in Pakistan"
+                    >
+                      <span>🎬</span> YouTube ↗
+                    </a>
+                  </div>
                 </div>
               </div>
 
@@ -307,6 +343,7 @@ export default function TrendingIntelligencePage() {
         </div>
       )}
 
+
       {/* Video Production Guide & Shot List Modal */}
       {selectedItem && (
         <div
@@ -329,6 +366,33 @@ export default function TrendingIntelligencePage() {
                 <p className="leading-normal text-slate-500 m-0" style={{ fontSize: '12.5px' }}>
                   Concept: <strong>{selectedItem.videoProductionGuide?.conceptOverview}</strong>
                 </p>
+                {/* Live Ad Links in Modal */}
+                <div className="d-flex flex-wrap gap-1.5 mt-2">
+                  <a
+                    href={selectedItem.liveAdLinks?.metaAdLibraryPk || `https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=PK&q=${encodeURIComponent(selectedItem.productName)}&search_type=keyword_unordered&media_type=all`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="trend-ad-link meta"
+                  >
+                    <span>📘</span> Live Meta Ads (PK) ↗
+                  </a>
+                  <a
+                    href={selectedItem.liveAdLinks?.tiktokSearchPk || `https://www.tiktok.com/search?q=${encodeURIComponent(selectedItem.productName + ' pakistan')}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="trend-ad-link tiktok"
+                  >
+                    <span>🎵</span> TikTok Viral (PK) ↗
+                  </a>
+                  <a
+                    href={selectedItem.liveAdLinks?.youtubeSearchPk || `https://www.youtube.com/results?search_query=${encodeURIComponent(selectedItem.productName + ' pakistan review unboxing')}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="trend-ad-link youtube"
+                  >
+                    <span>🎬</span> YouTube Demo ↗
+                  </a>
+                </div>
               </div>
 
               <button
@@ -338,6 +402,7 @@ export default function TrendingIntelligencePage() {
                 ✕
               </button>
             </div>
+
 
             {/* Smartphone Camera Setup Guide */}
             <div className="trends-camera-guide-box">
@@ -719,12 +784,58 @@ export default function TrendingIntelligencePage() {
           border-radius: 6px;
           white-space: nowrap;
         }
+        .trend-live-ads-box {
+          background: #f8fafc;
+          border: 1px dashed #cbd5e1;
+          border-radius: 10px;
+          padding: 8px 10px;
+          margin-bottom: 12px;
+        }
+        .trend-live-ads-label {
+          font-size: 10.5px;
+          font-weight: 700;
+          color: #475569;
+          text-transform: uppercase;
+          display: block;
+        }
+        .trend-ad-link {
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+          padding: 3px 8px;
+          border-radius: 6px;
+          font-size: 11px;
+          font-weight: 600;
+          text-decoration: none;
+          transition: all 0.15s ease;
+          white-space: nowrap;
+        }
+        .trend-ad-link.meta {
+          background: #eff6ff;
+          color: #1d4ed8;
+          border: 1px solid #bfdbfe;
+        }
+        .trend-ad-link.tiktok {
+          background: #fdf2f8;
+          color: #be185d;
+          border: 1px solid #fbcfe8;
+        }
+        .trend-ad-link.youtube {
+          background: #fef2f2;
+          color: #b91c1c;
+          border: 1px solid #fecaca;
+        }
+        .trend-ad-link:hover {
+          transform: translateY(-1px);
+          filter: brightness(0.95);
+        }
         .trend-card-footer {
           display: flex;
           gap: 8px;
           border-top: 1px solid #f1f5f9;
           padding-top: 14px;
         }
+
         .trend-btn-primary {
           flex: 1;
           background: #0f172a;
