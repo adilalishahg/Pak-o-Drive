@@ -8,6 +8,7 @@ interface ProductImageGalleryProps {
   images: string[];
   name: string;
   video?: string;
+  showVideoOnFront?: boolean;
 }
 
 export const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({
@@ -15,16 +16,26 @@ export const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({
   images,
   name,
   video,
+  showVideoOnFront,
 }) => {
-  // Construct a list of media items: video goes first
+  // Construct a list of media items based on showVideoOnFront flag
   const mediaItems: { type: 'video' | 'image'; url: string }[] = [];
-  if (video) {
-    mediaItems.push({ type: 'video', url: video });
-  }
   const allImages = Array.from(new Set([image, ...(images || [])])).filter(Boolean);
-  allImages.forEach((img) => {
-    mediaItems.push({ type: 'image', url: img });
-  });
+
+  if (showVideoOnFront && video) {
+    mediaItems.push({ type: 'video', url: video });
+    allImages.forEach((img) => {
+      mediaItems.push({ type: 'image', url: img });
+    });
+  } else {
+    allImages.forEach((img) => {
+      mediaItems.push({ type: 'image', url: img });
+    });
+    if (video) {
+      mediaItems.push({ type: 'video', url: video });
+    }
+  }
+
 
   const initialItem = mediaItems[0] || { type: 'image' as const, url: image };
   const [activeItem, setActiveItem] = useState<{ type: 'video' | 'image'; url: string }>(initialItem);

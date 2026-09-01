@@ -46,6 +46,8 @@ export function ProductForm({ productId, pageTitle }: ProductFormProps) {
     images,
     video,
     setVideo,
+    showVideoOnFront,
+    setShowVideoOnFront,
     uploading,
     galleryUploading,
     galleryUrlInput,
@@ -241,6 +243,8 @@ export function ProductForm({ productId, pageTitle }: ProductFormProps) {
               setGalleryImageErrors={setGalleryImageErrors}
               video={video}
               setVideo={setVideo}
+              showVideoOnFront={showVideoOnFront}
+              setShowVideoOnFront={setShowVideoOnFront}
               validationErrors={validationErrors}
               onFileChange={handleFileChange}
               onGalleryFileChange={handleGalleryFileChange}

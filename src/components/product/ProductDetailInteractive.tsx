@@ -64,7 +64,9 @@ export const ProductDetailInteractive: React.FC<ProductDetailInteractiveProps> =
             images={product.images || []}
             name={selectedVariant ? `${product.name} - ${selectedVariant.name}` : product.name}
             video={product.video}
+            showVideoOnFront={product.showVideoOnFront}
           />
+
         </div>
 
         {/* Info col */}

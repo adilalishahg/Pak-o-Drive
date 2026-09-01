@@ -90,7 +90,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, priority }) =
             <i className={`${isInWishlist(formattedId) ? 'fas fa-heart text-red-500' : 'far fa-heart text-slate-400'} text-[11px] sm:text-xs`} />
           </button>
 
-          {product.video ? (
+          {product.showVideoOnFront && product.video ? (
             <video
               src={product.video}
               autoPlay
@@ -222,7 +222,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, priority }) =
           <i className={isInWishlist(formattedId) ? 'fas fa-heart' : 'far fa-heart'} style={{ fontSize: '12px' }} />
         </button>
 
-        {product.video ? (
+        {product.showVideoOnFront && product.video ? (
           <video
             src={product.video}
             autoPlay

@@ -85,7 +85,7 @@ export const ProductCardClassic: React.FC<Props> = ({ product, priority }) => {
           <i className={isInWishlist(id) ? 'fas fa-heart' : 'far fa-heart'} style={{ fontSize: '12px' }} />
         </button>
 
-        {product.video ? (
+        {product.showVideoOnFront && product.video ? (
           <video
             src={product.video}
             autoPlay

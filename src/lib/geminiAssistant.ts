@@ -1,5 +1,7 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import mongoose from 'mongoose';
+import { callMultiProviderAI } from './multiAiEngine';
+
 
 const getApiKey = () => process.env.GEMINI_API_KEY || process.env.Gemini_API_KEY || '';
 const getGenAI = () => {
@@ -202,20 +204,22 @@ Guidelines:
 
 ${productCatalogContext ? `[CURRENT CATALOG CONTEXT]\n${productCatalogContext}\n` : ''}
 ${formattedHistory ? `[CONVERSATION HISTORY]\n${formattedHistory}\n` : ''}
-[CURRENT CUSTOMER MESSAGE]
 Customer: "${userMessage}"
 
 Reply as Ali (Pak-o-Drive):`;
 
-    const responseText = await executeGeminiWithFallback(systemInstruction, genAI);
+    const { text: responseText, provider } = await callMultiProviderAI(systemInstruction, userMessage);
+
     if (responseText) {
+      console.log(`[Store AI Response via Provider: ${provider}]`);
       const updatedHistory = [...history, { role: 'user' as const, text: userMessage }, { role: 'model' as const, text: responseText }].slice(-6);
       conversationHistories.set(senderPhone, updatedHistory);
       return responseText;
     }
   } catch (err: any) {
-    console.error('[Gemini Generation Error]:', err?.message);
+    console.error('[Multi-AI Generation Error]:', err?.message);
   }
+
 
   if (products.length > 0) {
     const list = products

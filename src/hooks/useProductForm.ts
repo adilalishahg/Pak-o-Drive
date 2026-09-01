@@ -49,11 +49,13 @@ export function useProductForm({ productId }: ProductFormHookOptions = {}) {
   const [image, setImage] = useState('');
   const [images, setImages] = useState<string[]>([]);
   const [video, setVideo] = useState('');
+  const [showVideoOnFront, setShowVideoOnFront] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [galleryUploading, setGalleryUploading] = useState(false);
   const [galleryUrlInput, setGalleryUrlInput] = useState('');
   const [mainImageError, setMainImageError] = useState(false);
   const [galleryImageErrors, setGalleryImageErrors] = useState<Record<number, boolean>>({});
+
 
   // Background Video Upload
   const { tasks, startVideoUpload, associateProductWithUpload } = useAdminUpload();
@@ -114,8 +116,10 @@ export function useProductForm({ productId }: ProductFormHookOptions = {}) {
           setImage(p.image || '');
           setImages(p.images || []);
           setVideo(p.video || '');
+          setShowVideoOnFront(Boolean(p.showVideoOnFront));
           setHeroText(p.heroText || '');
           setIsFeatured(Boolean(p.isFeatured));
+
           setIsNewArrival(Boolean(p.isNewArrival));
           setIsTopSelling(Boolean(p.isTopSelling));
           setSeoTitle(p.seoTitle || '');
@@ -445,6 +449,7 @@ export function useProductForm({ productId }: ProductFormHookOptions = {}) {
       image: image.trim(),
       images: images.map((i) => i.trim()).filter(Boolean),
       video: video ? video.trim() : undefined,
+      showVideoOnFront,
       heroText: heroText.trim(),
       isFeatured,
       isNewArrival,
@@ -493,6 +498,7 @@ export function useProductForm({ productId }: ProductFormHookOptions = {}) {
     image,
     images,
     video,
+    showVideoOnFront,
     heroText,
     isFeatured,
     isNewArrival,
@@ -543,6 +549,8 @@ export function useProductForm({ productId }: ProductFormHookOptions = {}) {
     setImages,
     video,
     setVideo,
+    showVideoOnFront,
+    setShowVideoOnFront,
     uploading,
     galleryUploading,
     galleryUrlInput,
@@ -580,3 +588,4 @@ export function useProductForm({ productId }: ProductFormHookOptions = {}) {
     handleSubmit,
   };
 }
+

@@ -17,6 +17,8 @@ interface ProductImagesManagerProps {
   setGalleryImageErrors: React.Dispatch<React.SetStateAction<Record<number, boolean>>>;
   video: string;
   setVideo: (v: string) => void;
+  showVideoOnFront?: boolean;
+  setShowVideoOnFront: (v: boolean) => void;
   validationErrors: Record<string, string>;
   onFileChange: (e: React.ChangeEvent<HTMLInputElement>) => Promise<void>;
   onGalleryFileChange: (e: React.ChangeEvent<HTMLInputElement>) => Promise<void>;
@@ -40,6 +42,8 @@ export function ProductImagesManager({
   setGalleryImageErrors,
   video,
   setVideo,
+  showVideoOnFront,
+  setShowVideoOnFront,
   validationErrors,
   onFileChange,
   onGalleryFileChange,
@@ -48,6 +52,7 @@ export function ProductImagesManager({
   onSetMainImage,
   onVideoChange,
 }: ProductImagesManagerProps) {
+
   return (
     <div className="card border-0 shadow-sm rounded-4 mb-4">
       <div className="card-header bg-transparent border-0 py-3 px-4">
@@ -235,7 +240,31 @@ export function ProductImagesManager({
               />
             </div>
           </div>
+
+          {/* Show Video on Front Checkbox Switch */}
+          <div className="mt-3 p-2 px-3 bg-light rounded-3 border d-flex align-items-center justify-content-between">
+            <div>
+              <label htmlFor="showVideoOnFrontSwitch" className="form-check-label fw-bold small text-dark d-block mb-0 cursor-pointer">
+                🎬 Front-End Video Feature (Show Video on Product Front View)
+              </label>
+              <span className="text-muted small" style={{ fontSize: '0.75rem' }}>
+                Agar <b>Checked</b> hoga tou website par video pehle show hogi, warna <b>Main Image</b> dikhegi.
+              </span>
+            </div>
+            <div className="form-check form-switch mb-0">
+              <input
+                className="form-check-input"
+                type="checkbox"
+                role="switch"
+                id="showVideoOnFrontSwitch"
+                style={{ width: '2.5rem', height: '1.25rem', cursor: 'pointer' }}
+                checked={Boolean(showVideoOnFront)}
+                onChange={(e) => setShowVideoOnFront(e.target.checked)}
+              />
+            </div>
+          </div>
         </div>
+
       </div>
     </div>
   );

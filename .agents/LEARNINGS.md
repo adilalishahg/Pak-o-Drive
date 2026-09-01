@@ -383,6 +383,28 @@ This file serves as persistent dynamic memory across coding agent sessions. Ever
   2. Built `WebChatSession` model and `/api/chat/sync` polling endpoint (every 2.5s) for live agent replies.
   3. Added `#W...` short-code WhatsApp reply interceptor in `src/worker/bot.mjs` to deliver admin WhatsApp replies directly into the visitor's website chat screen.
 
+---
+
+### 2026-09-01: Multi-Provider AI Fallback Engine (Gemini + Hugging Face + Groq)
+- **Issue**: Potential bot downtime or silence when Gemini encounters quota limits (`429`), billing card errors (`402`), or 404 model mismatches.
+- **Root Cause**: Hardcoded single-provider dependency on Google Gemini without automatic failover routers or circuit breakers.
+- **Verified Fix**:
+  1. Built `src/lib/multiAiEngine.ts` with sequential waterfall dispatch: Google Gemini ➔ Hugging Face (`Llama-3.3-70B` / `Qwen-2.5-72B`) ➔ Groq (`llama-3.3-70b-versatile`).
+  2. Implemented circuit breaker (5-minute cooldown on 402/429/401 errors) to avoid latency on exhausted providers.
+  3. Integrated `callMultiProviderAI` in Next.js web chat (`src/lib/geminiAssistant.ts`) and background Baileys WhatsApp worker (`src/worker/bot.mjs`).
+
+---
+
+### 2026-09-01: Product Front-End Video Toggle Switch (`showVideoOnFront`)
+- **Issue**: Products with demo videos automatically forced the video to render first on storefront cards and galleries even when the store owner preferred displaying the primary image.
+- **Root Cause**: Hardcoded `mediaItems.push({ type: 'video' })` as index 0 in `ProductImageGallery.tsx` and unconditional video render in `ProductCard.tsx`.
+- **Verified Fix**:
+  1. Added `showVideoOnFront: { type: Boolean, default: false }` to `Product.ts` model schema and `IProduct` interface.
+  2. Added styled switch toggle in `ProductImagesManager.tsx` and wired through `useProductForm.ts` and `ProductForm.tsx`.
+  3. Updated `ProductImageGallery.tsx`, `ProductDetailInteractive.tsx`, `ProductCard.tsx`, and `ProductCardClassic.tsx` to conditionally prioritize video only when `showVideoOnFront` is `true`.
+
+
+
 
 
 

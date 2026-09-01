@@ -74,10 +74,12 @@ export function useAdminTheme(): AdminThemeHookReturn {
 
         if (prodRes.ok) {
           const prodData = await prodRes.json();
-          if (prodData.success && Array.isArray(prodData.products)) {
-            setAvailableProducts(prodData.products);
+          const list = prodData.data || prodData.products || [];
+          if (Array.isArray(list)) {
+            setAvailableProducts(list);
           }
         }
+
       } catch (err) {
         console.error('Failed to load site theme data:', err);
       } finally {

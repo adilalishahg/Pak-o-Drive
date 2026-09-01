@@ -16,7 +16,9 @@ const ProductSchema = new Schema<IProductDocument>(
     image: { type: String, required: true },
     images: { type: [String], default: [] },
     video: { type: String, default: '' },
+    showVideoOnFront: { type: Boolean, default: false },
     seoTitle: { type: String, default: '' },
+
     seoDescription: { type: String, default: '' },
     seoKeywords: { type: String, default: '' },
     rating: { type: Number, required: true, default: 5 },

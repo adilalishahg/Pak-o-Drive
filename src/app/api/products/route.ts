@@ -83,8 +83,10 @@ export async function GET(request: Request) {
         limit,
         pages: Math.ceil(totalProducts / limit)
       },
-      data: products 
+      data: products,
+      products: products
     }, {
+
       headers: {
         'Cache-Control': 'public, s-maxage=120, stale-while-revalidate=300'
       }

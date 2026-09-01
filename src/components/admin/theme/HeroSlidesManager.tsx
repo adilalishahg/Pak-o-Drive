@@ -257,22 +257,33 @@ export function HeroSlidesManager({
                     <div className="row g-3">
                       {/* Product Link Dropdown */}
                       <div className="col-12">
-                        <label className="form-label mb-1 text-primary fw-semibold" style={{ fontSize: '0.8rem' }}>
-                          <i className="fas fa-link me-1" /> Select Product to Feature (Auto-fills Title, Badge & Image)
+                        <label className="form-label mb-1 text-primary fw-semibold d-flex align-items-center justify-content-between" style={{ fontSize: '0.8rem' }}>
+                          <span>
+                            <i className="fas fa-link me-1" /> Select Product to Feature (Auto-fills Title, Badge & Image)
+                          </span>
+                          {availableProducts.length > 0 && (
+                            <span className="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25" style={{ fontSize: '0.7rem' }}>
+                              {availableProducts.length} Products
+                            </span>
+                          )}
                         </label>
                         <select
                           className="form-select form-select-sm rounded-3 w-100"
-                          value={slide.productId || ''}
+                          value={slide.productId ? String(slide.productId) : ''}
                           onChange={(e) => onSelectProduct(idx, e.target.value)}
                           style={{ fontSize: '0.84rem' }}
                         >
                           <option value="">-- Custom Banner (No Product Linked) --</option>
-                          {availableProducts.map((p: any) => (
-                            <option key={p._id} value={p._id}>
-                              📦 {p.name} — PKR {p.price?.toLocaleString()} {p.heroText ? `[Badge: "${p.heroText}"]` : ''}
-                            </option>
-                          ))}
+                          {availableProducts.map((p: any) => {
+                            const idStr = String(p._id || '');
+                            return (
+                              <option key={idStr} value={idStr}>
+                                📦 {p.name} — PKR {p.price?.toLocaleString()} {p.heroText ? `[Badge: "${p.heroText}"]` : ''}
+                              </option>
+                            );
+                          })}
                         </select>
+
                         <div className="text-muted small mt-1" style={{ fontSize: '0.72rem' }}>
                           Selecting a product will automatically link to its detail page and load its headline, hero badge & image.
                         </div>

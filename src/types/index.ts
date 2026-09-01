@@ -18,7 +18,9 @@ export interface IProduct {
   image: string;
   images?: string[];
   video?: string;
+  showVideoOnFront?: boolean;
   seoTitle?: string;
+
   seoDescription?: string;
   seoKeywords?: string;
   rating: number;
