@@ -1,4 +1,6 @@
 import { NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
+import { purgeCacheTags } from '@/lib/cache';
 import dbConnect from '../../../../lib/mongodb';
 import Category from '../../../../models/Category';
 
@@ -21,6 +23,14 @@ export async function PUT(
       return NextResponse.json({ success: false, error: 'Category not found' }, { status: 404 });
     }
 
+    purgeCacheTags(['categories', 'products']);
+    try {
+      revalidatePath('/');
+      revalidatePath('/shop');
+    } catch (err) {
+      console.warn('Category revalidation warning on PUT:', err);
+    }
+
     return NextResponse.json({ success: true, message: 'Category updated successfully!', data: updatedCategory });
   } catch (error: any) {
     console.error('Error updating category API:', error);
@@ -39,6 +49,14 @@ export async function DELETE(
 
     if (!deletedCategory) {
       return NextResponse.json({ success: false, error: 'Category not found' }, { status: 404 });
+    }
+
+    purgeCacheTags(['categories', 'products']);
+    try {
+      revalidatePath('/');
+      revalidatePath('/shop');
+    } catch (err) {
+      console.warn('Category revalidation warning on DELETE:', err);
     }
 
     return NextResponse.json({ success: true, message: 'Category deleted successfully!', data: deletedCategory });

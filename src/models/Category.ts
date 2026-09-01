@@ -25,8 +25,8 @@ CategorySchema.virtual('id').get(function (this: any) {
   return this._id.toHexString();
 });
 
-CategorySchema.set('toJSON', {
-  virtuals: true,
-});
+CategorySchema.index({ parentCategory: 1, slug: 1 });
+CategorySchema.index({ productCount: -1 });
 
 export default mongoose.models.Category || mongoose.model<ICategoryDocument>('Category', CategorySchema);
+

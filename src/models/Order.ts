@@ -53,7 +53,10 @@ const OrderSchema = new Schema<IOrderDocument>(
     timestamps: true,
   }
 );
+OrderSchema.index({ 'customerDetails.phone': 1, createdAt: -1 });
+OrderSchema.index({ status: 1, createdAt: -1 });
+OrderSchema.index({ trackingNumber: 1 });
 OrderSchema.index({ createdAt: -1 });
-OrderSchema.index({ status: 1 });
 
 export default mongoose.models.Order || mongoose.model<IOrderDocument>('Order', OrderSchema);
+

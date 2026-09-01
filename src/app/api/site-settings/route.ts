@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { revalidatePath } from 'next/cache';
+import { purgeCacheTags } from '@/lib/cache';
 import dbConnect from '../../../lib/mongodb';
 import SiteSettings from '../../../models/SiteSettings';
 
@@ -10,7 +11,7 @@ import SiteSettings from '../../../models/SiteSettings';
 export async function GET() {
   try {
     await dbConnect();
-    let settings = await SiteSettings.findOne({});
+    let settings = await SiteSettings.findOne({}).lean();
     if (!settings) {
       settings = await SiteSettings.create({});
     }
@@ -18,7 +19,7 @@ export async function GET() {
       { success: true, data: settings },
       {
         headers: {
-          'Cache-Control': 'public, s-maxage=120, stale-while-revalidate=600',
+          'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600',
         },
       }
     );
@@ -49,7 +50,13 @@ export async function PUT(request: Request) {
       { upsert: true, new: true, runValidators: true }
     );
 
-    revalidatePath('/', 'layout');
+    purgeCacheTags('site-settings');
+
+    try {
+      revalidatePath('/', 'layout');
+    } catch (err) {
+      console.warn('Revalidation warning for site-settings:', err);
+    }
 
     return NextResponse.json({
       success: true,

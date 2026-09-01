@@ -1,18 +1,19 @@
 import { NextResponse } from 'next/server';
 import { revalidatePath } from 'next/cache';
+import { purgeCacheTags } from '@/lib/cache';
 import dbConnect from '../../../lib/mongodb';
 import SiteInfo from '../../../models/SiteInfo';
 
 export async function GET() {
   try {
     await dbConnect();
-    let info = await SiteInfo.findOne({});
+    let info = await SiteInfo.findOne({}).lean();
     if (!info) info = await SiteInfo.create({});
     return NextResponse.json(
       { success: true, data: info },
       {
         headers: {
-          'Cache-Control': 'public, s-maxage=120, stale-while-revalidate=600',
+          'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600',
         },
       }
     );
@@ -31,7 +32,12 @@ export async function PUT(request: Request) {
       { $set: body },
       { upsert: true, new: true, runValidators: true }
     );
-    revalidatePath('/', 'layout');
+    purgeCacheTags('site-info');
+    try {
+      revalidatePath('/', 'layout');
+    } catch (err) {
+      console.warn('Revalidation warning for site-info:', err);
+    }
     return NextResponse.json({ success: true, message: 'Site info saved!', data: info });
   } catch (error: any) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });

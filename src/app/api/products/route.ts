@@ -1,7 +1,11 @@
 import { NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
+import { purgeCacheTags } from '@/lib/cache';
 import dbConnect from '../../../lib/mongodb';
 import Product from '../../../models/Product';
 import Category from '../../../models/Category';
+
+
 
 export async function GET(request: Request) {
   try {
@@ -219,7 +223,18 @@ export async function POST(request: Request) {
       });
 
       const saved = await newProduct.save();
+      
+      purgeCacheTags(['products', 'categories']);
+      try {
+        revalidatePath('/');
+        revalidatePath('/shop');
+      } catch (err) {
+        console.warn('Path revalidation warning:', err);
+      }
+
       return NextResponse.json({ success: true, message: 'Product created successfully!', data: saved }, { status: 201 });
+
+
     }
 
 

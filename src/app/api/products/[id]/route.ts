@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { revalidatePath } from 'next/cache';
+import { purgeCacheTags } from '@/lib/cache';
 import dbConnect from '../../../../lib/mongodb';
 import Product from '../../../../models/Product';
 
@@ -10,13 +11,17 @@ export async function GET(
   try {
     await dbConnect();
     const { id } = await params;
-    const product = await Product.findById(id);
+    const product = await Product.findById(id).lean();
 
     if (!product) {
       return NextResponse.json({ success: false, error: 'Product not found' }, { status: 404 });
     }
 
-    return NextResponse.json({ success: true, data: product });
+    return NextResponse.json({ success: true, data: product }, {
+      headers: {
+        'Cache-Control': 'public, s-maxage=120, stale-while-revalidate=300'
+      }
+    });
   } catch (error: any) {
     console.error('Error fetching single product API:', error);
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
@@ -42,7 +47,14 @@ export async function PUT(
       return NextResponse.json({ success: false, error: 'Product not found' }, { status: 404 });
     }
 
-    revalidatePath('/product/' + id);
+    purgeCacheTags(['products', 'categories', 'product-' + id, ...(updatedProduct.slug ? ['product-' + updatedProduct.slug] : [])]);
+    try {
+      revalidatePath('/');
+      revalidatePath('/shop');
+      revalidatePath('/product/' + id);
+    } catch (err) {
+      console.warn('Revalidation warning on PUT:', err);
+    }
 
     return NextResponse.json({ success: true, message: 'Product updated successfully!', data: updatedProduct });
   } catch (error: any) {
@@ -64,7 +76,14 @@ export async function DELETE(
       return NextResponse.json({ success: false, error: 'Product not found' }, { status: 404 });
     }
 
-    revalidatePath('/product/' + id);
+    purgeCacheTags(['products', 'categories', 'product-' + id]);
+    try {
+      revalidatePath('/');
+      revalidatePath('/shop');
+      revalidatePath('/product/' + id);
+    } catch (err) {
+      console.warn('Revalidation warning on DELETE:', err);
+    }
 
     return NextResponse.json({ success: true, message: 'Product deleted successfully!', data: deletedProduct });
   } catch (error: any) {

@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { revalidatePath } from 'next/cache';
+import { purgeCacheTags } from '@/lib/cache';
 import dbConnect from '@/lib/mongodb';
+
 import Product from '@/models/Product';
 import Category from '@/models/Category';
 import { BulkImportProductInput } from '@/types';
@@ -177,8 +179,16 @@ export async function POST(request: Request) {
       createdOrUpdated.push(saved);
     }
 
-    revalidatePath('/', 'layout');
-    revalidatePath('/shop');
+    purgeCacheTags(['products', 'categories']);
+
+    try {
+      revalidatePath('/', 'layout');
+      revalidatePath('/shop');
+    } catch (err) {
+      console.warn('Revalidation warning on import:', err);
+    }
+
+
 
     return NextResponse.json({
       success: true,

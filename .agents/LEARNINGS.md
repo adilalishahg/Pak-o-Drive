@@ -533,6 +533,15 @@ This file serves as persistent dynamic memory across coding agent sessions. Ever
   2. Decoupled all hooks (`useAdminAnalytics`, `useAdminOrders`, `useProductForm`, `useStoreChatBot`, `useWhatsAppBot`, `useCheckout`) and pages (`admin/site-info`, `admin/categories`, `admin/subscribers`, `admin/promotions`, `admin/contacts`, `admin/theme`, `track-order`) to consume from `@/types` while re-exporting for backward compatibility.
   3. Verified complete type safety with `pnpm tsc --noEmit` passing with 0 errors.
 
+### 2026-09-01: Enterprise Caching & Database Optimization for High-Concurrency (10k+ scale)
+- **Issue**: High concurrent ad traffic (10,000+ requests) risks MongoDB pool exhaustion, slow TTFB, and large payload latency when scaling to hundreds of categories and thousands of products.
+- **Root Cause**: Reliance on single-request React `cache()` instead of cross-request Next.js Data Cache, unprojected full-document queries fetching large descriptions on card lists, and missing compound indexes on category/order collections.
+- **Verified Fix**:
+  1. Implemented Next.js `unstable_cache` in `src/lib/cache.ts` with tags (`products`, `categories`, `site-info`, `site-settings`, `product-[id]`) and lean field projection for sub-50KB catalog payloads.
+  2. Added compound & text indexes across `Product` (`{ name: 'text', description: 'text' }`, `{ category: 1, subcategory: 1, createdAt: -1 }`), `Category` (`{ parentCategory: 1, slug: 1 }`), and `Order` (`{ 'customerDetails.phone': 1, createdAt: -1 }`).
+  3. Added `purgeCacheTags` helper and wired cache invalidation to all product, category, and site settings mutations in API handlers.
+
+
 
 
 

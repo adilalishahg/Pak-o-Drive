@@ -1,7 +1,11 @@
 import { NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
+import { purgeCacheTags } from '@/lib/cache';
 import dbConnect from '../../../lib/mongodb';
 import Category from '../../../models/Category';
 import Product from '../../../models/Product';
+
+
 
 const DEFAULT_TAXONOMY = [
 
@@ -164,10 +168,21 @@ export async function POST(request: Request) {
     });
 
     const saved = await newCategory.save();
+
+    purgeCacheTags(['categories', 'products']);
+    try {
+      revalidatePath('/');
+      revalidatePath('/shop');
+    } catch (err) {
+      console.warn('Category revalidation warning:', err);
+    }
+
     return NextResponse.json({ success: true, message: 'Category created successfully!', data: saved }, { status: 201 });
+
   } catch (error: any) {
     console.error('Error creating category API:', error);
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
 }
+
 
