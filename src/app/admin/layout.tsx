@@ -57,9 +57,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { name: 'Newsletter Subscribers', path: '/admin/subscribers', icon: 'fas fa-users' },
     { name: 'Analytics Deep-Dive', path: '/admin/analytics', icon: 'fas fa-chart-bar' },
     { name: 'WhatsApp Auto-Bot', path: '/admin/whatsapp-bot', icon: 'fab fa-whatsapp' },
+    { name: 'Viral Ad & Trends Lab', path: '/admin/trending-intelligence', icon: 'fas fa-fire' },
     { name: 'Theme & Appearance', path: '/admin/theme', icon: 'fas fa-palette' },
     { name: 'Site Info & Policies', path: '/admin/site-info', icon: 'fas fa-info-circle' },
   ];
+
 
   return (
     <AdminUploadProvider>

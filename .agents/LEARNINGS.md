@@ -353,6 +353,38 @@ This file serves as persistent dynamic memory across coding agent sessions. Ever
   2. Targeted `/ecommerceStore` database in Atlas URI and auto-sorted products by search term relevance.
   3. Implemented zero-dependency multi-model fallback (`gemini-2.5-flash`, `gemini-1.5-flash`, `gemini-2.0-flash`) with guaranteed formatted product cards for live WhatsApp conversion.
 
+---
+
+### 2026-09-01: On-Site Interactive Floating Chatbot Widget Replacement
+- **Issue**: The floating bottom-right support button unconditionally navigated users away to `wa.me`, causing drop-offs for web users wanting instant on-site assistance.
+- **Root Cause**: Hardcoded `window.open('https://wa.me/...')` in `WhatsAppSupport.tsx` without an on-site UI modal/drawer or web chat API bridge.
+- **Verified Fix**:
+  1. Built `/api/chat` with hybrid resolution (MongoDB `WhatsAppRule` lookups, live order status search via phone/ID, and Gemini AI Roman Urdu store assistant with real-time product cards).
+  2. Separated logic into `src/hooks/useStoreChatBot.ts` with `sessionStorage` persistence, hydration guards (`useMounted`), and auto-scroll message stream.
+  3. Created `<StoreChatWidget />` with quick-action chips (`Track Order`, `Payment Accounts`, `7-Day Warranty`, `Trending Deals`), typing animations, and top-bar WhatsApp app bridge.
+
+---
+
+### 2026-09-01: AI Viral Ad & Competitor Trends Lab with Automated Daily WhatsApp Dispatch
+- **Issue**: Lack of real-time market trend intelligence and absence of automated WhatsApp alerts for incoming web checkout orders and daily marketing strategies.
+- **Root Cause**: No multi-platform ad analysis pipeline, no automated background watcher polling unnotified orders, and no scheduled daily WhatsApp broadcast system.
+- **Verified Fix**:
+  1. Built `src/lib/intelligenceEngine.ts` with Gemini AI analyzing TikTok/Meta viral ads, 0-3s hooks, scene-by-scene camera guides, and pricing/margin analysis for existing + recommended winning products.
+  2. Upgraded `src/worker/bot.mjs` with `startOrderWatcher` (auto-sending real-time new order alerts to Admin's WhatsApp) and `startDailyTrendsScheduler` (daily 10:00 AM PKT executive trend digest).
+  3. Created `/admin/trending-intelligence` with CSV/MD file exports, video shooting blueprint drawer, and 1-click WhatsApp dispatch.
+
+---
+
+### 2026-09-01: Smart Partial/Hex Order Search & 2-Way Web-to-WhatsApp Live Agent Relay
+- **Issue**: Entering short order ID suffixes (e.g. `40F921`) returned generic rule text instead of live MongoDB order status, and no 2-way live agent relay existed.
+- **Root Cause**: Strict `potentialId.length === 24` check missed partial 6/8-character hex ObjectId suffixes, and chat had no polling sync route for WhatsApp agent replies.
+- **Verified Fix**:
+  1. Implemented `findOrderByAnyIdentifier` using `$expr` with `$regexMatch` on `$toString: "$_id"`, plus multi-format phone numbers and tracking CN regex matching.
+  2. Built `WebChatSession` model and `/api/chat/sync` polling endpoint (every 2.5s) for live agent replies.
+  3. Added `#W...` short-code WhatsApp reply interceptor in `src/worker/bot.mjs` to deliver admin WhatsApp replies directly into the visitor's website chat screen.
+
+
+
 
 
 

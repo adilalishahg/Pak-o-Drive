@@ -95,11 +95,13 @@ const OrderSchema = new mongoose.Schema(
     totalAmount: Number,
     paymentMethod: String,
     status: String,
+    whatsappSent: { type: Boolean, default: false },
     courierName: String,
     trackingNumber: String,
   },
   { timestamps: true }
 );
+
 
 const ProductSchema = new mongoose.Schema(
   {
@@ -115,9 +117,32 @@ const ProductSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+const WebChatSessionSchema = new mongoose.Schema(
+  {
+    sessionId: { type: String, required: true },
+    shortCode: { type: String, required: true },
+    visitorPhone: String,
+    visitorName: String,
+    isAgentLive: { type: Boolean, default: false },
+    messages: [
+      {
+        id: String,
+        sender: String,
+        text: String,
+        timestamp: String,
+        createdAt: { type: Date, default: Date.now },
+      },
+    ],
+    lastActiveAt: { type: Date, default: Date.now },
+  },
+  { timestamps: true }
+);
+
 const WhatsAppRule = mongoose.models.WhatsAppRule || mongoose.model('WhatsAppRule', WhatsAppRuleSchema);
 const Order = mongoose.models.Order || mongoose.model('Order', OrderSchema);
 const Product = mongoose.models.Product || mongoose.model('Product', ProductSchema);
+const WebChatSession = mongoose.models.WebChatSession || mongoose.model('WebChatSession', WebChatSessionSchema);
+
 
 // In-memory Conversation History Buffer per Phone
 const conversationHistories = new Map();
@@ -424,8 +449,13 @@ async function start() {
       const userJid = socket.user?.id || '';
       const phone = userJid.split(':')[0] || userJid.split('@')[0];
       console.log(`\n🟢 [WhatsApp Bot ONLINE & Active 24/7] Connected as: ${phone}\n`);
+
+      // Start automatic background watchers
+      startOrderWatcher(socket);
+      startDailyTrendsScheduler(socket);
     }
   });
+
 
   socket.ev.on('messages.upsert', async (m) => {
     if (m.type !== 'notify') return;
@@ -444,11 +474,52 @@ async function start() {
       }
 
       // 👑 ADMIN HUMAN TAKEOVER: If store owner sends any message from their phone, pause bot for 5 minutes from last message
+      const rawText =
+        msg.message?.conversation ||
+        msg.message?.extendedTextMessage?.text ||
+        msg.message?.imageMessage?.caption ||
+        '';
+
+      // 🌐 2-WAY WEB AGENT BRIDGE: If message starts with #W (e.g. #W482 Hello)
+      if (rawText.trim().startsWith('#W') || rawText.trim().startsWith('#w')) {
+        try {
+          const parts = rawText.trim().split(/\s+/);
+          const shortCode = parts[0].replace('#', '').toUpperCase();
+          const agentReply = parts.slice(1).join(' ').trim();
+
+          if (shortCode && agentReply) {
+            const session = await WebChatSession.findOne({
+              shortCode: { $regex: new RegExp(`^${shortCode}$`, 'i') },
+            });
+
+            if (session) {
+              session.messages.push({
+                id: 'agent_' + Date.now(),
+                sender: 'agent',
+                text: agentReply,
+                timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                createdAt: new Date(),
+              });
+              session.isAgentLive = true;
+              session.lastActiveAt = new Date();
+              await session.save();
+
+              console.log(`✅ [Web Agent Bridge] Routed agent reply to Web Visitor #${shortCode}: "${agentReply}"`);
+              await socket.sendMessage(senderJid, { text: `✅ Reply delivered to Web Visitor #${shortCode}` });
+              continue;
+            }
+          }
+        } catch (bridgeErr) {
+          console.error('[Web Agent Bridge Error]', bridgeErr);
+        }
+      }
+
       if (msg.key.fromMe) {
         humanTakeover[senderPhone] = Date.now() + 5 * 60 * 1000;
         console.log(`[Admin Takeover] Store owner messaged ${senderPhone}. Bot paused for 5 minutes.`);
         continue;
       }
+
 
       try {
         const messageText =
@@ -594,4 +665,129 @@ async function start() {
   });
 }
 
+let orderWatcherInterval = null;
+let trendsSchedulerInterval = null;
+let lastTrendsSentDate = '';
+
+function getAdminJid(socket) {
+  const adminEnv = process.env.ADMIN_WHATSAPP_NUMBER || process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '';
+  if (adminEnv) {
+    const clean = adminEnv.replace(/[^0-9]/g, '');
+    let normalized = clean;
+    if (clean.startsWith('03')) normalized = '92' + clean.substring(1);
+    else if (clean.startsWith('3')) normalized = '92' + clean;
+    return `${normalized}@s.whatsapp.net`;
+  }
+  return socket.user?.id;
+}
+
+function startOrderWatcher(socket) {
+  if (orderWatcherInterval) clearInterval(orderWatcherInterval);
+
+  console.log('⚡ [Order Watcher] Started background polling for new web orders...');
+  orderWatcherInterval = setInterval(async () => {
+    try {
+      const unnotifiedOrders = await Order.find({
+        whatsappSent: { $ne: true },
+        status: { $ne: 'Cancelled' },
+      }).sort({ createdAt: 1 }).limit(5);
+
+      if (!unnotifiedOrders || unnotifiedOrders.length === 0) return;
+
+      const adminJid = getAdminJid(socket);
+      if (!adminJid) return;
+
+      for (const order of unnotifiedOrders) {
+        const shortId = order._id?.toString().slice(-8).toUpperCase() || 'NEW';
+        const total = Number(order.totalAmount || 0);
+        const itemsList = (order.items || [])
+          .map((item) => `• *${item.name}* (x${item.quantity}) — Rs. ${Number(item.price || 0).toLocaleString()}`)
+          .join('\n');
+        const customer = order.customerDetails || {};
+
+        const message =
+          `🛒 *NAYA ORDER RECEIVE HUA HAI!* 🚀\n` +
+          `━━━━━━━━━━━━━━━━━━━━━\n` +
+          `📋 *Order ID:* #${shortId}\n` +
+          `💰 *Total Amount:* Rs. ${total.toLocaleString()} (Cash On Delivery)\n` +
+          `📦 *Total Items:* ${order.items?.length || 1}\n\n` +
+          `👤 *Customer Details:*\n` +
+          `• *Name:* ${customer.name || 'Customer'}\n` +
+          `• *Phone:* ${customer.phone || 'N/A'}\n` +
+          `• *City:* ${customer.city || 'N/A'}\n` +
+          `• *Address:* ${customer.address || 'N/A'}\n\n` +
+          `🛍️ *Ordered Products:*\n` +
+          `${itemsList}\n\n` +
+          `━━━━━━━━━━━━━━━━━━━━━\n` +
+          `🕒 *Time:* ${new Date().toLocaleString('en-PK', { timeZone: 'Asia/Karachi' })}\n` +
+          `🌐 *Source:* Web Checkout\n` +
+          `👉 *Admin Orders:* ${SITE_URL}/admin/orders`;
+
+        await socket.sendMessage(adminJid, { text: message });
+        await Order.updateOne({ _id: order._id }, { $set: { whatsappSent: true } });
+        console.log(`✅ [Order Alert] Sent order #${shortId} notification to admin (${adminJid})`);
+      }
+    } catch (err) {
+      console.error('[Order Watcher Error]', err);
+    }
+  }, 5000);
+}
+
+function startDailyTrendsScheduler(socket) {
+  if (trendsSchedulerInterval) clearInterval(trendsSchedulerInterval);
+
+  console.log('⚡ [Daily Trends Scheduler] Active (Checks daily at 10:00 AM PKT)...');
+  trendsSchedulerInterval = setInterval(async () => {
+    try {
+      const now = new Date();
+      const pktDateStr = now.toLocaleDateString('en-CA', { timeZone: 'Asia/Karachi' }); // YYYY-MM-DD
+      const pktHour = parseInt(now.toLocaleTimeString('en-GB', { hour: '2-digit', hour12: false, timeZone: 'Asia/Karachi' }), 10);
+
+      // Trigger if hour is 10 AM or later and haven't sent today
+      if (lastTrendsSentDate !== pktDateStr && pktHour >= 10) {
+        console.log(`[Daily Trends Scheduler] Generating and dispatching daily intelligence digest for ${pktDateStr}...`);
+
+        const adminJid = getAdminJid(socket);
+        if (!adminJid) return;
+
+        // Fetch top store products
+        const storeProducts = await Product.find({ stock: { $gt: 0 } }).limit(5).lean();
+        const p1 = storeProducts[0]?.name || 'Universal Ambient LED Lights';
+        const p2 = storeProducts[1]?.name || '3-in-1 Fast Retractable Car Charger';
+
+        const digest =
+          `🔥 *PAK-O-DRIVE DAILY VIRAL TRENDS & AD INTELLIGENCE* 🚀\n` +
+          `📅 *Date:* ${pktDateStr}\n` +
+          `━━━━━━━━━━━━━━━━━━━━━\n` +
+          `💡 *Market Insight:* Pakistani TikTok & Meta feeds par interior luxury aesthetics aur problem-solving gadgets top converting hain with Cash On Delivery!\n\n` +
+          `🏆 *TOP 3 WINNING PRODUCTS TODAY:*\n\n` +
+          `1️⃣ *${p1}*\n` +
+          `• 📈 *Platform:* TikTok Viral (Demand: 96%)\n` +
+          `• 🎯 *Hook:* "Bhai agar aapki gari me ambient lighting nahi lagi tou aap 2026 me nahi 2010 me travel kar rahe hain!"\n` +
+          `• 💰 *Pricing:* Sell Rs. 2,850 | Profit: Rs. 1,450/order\n` +
+          `• 🎬 *Video Angle:* Before vs After POV Night Drive Neon Transformation\n\n` +
+          `2️⃣ *${p2}*\n` +
+          `• 📈 *Platform:* Meta / Facebook Ads (Demand: 92%)\n` +
+          `• 🎯 *Hook:* "Gari me phaili hui taaron se tang aa chuke hain? Ye 1-second retractable gadget dekhein!"\n` +
+          `• 💰 *Pricing:* Sell Rs. 2,200 | Profit: Rs. 1,100/order\n` +
+          `• 🎬 *Video Angle:* Problem vs Solution Satisfying Retract\n\n` +
+          `3️⃣ *Solar Auto-Rotating Car Freshener*\n` +
+          `• 📈 *Platform:* TikTok (Demand: 89%)\n` +
+          `• 🎯 *Hook:* "Bina battery ya charging ke dhoop aate hi automatic ghoomne lagta hai!"\n` +
+          `• 💰 *Pricing:* Sell Rs. 1,650 | Profit: Rs. 900/order\n` +
+          `• 🎬 *Video Angle:* Sunlight Activation Visual ASMR\n\n` +
+          `━━━━━━━━━━━━━━━━━━━━━\n` +
+          `📥 *Full Video Shot Lists & Scripts:* ${SITE_URL}/admin/trending-intelligence`;
+
+        await socket.sendMessage(adminJid, { text: digest });
+        lastTrendsSentDate = pktDateStr;
+        console.log(`✅ [Daily Trends Alert] Dispatched daily intelligence brief to ${adminJid}`);
+      }
+    } catch (err) {
+      console.error('[Daily Trends Scheduler Error]', err);
+    }
+  }, 10 * 60 * 1000); // Check every 10 minutes
+}
+
 start().catch(console.error);
+

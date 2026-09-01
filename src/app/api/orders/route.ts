@@ -3,6 +3,7 @@ import dbConnect from '../../../lib/mongodb';
 import Order from '../../../models/Order';
 import Product from '../../../models/Product';
 import { fireConversionEvent } from '../../../utils/conversionApi';
+import { sendAdminOrderNotification } from '../../../lib/whatsappNotification';
 
 export async function GET() {
   try {
@@ -196,7 +197,12 @@ export async function POST(request: Request) {
 
     const savedOrder = await order.save();
 
-    // 6. Asynchronous Conversion Tracking (Meta CAPI + TikTok)
+    // 6. Asynchronous WhatsApp Admin Order Notification
+    void sendAdminOrderNotification(savedOrder).catch((waErr) => {
+      console.error('[WhatsAppOrderAlert] Non-blocking admin notification failed:', waErr);
+    });
+
+    // 7. Asynchronous Conversion Tracking (Meta CAPI + TikTok)
     void fireConversionEvent({
       orderId: savedOrder._id.toString(),
       value: calculatedTotal,

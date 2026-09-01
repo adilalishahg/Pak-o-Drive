@@ -321,6 +321,29 @@ class WhatsAppBotManager {
   }
 
   /**
+   * Send arbitrary outbound text message to a specific phone number
+   */
+  public async sendTextMessage(toPhone: string, text: string): Promise<boolean> {
+    try {
+      if (!this.sock || this.state.status !== 'CONNECTED') {
+        console.warn('[WhatsAppBot] Cannot send message: bot is not connected.');
+        return false;
+      }
+
+      const cleanPhone = toPhone.replace(/[^0-9]/g, '');
+      if (!cleanPhone) return false;
+
+      const jid = `${cleanPhone}@s.whatsapp.net`;
+      await this.sock.sendMessage(jid, { text });
+      console.log(`[WhatsAppBot] Outbound message sent successfully to ${cleanPhone}`);
+      return true;
+    } catch (err) {
+      console.error('[WhatsAppBot] Error sending outbound message:', err);
+      return false;
+    }
+  }
+
+  /**
    * Disconnect and wipe credentials to allow fresh QR scan
    */
   public async logout(): Promise<BotState> {
@@ -349,3 +372,4 @@ class WhatsAppBotManager {
 }
 
 export default WhatsAppBotManager;
+
