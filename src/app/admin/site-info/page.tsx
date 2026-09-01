@@ -3,87 +3,12 @@
 import React, { useEffect, useState } from 'react';
 import { optimizeImageBeforeUpload } from '../../../utils/imageOptimizer';
 import { SearchableCitySelect } from '@/components/common/SearchableCitySelect';
-
-interface SiteInfo {
-  siteName: string;
-  siteTagline: string;
-  logoText: string;
-  logoIcon: string;
-  logoImage: string;
-  showLogoImage: boolean;
-  favicon: string;
-  seoTitle: string;
-  seoDescription: string;
-  seoKeywords: string;
-  address: string;
-  city: string;
-  country: string;
-  phone: string;
-  phone2: string;
-  email: string;
-  supportEmail: string;
-  website: string;
-  whatsapp: string;
-  facebook: string;
-  instagram: string;
-  tiktok: string;
-  twitter: string;
-  youtube: string;
-  mapEmbedUrl: string;
-  privacyPolicy: string;
-  termsConditions: string;
-  returnPolicy: string;
-  shippingPolicy: string;
-  aboutUs: string;
-  newsletterText: string;
-  trendingProductLimit: number;
-  adminPhones: string;
-  copyrightText: string;
-}
-
-const DEFAULT_INFO: SiteInfo = {
-  siteName: '',
-  siteTagline: '',
-  logoText: '',
-  logoIcon: 'shopping-bag',
-  logoImage: '',
-  showLogoImage: false,
-  favicon: '/favicon.ico',
-  seoTitle: '',
-  seoDescription: '',
-  seoKeywords: '',
-  address: '',
-  city: '',
-  country: '',
-  phone: '',
-  phone2: '',
-  email: '',
-  supportEmail: '',
-  website: '',
-  whatsapp: '',
-  facebook: '',
-  instagram: '',
-  tiktok: '',
-  twitter: '',
-
-  youtube: '',
-  mapEmbedUrl: '',
-  privacyPolicy: '',
-  termsConditions: '',
-  returnPolicy: '',
-  shippingPolicy: '',
-  aboutUs: '',
-  newsletterText: '',
-  trendingProductLimit: 10,
-  adminPhones: '03185205667, 03218827748',
-  copyrightText: '',
-};
-
-
-type ActiveTab = 'general' | 'contact' | 'social' | 'policies' | 'seo';
+import { SiteInfo, SiteInfoActiveTab, DEFAULT_SITE_INFO } from '@/types';
 
 export default function AdminSiteInfoPage() {
-  const [info, setInfo] = useState<SiteInfo>(DEFAULT_INFO);
+  const [info, setInfo] = useState<SiteInfo>(DEFAULT_SITE_INFO);
+  const [activeTab, setActiveTab] = useState<SiteInfoActiveTab>('general');
+
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [logoUploading, setLogoUploading] = useState(false);

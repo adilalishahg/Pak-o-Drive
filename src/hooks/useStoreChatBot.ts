@@ -2,25 +2,8 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { usePathname } from 'next/navigation';
+import { ChatProduct, ChatMessage } from '@/types';
 
-export interface ChatProduct {
-  _id?: string;
-  name: string;
-  slug?: string;
-  price: number;
-  originalPrice?: number;
-  image?: string;
-  category?: string;
-}
-
-export interface ChatMessage {
-  id: string;
-  sender: 'bot' | 'user' | 'agent';
-  text: string;
-  timestamp: string;
-  source?: 'rule' | 'order_lookup' | 'gemini_ai' | 'agent' | 'fallback' | 'welcome';
-  products?: ChatProduct[];
-}
 
 const STORAGE_KEY = 'pakodrive_chat_history_v1';
 const SESSION_ID_KEY = 'pakodrive_chat_session_id';

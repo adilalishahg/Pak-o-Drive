@@ -3,11 +3,10 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { IOrder } from '../../types';
-
-type OrderStatus = 'Pending' | 'Processing' | 'On the Way' | 'Shipped' | 'Delivered' | 'Cancelled';
+import { IOrder, OrderStatus } from '@/types';
 
 const STATUS_STEPS: OrderStatus[] = ['Pending', 'Processing', 'On the Way', 'Shipped', 'Delivered'];
+
 
 const STATUS_CONFIG: Record<string, { color: string; bg: string; icon: string; label: string }> = {
   Pending:      { color: '#d97706', bg: '#fef3c7', icon: 'fas fa-clock',           label: 'Pending'      },

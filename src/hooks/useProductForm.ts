@@ -4,24 +4,8 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAdminUpload } from '../context/AdminUploadContext';
 import { optimizeImageBeforeUpload } from '../utils/imageOptimizer';
+import { VariantInput, SpecInput, ProductFormHookOptions } from '@/types';
 
-export interface VariantInput {
-  name: string;
-  price: string;
-  originalPrice: string;
-  stock: string;
-  image: string;
-  description: string;
-}
-
-export interface SpecInput {
-  key: string;
-  value: string;
-}
-
-export interface ProductFormHookOptions {
-  productId?: string;
-}
 
 export function useProductForm({ productId }: ProductFormHookOptions = {}) {
   const router = useRouter();

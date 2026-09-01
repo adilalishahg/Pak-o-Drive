@@ -1,16 +1,10 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-
-interface PromoData {
-  _id: string;
-  code: string;
-  discountPercent: number;
-  isActive: boolean;
-  expiryDate: string;
-}
+import { PromoData } from '@/types';
 
 export default function AdminPromotionsPage() {
+
   const [promos, setPromos] = useState<PromoData[]>([]);
   const [code, setCode] = useState('');
   const [discountPercent, setDiscountPercent] = useState('10');

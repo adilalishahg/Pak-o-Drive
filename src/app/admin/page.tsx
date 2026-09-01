@@ -3,42 +3,10 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import MetricCard from '../../components/common/MetricCard';
-
-interface DashboardData {
-  stats: {
-    revenue: number;
-    orders: number;
-    products: number;
-    unreadContacts: number;
-    activePromos: number;
-    pageviews: number;
-    cartClicks: number;
-    whatsappClicks: number;
-    searchesCount: number;
-    abandonedCartLeak?: number;
-    averageOrderValue?: number;
-  };
-  charts: {
-    labels: string[];
-    pageviews: number[];
-    sales: number[];
-  };
-  popularProducts: Array<{
-    _id: string;
-    name: string;
-    price: number;
-    category: string;
-    stock: number;
-    image: string;
-    rating: number;
-  }>;
-  searches: Array<{
-    keyword: string;
-    count: number;
-  }>;
-}
+import { DashboardData } from '@/types';
 
 export default function AdminDashboardPage() {
+
   const [data, setData] = useState<DashboardData | null>(null);
   const [recentOrders, setRecentOrders] = useState<any[]>([]);
   const [recentContacts, setRecentContacts] = useState<any[]>([]);

@@ -12,8 +12,8 @@ import { NavbarFooterSection } from '../../../components/admin/theme/NavbarFoote
 import { HeroSlidesManager } from '../../../components/admin/theme/HeroSlidesManager';
 import { HomepageSectionsConfig } from '../../../components/admin/theme/HomepageSectionsConfig';
 import { ThemeLivePreview } from '../../../components/admin/theme/ThemeLivePreview';
+import { ThemeTabKey } from '@/types';
 
-type ThemeTabKey = 'hero' | 'logo' | 'colors' | 'shapes' | 'nav' | 'all';
 
 const TABS: { key: ThemeTabKey; label: string; icon: string; badge?: string }[] = [
   { key: 'hero', label: 'Hero Slides & Banners', icon: 'fas fa-images' },

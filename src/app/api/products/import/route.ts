@@ -3,37 +3,8 @@ import { revalidatePath } from 'next/cache';
 import dbConnect from '@/lib/mongodb';
 import Product from '@/models/Product';
 import Category from '@/models/Category';
+import { BulkImportProductInput } from '@/types';
 
-export interface BulkImportProductInput {
-  name: string;
-  category: string;
-  subcategory?: string;
-  price: number;
-  originalPrice?: number;
-  image: string;
-  images?: string[];
-  description: string;
-  shortDescription?: string;
-  video?: string;
-  seoTitle?: string;
-  seoDescription?: string;
-  seoKeywords?: string;
-  stock?: number;
-  rating?: number;
-  reviewsCount?: number;
-  isFeatured?: boolean;
-  isTopSelling?: boolean;
-  isNewArrival?: boolean;
-  specifications?: Record<string, string>;
-  variants?: Array<{
-    name: string;
-    description?: string;
-    price: number;
-    originalPrice?: number;
-    stock?: number;
-    image?: string;
-  }>;
-}
 
 // Icon auto-guesser for newly created categories
 function guessCategoryIcon(nameOrSlug: string): string {

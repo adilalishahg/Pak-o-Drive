@@ -76,12 +76,55 @@ export interface ProductCardListProps {
   priority?: boolean;
 }
 
-export interface ShopClientProps {
-  initialProducts: IProduct[];
+export interface VariantInput {
+  name: string;
+  description?: string;
+  price: string | number;
+  originalPrice?: string | number;
+  stock: string | number;
+  image?: string;
 }
 
-export interface HomePageClientProps {
-  initialProducts: IProduct[];
-  initialCategories: any[];
+export interface SpecInput {
+  key: string;
+  value: string;
 }
+
+export interface ProductFormHookOptions {
+  initialData?: any;
+  productId?: string;
+  isEditMode?: boolean;
+}
+
+export interface BulkImportProductInput {
+  name: string;
+  category: string;
+  subcategory?: string;
+  price: number;
+  originalPrice?: number;
+  image: string;
+  images?: string[];
+  description: string;
+  shortDescription?: string;
+  video?: string;
+  seoTitle?: string;
+  seoDescription?: string;
+  seoKeywords?: string;
+  stock?: number;
+  rating?: number;
+  reviewsCount?: number;
+  isFeatured?: boolean;
+  isTopSelling?: boolean;
+  isNewArrival?: boolean;
+  specifications?: Record<string, string>;
+  variants?: Array<{
+    name: string;
+    description?: string;
+    price: number;
+    originalPrice?: number;
+    stock?: number;
+    image?: string;
+  }>;
+}
+
 

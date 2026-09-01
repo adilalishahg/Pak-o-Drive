@@ -1,29 +1,6 @@
 import { NextResponse } from 'next/server';
+import { MetaAdResult, MetaApiResponse } from '@/types';
 
-// ── Types ──
-interface MetaAdResult {
-  id: string;
-  adCreativeBody: string;
-  adCreativeLinkTitle: string;
-  pageName: string;
-  pageId: string;
-  startDate: string;
-  liveDays: number;
-  estimatedSalesConfidence: 'HIGH (Winning Product)' | 'MEDIUM' | 'LOW';
-  impressionsLower?: number;
-  impressionsUpper?: number;
-  spendLower?: number;
-  spendUpper?: number;
-  currency?: string;
-}
-
-interface MetaApiResponse {
-  success: boolean;
-  data: MetaAdResult[];
-  query: string;
-  region: string;
-  error?: string;
-}
 
 // ── Helpers ──
 function daysBetween(dateStr: string): number {

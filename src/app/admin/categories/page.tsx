@@ -4,19 +4,10 @@ import React, { useEffect, useState } from 'react';
 import { OptimizedImage } from '@/components/common/OptimizedImage';
 import { optimizeImageBeforeUpload } from '@/utils/imageOptimizer';
 import { DeleteConfirmModal } from '@/components/admin/common/DeleteConfirmModal';
-
-interface CategoryData {
-  _id?: string;
-  id: string;
-  name: string;
-  slug: string;
-  icon: string;
-  image?: string;
-  productCount: number;
-  parentCategory?: string;
-}
+import { CategoryData } from '@/types';
 
 export default function AdminCategoriesPage() {
+
   const [categories, setCategories] = useState<CategoryData[]>([]);
   const [failedImages, setFailedImages] = useState<Record<string, boolean>>({});
   const [name, setName] = useState('');

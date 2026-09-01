@@ -1,19 +1,10 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-
-interface ContactData {
-  _id: string;
-  name: string;
-  email: string;
-  phone?: string;
-  subject: string;
-  message: string;
-  status: 'Unread' | 'Read';
-  createdAt: string;
-}
+import { ContactData } from '@/types';
 
 export default function AdminContactsPage() {
+
   const [contacts, setContacts] = useState<ContactData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');

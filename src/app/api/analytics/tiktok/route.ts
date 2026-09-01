@@ -1,27 +1,6 @@
 import { NextResponse } from 'next/server';
+import { TikTokPostResult, TikTokApiResponse } from '@/types';
 
-// ── Types ──
-interface TikTokPostResult {
-  id: string;
-  creatorHandle: string;
-  creatorAvatar?: string;
-  videoUrl?: string;
-  caption: string;
-  viewsCount: number;
-  likesCount: number;
-  commentsCount: number;
-  sharesCount: number;
-  engagementRate: number;
-}
-
-interface TikTokApiResponse {
-  success: boolean;
-  data: TikTokPostResult[];
-  query: string;
-  error?: string;
-  nextCursor?: number | string;
-  hasMore?: boolean;
-}
 
 // ── GET Handler ──
 export async function GET(request: Request) {

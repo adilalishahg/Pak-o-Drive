@@ -2,7 +2,18 @@
  * WhatsApp Automation & Bot Studio Component Types for Pak-o-Drive Platform
  */
 
-import { WhatsAppRuleItem } from '../hooks/useWhatsAppBot';
+export interface WhatsAppRuleItem {
+  _id: string;
+  name: string;
+  triggerType: 'contains' | 'exact' | 'regex' | 'default';
+  keywords: string[];
+  replyMessage: string;
+  dynamicAction: string;
+  priority: number;
+  enabled: boolean;
+  matchCount?: number;
+  createdAt?: string;
+}
 
 export interface BotState {
   status: 'DISCONNECTED' | 'QR_READY' | 'CONNECTING' | 'CONNECTED';
@@ -16,7 +27,30 @@ export interface BotState {
   platform?: string;
 }
 
+export interface ChatProduct {
+  _id?: string;
+  name: string;
+  slug?: string;
+  price: number;
+  originalPrice?: number;
+  image?: string;
+  category?: string;
+  description?: string;
+  stock?: number;
+  rating?: number;
+}
 
+export interface ChatMessage {
+  id: string;
+  sender: 'user' | 'bot' | 'agent' | 'system';
+  text: string;
+  timestamp: string;
+  source?: 'rule' | 'order_lookup' | 'gemini_ai' | 'agent' | 'fallback' | 'welcome';
+  products?: ChatProduct[];
+  suggestedActions?: string[];
+  orderId?: string;
+  orderStatus?: string;
+}
 
 export interface BotStatusCardProps {
   botState: BotState;

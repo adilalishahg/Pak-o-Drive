@@ -1,14 +1,10 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-
-interface Subscriber {
-  _id: string;
-  email: string;
-  createdAt: string;
-}
+import { Subscriber } from '@/types';
 
 export default function AdminSubscribersPage() {
+
   const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');

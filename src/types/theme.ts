@@ -140,3 +140,6 @@ export interface DynamicThemeProviderProps {
   initialTheme?: any;
 }
 
+export type ThemeTabKey = 'hero' | 'logo' | 'colors' | 'shapes' | 'nav' | 'all';
+
+

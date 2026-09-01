@@ -5,15 +5,8 @@ import { useRouter } from 'next/navigation';
 import { useCart } from '../context/CartContext';
 import { logInteraction } from '../components/common/AnalyticsTracker';
 import { PAKISTAN_PHONE_REGEX } from '../lib/constants';
+import { CheckoutFormData } from '@/types';
 
-export interface CheckoutFormData {
-  fullName: string;
-  phone: string;
-  address: string;
-  city: string;
-  email: string;
-  orderNotes: string;
-}
 
 export function useCheckout() {
   const router = useRouter();

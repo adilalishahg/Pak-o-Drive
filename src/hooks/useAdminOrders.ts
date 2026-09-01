@@ -1,31 +1,8 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
+import { OrderData } from '@/types';
 
-export interface OrderData {
-  _id: string;
-  customerDetails: {
-    name: string;
-    email?: string;
-    phone: string;
-    address: string;
-    city: string;
-  };
-  items: Array<{
-    productId: string;
-    name: string;
-    price: number;
-    quantity: number;
-    image: string;
-    variantName?: string;
-  }>;
-  totalAmount: number;
-  paymentMethod: string;
-  status: 'Pending' | 'Processing' | 'On the Way' | 'Shipped' | 'Delivered' | 'Cancelled';
-  createdAt: string;
-  updatedAt: string;
-  whatsappSent: boolean;
-}
 
 export function useAdminOrders() {
   const [orders, setOrders] = useState<OrderData[]>([]);

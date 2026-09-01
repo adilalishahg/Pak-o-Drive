@@ -1,28 +1,8 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { BotState, WhatsAppRuleItem } from '@/types';
 
-export interface BotState {
-  status: 'DISCONNECTED' | 'QR_READY' | 'CONNECTING' | 'CONNECTED';
-  phoneNumber: string | null;
-  qrCodeBase64: string | null;
-  lastConnectedAt: string | null;
-  totalMessagesProcessed: number;
-  totalAutoRepliesSent: number;
-  error: string | null;
-}
-
-export interface WhatsAppRuleItem {
-  _id: string;
-  name: string;
-  triggerType: 'contains' | 'exact' | 'regex' | 'default';
-  keywords: string[];
-  replyMessage: string;
-  dynamicAction: 'none' | 'order_status_lookup' | 'interactive_menu' | 'bank_details' | 'agent_handoff' | 'returns_policy';
-  enabled: boolean;
-  priority: number;
-  createdAt?: string;
-}
 
 export function useWhatsAppBot() {
   const [botState, setBotState] = useState<BotState>({
