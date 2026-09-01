@@ -175,28 +175,41 @@ export const Navbar: React.FC = () => {
     const map: Record<string, any> = {};
     const roots: any[] = [];
 
-    cats.forEach(c => {
+    // Filter categories to only those with products (if at least one category has products)
+    const hasAnyProducts = cats.some(c => (c.productCount || 0) > 0);
+    const activeCats = hasAnyProducts ? cats.filter(c => {
+      if ((c.productCount || 0) > 0) return true;
+      // If it's a parent, check if any of its children has products
+      if (!c.parentCategory) {
+        return cats.some(child => child.parentCategory === c.slug && (child.productCount || 0) > 0);
+      }
+      return false;
+    }) : cats;
+
+    activeCats.forEach(c => {
       map[c.slug] = {
         name: c.name,
         slug: c.slug,
         parentCategory: c.parentCategory,
         image: c.image || '',
         icon: c.icon || '',
+        productCount: c.productCount || 0,
         subcategories: []
       };
     });
 
-    cats.forEach(c => {
+    activeCats.forEach(c => {
       const node = map[c.slug];
       if (c.parentCategory && map[c.parentCategory]) {
         map[c.parentCategory].subcategories.push(node);
-      } else {
+      } else if (!c.parentCategory) {
         roots.push(node);
       }
     });
 
     return roots;
   }, [cats]);
+
 
   useEffect(() => {
     const fn = () => { setScrolled(window.scrollY > 10); setShowTop(window.scrollY > 300); };

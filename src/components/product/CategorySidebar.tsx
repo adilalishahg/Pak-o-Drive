@@ -31,14 +31,27 @@ export const CategorySidebar: React.FC<CategorySidebarProps> = ({
         const { fetchCategoriesClient } = await import('../../lib/client-cache');
         const data = await fetchCategoriesClient();
         if (data && data.length > 0) {
-          setCategories(data.map((c: any) => ({
+          const mapped = data.map((c: any) => ({
             name: c.name,
             slug: c.slug,
             icon: c.icon || 'fas fa-tag',
             parentCategory: c.parentCategory || '',
-            image: c.image || ''
-          })));
+            image: c.image || '',
+            productCount: Number(c.productCount ?? c.totalProductCount ?? 0)
+          }));
+
+          const hasAnyWithProducts = mapped.some((c: any) => (c.productCount || 0) > 0);
+          const activeOnly = hasAnyWithProducts ? mapped.filter((c: any) => {
+            if ((c.productCount || 0) > 0) return true;
+            if (!c.parentCategory) {
+              return mapped.some((sub: any) => sub.parentCategory === c.slug && (sub.productCount || 0) > 0);
+            }
+            return false;
+          }) : mapped;
+
+          setCategories(activeOnly);
         }
+
       } catch {}
     })();
   }, []);

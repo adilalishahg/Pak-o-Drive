@@ -53,19 +53,33 @@ export const FooterClassic: React.FC = () => {
                 </button>
               </form>
             </div>
-            <div className="d-flex pt-2 gap-2 mt-3">
-              {[
-                { icon: 'fab fa-twitter', href: '#', label: 'Twitter' },
-                { icon: 'fab fa-facebook-f', href: '#', label: 'Facebook' },
-                { icon: 'fab fa-youtube', href: '#', label: 'YouTube' },
-                { icon: 'fab fa-instagram', href: '#', label: 'Instagram' },
-              ].map((s, i) => (
-                <a key={i} className="btn btn-square btn-outline-secondary rounded-circle" href={s.href} aria-label={s.label}>
-                  <i className={s.icon}></i>
-                </a>
-              ))}
-            </div>
+            {(() => {
+              const rawWhatsapp = info.whatsapp ? info.whatsapp.replace(/\D/g, '') : '';
+              const formattedWhatsapp = rawWhatsapp ? (rawWhatsapp.startsWith('92') ? rawWhatsapp : `92${rawWhatsapp.replace(/^0/, '')}`) : '';
+
+              const activeSocials = [
+                { icon: 'fab fa-facebook-f', href: info.facebook, label: 'Facebook' },
+                { icon: 'fab fa-instagram', href: info.instagram, label: 'Instagram' },
+                { icon: 'fab fa-tiktok', href: (info as any).tiktok, label: 'TikTok' },
+                { icon: 'fab fa-twitter', href: info.twitter, label: 'Twitter' },
+                { icon: 'fab fa-youtube', href: info.youtube, label: 'YouTube' },
+                { icon: 'fab fa-whatsapp', href: formattedWhatsapp ? `https://wa.me/${formattedWhatsapp}` : '', label: 'WhatsApp' },
+              ].filter(s => Boolean(s.href && s.href !== '#' && s.href.trim() !== ''));
+
+              if (activeSocials.length === 0) return null;
+
+              return (
+                <div className="d-flex pt-2 gap-2 mt-3">
+                  {activeSocials.map((s, i) => (
+                    <a key={i} className="btn btn-square btn-outline-secondary rounded-circle" href={s.href} target="_blank" rel="noopener noreferrer" aria-label={s.label}>
+                      <i className={s.icon}></i>
+                    </a>
+                  ))}
+                </div>
+              );
+            })()}
           </div>
+
 
           {/* Customer Service */}
           <div className="col-lg-3 col-md-6">

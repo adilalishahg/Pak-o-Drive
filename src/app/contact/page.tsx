@@ -161,16 +161,42 @@ export default function ContactPage() {
             </div>
 
             {/* Social Icons */}
-            <div className="border-t border-slate-100 pt-6">
-              <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Follow us online</h4>
-              <div className="flex items-center gap-3">
-                {['facebook', 'instagram', 'youtube', 'twitter', 'linkedin'].map((social, sIdx) => (
-                  <a key={sIdx} href="#" className="w-8 h-8 rounded-lg bg-slate-100 hover:bg-blue-600 hover:text-white flex items-center justify-center transition-colors text-slate-500 text-xs font-bold text-decoration-none">
-                    {social[0].toUpperCase()}
-                  </a>
-                ))}
-              </div>
-            </div>
+            {(() => {
+              const rawWhatsapp = info.whatsapp ? info.whatsapp.replace(/\D/g, '') : '';
+              const formattedWhatsapp = rawWhatsapp ? (rawWhatsapp.startsWith('92') ? rawWhatsapp : `92${rawWhatsapp.replace(/^0/, '')}`) : '';
+
+              const activeSocials = [
+                { icon: 'fab fa-facebook-f', href: info.facebook, label: 'Facebook' },
+                { icon: 'fab fa-instagram', href: info.instagram, label: 'Instagram' },
+                { icon: 'fab fa-tiktok', href: (info as any).tiktok, label: 'TikTok' },
+                { icon: 'fab fa-twitter', href: info.twitter, label: 'Twitter' },
+                { icon: 'fab fa-youtube', href: info.youtube, label: 'YouTube' },
+                { icon: 'fab fa-whatsapp', href: formattedWhatsapp ? `https://wa.me/${formattedWhatsapp}` : '', label: 'WhatsApp' },
+              ].filter(s => Boolean(s.href && s.href !== '#' && s.href.trim() !== ''));
+
+              if (activeSocials.length === 0) return null;
+
+              return (
+                <div className="border-t border-slate-100 pt-6">
+                  <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Follow us online</h4>
+                  <div className="flex items-center gap-3">
+                    {activeSocials.map((social, sIdx) => (
+                      <a
+                        key={sIdx}
+                        href={social.href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label={social.label}
+                        className="w-9 h-9 rounded-lg bg-slate-100 hover:bg-orange-600 hover:text-white flex items-center justify-center transition-colors text-slate-600 text-sm font-bold text-decoration-none"
+                      >
+                        <i className={social.icon} />
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              );
+            })()}
+
           </div>
 
           {/* Right side: Form */}
