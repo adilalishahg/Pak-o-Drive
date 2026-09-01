@@ -1,0 +1,26 @@
+name: Auto Deploy to Alwaysdata (WhatsApp Bot)
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to Alwaysdata via SSH
+        uses: appleboy/ssh-action@master
+        with:
+          host: ssh-adilalishahg.alwaysdata.net
+          username: adilalishahg
+          password: ${{ secrets.ALWAYSDATA_SSH_PASSWORD }}
+          port: 22
+          script: |
+            echo "🚀 [Auto-Deploy] Pulling latest code on Alwaysdata..."
+            cd /home/adilalishahg/Pak-o-Drive
+            git pull origin main
+            cp src/worker/bot.mjs /home/adilalishahg/bot/bot.mjs
+            echo "🔄 [Auto-Deploy] Reloading WhatsApp Bot Service..."
+            pkill -f "bot.mjs" || true
+            echo "✅ [Auto-Deploy] Successfully deployed and restarted!"
