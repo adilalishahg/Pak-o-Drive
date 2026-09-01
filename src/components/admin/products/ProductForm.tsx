@@ -31,7 +31,10 @@ export function ProductForm({ productId, pageTitle }: ProductFormProps) {
     setOriginalPrice,
     category,
     setCategory,
+    subcategory,
+    setSubcategory,
     stock,
+
     setStock,
     heroText,
     setHeroText,
@@ -192,6 +195,8 @@ export function ProductForm({ productId, pageTitle }: ProductFormProps) {
               setDescription={setDescription}
               category={category}
               setCategory={setCategory}
+              subcategory={subcategory}
+              setSubcategory={setSubcategory}
               categories={categories}
               price={price}
               setPrice={setPrice}
@@ -209,6 +214,7 @@ export function ProductForm({ productId, pageTitle }: ProductFormProps) {
               setIsTopSelling={setIsTopSelling}
               validationErrors={validationErrors}
             />
+
 
             <ProductVariantsBuilder
               variants={variants}

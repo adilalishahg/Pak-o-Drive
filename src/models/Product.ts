@@ -13,6 +13,7 @@ const ProductSchema = new Schema<IProductDocument>(
     price: { type: Number, required: true },
     originalPrice: { type: Number, required: true },
     category: { type: String, required: true, index: true },
+    subcategory: { type: String, default: '', index: true },
     image: { type: String, required: true },
     images: { type: [String], default: [] },
     video: { type: String, default: '' },
@@ -47,7 +48,9 @@ const ProductSchema = new Schema<IProductDocument>(
 
 // High-speed compound indexes for sub-millisecond filtering under 10k+ concurrent requests
 ProductSchema.index({ category: 1, createdAt: -1 });
+ProductSchema.index({ category: 1, subcategory: 1, createdAt: -1 });
 ProductSchema.index({ isFeatured: 1, createdAt: -1 });
+
 ProductSchema.index({ isTopSelling: 1, createdAt: -1 });
 ProductSchema.index({ isNewArrival: 1, createdAt: -1 });
 ProductSchema.index({ createdAt: -1 });

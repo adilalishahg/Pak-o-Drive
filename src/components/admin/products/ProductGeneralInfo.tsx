@@ -9,6 +9,8 @@ interface ProductGeneralInfoProps {
   setDescription: (v: string) => void;
   category: string;
   setCategory: (v: string) => void;
+  subcategory?: string;
+  setSubcategory?: (v: string) => void;
   categories: any[];
   price: string;
   setPrice: (v: string) => void;
@@ -34,6 +36,8 @@ export function ProductGeneralInfo({
   setDescription,
   category,
   setCategory,
+  subcategory = '',
+  setSubcategory = () => {},
   categories,
   price,
   setPrice,
@@ -51,6 +55,9 @@ export function ProductGeneralInfo({
   setIsTopSelling,
   validationErrors,
 }: ProductGeneralInfoProps) {
+  const rootCategories = categories.filter((c: any) => !c.parentCategory);
+  const subcategoriesList = categories.filter((c: any) => Boolean(c.parentCategory));
+
   return (
     <div className="card border-0 shadow-sm rounded-4 mb-4">
       <div className="card-header bg-transparent border-0 py-3 px-4">
@@ -92,24 +99,51 @@ export function ProductGeneralInfo({
             {validationErrors.description && <div className="invalid-feedback">{validationErrors.description}</div>}
           </div>
 
-          {/* Category */}
+          {/* Main Category */}
           <div className="col-12 col-md-6">
             <label className="form-label small fw-bold text-muted">
-              Category <span className="text-danger">*</span>
+              Main Category / Department <span className="text-danger">*</span>
             </label>
             <select
               id="category"
-              className="form-select"
+              className="form-select rounded-3"
               value={category}
-              onChange={(e) => setCategory(e.target.value)}
+              onChange={(e) => {
+                setCategory(e.target.value);
+                setSubcategory('');
+              }}
             >
-              {categories.map((c: any) => (
+              <option value="">Select Main Category...</option>
+              {(rootCategories.length > 0 ? rootCategories : categories).map((c: any) => (
                 <option key={c.slug} value={c.slug}>
-                  {c.parentCategory ? `└─ ${c.name}` : c.name}
+                  {c.name}
                 </option>
               ))}
             </select>
           </div>
+
+          {/* Subcategory (Inner Category) */}
+          <div className="col-12 col-md-6">
+            <label className="form-label small fw-bold text-muted">
+              Subcategory / Inner Category <span className="text-muted fw-normal">(Optional)</span>
+            </label>
+            <select
+              id="subcategory"
+              className="form-select rounded-3"
+              value={subcategory}
+              onChange={(e) => setSubcategory(e.target.value)}
+            >
+              <option value="">None (Direct in Main Category)</option>
+              {subcategoriesList
+                .filter((c: any) => !category || c.parentCategory === category)
+                .map((c: any) => (
+                  <option key={c.slug} value={c.slug}>
+                    {c.name}
+                  </option>
+                ))}
+            </select>
+          </div>
+
 
           {/* Stock */}
           <div className="col-12 col-md-6">

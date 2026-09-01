@@ -39,11 +39,13 @@ export function useProductForm({ productId }: ProductFormHookOptions = {}) {
   const [price, setPrice] = useState('');
   const [originalPrice, setOriginalPrice] = useState('');
   const [category, setCategory] = useState('');
+  const [subcategory, setSubcategory] = useState('');
   const [stock, setStock] = useState('10');
   const [heroText, setHeroText] = useState('');
   const [isFeatured, setIsFeatured] = useState(false);
   const [isNewArrival, setIsNewArrival] = useState(true);
   const [isTopSelling, setIsTopSelling] = useState(false);
+
 
   // Images & Media
   const [image, setImage] = useState('');
@@ -113,7 +115,9 @@ export function useProductForm({ productId }: ProductFormHookOptions = {}) {
           setOriginalPrice(p.originalPrice ? String(p.originalPrice) : '');
           setStock(p.stock !== undefined ? String(p.stock) : '10');
           setCategory(p.category || '');
+          setSubcategory(p.subcategory || '');
           setImage(p.image || '');
+
           setImages(p.images || []);
           setVideo(p.video || '');
           setShowVideoOnFront(Boolean(p.showVideoOnFront));
@@ -446,6 +450,7 @@ export function useProductForm({ productId }: ProductFormHookOptions = {}) {
       originalPrice: originalPrice ? Number(originalPrice) : undefined,
       stock: Number(stock),
       category: category.trim(),
+      subcategory: subcategory.trim(),
       image: image.trim(),
       images: images.map((i) => i.trim()).filter(Boolean),
       video: video ? video.trim() : undefined,
@@ -460,6 +465,7 @@ export function useProductForm({ productId }: ProductFormHookOptions = {}) {
       seoDescription: seoDescription.trim(),
       seoKeywords: seoKeywords.trim(),
     };
+
 
     try {
       const endpoint = isEditMode ? `/api/products/${productId}` : '/api/products';
@@ -533,7 +539,10 @@ export function useProductForm({ productId }: ProductFormHookOptions = {}) {
     setOriginalPrice,
     category,
     setCategory,
+    subcategory,
+    setSubcategory,
     stock,
+
     setStock,
     heroText,
     setHeroText,

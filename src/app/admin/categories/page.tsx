@@ -185,6 +185,40 @@ export default function AdminCategoriesPage() {
     }
   };
 
+  const [filterMode, setFilterMode] = useState<'all' | 'roots' | 'subs'>('all');
+  const [seeding, setSeeding] = useState(false);
+
+  const handleSeedDefaults = async () => {
+    setSeeding(true);
+    setError('');
+    try {
+      const res = await fetch('/api/categories', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'seed_defaults' }),
+      });
+      const json = await res.json();
+      if (json.success) {
+        await fetchCategories();
+      } else {
+        throw new Error(json.error || 'Failed to seed categories');
+      }
+    } catch (err: any) {
+      setError(err.message || 'Failed to seed categories.');
+    } finally {
+      setSeeding(false);
+    }
+  };
+
+  const rootCategories = categories.filter((c) => !c.parentCategory);
+  const subCategories = categories.filter((c) => Boolean(c.parentCategory));
+
+  const displayedCategories = categories.filter((c) => {
+    if (filterMode === 'roots') return !c.parentCategory;
+    if (filterMode === 'subs') return Boolean(c.parentCategory);
+    return true;
+  });
+
   if (loading && categories.length === 0) {
     return (
       <div className="d-flex align-items-center justify-content-center p-5" style={{ minHeight: '400px' }}>
@@ -205,32 +239,75 @@ export default function AdminCategoriesPage() {
         {/* Categories List */}
         <div className="col-12 col-lg-8">
           <div className="card border-0 shadow-sm rounded-4 bg-white p-4">
-            <h5 className="fw-bold text-secondary mb-3">Available Categories</h5>
+            <div className="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
+              <div>
+                <h5 className="fw-bold text-secondary mb-1">Available Categories & Subcategories</h5>
+                <div className="text-muted small">
+                  {rootCategories.length} Main Departments • {subCategories.length} Inner Subcategories
+                </div>
+              </div>
+
+              {/* Seed Button */}
+              <button
+                type="button"
+                onClick={handleSeedDefaults}
+                disabled={seeding}
+                className="btn btn-sm btn-outline-success rounded-3 d-flex align-items-center gap-1.5 fw-semibold"
+              >
+                <span>{seeding ? '🌱 Loading...' : '🌱 Load Default Multi-Niche Categories'}</span>
+              </button>
+            </div>
+
+            {/* Filter Tabs */}
+            <div className="d-flex gap-2 mb-3 border-bottom pb-2">
+              <button
+                type="button"
+                onClick={() => setFilterMode('all')}
+                className={`btn btn-sm rounded-pill px-3 ${filterMode === 'all' ? 'btn-dark' : 'btn-light text-muted'}`}
+              >
+                All ({categories.length})
+              </button>
+              <button
+                type="button"
+                onClick={() => setFilterMode('roots')}
+                className={`btn btn-sm rounded-pill px-3 ${filterMode === 'roots' ? 'btn-primary' : 'btn-light text-muted'}`}
+              >
+                Main Departments ({rootCategories.length})
+              </button>
+              <button
+                type="button"
+                onClick={() => setFilterMode('subs')}
+                className={`btn btn-sm rounded-pill px-3 ${filterMode === 'subs' ? 'btn-warning text-dark' : 'btn-light text-muted'}`}
+              >
+                Subcategories ({subCategories.length})
+              </button>
+            </div>
+
             <div className="table-responsive">
               <table className="table table-hover align-middle mb-0">
                 <thead className="table-light text-muted small uppercase">
                   <tr>
-                    <th style={{ width: '60px' }}>Icon</th>
-                    <th>Category Name</th>
+                    <th style={{ width: '50px' }}>Icon</th>
+                    <th>Category / Subcategory</th>
                     <th className="d-none d-md-table-cell">Slug</th>
-                    <th>Products Count</th>
+                    <th>Products</th>
                     <th className="text-end">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {categories.map((cat) => (
-                    <tr key={cat.id || cat._id || cat.slug}>
+                  {displayedCategories.map((cat) => (
+                    <tr key={cat.id || cat._id || cat.slug} className={cat.parentCategory ? 'bg-light bg-opacity-25' : ''}>
                       <td>
                         <div
                           className="rounded bg-light d-flex align-items-center justify-content-center overflow-hidden border position-relative"
-                          style={{ width: '40px', height: '40px', color: '#ea580c' }}
+                          style={{ width: '36px', height: '36px', color: cat.parentCategory ? '#0284c7' : '#ea580c' }}
                         >
                           {cat.image && !failedImages[cat.id] ? (
                             <OptimizedImage
                               src={cat.image}
                               alt={cat.name}
                               fill
-                              sizes="40px"
+                              sizes="36px"
                               style={{ objectFit: 'cover' }}
                               onError={() => {
                                 setFailedImages((prev) => ({ ...prev, [cat.id]: true }));
@@ -242,21 +319,31 @@ export default function AdminCategoriesPage() {
                         </div>
                       </td>
                       <td>
-                        <span className="fw-bold text-dark">{cat.name}</span>
+                        <div className="d-flex align-items-center gap-1.5">
+                          {cat.parentCategory ? (
+                            <span className="text-primary fw-bold" style={{ fontSize: '1rem' }}>↳</span>
+                          ) : (
+                            <span className="badge bg-dark text-white rounded-pill" style={{ fontSize: '0.62rem' }}>MAIN</span>
+                          )}
+                          <span className={`text-dark ${cat.parentCategory ? 'fw-semibold text-secondary' : 'fw-bold'}`}>
+                            {cat.name}
+                          </span>
+                        </div>
                         {cat.parentCategory && (
-                          <div className="small text-muted font-monospace" style={{ fontSize: '0.72rem' }}>
-                            Sub of: {cat.parentCategory}
+                          <div className="small text-muted font-monospace ps-3" style={{ fontSize: '0.70rem' }}>
+                            Parent: {cat.parentCategory}
                           </div>
                         )}
                       </td>
                       <td className="d-none d-md-table-cell">
-                        <code className="text-muted">{cat.slug}</code>
+                        <code className="text-muted small">{cat.slug}</code>
                       </td>
                       <td>
-                        <span className="badge bg-light text-dark rounded-pill px-2.5 py-1">
+                        <span className={`badge rounded-pill px-2.5 py-1 ${cat.productCount > 0 ? 'bg-success bg-opacity-10 text-success' : 'bg-light text-muted'}`}>
                           {cat.productCount} products
                         </span>
                       </td>
+
                       <td className="text-end">
                         <button
                           onClick={() => handleStartEdit(cat)}

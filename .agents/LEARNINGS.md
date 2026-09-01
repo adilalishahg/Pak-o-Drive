@@ -60,7 +60,18 @@ This file serves as persistent dynamic memory across coding agent sessions. Ever
 
 ## 📝 PART 2: Project-Specific Resolution History
 
+### 2026-09-01 — Universal Multi-Niche Categories & Dynamic Subcategories Architecture
+- **📌 Issue**: Categories were flat and lacked dynamic parent-child subcategory nesting required for multi-niche catalog expansion (Mobile & Tech, Car Accessories, Bikes, Home Gadgets, Personal Care).
+- **🔍 Root Cause & Failed Attempts**: Product model only had `category`, without `subcategory` indexing; admin category page lacked 1-click seeding and parent hierarchy filtering.
+- **🛠️ Verified Code Fix**:
+  1. Updated `Category.ts` and `Product.ts` Mongoose schemas with indexed `subcategory` and compound index `{ category: 1, subcategory: 1, createdAt: -1 }`.
+  2. Implemented hierarchical tree generation in `/api/categories` along with 1-click `seed_defaults` action covering 25+ default multi-niche departments.
+  3. Upgraded Admin Category Page (`/admin/categories`) with filter chips (`All`, `Main Departments`, `Subcategories`), tree indentation (↳), and 1-click seed button.
+  4. Updated Product Add/Edit form with dynamic cascading dropdowns (`Main Category` -> `Subcategory`).
+  5. Verified 100% backward compatibility for all existing database products with `pnpm tsc --noEmit` returning 0 errors.
+
 ### 2026-09-01 — Missing Product Query Detection & Instant Multi-Admin WhatsApp Alert
+
 - **📌 Issue**: When a user on WhatsApp asks for an item/product that is not currently in the catalog/database, the store owner had no way of knowing what missing items customers are requesting to add them to the catalog or reply manually.
 - **🔍 Root Cause & Failed Attempts**: Product search returned an empty array, causing the AI to generate a generic store overview or say nothing about alerting the admin.
 - **🛠️ Verified Code Fix**:

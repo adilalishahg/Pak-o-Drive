@@ -15,6 +15,7 @@ export interface IProduct {
   price: number;
   originalPrice: number;
   category: string;
+  subcategory?: string;
   image: string;
   images?: string[];
   video?: string;
@@ -42,7 +43,10 @@ export interface ICategory {
   image?: string;
   productCount: number;
   parentCategory?: string;
+  children?: ICategory[];
+  subcategories?: ICategory[];
 }
+
 
 export interface ICartItem {
   product: IProduct;
