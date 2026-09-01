@@ -20,13 +20,11 @@ jobs:
           command_timeout: 60s
           script: |
             echo "🚀 [Auto-Deploy] Pulling latest code on Alwaysdata..."
-            cd /home/adilalishahg/Pak-o-Drive || exit 0
+            cd /home/adilalishahg/Pak-o-Drive
             git pull origin main
             cp src/worker/bot.mjs /home/adilalishahg/bot/bot.mjs 2>/dev/null || true
-            echo "🔄 [Auto-Deploy] Reloading WhatsApp Bot Service..."
-            killall -9 node 2>/dev/null || pkill -9 -f "bot.mjs" 2>/dev/null || true
-            echo "✅ [Auto-Deploy] Finished successfully!"
-            exit 0
+            echo "✅ [Auto-Deploy] Latest code deployed & synced on Alwaysdata!"
+
 
 
 
