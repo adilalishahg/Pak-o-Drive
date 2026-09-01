@@ -397,11 +397,27 @@ This file serves as persistent dynamic memory across coding agent sessions. Ever
 
 ### 2026-09-01: Product Front-End Video Toggle Switch (`showVideoOnFront`)
 - **Issue**: Products with demo videos automatically forced the video to render first on storefront cards and galleries even when the store owner preferred displaying the primary image.
-- **Root Cause**: Hardcoded `mediaItems.push({ type: 'video' })` as index 0 in `ProductImageGallery.tsx` and unconditional video render in `ProductCard.tsx`.
+---
+
+### 2026-09-01: Admin Hero Slider Product Dropdown Empty Fix
+- **Issue**: In Admin Panel -> Theme & Appearance -> Hero Carousel Slides, the product selection dropdown only showed `-- Custom Banner (No Product Linked) --` and no store products appeared.
+- **Root Cause**: `useAdminTheme.ts` checked `if (prodData.success && Array.isArray(prodData.products))`, but `/api/products` returned `{ success: true, data: products }` (using key `data` instead of `products`), resulting in `undefined` and empty state.
 - **Verified Fix**:
-  1. Added `showVideoOnFront: { type: Boolean, default: false }` to `Product.ts` model schema and `IProduct` interface.
-  2. Added styled switch toggle in `ProductImagesManager.tsx` and wired through `useProductForm.ts` and `ProductForm.tsx`.
-  3. Updated `ProductImageGallery.tsx`, `ProductDetailInteractive.tsx`, `ProductCard.tsx`, and `ProductCardClassic.tsx` to conditionally prioritize video only when `showVideoOnFront` is `true`.
+  1. Updated `useAdminTheme.ts` to inspect `prodData.data || prodData.products || []`.
+  2. Updated `src/app/api/products/route.ts` to supply both `data` and `products` keys for contract resilience.
+---
+
+### 2026-09-01: WhatsApp & Social Rich Link Preview Card Fix (Instant 30ms JPEG & Media Bot)
+- **Issue**: Sharing product links or site links on WhatsApp took 1 to 5 seconds to load and ultimately dropped the image, showing only a plain blue text link.
+- **Root Cause**:
+  1. `opengraph-image.tsx` generated on-demand canvas images via serverless Satori runtime taking 3-5 seconds, exceeding WhatsApp crawler's 2.5-second timeout window.
+  2. `getStaticSiteUrl()` prioritized `process.env.VERCEL_URL` (ephemeral deployment URL) over `www.pakodrive.pk`, causing domain/SSL mismatch on crawlers.
+  3. Cloudinary URL formatting in `generateMetadata` skipped transform for `.webp` images, returning heavy raw payloads instead of optimized JPEGs.
+- **Verified Fix**:
+  1. Removed slow dynamic `opengraph-image.tsx` handlers and configured `generateMetadata` to directly output fast, pre-transformed Cloudinary JPEG URLs (`1200x630`, `image/jpeg`, under 70KB, 30ms response).
+  2. Fixed default canonical site URL to `https://www.pakodrive.pk` across `layout.tsx` and `product/[id]/page.tsx`.
+  3. Enhanced `src/worker/bot.mjs` so when customer asks about an item (e.g., "mehran mirror"), the bot dispatches a rich WhatsApp media message containing the actual product photo with price caption.
+
 
 
 

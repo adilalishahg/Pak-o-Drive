@@ -468,6 +468,8 @@ Customer: "${userMessage}"
 
 Reply as Ali (Pak-o-Drive):`;
 
+    const topProductImg = products.length > 0 && products[0].image ? products[0].image : '';
+
     console.log(`🤖 [Multi-AI Engine] Generating sales response with ${products.length} products in context...`);
     const responseText = await callMultiAIWaterfall(systemInstruction);
     if (!responseText) {
@@ -475,23 +477,36 @@ Reply as Ali (Pak-o-Drive):`;
 
       if (products.length > 0) {
         const list = products.map((p) => `• *${p.name}*\n  💰 *Price:* Rs. ${p.price.toLocaleString()}${p.originalPrice ? ` (Original: Rs. ${p.originalPrice.toLocaleString()})` : ''}\n  👉 *Order Link:* ${SITE_URL}/product/${p._id || p.slug}`).join('\n\n');
-        return `وعلیکم السلام! Jee bilkul bhai, hamare pas yeh items in-stock available hain:\n\n${list}\n\n🚚 *Nationwide Free Cash On Delivery (COD)* & 🛡️ 7-Day Checking Warranty.\nKya aapko Cash on Delivery par order book karwana hai?`;
+        return {
+          text: `وعلیکم السلام! Jee bilkul bhai, hamare pas yeh items in-stock available hain:\n\n${list}\n\n🚚 *Nationwide Free Cash On Delivery (COD)* & 🛡️ 7-Day Checking Warranty.\nKya aapko Cash on Delivery par order book karwana hai?`,
+          imageUrl: topProductImg,
+        };
       }
-      return 'Jee bhai! Pak-o-Drive par Free Cash On Delivery aur 7-Day Warranty available hai. Hamari team foran aapse rabta karegi ya aap pakodrive.pk par browse kar sakte hain.';
+      return {
+        text: 'Jee bhai! Pak-o-Drive par Free Cash On Delivery aur 7-Day Warranty available hai. Hamari team foran aapse rabta karegi ya aap pakodrive.pk par browse kar sakte hain.',
+        imageUrl: '',
+      };
     }
 
-    console.log(`💬 [Gemini AI Generated Reply]:\n${responseText}\n`);
+    console.log(`💬 [Multi-AI Generated Reply]:\n${responseText}\n`);
 
     // Update conversation buffer
     const updatedHistory = [...history, { role: 'user', text: userMessage }, { role: 'model', text: responseText }].slice(-6);
     conversationHistories.set(senderPhone, updatedHistory);
 
-    return responseText;
+    return {
+      text: responseText,
+      imageUrl: topProductImg,
+    };
   } catch (err) {
-    console.error('❌ [Gemini Gen Error]:', err.message);
-    return 'Jee bhai! Pak-o-Drive par Free Cash On Delivery aur 7-Day Warranty available hai. Hamari team foran aapse rabta karegi ya aap pakodrive.pk par browse kar sakte hain.';
+    console.error('❌ [AI Gen Error]:', err.message);
+    return {
+      text: 'Jee bhai! Pak-o-Drive par Free Cash On Delivery aur 7-Day Warranty available hai. Hamari team foran aapse rabta karegi ya aap pakodrive.pk par browse kar sakte hain.',
+      imageUrl: '',
+    };
   }
 }
+
 
 async function start() {
   if (MONGODB_URI && mongoose.connection.readyState === 0) {
@@ -737,9 +752,14 @@ async function start() {
             continue; // 🛑 STAY SILENT for Friends / Family!
           }
 
-          console.log(`[Bot] Message classified as STORE RELATED (${classification.category}). Generating AI response...`);
+          console.log(`[Bot] Message classified as STORE RELATED (${classification.category || 'inquiry'}). Generating AI response...`);
           reply = await generateGeminiStoreResponse(messageText, senderPhone, classification.search_query);
         }
+
+
+        let replyText = typeof reply === 'object' ? reply.text : reply;
+        let replyImage = typeof reply === 'object' ? reply.imageUrl : '';
+
 
         // Simulate typing presence (1.2s)
         try {
@@ -752,8 +772,23 @@ async function start() {
           await socket.sendPresenceUpdate('paused', senderJid);
         } catch {}
 
-        await socket.sendMessage(senderJid, { text: reply });
-        console.log(`[Outgoing Reply] Sent to ${senderPhone} successfully!\n`);
+        if (replyImage && replyImage.startsWith('http')) {
+          try {
+            await socket.sendMessage(senderJid, {
+              image: { url: replyImage },
+              caption: replyText,
+            });
+            console.log(`[Outgoing Media Reply] Sent with product photo to ${senderPhone} successfully!\n`);
+          } catch (imgSendErr) {
+            console.warn('[Image Send Failed, fallback to text]:', imgSendErr.message);
+            await socket.sendMessage(senderJid, { text: replyText });
+            console.log(`[Outgoing Text Reply] Sent to ${senderPhone} successfully!\n`);
+          }
+        } else {
+          await socket.sendMessage(senderJid, { text: replyText });
+          console.log(`[Outgoing Reply] Sent to ${senderPhone} successfully!\n`);
+        }
+
 
         if (matchedRule && matchedRule.dynamicAction === 'agent_handoff') {
           humanTakeover[senderPhone] = Date.now() + 5 * 60 * 1000;

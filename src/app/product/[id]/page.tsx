@@ -7,10 +7,13 @@ import { ProductDetailInteractive } from '../../../components/product/ProductDet
 import { getCachedProduct, getCachedRelatedProducts, getCachedSiteInfo } from '../../../lib/cache';
 
 function getStaticSiteUrl() {
-  if (process.env.VERCEL_URL) {
-    return `https://${process.env.VERCEL_URL}`;
+  if (process.env.NEXT_PUBLIC_SITE_URL) {
+    return process.env.NEXT_PUBLIC_SITE_URL.replace(/\/$/, '');
   }
-  return process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '') || 'https://pakodrive.com';
+  if (process.env.VERCEL_PROJECT_PRODUCTION_URL) {
+    return `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`;
+  }
+  return 'https://www.pakodrive.pk';
 }
 
 interface PageProps { params: Promise<{ id: string }> }
@@ -29,11 +32,11 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   const fallbackImg = siteInfo?.logoImage 
     ? (siteInfo.logoImage.startsWith('http') ? siteInfo.logoImage : `${siteUrl}${siteInfo.logoImage}`)
-    : `${siteUrl}/img/carousel-1.png`;
+    : `${siteUrl}/img/carousel-1.jpg`;
 
   if (!p) {
     const fallbackTitle = siteInfo?.seoTitle || `Order Online | ${siteLogoText}`;
-    const fallbackDesc = siteInfo?.seoDescription || "Shop headphones, chargers, smartwatches & more on PAKODRIVE.";
+    const fallbackDesc = siteInfo?.seoDescription || "Shop automotive accessories & electronics on PAKODRIVE.";
 
     return {
       title: fallbackTitle,
@@ -47,8 +50,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     };
   }
 
-  const metaTitle = p.seoTitle || `${p.name} | ${siteLogoText}`;
-  const metaDesc = p.seoDescription || String(p.description || '').substring(0, 160);
+  const metaTitle = p.seoTitle || `${p.name} — Rs. ${p.price?.toLocaleString()} | ${siteLogoText}`;
+  const metaDesc = p.seoDescription || `Buy ${p.name} online in Pakistan for Rs. ${p.price?.toLocaleString()}. Fast Cash on Delivery & 7-Day Checking Warranty. Order now!`;
   const keywords = p.seoKeywords ? p.seoKeywords.split(',').map((k: string) => k.trim()).filter(Boolean) : undefined;
   const productUrl = `${siteUrl}/product/${id}`;
   
@@ -56,18 +59,16 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     ? (p.image.startsWith('http') ? p.image : `${siteUrl}${p.image}`)
     : fallbackImg;
 
-  if (imageUrl.includes('res.cloudinary.com')) {
-    if (imageUrl.endsWith('.webp')) {
-      imageUrl = imageUrl.slice(0, -5) + '.jpg';
-    } else if (imageUrl.includes('/upload/')) {
-      imageUrl = imageUrl.replace('/upload/', '/upload/f_jpg,q_85,w_1200,h_630,c_fill/');
-    }
+  // Cloudinary WhatsApp / Social Crawler optimization (Standard 1200x630 JPEG under 70KB)
+  if (imageUrl.includes('res.cloudinary.com') && imageUrl.includes('/upload/')) {
+    imageUrl = imageUrl.replace('/upload/', '/upload/f_jpg,q_80,w_1200,h_630,c_pad,b_white/');
   }
 
   return {
     title: metaTitle,
     description: metaDesc,
     keywords,
+    metadataBase: new URL(siteUrl),
     alternates: {
       canonical: productUrl,
     },
@@ -77,13 +78,14 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       url: productUrl,
       type: 'website',
       siteName: siteLogoText,
+      locale: 'en_PK',
       images: [
         {
           url: imageUrl,
           secureUrl: imageUrl,
           width: 1200,
           height: 630,
-          type: imageUrl.toLowerCase().endsWith('.png') ? 'image/png' : 'image/jpeg',
+          type: 'image/jpeg',
           alt: p.name,
         },
       ],
@@ -96,6 +98,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     },
   };
 }
+
 
 export default async function ProductDetailPage({ params }: PageProps) {
   return (

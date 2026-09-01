@@ -40,33 +40,31 @@ import { WebVitals } from '../components/common/WebVitals';
 import LiveSalesNotification from '../components/common/LiveSalesNotification';
 import { getCachedSiteInfo, getCachedSiteSettings } from '../lib/cache';
 
-const SITE_URL = 'https://pakodrive.com';
-const SITE_NAME = 'PAKODRIVE Electronics';
+const SITE_URL = 'https://www.pakodrive.pk';
+const SITE_NAME = 'PAKODRIVE';
 const SITE_DESC =
-  'PAKODRIVE — Pakistan\'s trusted electronics store. Shop headphones, chargers, smartwatches, automotive electronics & more with free shipping and 30-day returns.';
+  'Pak-o-Drive — Pakistan\'s trusted automotive accessories, car care & tech store. Free Nationwide Cash On Delivery (COD) & 7-Day Warranty.';
 
 export async function generateMetadata(): Promise<Metadata> {
-  // Use the build-time env var instead of reading request headers at runtime.
-  // This keeps generateMetadata() fully static so Next.js can prerender /admin
-  // and other routes without the "runtime data in generateMetadata" error.
-  const activeSiteUrl = process.env.VERCEL_URL
-    ? `https://${process.env.VERCEL_URL}`
-    : (process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '') || SITE_URL);
+  const activeSiteUrl = process.env.NEXT_PUBLIC_SITE_URL
+    ? process.env.NEXT_PUBLIC_SITE_URL.replace(/\/$/, '')
+    : (process.env.VERCEL_PROJECT_PRODUCTION_URL
+        ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+        : SITE_URL);
 
   let siteName = SITE_NAME;
-  let defaultTitle = `${SITE_NAME} — Best Electronics Store in Pakistan`;
+  let defaultTitle = `${SITE_NAME} — Pakistan's #1 Automotive & Tech Store`;
   let description = SITE_DESC;
   let keywords = [
-    'electronics Pakistan',
-    'buy headphones Pakistan',
-    'smartwatches online',
-    'chargers cables Pakistan',
-    'automotive electronics',
-    'PAKODRIVE',
+    'automotive accessories Pakistan',
+    'car perfume Pakistan',
+    'car LED lights',
+    'car wax polish',
+    'Pak-o-Drive',
     'online shopping Pakistan',
   ];
   let favicon = '/favicon.ico';
-  let ogImageUrl = `${activeSiteUrl}/img/carousel-1.png`;
+  let ogImageUrl = `${activeSiteUrl}/img/carousel-1.jpg`;
 
   try {
     const info = await getCachedSiteInfo();
@@ -90,12 +88,8 @@ export async function generateMetadata(): Promise<Metadata> {
       } else {
         ogImageUrl = `${activeSiteUrl}/img/carousel-1.jpg`;
       }
-      if (ogImageUrl.includes('res.cloudinary.com')) {
-        if (ogImageUrl.endsWith('.webp')) {
-          ogImageUrl = ogImageUrl.slice(0, -5) + '.jpg';
-        } else if (ogImageUrl.includes('/upload/')) {
-          ogImageUrl = ogImageUrl.replace('/upload/', '/upload/f_jpg,q_85,w_1200,h_630,c_fill/');
-        }
+      if (ogImageUrl.includes('res.cloudinary.com') && ogImageUrl.includes('/upload/')) {
+        ogImageUrl = ogImageUrl.replace('/upload/', '/upload/f_jpg,q_80,w_1200,h_630,c_pad,b_white/');
       }
       if (info.favicon) {
         favicon = info.favicon;
@@ -104,6 +98,7 @@ export async function generateMetadata(): Promise<Metadata> {
   } catch (err) {
     console.error('Error generating dynamic layout metadata:', err);
   }
+
 
   return {
     metadataBase: new URL(activeSiteUrl),
