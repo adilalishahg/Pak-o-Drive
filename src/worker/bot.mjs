@@ -464,10 +464,23 @@ async function searchStoreProducts(query) {
  */
 async function generateGeminiStoreResponse(userMessage, senderPhone, searchQuery) {
   try {
+    const isOrderTracking = /(order|parcel|track|status|dispatch|deliver|order book|already|check order|mera order)/i.test(userMessage);
+
+    // If customer is specifically asking to track or check an existing order without providing the ID yet:
+    if (isOrderTracking && !/\b[a-f0-9]{4,24}\b|\b03\d{9}\b|\b923\d{9}\b/i.test(userMessage)) {
+      return {
+        text:
+          `وعلیکم السلام! Jee bilkul bhai, aap apna *Order ID* (jaise #40F921) ya apna *11-digit Mobile Number* yahan share karein.\n\n` +
+          `Main foran database check karke aapke parcel ka live status, courier tracking (TCS/Leopards) aur delivery time bata deta hoon! 😊📦`,
+        imageUrl: '',
+      };
+    }
+
     const query = searchQuery || userMessage;
-    const products = await searchStoreProducts(query);
+    const products = isOrderTracking ? [] : await searchStoreProducts(query);
 
     let productCatalogContext = '';
+
     if (products.length > 0) {
       productCatalogContext =
         'Live In-Stock Matching Products from Database:\n' +

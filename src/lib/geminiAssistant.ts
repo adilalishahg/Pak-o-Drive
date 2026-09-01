@@ -147,26 +147,25 @@ export async function searchStoreProducts(query: string) {
 }
 
 /**
- * 3. Gemini Conversational Sales & Support Generator
+ * 3. Conversational Sales & Support Generator (Multi-Provider AI Waterfall)
  */
 export async function generateGeminiStoreResponse(
   userMessage: string,
   senderPhone: string,
   searchQuery?: string
 ): Promise<string> {
-  const genAI = getGenAI();
-  const query = searchQuery || userMessage;
-  const products = await searchStoreProducts(query);
+  const isOrderTracking = /(order|parcel|track|status|dispatch|deliver|order book|already|check order|mera order)/i.test(userMessage);
 
-  if (!genAI) {
-    if (products.length > 0) {
-      const list = products
-        .map((p: any) => `• *${p.name}* — Rs. ${p.price.toLocaleString()} (https://pakodrive.pk/product/${p.slug || p._id})`)
-        .join('\n');
-      return `وعلیکم السلام! Jee bilkul hamare pas yeh items in-stock available hain:\n\n${list}\n\n🚚 Nationwide Free Cash On Delivery & 🛡️ 7-Day Warranty.`;
-    }
-    return 'وعلیکم السلام! Pak-o-Drive Support par khush-amdeed. Hum aapki kia madad kar sakte hain? (1. Order Status | 2. Payment Details | 3. Return Policy | 4. Live Agent)';
+  // If customer is specifically asking to track or check an existing order without providing the ID yet:
+  if (isOrderTracking && !/\b[a-f0-9]{4,24}\b|\b03\d{9}\b|\b923\d{9}\b/i.test(userMessage)) {
+    return (
+      `وعلیکم السلام! Jee bilkul bhai, aap apna *Order ID* (jaise #40F921) ya apna *11-digit Mobile Number* yahan share karein.\n\n` +
+      `Main foran database check karke aapke parcel ka live status, courier tracking (TCS/Leopards) aur delivery time bata deta hoon! 😊📦`
+    );
   }
+
+  const query = searchQuery || userMessage;
+  const products = isOrderTracking ? [] : await searchStoreProducts(query);
 
   try {
     let productCatalogContext = '';
@@ -197,10 +196,11 @@ Store Policies to follow:
 
 Guidelines:
 1. Respond in natural, polite, respectful Pakistani Roman Urdu (e.g. "Jee bilkul bhai!", "Assalam-o-Alaikum!", "Aap befikr rahein").
-2. If products were found in the database, present their exact names, PKR prices, and links naturally to help close the sale.
-3. Keep responses concise, clear, and easy to read on mobile WhatsApp (use bullet points and emojis tastefully).
-4. Never make up fake prices or invent imaginary products. If an item is not found, politely offer to check with the warehouse team or suggest browsing pakodrive.pk.
-5. If customer asks for live human or owner, say that their request is noted and an agent will call/reply soon.
+2. If customer asks about order status or parcel tracking, ask for their Order ID (e.g. #40F921) or phone number.
+3. If products were found in the database, present their exact names, PKR prices, and links naturally to help close the sale.
+4. Keep responses concise, clear, and easy to read on mobile WhatsApp (use bullet points and emojis tastefully).
+5. Never make up fake prices or invent imaginary products. If an item is not found, politely offer to check with the warehouse team or suggest browsing pakodrive.pk.
+6. If customer asks for live human or owner, say that their request is noted and an agent will call/reply soon.
 
 ${productCatalogContext ? `[CURRENT CATALOG CONTEXT]\n${productCatalogContext}\n` : ''}
 ${formattedHistory ? `[CONVERSATION HISTORY]\n${formattedHistory}\n` : ''}
@@ -220,6 +220,9 @@ Reply as Ali (Pak-o-Drive):`;
     console.error('[Multi-AI Generation Error]:', err?.message);
   }
 
+  if (isOrderTracking) {
+    return `Jee bilkul bhai, apna Order ID (jaise #40F921) ya Mobile Number send karein, main foran order status check kar ke batata hoon! 📦`;
+  }
 
   if (products.length > 0) {
     const list = products
@@ -230,3 +233,4 @@ Reply as Ali (Pak-o-Drive):`;
 
   return 'وعلیکم السلام! Pak-o-Drive Support par khush-amdeed. Hum aapki kia madad kar sakte hain? (1. Order Status | 2. Payment Details | 3. Return Policy | 4. Live Agent)';
 }
+
