@@ -90,7 +90,9 @@ export async function generateMetadata(): Promise<Metadata> {
       }
       if (ogImageUrl.includes('res.cloudinary.com') && ogImageUrl.includes('/upload/')) {
         ogImageUrl = ogImageUrl.replace('/upload/', '/upload/f_jpg,q_80,w_1200,h_630,c_pad,b_white/');
+        ogImageUrl = ogImageUrl.replace(/\.(webp|png|jpeg)$/i, '.jpg');
       }
+
       if (info.favicon) {
         favicon = info.favicon;
       }

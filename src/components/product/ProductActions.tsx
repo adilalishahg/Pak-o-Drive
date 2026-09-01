@@ -71,9 +71,10 @@ export const ProductActions: React.FC<ProductActionsProps> = ({ product, selecte
     const displayName = selectedVariant ? `${product.name} (${selectedVariant.name})` : product.name;
     const shareData = {
       title: `${displayName} — Pak-o-Drive`,
-      text: `Check out ${displayName} (PKR ${finalPrice.toLocaleString()}) on Pak-o-Drive:`,
+      text: `${displayName} (Rs. ${finalPrice.toLocaleString()})\nOrder Online on Pak-o-Drive:`,
       url,
     };
+
 
     if (typeof navigator !== 'undefined' && navigator.share && navigator.canShare && navigator.canShare(shareData)) {
       try {

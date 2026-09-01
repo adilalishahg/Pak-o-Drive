@@ -56,13 +56,15 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const productUrl = `${siteUrl}/product/${id}`;
   
   let imageUrl = p.image
-    ? (p.image.startsWith('http') ? p.image : `${siteUrl}${p.image}`)
+    ? (p.image.startsWith('http') ? p.image : `${siteUrl}${p.image.startsWith('/') ? '' : '/'}${p.image}`)
     : fallbackImg;
 
-  // Cloudinary WhatsApp / Social Crawler optimization (Standard 1200x630 JPEG under 70KB)
+  // Cloudinary WhatsApp / Social Crawler optimization (Standard 1200x630 JPEG under 70KB with true .jpg extension)
   if (imageUrl.includes('res.cloudinary.com') && imageUrl.includes('/upload/')) {
     imageUrl = imageUrl.replace('/upload/', '/upload/f_jpg,q_80,w_1200,h_630,c_pad,b_white/');
+    imageUrl = imageUrl.replace(/\.(webp|png|jpeg)$/i, '.jpg');
   }
+
 
   return {
     title: metaTitle,
