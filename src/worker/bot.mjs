@@ -730,39 +730,62 @@ async function start() {
         msg.message?.imageMessage?.caption ||
         '';
 
-      // 🌐 2-WAY WEB AGENT BRIDGE: If message starts with #W (e.g. #W482 Hello)
-      if (rawText.trim().startsWith('#W') || rawText.trim().startsWith('#w')) {
+      // 🌐 2-WAY WEB AGENT BRIDGE: Support both explicit prefix (#W5243 ...) and WhatsApp native Swipe-to-Reply (Quoted Message)
+      let targetShortCode = '';
+      let agentReplyText = '';
+
+      // A. Check for explicit #W tag in message (e.g. "#W5243 Salam bhai" or "W5243 Salam")
+      const tagMatch = rawText.trim().match(/^#?(W[A-Z0-9]{3,8})[:\s-]+(.*)$/i);
+      if (tagMatch) {
+        targetShortCode = tagMatch[1].toUpperCase();
+        agentReplyText = tagMatch[2].trim();
+      }
+
+      // B. If no tag in text, check if admin did a native WhatsApp Swipe-to-Reply on an alert
+      if (!targetShortCode) {
+        const quotedText =
+          msg.message?.extendedTextMessage?.contextInfo?.quotedMessage?.conversation ||
+          msg.message?.extendedTextMessage?.contextInfo?.quotedMessage?.extendedTextMessage?.text ||
+          '';
+        if (quotedText) {
+          const quotedMatch = quotedText.match(/#(W[A-Z0-9]{3,8})/i);
+          if (quotedMatch && rawText.trim()) {
+            targetShortCode = quotedMatch[1].toUpperCase();
+            agentReplyText = rawText.trim();
+          }
+        }
+      }
+
+      if (targetShortCode && agentReplyText) {
         try {
-          const parts = rawText.trim().split(/\s+/);
-          const shortCode = parts[0].replace('#', '').toUpperCase();
-          const agentReply = parts.slice(1).join(' ').trim();
+          const session = await WebChatSession.findOne({
+            shortCode: { $regex: new RegExp(`^${targetShortCode}$`, 'i') },
+          });
 
-          if (shortCode && agentReply) {
-            const session = await WebChatSession.findOne({
-              shortCode: { $regex: new RegExp(`^${shortCode}$`, 'i') },
+          if (session) {
+            session.messages.push({
+              id: 'agent_' + Date.now(),
+              sender: 'agent',
+              text: agentReplyText,
+              timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+              createdAt: new Date(),
             });
+            session.isAgentLive = true;
+            session.lastActiveAt = new Date();
+            await session.save();
 
-            if (session) {
-              session.messages.push({
-                id: 'agent_' + Date.now(),
-                sender: 'agent',
-                text: agentReply,
-                timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-                createdAt: new Date(),
-              });
-              session.isAgentLive = true;
-              session.lastActiveAt = new Date();
-              await session.save();
-
-              console.log(`✅ [Web Agent Bridge] Routed agent reply to Web Visitor #${shortCode}: "${agentReply}"`);
-              await socket.sendMessage(senderJid, { text: `✅ Reply delivered to Web Visitor #${shortCode}` });
-              continue;
-            }
+            console.log(`✅ [Web Agent Bridge] Routed agent reply to Web Visitor #${targetShortCode}: "${agentReplyText}"`);
+            const adminNotifyJid = getAdminJid(socket) || senderJid;
+            await socket.sendMessage(adminNotifyJid, { text: `✅ Reply delivered to Web Visitor #${targetShortCode} screen!` });
+            continue;
+          } else {
+            console.log(`[Web Agent Bridge] Session #${targetShortCode} not found in DB.`);
           }
         } catch (bridgeErr) {
           console.error('[Web Agent Bridge Error]', bridgeErr);
         }
       }
+
 
       if (msg.key.fromMe) {
         humanTakeover[senderPhone] = Date.now() + 5 * 60 * 1000;
