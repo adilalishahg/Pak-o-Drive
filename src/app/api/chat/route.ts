@@ -141,9 +141,11 @@ export async function POST(req: NextRequest): Promise<NextResponse<ChatMessageRe
       sender: 'visitor',
       text: message,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      notifiedToAdmin: false,
       createdAt: new Date(),
     });
     session.lastActiveAt = new Date();
+
 
     // 2. SMART ORDER LOOKUP (Prioritized Check)
     // Check if the query itself is or contains an Order ID, hex code, phone number, or tracking number

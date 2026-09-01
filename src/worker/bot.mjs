@@ -264,9 +264,11 @@ const WebChatSessionSchema = new mongoose.Schema(
         sender: String,
         text: String,
         timestamp: String,
+        notifiedToAdmin: { type: Boolean, default: false },
         createdAt: { type: Date, default: Date.now },
       },
     ],
+
     lastActiveAt: { type: Date, default: Date.now },
   },
   { timestamps: true }
@@ -1057,13 +1059,13 @@ function startDailyTrendsScheduler(socket) {
   }, 10 * 60 * 1000); // Check every 10 minutes
 }
 
-function startWebChatWatcher(socket) {
+let webChatWatcherInterval = null;
 
-  let webChatInterval = null;
-  if (webChatInterval) clearInterval(webChatInterval);
+function startWebChatWatcher(socket) {
+  if (webChatWatcherInterval) clearInterval(webChatWatcherInterval);
 
   console.log('⚡ [Web Chat Watcher] Active (Polling live visitor inquiries every 3s)...');
-  webChatInterval = setInterval(async () => {
+  webChatWatcherInterval = setInterval(async () => {
     try {
       if (mongoose.connection.readyState !== 1) return;
 
@@ -1111,5 +1113,6 @@ function startWebChatWatcher(socket) {
 }
 
 start().catch(console.error);
+
 
 
