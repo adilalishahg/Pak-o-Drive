@@ -60,7 +60,16 @@ This file serves as persistent dynamic memory across coding agent sessions. Ever
 
 ## 📝 PART 2: Project-Specific Resolution History
 
+### 2026-09-01 — Chat Rich Markdown Link Parsing & Next.js SPA Navigation
+- **📌 Issue**: Chat messages displayed raw markdown URLs (e.g. `[https://pakodrive.pk/product/...]`) as unstyled plain text that were not clickable or caused full-page reloads.
+- **🔍 Root Cause & Failed Attempts**: Plain `{msg.text}` string rendering lacked a tokenizing parser to convert markdown link brackets and absolute URLs into Next.js `<Link>` components.
+- **🛠️ Verified Code Fix**:
+  1. Created `FormattedMessageContent` component in `StoreChatWidget.tsx` to parse markdown links `[label](url)`, plain URLs, and `**bold**` typography.
+  2. Transformed internal product URLs into styled Next.js `<Link>` interactive pills (`🛍️ View Product ➔`) with `onNavigate` callbacks to transition routes seamlessly without page reload.
+  3. Verified 0 compilation errors with `pnpm tsc --noEmit`.
+
 ### 2026-09-01 — JSX Tag Balance & Mandatory Pre-Push Typecheck Rule
+
 - **📌 Issue**: Next.js Webpack build error `Expected '</', got '{'` caused by an extraneous closing `</div>` tag in `StoreChatWidget.tsx`.
 - **🔍 Root Cause & Failed Attempts**: During header responsive streamlining, a stray closing div was left in the JSX tree, closing the window container prematurely. Code was pushed without running a local `tsc` verification.
 - **🛠️ Verified Code Fix**:
