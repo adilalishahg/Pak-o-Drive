@@ -9,6 +9,7 @@ export type {
   IHeroSlideItem,
   SiteTheme,
   ThemeContextValue,
+  DynamicThemeProviderProps,
 } from '@/types/theme';
 
 import type {
@@ -17,7 +18,9 @@ import type {
   IHeroSlideItem,
   SiteTheme,
   ThemeContextValue,
+  DynamicThemeProviderProps,
 } from '@/types/theme';
+
 
 export const DEFAULT_SVG_LOGO: SvgLogoSettings = {
   enabled: true,

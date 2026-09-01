@@ -8,13 +8,14 @@ export interface BotState {
   status: 'DISCONNECTED' | 'QR_READY' | 'CONNECTING' | 'CONNECTED';
   phoneNumber: string | null;
   qrCodeBase64: string | null;
-  lastConnectedAt: Date | null;
+  lastConnectedAt: Date | string | null;
   totalMessagesProcessed: number;
   totalAutoRepliesSent: number;
   pausedContacts?: Record<string, number>;
   error: string | null;
   platform?: string;
 }
+
 
 
 export interface BotStatusCardProps {
