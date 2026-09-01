@@ -96,7 +96,20 @@ export const DEFAULT_WHATSAPP_RULES: Omit<IWhatsAppRule, '_id'>[] = [
   {
     name: 'Order Status & Tracking Lookup',
     triggerType: 'contains',
-    keywords: ['order', 'track', 'status', 'parcel', 'dispatch', 'delivery', 'kab milega', '1'],
+    keywords: [
+      'order status',
+      'track order',
+      'track my order',
+      'parcel status',
+      'tracking status',
+      'order tracking',
+      'mera order',
+      'order kahan hai',
+      'parcel kahan',
+      'kab milega',
+      'kab pohanchega',
+      '1',
+    ],
     replyMessage:
       'Aapka order hamare pas process ho raha hai.\n\n' +
       '📦 *Order Verification & Tracking:*\n' +
@@ -106,6 +119,7 @@ export const DEFAULT_WHATSAPP_RULES: Omit<IWhatsAppRule, '_id'>[] = [
     enabled: true,
     priority: 2,
   },
+
   {
     name: 'Bank / JazzCash / Payment Details',
     triggerType: 'contains',

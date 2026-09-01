@@ -214,33 +214,41 @@ export async function POST(req: NextRequest): Promise<NextResponse<ChatMessageRe
       });
     }
 
-    // 4. CHECK PRE-SET WHATSAPP RULES
-    let rules = await WhatsAppRule.find({ enabled: true }).sort({ priority: 1 });
-    if (!rules || rules.length === 0) {
-      rules = DEFAULT_WHATSAPP_RULES as any;
+    // 4. CHECK PRE-SET WHATSAPP RULES (Only if not a direct purchase inquiry)
+    const isPurchaseQuery =
+      /(new order|order karna|order karni|order krna|order krni|order place|buy|kharidna|lena hai|chahye|chahiye|rate kya|price kya|kitne ka|available hai)/i.test(
+        message
+      );
+
+    if (!isPurchaseQuery) {
+      let rules = await WhatsAppRule.find({ enabled: true }).sort({ priority: 1 });
+      if (!rules || rules.length === 0) {
+        rules = DEFAULT_WHATSAPP_RULES as any;
+      }
+
+      const bot = WhatsAppBotManager.getInstance();
+      const matchedRule = bot.matchRule(message, rules);
+
+      if (matchedRule && matchedRule.dynamicAction !== 'order_status_lookup') {
+        const reply = await bot.resolveReplyMessage(matchedRule, message, '03000000000');
+        session.messages.push({
+          id: 'bot_' + Date.now(),
+          sender: 'bot',
+          text: reply || matchedRule.replyMessage,
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          createdAt: new Date(),
+        });
+        await session.save();
+
+        return NextResponse.json({
+          success: true,
+          reply: reply || matchedRule.replyMessage,
+          source: 'rule',
+          ruleName: matchedRule.name,
+        });
+      }
     }
 
-    const bot = WhatsAppBotManager.getInstance();
-    const matchedRule = bot.matchRule(message, rules);
-
-    if (matchedRule && matchedRule.dynamicAction !== 'order_status_lookup') {
-      const reply = await bot.resolveReplyMessage(matchedRule, message, '03000000000');
-      session.messages.push({
-        id: 'bot_' + Date.now(),
-        sender: 'bot',
-        text: reply || matchedRule.replyMessage,
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        createdAt: new Date(),
-      });
-      await session.save();
-
-      return NextResponse.json({
-        success: true,
-        reply: reply || matchedRule.replyMessage,
-        source: 'rule',
-        ruleName: matchedRule.name,
-      });
-    }
 
     // 5. LIVE DB PRODUCT SEARCH & INTELLIGENT GEMINI AI RESPONSE
     const matchedProducts = await searchStoreProducts(message);
