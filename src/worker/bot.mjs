@@ -532,9 +532,43 @@ async function searchStoreProducts(query) {
 }
 
 /**
+ * 4. Missing Product Admin Notifier
+ * Triggers an instant WhatsApp alert to all admin numbers when a user searches for an item not found in DB
+ */
+async function notifyAdminMissingProduct(socket, customerPhone, customerQuery, customerName = '') {
+  if (!socket) return;
+  try {
+    const adminJids = await getAllAdminJids(socket);
+    if (!adminJids || adminJids.length === 0) return;
+
+    const formattedPhone = customerPhone.startsWith('+') ? customerPhone : `+${customerPhone}`;
+    const cleanPhoneDigits = customerPhone.replace(/[^0-9]/g, '');
+    const waLink = `https://wa.me/${cleanPhoneDigits}`;
+
+    const alert =
+      `⚠️ *MISSING PRODUCT INQUIRY ALERT!* 📦\n` +
+      `━━━━━━━━━━━━━━━━━━━━━\n` +
+      `👤 *Customer Phone:* ${formattedPhone}${customerName ? ` (${customerName})` : ''}\n` +
+      `💬 *Customer Query / Item:* "${customerQuery}"\n\n` +
+      `🚨 *Notice to Admin:*\n` +
+      `Yeh item aapke system / store catalog me *ADDED NAHI HAI*.\n` +
+      `👉 *Action:* Is item ko system me add b kar dein taake customer ko provide kiya ja sakay, aur customer ko direct reply karein!\n\n` +
+      `📲 *Direct WhatsApp Link:* ${waLink}\n` +
+      `━━━━━━━━━━━━━━━━━━━━━`;
+
+    console.log(`📢 [Missing Product Alert] Broadcasting missing item alert to ${adminJids.length} admin devices for "${customerQuery}"`);
+    for (const targetJid of adminJids) {
+      await socket.sendMessage(targetJid, { text: alert }).catch(() => {});
+    }
+  } catch (err) {
+    console.error('❌ [Missing Product Alert Error]:', err.message);
+  }
+}
+
+/**
  * 3. Conversational Sales & Support Generator
  */
-async function generateGeminiStoreResponse(userMessage, senderPhone, searchQuery) {
+async function generateGeminiStoreResponse(userMessage, senderPhone, searchQuery, socket) {
   try {
     const classification = await classifyMessageIntent(userMessage);
 
@@ -589,6 +623,11 @@ async function generateGeminiStoreResponse(userMessage, senderPhone, searchQuery
     const query = classification.search_query || searchQuery || userMessage;
     const products = await searchStoreProducts(query);
 
+    // 🚨 MISSING PRODUCT CHECK: If customer is asking for products and NONE exist in DB
+    if (products.length === 0 && (classification.scenario === 'buy_products' || classification.is_store_related)) {
+      console.log(`⚠️ [Missing Product] User ${senderPhone} asked for "${userMessage}" which is NOT in store catalog. Notifying admin devices...`);
+      await notifyAdminMissingProduct(socket, senderPhone, userMessage);
+    }
 
     let productCatalogContext = '';
 
@@ -617,11 +656,16 @@ Store Policies:
 
 Instructions:
 1. Speak in friendly, respectful, natural Pakistani Roman Urdu ("Jee bilkul bhai!", "Assalam-o-Alaikum!").
-2. ALWAYS recommend the matching in-stock products with their EXACT name, PKR price, and full clickable link (${SITE_URL}/product/...).
-3. Keep the message clean, formatted with bullet points and friendly emojis.
-4. Ask if they want to book Cash on Delivery order right now. If customer asks for live human or owner, say that their request is noted and an agent will call/reply soon.
+2. If matching in-stock products are present in [CURRENT CATALOG CONTEXT], recommend them with their EXACT name, PKR price, and full clickable link (${SITE_URL}/product/...).
+3. If [CURRENT CATALOG CONTEXT] is empty or no products match what the customer asked for:
+   - Politely tell the customer in natural Roman Urdu that this item is currently not directly listed on our online store.
+   - Reassure them that you have immediately notified the store admin / procurement team to check stock/arrange it and reply back to them ASAP.
+   - Inform them that our representative will contact them shortly on this number.
+   - Mention that they can also explore other trending car accessories on ${SITE_URL}.
+4. Keep the message clean, formatted with bullet points and friendly emojis.
+5. Ask if they want to book Cash on Delivery order right now.
 
-${productCatalogContext ? `[CURRENT CATALOG CONTEXT]\n${productCatalogContext}\n` : ''}
+${productCatalogContext ? `[CURRENT CATALOG CONTEXT]\n${productCatalogContext}\n` : '[NO DIRECT CATALOG MATCH IN DATABASE]\n'}
 ${formattedHistory ? `[CONVERSATION HISTORY]\n${formattedHistory}\n` : ''}
 [CURRENT CUSTOMER MESSAGE]
 Customer: "${userMessage}"
@@ -643,7 +687,9 @@ Reply as Ali (Pak-o-Drive):`;
         };
       }
       return {
-        text: 'Jee bhai! Pak-o-Drive par Free Cash On Delivery aur 7-Day Warranty available hai. Hamari team foran aapse rabta karegi ya aap pakodrive.pk par browse kar sakte hain.',
+        text: `وعلیکم السلام! Jee bhai, filhaal "${userMessage}" hamaray store catalog me directly available nahi hai.\n\n` +
+          `🚨 Lekin maine hamari store management & procurement team ko aapka message forward kar diya hai. Hamara representative jald aapse rabta karega taake yeh item aapke liye arrange kiya ja sakay! 😊✨\n\n` +
+          `Aap mazeed latest car accessories dekhne ke liye *${SITE_URL}* b browse kar sakte hain.`,
         imageUrl: '',
       };
     }
@@ -661,11 +707,12 @@ Reply as Ali (Pak-o-Drive):`;
   } catch (err) {
     console.error('❌ [AI Gen Error]:', err.message);
     return {
-      text: 'Jee bhai! Pak-o-Drive par Free Cash On Delivery aur 7-Day Warranty available hai. Hamari team foran aapse rabta karegi ya aap pakodrive.pk par browse kar sakte hain.',
+      text: `وعلیکم السلام! Jee bhai, filhaal "${userMessage}" hamaray store catalog me directly available nahi hai. Lekin maine hamari management ko aapka message send kar diya hai, hamara representative jald rabta karega! 😊✨`,
       imageUrl: '',
     };
   }
 }
+
 
 
 async function start() {
@@ -983,8 +1030,9 @@ async function start() {
           }
 
           console.log(`[Bot] Message classified as STORE RELATED (${classification.category || 'inquiry'}). Generating AI response...`);
-          reply = await generateGeminiStoreResponse(messageText, senderPhone, classification.search_query);
+          reply = await generateGeminiStoreResponse(messageText, senderPhone, classification.search_query, socket);
         }
+
 
 
         let replyText = typeof reply === 'object' ? reply.text : reply;

@@ -60,7 +60,17 @@ This file serves as persistent dynamic memory across coding agent sessions. Ever
 
 ## 📝 PART 2: Project-Specific Resolution History
 
+### 2026-09-01 — Missing Product Query Detection & Instant Multi-Admin WhatsApp Alert
+- **📌 Issue**: When a user on WhatsApp asks for an item/product that is not currently in the catalog/database, the store owner had no way of knowing what missing items customers are requesting to add them to the catalog or reply manually.
+- **🔍 Root Cause & Failed Attempts**: Product search returned an empty array, causing the AI to generate a generic store overview or say nothing about alerting the admin.
+- **🛠️ Verified Code Fix**:
+  1. Implemented `notifyAdminMissingProduct(socket, customerPhone, customerQuery, customerName)` in `bot.mjs`.
+  2. When a user asks for an item not found in DB (`products.length === 0`), the bot broadcasts an instant WhatsApp alert to all connected admin devices with customer phone, query, direct WhatsApp chat link, and explicit instructions: *"Yeh item aapke system / store catalog me ADDED NAHI HAI. Is item ko system me add b kar dein taake customer ko timely provide kiya ja sakay."*
+  3. Tailored AI instructions in `bot.mjs` and `geminiAssistant.ts` so the customer receives a polite, reassuring response that their inquiry has been forwarded to store management for urgent assistance.
+  4. Verified 0 compilation errors via `pnpm tsc --noEmit`.
+
 ### 2026-09-01 — Project-Wide Types, Interfaces & Static Constants Clean Separation
+
 - **📌 Issue**: Components across the project had inline `interface`, `type`, and static arrays/presets defined directly within UI presentational files (violating Rule 8).
 - **🔍 Root Cause & Failed Attempts**: Component files like `SvgLogoStudio.tsx`, `TypographySection.tsx`, `CategorySidebar.tsx`, `LiveSalesNotification.tsx`, `SearchableCitySelect.tsx`, and `AnalyticsCharts.tsx` declared ad-hoc types and duplicate static arrays.
 - **🛠️ Verified Code Fix**:

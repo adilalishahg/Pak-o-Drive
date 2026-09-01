@@ -271,11 +271,15 @@ Store Policies:
 
 Guidelines:
 1. Respond in natural, polite, respectful Pakistani Roman Urdu (e.g. "Jee bilkul bhai!", "Assalam-o-Alaikum!", "Aap befikr rahein").
-2. If the customer wants to buy or asked for an item, recommend matching in-stock products with exact names, PKR prices, and full links.
-3. If the customer asked a general greeting, give a warm welcome and mention that Cash On Delivery and 7-Day Warranty are available across Pakistan.
+2. If matching in-stock products are present in [CURRENT CATALOG CONTEXT], recommend them with exact names, PKR prices, and full links.
+3. If [CURRENT CATALOG CONTEXT] is empty or no products match what the customer asked for:
+   - Politely tell the customer that this item is currently not directly listed on our online store catalog.
+   - Reassure them that you have immediately forwarded their inquiry to our store management / procurement team to check availability and reply back to them.
+   - Inform them that our representative will contact them shortly on this number.
+   - Mention that they can also explore other trending car accessories on https://pakodrive.pk.
 4. Keep responses concise, clear, and easy to read on mobile (use bullet points and emojis tastefully).
 
-${productCatalogContext ? `[CURRENT CATALOG CONTEXT]\n${productCatalogContext}\n` : ''}
+${productCatalogContext ? `[CURRENT CATALOG CONTEXT]\n${productCatalogContext}\n` : '[NO DIRECT CATALOG MATCH IN DATABASE]\n'}
 ${formattedHistory ? `[CONVERSATION HISTORY]\n${formattedHistory}\n` : ''}
 Customer: "${userMessage}"
 
@@ -300,7 +304,8 @@ Reply as Ali (Pak-o-Drive):`;
     return `وعلیکم السلام! Jee bilkul hamare pas yeh items in-stock available hain:\n\n${list}\n\n🚚 Nationwide Free Cash On Delivery & 🛡️ 7-Day Warranty.\nKya aapko Cash on Delivery par order book karwana hai?`;
   }
 
-  return 'وعلیکم السلام! Pak-o-Drive par khush-amdeed. Hamare pas Car Accessories, Gadgets aur Detailing items Free Cash On Delivery aur 7-Day Warranty ke sath available hain! Aapko kis item ki talash hai?';
+  return `وعلیکم السلام! Jee bhai, filhaal "${userMessage}" hamaray online store catalog me directly available nahi hai. Lekin maine hamari store management aur procurement team ko aapka message forward kar diya hai taake wo jald aapse rabta karein! 😊✨\n\nAap mazeed latest accessories dekhne ke liye https://pakodrive.pk visit kar sakte hain.`;
 }
+
 
 
