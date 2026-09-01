@@ -25,8 +25,10 @@ export interface ISiteInfo {
   // Social
   facebook: string;
   instagram: string;
+  tiktok: string;
   twitter: string;
   youtube: string;
+
   // Map
   mapEmbedUrl: string;
   // Legal content (rich text / markdown)
@@ -70,8 +72,10 @@ const SiteInfoSchema = new Schema<ISiteInfoDocument>(
     whatsapp: { type: String, default: '03185205667' },
     facebook: { type: String, default: '#' },
     instagram: { type: String, default: '#' },
+    tiktok: { type: String, default: '#' },
     twitter: { type: String, default: '#' },
     youtube: { type: String, default: '#' },
+
     mapEmbedUrl: {
       type: String,
       default:

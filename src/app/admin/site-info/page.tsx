@@ -26,6 +26,7 @@ interface SiteInfo {
   whatsapp: string;
   facebook: string;
   instagram: string;
+  tiktok: string;
   twitter: string;
   youtube: string;
   mapEmbedUrl: string;
@@ -62,7 +63,9 @@ const DEFAULT_INFO: SiteInfo = {
   whatsapp: '',
   facebook: '',
   instagram: '',
+  tiktok: '',
   twitter: '',
+
   youtube: '',
   mapEmbedUrl: '',
   privacyPolicy: '',
@@ -651,6 +654,18 @@ export default function AdminSiteInfoPage() {
                       placeholder="e.g. https://instagram.com/pakodrive"
                     />
                   </div>
+                  <div className="col-12 col-md-6">
+                    <label className="form-label text-muted small fw-semibold"><i className="fab fa-tiktok me-1" /> TikTok Profile URL</label>
+                    <input
+                      type="text"
+                      name="tiktok"
+                      value={info.tiktok}
+                      onChange={handleChange}
+                      className="form-control rounded-3"
+                      placeholder="e.g. https://tiktok.com/@pakodrive"
+                    />
+                  </div>
+
                   <div className="col-12 col-md-6">
                     <label className="form-label text-muted small fw-semibold"><i className="fab fa-twitter me-1" /> Twitter Handle URL</label>
                     <input
