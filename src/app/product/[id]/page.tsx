@@ -132,7 +132,7 @@ async function ProductDetailContent({ id }: { id: string }) {
   const specs = product.specifications
     ? Object.entries(product.specifications as Record<string, unknown>) : [];
 
-  let siteUrl = 'https://pakodrive.com';
+  let siteUrl = getStaticSiteUrl();
   let siteLogoText = 'PAKODRIVE';
   const siteInfo = await getCachedSiteInfo();
   if (siteInfo) {
@@ -145,8 +145,9 @@ async function ProductDetailContent({ id }: { id: string }) {
     }
   }
 
-  const productUrl = `${siteUrl}/product/${product._id}`;
+  const productUrl = `${siteUrl}/product/${product.slug || product._id}`;
   const brandName = product.specifications?.Brand || siteLogoText || 'PAKODRIVE';
+
 
   const productSchema = {
     '@context': 'https://schema.org',

@@ -150,10 +150,11 @@ export async function generateMetadata(): Promise<Metadata> {
       apple: favicon,
     },
     verification: {
-      google: 'google-site-verification-token',
+      google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION || 'google-site-verification-token',
     },
   };
 }
+
 
 import { WishlistProvider } from '../context/WishlistContext';
 

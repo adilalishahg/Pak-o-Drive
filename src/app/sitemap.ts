@@ -4,7 +4,7 @@ import Product from '../models/Product';
 import Category from '../models/Category';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '') || 'https://pakodrive.com';
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '') || 'https://pakodrive.pk';
 
   // Static routes
   const staticRoutes = [
@@ -33,18 +33,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   try {
     await dbConnect();
     const [products, categories] = await Promise.all([
-      Product.find({}, '_id updatedAt').lean(),
+      Product.find({}, '_id slug updatedAt').lean(),
       Category.find({}, 'slug updatedAt').lean(),
     ]);
 
-    productRoutes = products.map((product) => ({
-      url: `${baseUrl}/product/${product._id}`,
+    productRoutes = products.map((product: any) => ({
+      url: `${baseUrl}/product/${product.slug || product._id}`,
       lastModified: product.updatedAt ? new Date(product.updatedAt) : new Date(),
       changeFrequency: 'daily' as const,
       priority: 0.9,
     }));
 
-    categoryRoutes = categories.map((cat) => ({
+    categoryRoutes = categories.map((cat: any) => ({
       url: `${baseUrl}/shop?category=${cat.slug}`,
       lastModified: cat.updatedAt ? new Date(cat.updatedAt) : new Date(),
       changeFrequency: 'weekly' as const,
@@ -56,3 +56,4 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   return [...staticRoutes, ...categoryRoutes, ...productRoutes];
 }
+
