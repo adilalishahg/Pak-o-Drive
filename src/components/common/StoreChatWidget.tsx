@@ -225,10 +225,10 @@ export const StoreChatWidget: React.FC = () => {
                 ✕
               </button>
             </div>
-           </div>
           </div>
 
           {/* Quick Action Chips Bar */}
+
           <div
             style={{
               padding: '8px 12px',

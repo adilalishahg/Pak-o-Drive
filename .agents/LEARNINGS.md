@@ -60,7 +60,16 @@ This file serves as persistent dynamic memory across coding agent sessions. Ever
 
 ## 📝 PART 2: Project-Specific Resolution History
 
+### 2026-09-01 — JSX Tag Balance & Mandatory Pre-Push Typecheck Rule
+- **📌 Issue**: Next.js Webpack build error `Expected '</', got '{'` caused by an extraneous closing `</div>` tag in `StoreChatWidget.tsx`.
+- **🔍 Root Cause & Failed Attempts**: During header responsive streamlining, a stray closing div was left in the JSX tree, closing the window container prematurely. Code was pushed without running a local `tsc` verification.
+- **🛠️ Verified Code Fix**:
+  1. Removed extraneous `</div>` and aligned JSX container hierarchy in `StoreChatWidget.tsx`.
+  2. Fixed `classification.scenario` property typing in `whatsapp-bot/test/route.ts`.
+  3. Verified 0 errors across entire workspace via `pnpm tsc --noEmit` and established mandatory rule to run compiler checks before any git commit.
+
 ### 2026-09-01 — 2-Way WhatsApp-to-Web Live Agent Bridge & Mobile UI Redesign
+
 - **📌 Issue**: Live agent WhatsApp replies were not showing up in visitor's web chat, inquiry alerts were dropped on self-messages, and mobile chat view had awkward layout clipping.
 - **🔍 Root Cause & Failed Attempts**:
   1. Baileys `messages.upsert` was filtering out `m.type === 'append'`, which dropped self-messages when the store owner replied from their own WhatsApp app.

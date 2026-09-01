@@ -57,11 +57,12 @@ export async function POST(req: NextRequest) {
       success: true,
       data: {
         matched: true,
-        matchedRuleName: `🤖 Gemini AI Sales Assistant (${classification.category})`,
+        matchedRuleName: `🤖 Gemini AI Sales Assistant (${classification.scenario || 'general'})`,
         dynamicAction: 'gemini_ai_response',
         simulatedReply: aiReply,
       },
     });
+
   } catch (err: any) {
     console.error('[WhatsAppTestRouteError]:', err);
     return NextResponse.json({ success: false, error: err.message, stack: err.stack }, { status: 500 });
