@@ -844,8 +844,8 @@ async function start() {
             session.markModified('messages');
             await session.save();
 
-            console.log(`✅ [Web Agent Bridge] Routed agent reply to Web Visitor #${targetShortCode}: "${agentReplyText}"`);
-            const adminNotifyJid = getAdminJid(socket) || senderJid;
+            console.log(`✅ [Web Agent Bridge] Routed agent reply from (${senderPhone}) to Web Visitor #${targetShortCode}: "${agentReplyText}"`);
+            const adminNotifyJid = senderJid || getAdminJid(socket);
             await socket.sendMessage(adminNotifyJid, { text: `✅ Reply delivered to Web Visitor #${targetShortCode} screen!` });
             continue;
           } else {
@@ -856,13 +856,15 @@ async function start() {
         }
       }
 
+      const allAdminJids = await getAllAdminJids(socket);
+      const isAdminNumber = msg.key.fromMe || allAdminJids.some((j) => j.includes(senderPhone));
 
-
-      if (msg.key.fromMe) {
+      if (isAdminNumber) {
         humanTakeover[senderPhone] = Date.now() + 5 * 60 * 1000;
-        console.log(`[Admin Takeover] Store owner messaged ${senderPhone}. Bot paused for 5 minutes.`);
+        console.log(`[Admin Takeover] Admin phone ${senderPhone} active. Bot paused for 5 minutes.`);
         continue;
       }
+
 
 
       try {
