@@ -60,7 +60,19 @@ This file serves as persistent dynamic memory across coding agent sessions. Ever
 
 ## 📝 PART 2: Project-Specific Resolution History
 
+### 2026-09-01 — 2-Way WhatsApp-to-Web Live Agent Bridge & Mobile UI Redesign
+- **📌 Issue**: Live agent WhatsApp replies were not showing up in visitor's web chat, inquiry alerts were dropped on self-messages, and mobile chat view had awkward layout clipping.
+- **🔍 Root Cause & Failed Attempts**:
+  1. Baileys `messages.upsert` was filtering out `m.type === 'append'`, which dropped self-messages when the store owner replied from their own WhatsApp app.
+  2. JID contained linked device port suffix (`:46`), causing WhatsApp to treat notifications as internal device packets rather than visible chat notifications.
+  3. Mobile chat widget used non-standard viewport positioning that did not fill native 100dvh viewport cleanly on mobile browsers.
+- **🛠️ Verified Code Fix**:
+  1. Enabled `m.type === 'append'` and added `session.markModified('messages')` in `src/worker/bot.mjs`.
+  2. Implemented native WhatsApp Swipe-to-Reply (Quoted context detection) so admin can quote-reply any inquiry without typing session codes.
+  3. Redesigned `StoreChatWidget.tsx` with full-screen native mobile app feel (`100dvh`, smooth header, soft pill chips, refined agent bubbles with verified badges, and floating animated send triggers).
+
 ### 2026-08-25 — Workspace & Agent Architecture Initialization
+
 - **📌 Issue**: Initialized complete intelligent agent rules, skills, and memory base for Pak-o-Drive.
 - **🔍 Root Cause & Failed Attempts**: N/A (Project bootstrap).
 - **🛠️ Verified Code Fix**: Created `.agents/AGENTS.md`, `.agents/LEARNINGS.md`, `src/lib/constants.ts`, and domain-specific skills.
