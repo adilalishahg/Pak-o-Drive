@@ -1100,16 +1100,12 @@ function startWebChatWatcher(socket) {
     try {
       if (mongoose.connection.readyState !== 1) return;
 
-      const sessions = await WebChatSession.find({
-        isAgentLive: true,
-        'messages.sender': 'visitor',
-        'messages.notifiedToAdmin': { $ne: true },
-      });
-
+      const sessions = await WebChatSession.find({ isAgentLive: true }).sort({ updatedAt: -1 }).limit(20);
       if (!sessions || sessions.length === 0) return;
 
       const adminJid = getAdminJid(socket);
       if (!adminJid) return;
+
 
       for (const session of sessions) {
         let modified = false;
