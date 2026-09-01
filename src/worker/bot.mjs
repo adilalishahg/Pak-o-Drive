@@ -33,34 +33,36 @@ async function callGeminiDirect(prompt) {
     console.log('⚠️ [callGeminiDirect] No GEMINI_API_KEY provided in env.');
     return null;
   }
-  const models = ['gemini-2.5-flash', 'gemini-1.5-flash', 'gemini-2.0-flash', 'gemini-flash-latest', 'gemini-3.7-flash', 'gemini-pro-latest'];
-  for (const model of models) {
-    try {
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`;
-      const res = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-        }),
-      });
-      if (res.ok) {
-        const data = await res.json();
-        const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-        if (text) {
-          console.log(`✅ [Gemini Model ${model}] Generated response successfully.`);
-          return text.trim();
+  const versions = ['v1beta', 'v1'];
+  const models = ['gemini-2.0-flash', 'gemini-1.5-flash-latest', 'gemini-1.5-flash', 'gemini-2.5-flash', 'gemini-1.5-flash-8b', 'gemini-pro'];
+
+  for (const ver of versions) {
+    for (const model of models) {
+      try {
+        const url = `https://generativelanguage.googleapis.com/${ver}/models/${model}:generateContent?key=${GEMINI_API_KEY}`;
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }],
+          }),
+        });
+        if (res.ok) {
+          const data = await res.json();
+          const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+          if (text) {
+            console.log(`✅ [Gemini Model ${model} (${ver})] Generated response successfully.`);
+            return text.trim();
+          }
         }
-      } else {
-        const errText = await res.text();
-        console.log(`⚠️ [Gemini ${model} HTTP ${res.status}]:`, errText.slice(0, 120));
+      } catch (err) {
+        // try next candidate
       }
-    } catch (err) {
-      console.log(`⚠️ [Gemini ${model} Network Error]:`, err.message);
     }
   }
   return null;
 }
+
 
 const WhatsAppRuleSchema = new mongoose.Schema(
   {
@@ -453,8 +455,10 @@ async function start() {
       // Start automatic background watchers
       startOrderWatcher(socket);
       startDailyTrendsScheduler(socket);
+      startWebChatWatcher(socket);
     }
   });
+
 
 
   socket.ev.on('messages.upsert', async (m) => {
@@ -789,5 +793,59 @@ function startDailyTrendsScheduler(socket) {
   }, 10 * 60 * 1000); // Check every 10 minutes
 }
 
+function startWebChatWatcher(socket) {
+
+  let webChatInterval = null;
+  if (webChatInterval) clearInterval(webChatInterval);
+
+  console.log('⚡ [Web Chat Watcher] Active (Polling live visitor inquiries every 3s)...');
+  webChatInterval = setInterval(async () => {
+    try {
+      if (mongoose.connection.readyState !== 1) return;
+
+      const sessions = await WebChatSession.find({
+        isAgentLive: true,
+        'messages.sender': 'visitor',
+        'messages.notifiedToAdmin': { $ne: true },
+      });
+
+      if (!sessions || sessions.length === 0) return;
+
+      const adminJid = getAdminJid(socket);
+      if (!adminJid) return;
+
+      for (const session of sessions) {
+        let modified = false;
+        for (const msg of session.messages) {
+          if (msg.sender === 'visitor' && msg.notifiedToAdmin !== true) {
+            const alert =
+              `💬 *LIVE WEB CHAT INQUIRY!* 🟢\n` +
+              `━━━━━━━━━━━━━━━━━━━━━\n` +
+              `👤 *Visitor Session:* #${session.shortCode}\n` +
+              `💬 *Message:* "${msg.text}"\n\n` +
+              `👉 *Reply karne ke liye:* Is message ka WhatsApp reply karein ya type karein:\n` +
+              `#${session.shortCode} Aapka reply yahan`;
+
+            try {
+              console.log(`[WebChat Watcher] Forwarding live inquiry to Admin (${adminJid}) for Session #${session.shortCode}: "${msg.text}"`);
+              await socket.sendMessage(adminJid, { text: alert });
+              msg.notifiedToAdmin = true;
+              modified = true;
+            } catch (sendErr) {
+              console.error('[WebChat Watcher] Failed to send message to WhatsApp:', sendErr.message);
+            }
+          }
+        }
+        if (modified) {
+          await session.save();
+        }
+      }
+    } catch (err) {
+      console.error('[WebChat Watcher Poll Error]:', err.message);
+    }
+  }, 3000);
+}
+
 start().catch(console.error);
+
 

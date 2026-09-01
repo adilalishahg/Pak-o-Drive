@@ -33,22 +33,38 @@ export interface IntentClassification {
   search_query: string;
 }
 
+const CANDIDATE_MODELS = ['gemini-2.0-flash', 'gemini-1.5-flash-latest', 'gemini-1.5-flash', 'gemini-2.5-flash', 'gemini-pro'];
+
+async function executeGeminiWithFallback(prompt: string, genAI: GoogleGenerativeAI): Promise<string | null> {
+  for (const modelName of CANDIDATE_MODELS) {
+    try {
+      const model = genAI.getGenerativeModel({ model: modelName });
+      const result = await model.generateContent(prompt);
+      const text = result?.response?.text()?.trim();
+      if (text) return text;
+    } catch (err: any) {
+      // Continue to next candidate model
+    }
+  }
+  return null;
+}
+
 /**
  * 1. Smart Intent Classifier:
  * Determines if a message is for Pak-o-Drive Store or personal/family conversation.
  */
 export async function classifyMessageIntent(messageText: string): Promise<IntentClassification> {
   const genAI = getGenAI();
+  const lower = messageText.toLowerCase();
+  const storeKeywords = [
+    'product', 'price', 'order', 'delivery', 'cost', 'buy', 'shop', 'sound', 'speaker',
+    'light', 'ambient', 'panel', 'charger', 'camera', 'seat', 'cover', 'perfume', 'freshener',
+    'warranty', 'wapsi', 'replace', 'civic', 'corolla', 'alto', 'yaris', 'car', 'gari', 'pakodrive',
+    'rate', 'kitne', 'rupay', 'pkr', 'rs', 'cod', 'cash', 'jazzcash', 'easypaisa', 'track', 'parcel'
+  ];
+  const isStore = storeKeywords.some((k) => lower.includes(k));
+
   if (!genAI) {
-    // If no Gemini key is configured, fallback to basic keyword heuristic
-    const lower = messageText.toLowerCase();
-    const storeKeywords = [
-      'product', 'price', 'order', 'delivery', 'cost', 'buy', 'shop', 'sound', 'speaker',
-      'light', 'ambient', 'panel', 'charger', 'camera', 'seat', 'cover', 'perfume', 'freshener',
-      'warranty', 'wapsi', 'replace', 'civic', 'corolla', 'alto', 'yaris', 'car', 'gari', 'pakodrive',
-      'rate', 'kitne', 'rupay', 'pkr', 'rs', 'cod', 'cash', 'jazzcash', 'easypaisa', 'track', 'parcel'
-    ];
-    const isStore = storeKeywords.some((k) => lower.includes(k));
     return {
       is_store_related: isStore,
       category: isStore ? 'product_inquiry' : 'personal_chat',
@@ -57,8 +73,6 @@ export async function classifyMessageIntent(messageText: string): Promise<Intent
   }
 
   try {
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
-
     const prompt = `You are a binary intent classifier for an e-commerce WhatsApp number that is used for BOTH personal family chats and an automotive accessories store ("Pak-o-Drive").
 
 Evaluate this incoming WhatsApp message: "${messageText}"
@@ -76,24 +90,25 @@ Return ONLY a valid JSON object with no markdown:
   "search_query": "search keywords if asking for item, else empty string"
 }`;
 
-    const res = await model.generateContent(prompt);
-    const text = res.response.text().trim();
-    const cleanJson = text.replace(/^```json\s*|\s*```$/g, '').trim();
-    const parsed = JSON.parse(cleanJson);
-    return {
-      is_store_related: Boolean(parsed.is_store_related),
-      category: parsed.category || 'general_store',
-      search_query: parsed.search_query || '',
-    };
+    const text = await executeGeminiWithFallback(prompt, genAI);
+    if (text) {
+      const cleanJson = text.replace(/^```json\s*|\s*```$/g, '').trim();
+      const parsed = JSON.parse(cleanJson);
+      return {
+        is_store_related: Boolean(parsed.is_store_related),
+        category: parsed.category || 'general_store',
+        search_query: parsed.search_query || '',
+      };
+    }
   } catch (err) {
     console.error('[Gemini Classifier Error]:', err);
-    // Safe fallback: If error, treat as non-store to prevent annoying friends/family
-    return {
-      is_store_related: false,
-      category: 'personal_chat',
-      search_query: '',
-    };
   }
+
+  return {
+    is_store_related: isStore,
+    category: isStore ? 'product_inquiry' : 'personal_chat',
+    search_query: isStore ? messageText : '',
+  };
 }
 
 /**
@@ -113,18 +128,18 @@ export async function searchStoreProducts(query: string) {
     const products = await Product.find({
       $or: [
         { name: { $in: regexArray } },
-        { category: { $in: regexArray } },
         { description: { $in: regexArray } },
+        { category: { $in: regexArray } },
       ],
       stock: { $gt: 0 },
     })
-      .select('name price originalPrice slug category stock image')
+      .select('name slug price originalPrice image category stock')
       .limit(3)
       .lean();
 
     return products;
   } catch (err) {
-    console.error('[MongoDB Product Search Error]:', err);
+    console.error('[Product Search Error]:', err);
     return [];
   }
 }
@@ -138,15 +153,20 @@ export async function generateGeminiStoreResponse(
   searchQuery?: string
 ): Promise<string> {
   const genAI = getGenAI();
+  const query = searchQuery || userMessage;
+  const products = await searchStoreProducts(query);
+
   if (!genAI) {
+    if (products.length > 0) {
+      const list = products
+        .map((p: any) => `• *${p.name}* — Rs. ${p.price.toLocaleString()} (https://pakodrive.pk/product/${p.slug || p._id})`)
+        .join('\n');
+      return `وعلیکم السلام! Jee bilkul hamare pas yeh items in-stock available hain:\n\n${list}\n\n🚚 Nationwide Free Cash On Delivery & 🛡️ 7-Day Warranty.`;
+    }
     return 'وعلیکم السلام! Pak-o-Drive Support par khush-amdeed. Hum aapki kia madad kar sakte hain? (1. Order Status | 2. Payment Details | 3. Return Policy | 4. Live Agent)';
   }
 
   try {
-    // 1. Search DB for matching products
-    const query = searchQuery || userMessage;
-    const products = await searchStoreProducts(query);
-
     let productCatalogContext = '';
     if (products.length > 0) {
       productCatalogContext =
@@ -156,16 +176,15 @@ export async function generateGeminiStoreResponse(
             (p: any) =>
               `• Name: ${p.name} | Price: Rs. ${p.price.toLocaleString()} ${
                 p.originalPrice ? `(Discounted from Rs. ${p.originalPrice.toLocaleString()})` : ''
-              } | Link: https://pakodrive.com/product/${p.slug || p._id}`
+              } | Link: https://pakodrive.pk/product/${p.slug || p._id}`
           )
           .join('\n');
     }
 
-    // 2. Fetch conversation history
     const history = conversationHistories.get(senderPhone) || [];
     const formattedHistory = history.map((h) => `${h.role === 'user' ? 'Customer' : 'Ali (Pak-o-Drive)'}: ${h.text}`).join('\n');
 
-    const systemInstruction = `You are "Ali", the friendly, knowledgeable senior sales & customer support executive at Pak-o-Drive (pakodrive.com), Pakistan's #1 automotive accessories and tech gadget store.
+    const systemInstruction = `You are "Ali", the friendly, knowledgeable senior sales & customer support executive at Pak-o-Drive (pakodrive.pk), Pakistan's #1 automotive accessories and tech gadget store.
 
 Store Policies to follow:
 - 🚚 Nationwide Free Cash On Delivery (COD) on all orders.
@@ -178,7 +197,7 @@ Guidelines:
 1. Respond in natural, polite, respectful Pakistani Roman Urdu (e.g. "Jee bilkul bhai!", "Assalam-o-Alaikum!", "Aap befikr rahein").
 2. If products were found in the database, present their exact names, PKR prices, and links naturally to help close the sale.
 3. Keep responses concise, clear, and easy to read on mobile WhatsApp (use bullet points and emojis tastefully).
-4. Never make up fake prices or invent imaginary products. If an item is not found, politely offer to check with the warehouse team or suggest browsing pakodrive.com.
+4. Never make up fake prices or invent imaginary products. If an item is not found, politely offer to check with the warehouse team or suggest browsing pakodrive.pk.
 5. If customer asks for live human or owner, say that their request is noted and an agent will call/reply soon.
 
 ${productCatalogContext ? `[CURRENT CATALOG CONTEXT]\n${productCatalogContext}\n` : ''}
@@ -188,17 +207,22 @@ Customer: "${userMessage}"
 
 Reply as Ali (Pak-o-Drive):`;
 
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
-    const result = await model.generateContent(systemInstruction);
-    const responseText = result.response.text().trim();
-
-    // Update conversation buffer
-    const updatedHistory = [...history, { role: 'user' as const, text: userMessage }, { role: 'model' as const, text: responseText }].slice(-6);
-    conversationHistories.set(senderPhone, updatedHistory);
-
-    return responseText;
-  } catch (err) {
-    console.error('[Gemini Response Gen Error]:', err);
-    return 'Jee bhai! Pak-o-Drive par Free Cash On Delivery aur 7-Day Warranty available hai. Hamari team foran aapse rabta karegi ya aap pakodrive.com par browse kar sakte hain.';
+    const responseText = await executeGeminiWithFallback(systemInstruction, genAI);
+    if (responseText) {
+      const updatedHistory = [...history, { role: 'user' as const, text: userMessage }, { role: 'model' as const, text: responseText }].slice(-6);
+      conversationHistories.set(senderPhone, updatedHistory);
+      return responseText;
+    }
+  } catch (err: any) {
+    console.error('[Gemini Generation Error]:', err?.message);
   }
+
+  if (products.length > 0) {
+    const list = products
+      .map((p: any) => `• *${p.name}* — Rs. ${p.price.toLocaleString()} (https://pakodrive.pk/product/${p.slug || p._id})`)
+      .join('\n');
+    return `وعلیکم السلام! Jee bilkul hamare pas yeh items in-stock available hain:\n\n${list}\n\n🚚 Nationwide Free Cash On Delivery & 🛡️ 7-Day Warranty.`;
+  }
+
+  return 'وعلیکم السلام! Pak-o-Drive Support par khush-amdeed. Hum aapki kia madad kar sakte hain? (1. Order Status | 2. Payment Details | 3. Return Policy | 4. Live Agent)';
 }

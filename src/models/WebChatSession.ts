@@ -5,6 +5,7 @@ export interface IWebChatMessage {
   sender: 'visitor' | 'bot' | 'agent';
   text: string;
   timestamp: string;
+  notifiedToAdmin?: boolean;
   createdAt: Date;
 }
 
@@ -28,6 +29,7 @@ const WebChatMessageSchema = new Schema<IWebChatMessage>(
     sender: { type: String, enum: ['visitor', 'bot', 'agent'], required: true },
     text: { type: String, required: true },
     timestamp: { type: String, required: true },
+    notifiedToAdmin: { type: Boolean, default: false },
     createdAt: { type: Date, default: Date.now },
   },
   { _id: false }
