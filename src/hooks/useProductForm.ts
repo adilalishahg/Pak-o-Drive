@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 import { useAdminUpload } from '../context/AdminUploadContext';
 import { optimizeImageBeforeUpload } from '../utils/imageOptimizer';
 import { VariantInput, SpecInput, ProductFormHookOptions } from '@/types';
+export type { VariantInput, SpecInput, ProductFormHookOptions };
+
 
 
 export function useProductForm({ productId }: ProductFormHookOptions = {}) {

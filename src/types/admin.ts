@@ -44,43 +44,40 @@ export interface DashboardData {
 export interface Subscriber {
   _id: string;
   email: string;
-  createdAt?: string;
+  createdAt: string;
   subscribedAt?: string;
 }
 
-
 export interface PromoData {
   _id: string;
-  code?: string;
+  code: string;
+  discountPercent: number;
+  isActive: boolean;
+  expiryDate: string;
   promoCode?: string;
   title?: string;
   description?: string;
-  discountPercent?: number;
   discountPercentage?: number;
   bannerImage?: string;
-  expiryDate?: string;
   startDate?: string;
   endDate?: string;
-  isActive: boolean;
   createdAt?: string;
 }
-
 
 export interface ContactData {
   _id: string;
   name: string;
   email: string;
   phone?: string;
-  subject?: string;
+  subject: string;
   message: string;
-  status?: 'Unread' | 'Read' | string;
+  status: 'Unread' | 'Read';
   createdAt: string;
 }
 
-
 export interface CategoryData {
   _id?: string;
-  id?: string;
+  id: string;
   name: string;
   slug: string;
   icon: string;
@@ -89,4 +86,3 @@ export interface CategoryData {
   productCount: number;
   children?: CategoryData[];
 }
-

@@ -5,16 +5,19 @@ import { optimizeImageBeforeUpload } from '../../../utils/imageOptimizer';
 import { SearchableCitySelect } from '@/components/common/SearchableCitySelect';
 import { SiteInfo, SiteInfoActiveTab, DEFAULT_SITE_INFO } from '@/types';
 
+const DEFAULT_INFO = DEFAULT_SITE_INFO;
+type ActiveTab = SiteInfoActiveTab;
+
 export default function AdminSiteInfoPage() {
-  const [info, setInfo] = useState<SiteInfo>(DEFAULT_SITE_INFO);
-  const [activeTab, setActiveTab] = useState<SiteInfoActiveTab>('general');
+  const [info, setInfo] = useState<SiteInfo>(DEFAULT_INFO);
+  const [activeTab, setActiveTab] = useState<ActiveTab>('general');
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [logoUploading, setLogoUploading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [activeTab, setActiveTab] = useState<ActiveTab>('general');
+
 
   useEffect(() => {
     fetchInfo();

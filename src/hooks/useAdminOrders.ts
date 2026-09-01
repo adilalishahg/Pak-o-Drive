@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { OrderData } from '@/types';
+export type { OrderData };
+
 
 
 export function useAdminOrders() {

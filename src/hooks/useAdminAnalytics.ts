@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { FunnelStep, AnalyticsData, AnalyticsTabKey } from '@/types';
+export type { FunnelStep, AnalyticsData, AnalyticsTabKey };
+
 
 
 export function useAdminAnalytics() {

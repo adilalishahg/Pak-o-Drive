@@ -3,14 +3,15 @@
  */
 
 export interface FunnelStep {
-  step: number | string;
+  step: number;
   label: string;
-  description?: string;
+  description: string;
   count: number;
-  conversionFromPrevious?: number;
-  conversionToEnd?: number;
+  conversionFromPrevious: number;
+  conversionToEnd: number;
   rate?: string;
 }
+
 
 export interface AnalyticsData {
   stats: {
