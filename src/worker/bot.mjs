@@ -358,15 +358,55 @@ const STORE_KEYWORDS = [
 ];
 
 async function classifyMessageIntent(messageText) {
-  const lower = messageText.toLowerCase();
-  const hasStoreKeyword = STORE_KEYWORDS.some((k) => lower.includes(k));
+  const lower = messageText.toLowerCase().trim();
 
-  if (!GEMINI_API_KEY) {
-    return {
-      is_store_related: hasStoreKeyword,
-      search_query: hasStoreKeyword ? messageText : '',
-    };
+  const isTracking =
+    /(order status|mera order|order kia tha|already order|order book kiya|parcel kahan|track|tracking|kab pohanch|dispatch|delivery status)/i.test(
+      lower
+    ) && !/(order karna hai|order karni hai|buy karna|kharidna|price kya|chahiye|lena hai)/i.test(lower);
+
+  const isBuy =
+    /(order karna hai|order karni hai|buy karna|kharidna|lena hai|chahye|chahiye|rate kya|price kya|kitne ka|available hai|stock|perfume|mirror|camera|speaker|wax|tape|light|panel|earbuds)/i.test(
+      lower
+    );
+
+  const isPayment = /(jazzcash|easypaisa|bank transfer|advance payment|account number|payment method|cod available)/i.test(
+    lower
+  );
+
+  const isWarranty = /(warranty|guarantee|kharab nikla|return policy|wapsi|exchange|replace policy|check warranty)/i.test(
+    lower
+  );
+
+  const isAgent = /(agent|human|representative|baat karni|admin|owner|call me|manager)/i.test(lower);
+
+  const hexOrPhone = lower.match(/\b[a-f0-9]{4,24}\b|\b03\d{9}\b|\b923\d{9}\b/i);
+  const identifier = hexOrPhone ? hexOrPhone[0] : '';
+
+  if (isTracking) {
+    return { is_store_related: true, scenario: 'track_order', search_query: '', order_identifier: identifier };
   }
+
+  if (isBuy) {
+    const cleanSearch = lower
+      .replace(/(order karna hai|order karni hai|buy karna|kharidna|lena hai|chahye|chahiye|rate kya|price kya|kitne ka|available hai|hai|bhai|mujhe|mujhy)/gi, '')
+      .trim();
+    return { is_store_related: true, scenario: 'buy_products', search_query: cleanSearch || messageText, order_identifier: '' };
+  }
+
+  if (isPayment) {
+    return { is_store_related: true, scenario: 'payment_info', search_query: '', order_identifier: '' };
+  }
+
+  if (isWarranty) {
+    return { is_store_related: true, scenario: 'warranty_return', search_query: '', order_identifier: '' };
+  }
+
+  if (isAgent) {
+    return { is_store_related: true, scenario: 'agent_handoff', search_query: '', order_identifier: '' };
+  }
+
+  const hasStoreKeyword = STORE_KEYWORDS.some((k) => lower.includes(k));
 
   try {
     const prompt = `You are a binary intent classifier for an e-commerce WhatsApp number used for BOTH personal family chats and an automotive store ("Pak-o-Drive").
@@ -375,11 +415,12 @@ Evaluate this incoming message: "${messageText}"
 
 Rules:
 1. Return is_store_related = false if the message is casual personal talk, family conversation, greeting between personal friends, asking where someone is, daily life chatter (e.g. "kahan ho", "ghar kab ao ge", "khana khaya", "call karo", "pic bhejo", "theek ho", "bhai kidhar ho").
-2. Return is_store_related = true if the message asks about cars, bikes, accessories, mirrors, lights, speakers, parts, prices, purchasing, discounts, order tracking, shipping, Cash on Delivery, warranties, website.
+2. Return is_store_related = true if asking about car products, prices, buying, discounts, order tracking, shipping, COD, warranties, store support.
 
-Return ONLY a valid JSON object:
+Return ONLY a valid JSON:
 {
   "is_store_related": true or false,
+  "scenario": "buy_products" | "track_order" | "payment_info" | "warranty_return" | "agent_handoff" | "general_greeting" | "personal_chat",
   "search_query": "search query terms if store related, else empty"
 }`;
 
@@ -389,15 +430,21 @@ Return ONLY a valid JSON object:
       const parsed = JSON.parse(cleanJson);
       return {
         is_store_related: Boolean(parsed.is_store_related) || hasStoreKeyword,
+        scenario: parsed.scenario || (hasStoreKeyword ? 'buy_products' : 'personal_chat'),
         search_query: parsed.search_query || messageText,
+        order_identifier: identifier,
       };
     }
   } catch (err) {
     console.error('[Gemini Intent Classifier Error]:', err.message);
   }
 
-  // Fallback to store keywords
-  return { is_store_related: hasStoreKeyword, search_query: hasStoreKeyword ? messageText : '' };
+  return {
+    is_store_related: hasStoreKeyword,
+    scenario: hasStoreKeyword ? 'buy_products' : 'personal_chat',
+    search_query: hasStoreKeyword ? messageText : '',
+    order_identifier: identifier,
+  };
 }
 
 /**
@@ -406,7 +453,7 @@ Return ONLY a valid JSON object:
 async function searchStoreProducts(query) {
   if (!query || !query.trim()) return [];
   try {
-    const stopWords = new Set(['mujhy', 'mujhe', 'chahye', 'chahiye', 'hai', 'hain', 'ka', 'ki', 'ke', 'ko', 'bhai', 'karo', 'den', 'kya', 'kia', 'for', 'the', 'and', 'with']);
+    const stopWords = new Set(['mujhy', 'mujhe', 'chahye', 'chahiye', 'hai', 'hain', 'ka', 'ki', 'ke', 'ko', 'bhai', 'karo', 'den', 'kya', 'kia', 'for', 'the', 'and', 'with', 'order', 'karna']);
     const cleanQuery = query.replace(/[^\w\s]/gi, '').toLowerCase().trim();
     const rawTerms = cleanQuery.split(/\s+/).filter((t) => t.length >= 3 && !stopWords.has(t));
     const terms = rawTerms.length > 0 ? rawTerms : cleanQuery.split(/\s+/).filter(Boolean);
@@ -437,7 +484,6 @@ async function searchStoreProducts(query) {
       .lean();
 
     if (products.length > 0) {
-      // Sort by relevance (products whose name matches the keyword come first)
       products.sort((a, b) => {
         const aMatches = terms.filter((t) => (a.name || '').toLowerCase().includes(t)).length;
         const bMatches = terms.filter((t) => (b.name || '').toLowerCase().includes(t)).length;
@@ -448,8 +494,6 @@ async function searchStoreProducts(query) {
       products.forEach((p, idx) => {
         console.log(`   ${idx + 1}. ${p.name} | Rs. ${p.price} | Stock: ${p.stock} | ID: ${p._id}`);
       });
-    } else {
-      console.log(`⚠️ [DB Search Result] 0 products found matching terms: [ ${terms.join(', ')} ]`);
     }
 
     return products;
@@ -460,24 +504,63 @@ async function searchStoreProducts(query) {
 }
 
 /**
- * 3. Gemini Conversational Sales & Support Generator
+ * 3. Conversational Sales & Support Generator
  */
 async function generateGeminiStoreResponse(userMessage, senderPhone, searchQuery) {
   try {
-    const isOrderTracking = /(order|parcel|track|status|dispatch|deliver|order book|already|check order|mera order)/i.test(userMessage);
+    const classification = await classifyMessageIntent(userMessage);
 
-    // If customer is specifically asking to track or check an existing order without providing the ID yet:
-    if (isOrderTracking && !/\b[a-f0-9]{4,24}\b|\b03\d{9}\b|\b923\d{9}\b/i.test(userMessage)) {
+    // SCENARIO 1: EXISTING ORDER TRACKING
+    if (classification.scenario === 'track_order') {
+      if (!classification.order_identifier) {
+        return {
+          text:
+            `وعلیکم السلام! Jee bilkul bhai, aap apna *Order ID* (jaise #40F921) ya apna *11-digit Mobile Number* yahan share karein.\n\n` +
+            `Main foran database check karke aapke parcel ka live status, courier tracking (TCS/Leopards) aur delivery time bata deta hoon! 😊📦`,
+          imageUrl: '',
+        };
+      }
+    }
+
+    // SCENARIO 2: PAYMENT DETAILS
+    if (classification.scenario === 'payment_info') {
       return {
         text:
-          `وعلیکم السلام! Jee bilkul bhai, aap apna *Order ID* (jaise #40F921) ya apna *11-digit Mobile Number* yahan share karein.\n\n` +
-          `Main foran database check karke aapke parcel ka live status, courier tracking (TCS/Leopards) aur delivery time bata deta hoon! 😊📦`,
+          `💳 *Pak-o-Drive Official Payment Options:*\n\n` +
+          `1️⃣ *Cash On Delivery (COD):* Poore Pakistan mein parcel receive karte waqt payment karein.\n` +
+          `2️⃣ *JazzCash / Easypaisa (0318-5205667):* Account Title: *Adil Ali Shah*\n` +
+          `3️⃣ *Bank Transfer:* Available upon request.\n\n` +
+          `Agar aapne advance payment ki hai tou screenshot yahan share kar dein! 👍`,
         imageUrl: '',
       };
     }
 
-    const query = searchQuery || userMessage;
-    const products = isOrderTracking ? [] : await searchStoreProducts(query);
+    // SCENARIO 3: WARRANTY & RETURNS
+    if (classification.scenario === 'warranty_return') {
+      return {
+        text:
+          `🛡️ *Pak-o-Drive 7-Day Checking & Replacement Warranty:*\n\n` +
+          `Hamare har item par **7 Din Ki Free Checking Warranty** milti hai.\n` +
+          `Agar parcel receive hone par item me koi defect ho, tou hum bina kisi extra charge ke exchange / replace kar dete hain! 🚚✨`,
+        imageUrl: '',
+      };
+    }
+
+    // SCENARIO 4: AGENT HANDOFF
+    if (classification.scenario === 'agent_handoff') {
+      return {
+        text:
+          `👨‍💼 *Live Support Executive Alert*\n\n` +
+          `Aapka message hamari customer support team ko direct forward kar diya gaya hai.\n` +
+          `Hamara representative jald aapse rabta karega! ✨`,
+        imageUrl: '',
+      };
+    }
+
+    // SCENARIO 5: BUYING PRODUCTS / GENERAL INQUIRY
+    const query = classification.search_query || searchQuery || userMessage;
+    const products = await searchStoreProducts(query);
+
 
     let productCatalogContext = '';
 
