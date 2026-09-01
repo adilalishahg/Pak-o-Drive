@@ -175,9 +175,12 @@ export async function POST(req: NextRequest): Promise<NextResponse<ChatMessageRe
       });
     }
 
-    // 3. HUMAN AGENT HANDOFF (Forward to Admin's WhatsApp)
-    const isAgentQuery = /agent|human|representative|baat karni|admin|owner|call me|4/i.test(message);
-    if (isAgentQuery || session.isAgentLive) {
+    // 3. HUMAN AGENT HANDOFF (Explicit Request Only)
+    const isAgentQuery = /^(4|agent|human|representative|baat karni|admin|owner|call me|live agent|mujhe human agent)/i.test(
+      message.trim()
+    );
+
+    if (isAgentQuery) {
       session.isAgentLive = true;
       const bot = WhatsAppBotManager.getInstance();
       const adminPhone = getAdminWhatsAppNumber();
@@ -197,7 +200,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<ChatMessageRe
       const agentReply =
         `👨‍💼 *Live Support Agent Handoff*\n\n` +
         `Aapka message hamare store executive ko forward kar diya gaya hai (Session: *#${shortCode}*).\n\n` +
-        `Hamara agent jald isi chat window me aapse rabta karega. Aap apna mazeed sawal yahan type kar sakte hain!`;
+        `Hamara agent jald isi chat window me aapse rabta karega. Aap apna sawal yahan type kar sakte hain!`;
 
       session.messages.push({
         id: 'bot_' + Date.now(),
@@ -215,6 +218,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<ChatMessageRe
         shortCode,
       });
     }
+
 
     // 4. CHECK PRE-SET WHATSAPP RULES (Only if not a direct purchase inquiry)
     const isPurchaseQuery =
