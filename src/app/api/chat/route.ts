@@ -27,34 +27,26 @@ export interface ChatMessageResponse {
   error?: string;
 }
 
+import { checkRateLimit } from '@/lib/rateLimiter';
+
 /**
- * Smart Order Lookup: Matches by 24-char ObjectId, short ID suffix (e.g. 40F921), phone number, or tracking number
+ * Smart Order Lookup: Matches by 24-char ObjectId, phone number, or tracking number
+ * Optimized for 50,000+ orders using B-Tree indexes (zero ReDoS full table scans).
  */
 async function findOrderByAnyIdentifier(queryText: string) {
   await dbConnect();
   if (!queryText || !queryText.trim()) return null;
 
   const raw = queryText.trim();
-  const hexMatches = raw.match(/[a-f0-9]{4,24}/gi) || [];
+  const hexMatches = raw.match(/[a-f0-9]{24}/gi) || [];
   const phoneDigits = raw.replace(/\D/g, '');
 
   const orConditions: any[] = [];
 
-  // 1. Match full 24-char ObjectId or partial hex suffix
+  // 1. Match full 24-char ObjectId (instant B-Tree index lookup)
   for (const hex of hexMatches) {
-    if (hex.length === 24 && mongoose.Types.ObjectId.isValid(hex)) {
+    if (mongoose.Types.ObjectId.isValid(hex)) {
       orConditions.push({ _id: new mongoose.Types.ObjectId(hex) });
-    }
-    if (hex.length >= 4) {
-      orConditions.push({
-        $expr: {
-          $regexMatch: {
-            input: { $toString: '$_id' },
-            regex: hex,
-            options: 'i',
-          },
-        },
-      });
     }
   }
 
@@ -66,14 +58,15 @@ async function findOrderByAnyIdentifier(queryText: string) {
 
   // 3. Match tracking number
   const cleanTracking = raw.replace(/[^a-zA-Z0-9_-]/g, '');
-  if (cleanTracking.length >= 4 && !/^(order|track|status|help|menu|salam|hello|hi)$/i.test(cleanTracking)) {
-    orConditions.push({ trackingNumber: { $regex: cleanTracking, $options: 'i' } });
+  if (cleanTracking.length >= 5 && !/^(order|track|status|help|menu|salam|hello|hi|details)$/i.test(cleanTracking)) {
+    orConditions.push({ trackingNumber: cleanTracking });
   }
 
   if (orConditions.length === 0) return null;
 
-  return await Order.findOne({ $or: orConditions }).sort({ createdAt: -1 });
+  return await Order.findOne({ $or: orConditions }).sort({ createdAt: -1 }).lean();
 }
+
 
 function formatOrderLiveStatus(order: any): string {
   const shortId = order._id?.toString().slice(-8).toUpperCase();
@@ -107,8 +100,33 @@ function formatOrderLiveStatus(order: any): string {
 
 export async function POST(req: NextRequest): Promise<NextResponse<ChatMessageResponse>> {
   try {
+    // Multi-User Concurrency & Anti-Spam Guard (Max 30 messages/min per IP)
+    const rateCheck = checkRateLimit(req, {
+      limit: 30,
+      windowMs: 60 * 1000,
+      keyPrefix: 'chat_api',
+    });
+
+    if (!rateCheck.success) {
+      return NextResponse.json(
+        {
+          success: false,
+          reply: `Aap bohot taiz messages bhej rahay hain. Baraye meharbani ${rateCheck.reset} seconds intezar karein.`,
+          source: 'fallback',
+          error: 'Rate limit exceeded',
+        },
+        {
+          status: 429,
+          headers: {
+            'Retry-After': String(rateCheck.reset),
+          },
+        }
+      );
+    }
+
     await dbConnect();
     const body = await req.json().catch(() => ({}));
+
     const message = (body.message || '').trim();
     const sessionId = body.sessionId || 'web_' + Date.now();
     const shortCode = 'W' + sessionId.slice(-4).toUpperCase();

@@ -4,12 +4,35 @@ import Subscriber from '../../../models/Subscriber';
 import { Resend } from 'resend';
 import { getWelcomeEmailHtml } from '../../../lib/emails/welcomeTemplate';
 import SiteInfo from '../../../models/SiteInfo';
+import { checkRateLimit } from '@/lib/rateLimiter';
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     await dbConnect();
-    const subscribers = await Subscriber.find({}).sort({ createdAt: -1 });
-    return NextResponse.json({ success: true, count: subscribers.length, data: subscribers });
+    const { searchParams } = new URL(request.url);
+    const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') || '50')));
+    const page = Math.max(1, parseInt(searchParams.get('page') || '1'));
+
+    const [total, subscribers] = await Promise.all([
+      Subscriber.countDocuments(),
+      Subscriber.find({})
+        .sort({ createdAt: -1 })
+        .skip((page - 1) * limit)
+        .limit(limit)
+        .lean(),
+    ]);
+
+    return NextResponse.json({
+      success: true,
+      count: subscribers.length,
+      pagination: {
+        total,
+        page,
+        limit,
+        pages: Math.ceil(total / limit),
+      },
+      data: subscribers,
+    });
   } catch (error: any) {
     console.error('Error fetching subscribers:', error);
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
@@ -18,8 +41,23 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
+    // Spam Bot Protection: Max 6 subscriptions/minute per IP
+    const rateCheck = checkRateLimit(request, {
+      limit: 6,
+      windowMs: 60 * 1000,
+      keyPrefix: 'newsletter_post',
+    });
+
+    if (!rateCheck.success) {
+      return NextResponse.json(
+        { success: false, error: `Too many requests. Please wait ${rateCheck.reset} seconds.` },
+        { status: 429, headers: { 'Retry-After': String(rateCheck.reset) } }
+      );
+    }
+
     await dbConnect();
     const body = await request.json().catch(() => ({}));
+
     const { email, source = 'footer' } = body;
 
     if (!email || !email.includes('@')) {

@@ -64,9 +64,10 @@ export async function GET(request: Request) {
       query.isTopSelling = true;
     }
 
-    // Pagination parameters
-    const limit = Math.max(1, parseInt(searchParams.get('limit') || '12'));
+    // Pagination parameters with strict max 100 items cap to protect against RAM exhaustion
+    const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') || '12')));
     const page = Math.max(1, parseInt(searchParams.get('page') || '1'));
+
     const skip = (page - 1) * limit;
 
     const [totalProducts, products] = await Promise.all([

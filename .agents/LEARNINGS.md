@@ -541,6 +541,15 @@ This file serves as persistent dynamic memory across coding agent sessions. Ever
   2. Added compound & text indexes across `Product` (`{ name: 'text', description: 'text' }`, `{ category: 1, subcategory: 1, createdAt: -1 }`), `Category` (`{ parentCategory: 1, slug: 1 }`), and `Order` (`{ 'customerDetails.phone': 1, createdAt: -1 }`).
   3. Added `purgeCacheTags` helper and wired cache invalidation to all product, category, and site settings mutations in API handlers.
 
+### 2026-09-01: Enterprise Rate Limiting, ReDoS Protection & Capped Pagination
+- **Issue**: Threat of bot flooding, false requests slowing down the system, and potential RAM exhaustion when database scales to 50,000+ orders.
+- **Root Cause**: Uncapped array returns in `/api/orders` GET without pagination, absence of IP sliding-window throttling on checkout/chat/contact endpoints, and unindexed `$expr: $regexMatch` on `_id` in `/api/chat`.
+- **Verified Fix**:
+  1. Created in-memory Sliding Window Rate Limiter in `src/lib/rateLimiter.ts` protecting `/api/orders` (max 10/min), `/api/chat` (max 30/min), `/api/contacts` (max 5/min), and `/api/newsletter` (max 6/min).
+  2. Replaced full table `$expr` scans in `/api/chat` with indexed lookups (`ObjectId.isValid`, `trackingNumber`, `customerDetails.phone`).
+  3. Added strict pagination (`Math.min(100, reqLimit)`) and `.lean()` across `/api/orders`, `/api/products`, `/api/contacts`, and `/api/newsletter`.
+
+
 
 
 

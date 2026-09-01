@@ -4,12 +4,53 @@ import Order from '../../../models/Order';
 import Product from '../../../models/Product';
 import { fireConversionEvent } from '../../../utils/conversionApi';
 import { sendAdminOrderNotification } from '../../../lib/whatsappNotification';
+import { checkRateLimit } from '@/lib/rateLimiter';
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     await dbConnect();
-    const orders = await Order.find({}).sort({ createdAt: -1 });
-    return NextResponse.json({ success: true, count: orders.length, data: orders });
+    const { searchParams } = new URL(request.url);
+
+    // Safe capped pagination to prevent RAM exhaustion under 50,000+ orders
+    const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') || '50')));
+    const page = Math.max(1, parseInt(searchParams.get('page') || '1'));
+    const status = searchParams.get('status');
+    const search = searchParams.get('search');
+
+    const query: any = {};
+    if (status && status !== 'All') {
+      query.status = status;
+    }
+    if (search) {
+      const cleanSearch = search.trim();
+      query.$or = [
+        { 'customerDetails.name': { $regex: cleanSearch, $options: 'i' } },
+        { 'customerDetails.phone': { $regex: cleanSearch, $options: 'i' } },
+        { 'customerDetails.city': { $regex: cleanSearch, $options: 'i' } },
+        { trackingNumber: { $regex: cleanSearch, $options: 'i' } },
+      ];
+    }
+
+    const [total, orders] = await Promise.all([
+      Order.countDocuments(query),
+      Order.find(query)
+        .sort({ createdAt: -1 })
+        .skip((page - 1) * limit)
+        .limit(limit)
+        .lean(),
+    ]);
+
+    return NextResponse.json({
+      success: true,
+      count: orders.length,
+      pagination: {
+        total,
+        page,
+        limit,
+        pages: Math.ceil(total / limit),
+      },
+      data: orders,
+    });
   } catch (error: any) {
     console.error('Error fetching orders API:', error);
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
@@ -18,8 +59,31 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
+    // 0. Anti-DDoS & Bot Flood Protection (Max 10 orders per minute per IP)
+    const rateCheck = checkRateLimit(request, {
+      limit: 10,
+      windowMs: 60 * 1000,
+      keyPrefix: 'orders_post',
+    });
+
+    if (!rateCheck.success) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: `Too many checkout requests. Please wait ${rateCheck.reset} seconds before trying again.`,
+        },
+        {
+          status: 429,
+          headers: {
+            'Retry-After': String(rateCheck.reset),
+          },
+        }
+      );
+    }
+
     await dbConnect();
     const body = await request.json();
+
 
     const { customerDetails, items, utmSource, utmMedium, utmCampaign } = body;
 
