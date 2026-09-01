@@ -7,11 +7,9 @@ import { CategorySidebar } from '../product/CategorySidebar';
 import { ProductCardAuto } from '../product/ProductCardAuto';
 import { ProductCardList } from '../product/ProductCardList';
 import { IProduct } from '../../types';
+import { ShopClientProps } from '@/types/product';
 import { useSiteTheme } from '../common/DynamicThemeProvider';
 
-interface ShopClientProps {
-  initialProducts: IProduct[];
-}
 
 function ShopContent({ initialProducts }: ShopClientProps) {
   const searchParams = useSearchParams();

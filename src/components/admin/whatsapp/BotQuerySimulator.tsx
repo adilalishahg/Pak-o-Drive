@@ -1,21 +1,10 @@
 'use client';
 
 import React from 'react';
-
-interface BotQuerySimulatorProps {
-  simQuery: string;
-  setSimQuery: (v: string) => void;
-  simLoading: boolean;
-  simResult: {
-    matched: boolean;
-    matchedRuleName: string | null;
-    dynamicAction?: string;
-    simulatedReply: string;
-  } | null;
-  onSimulate: (e: React.FormEvent) => Promise<void>;
-}
+import { BotQuerySimulatorProps } from '@/types/whatsapp';
 
 export function BotQuerySimulator({
+
   simQuery,
   setSimQuery,
   simLoading,

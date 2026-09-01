@@ -1,30 +1,10 @@
 'use client';
 
 import React from 'react';
-import { WhatsAppRuleItem } from '../../../hooks/useWhatsAppBot';
-
-interface BotRuleModalProps {
-  isModalOpen: boolean;
-  editingRule: WhatsAppRuleItem | null;
-  formName: string;
-  setFormName: (v: string) => void;
-  formTriggerType: 'contains' | 'exact' | 'regex' | 'default';
-  setFormTriggerType: (v: 'contains' | 'exact' | 'regex' | 'default') => void;
-  formKeywords: string;
-  setFormKeywords: (v: string) => void;
-  formReplyMessage: string;
-  setFormReplyMessage: (v: string) => void;
-  formDynamicAction: WhatsAppRuleItem['dynamicAction'];
-  setFormDynamicAction: (v: WhatsAppRuleItem['dynamicAction']) => void;
-  formPriority: number;
-  setFormPriority: (v: number) => void;
-  formEnabled: boolean;
-  setFormEnabled: (v: boolean) => void;
-  onCloseModal: () => void;
-  onSaveRule: (e: React.FormEvent) => Promise<void>;
-}
+import { BotRuleModalProps } from '@/types/whatsapp';
 
 export function BotRuleModal({
+
   isModalOpen,
   editingRule,
   formName,

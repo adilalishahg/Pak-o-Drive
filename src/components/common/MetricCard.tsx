@@ -1,21 +1,10 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-
-interface MetricCardProps {
-  title: string;
-  metricType: string;
-  initialValue: number;
-  formatValue: (val: number) => string;
-  iconClass: string;
-  iconBg: string;
-  iconColor: string;
-  footerContent?: React.ReactNode;
-  globalRange?: string;
-  className?: string;
-}
+import { MetricCardProps } from '@/types/common';
 
 export default function MetricCard({
+
   title,
   metricType,
   initialValue,

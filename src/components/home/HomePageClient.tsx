@@ -146,12 +146,10 @@ function StatCounter({ value, label, suffix, icon, trigger }: typeof STATS[numbe
   );
 }
 
-interface HomePageClientProps {
-  initialProducts: IProduct[];
-  initialCategories: any[];
-}
+import { HomePageClientProps } from '@/types/product';
 
 export function HomePageClient({ initialProducts, initialCategories }: HomePageClientProps) {
+
   const [products] = useState<IProduct[]>(initialProducts);
   const [cats] = useState<any[]>(initialCategories);
   const [activeTab, setActiveTab] = useState<'all' | 'new' | 'featured' | 'selling'>('all');

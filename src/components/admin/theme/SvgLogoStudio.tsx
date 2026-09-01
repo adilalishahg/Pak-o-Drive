@@ -1,61 +1,13 @@
 'use client';
 
 import React from 'react';
-import { SvgLogoSettings, DEFAULT_SVG_LOGO } from '../../common/DynamicThemeProvider';
 import { PakODriveLogo } from '../../common/PakODriveLogo';
 import { SectionCard } from './ThemeUIPrimitives';
-
-const FONT_OPTIONS = [
-  'Inter', 'Roboto', 'Poppins', 'Montserrat', 'Plus Jakarta Sans',
-  'Nunito', 'Raleway', 'DM Sans', 'Lato', 'Open Sans',
-  'Outfit', 'Figtree', 'Sora', 'Space Grotesk', 'Josefin Sans',
-];
-
-const LOGO_PRESETS = [
-  {
-    name: '⚡ Cyber Cyan & Neon Orange (Default)',
-    primaryColor: '#00A8E8',
-    secondaryColor: '#0066CC',
-    accentColor: '#FF7A00',
-  },
-  {
-    name: '🏎️ Flame Red & Pitch Black',
-    primaryColor: '#EF4444',
-    secondaryColor: '#991B1B',
-    accentColor: '#F97316',
-  },
-  {
-    name: '👑 Royal Gold & Deep Navy',
-    primaryColor: '#D4AF37',
-    secondaryColor: '#0F172A',
-    accentColor: '#F59E0B',
-  },
-  {
-    name: '🌿 Emerald Green & Lime Glow',
-    primaryColor: '#10B981',
-    secondaryColor: '#065F46',
-    accentColor: '#84CC16',
-  },
-  {
-    name: '💎 Electric Violet & Hot Pink',
-    primaryColor: '#A855F7',
-    secondaryColor: '#6B21A8',
-    accentColor: '#EC4899',
-  },
-  {
-    name: '⚪ Minimalist Clean Monochrome',
-    primaryColor: '#F8FAFC',
-    secondaryColor: '#94A3B8',
-    accentColor: '#38BDF8',
-  },
-];
-
-interface SvgLogoStudioProps {
-  svgLogo: SvgLogoSettings | undefined;
-  onSetSvgLogo: <K extends keyof SvgLogoSettings>(key: K, val: SvgLogoSettings[K]) => void;
-}
+import { SvgLogoSettings, SvgLogoStudioProps } from '@/types/theme';
+import { FONT_OPTIONS, LOGO_PRESETS, DEFAULT_SVG_LOGO } from '@/lib/themeConstants';
 
 export function SvgLogoStudio({ svgLogo, onSetSvgLogo }: SvgLogoStudioProps) {
+
   const currentLogo = svgLogo || DEFAULT_SVG_LOGO;
 
   return (

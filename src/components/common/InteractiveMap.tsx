@@ -1,35 +1,12 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
+import { MarkerData, InteractiveMapProps } from '@/types/common';
 
 declare global {
   interface Window {
     L: any;
   }
-}
-
-interface MarkerData {
-  lat: number;
-  lng: number;
-  popupText: string;
-}
-
-interface InteractiveMapProps {
-  center: [number, number];
-  zoom: number;
-  markers?: MarkerData[];
-  circle?: {
-    lat: number;
-    lng: number;
-    radius: number; // in meters
-    color?: string;
-  };
-  routes?: Array<{
-    path: [number, number][];
-    color?: string;
-    weight?: number;
-  }>;
-  height?: string;
 }
 
 export default function InteractiveMap({
@@ -143,7 +120,7 @@ export default function InteractiveMap({
 
       // Map polylines routes
       if (routes && routes.length > 0) {
-        routes.forEach(r => {
+        routes.forEach((r: any) => {
           L.polyline(r.path, {
             color: r.color || '#10b981',
             weight: r.weight || 3,
@@ -151,6 +128,7 @@ export default function InteractiveMap({
           }).addTo(routesGroup);
         });
       }
+
 
       // Map new markers
       markers.forEach(m => {

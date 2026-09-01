@@ -1,17 +1,10 @@
 'use client';
 
 import React from 'react';
-
-interface BotConfirmDialogsProps {
-  deleteConfirmId: string | null;
-  onCancelDelete: () => void;
-  onConfirmDelete: () => Promise<void>;
-  logoutConfirmOpen: boolean;
-  onCancelLogout: () => void;
-  onConfirmLogout: () => Promise<void>;
-}
+import { BotConfirmDialogsProps } from '@/types/whatsapp';
 
 export function BotConfirmDialogs({
+
   deleteConfirmId,
   onCancelDelete,
   onConfirmDelete,

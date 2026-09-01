@@ -2,14 +2,8 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { OptimizedImage } from '../common/OptimizedImage';
+import { ProductImageGalleryProps } from '@/types/product';
 
-interface ProductImageGalleryProps {
-  image: string;
-  images: string[];
-  name: string;
-  video?: string;
-  showVideoOnFront?: boolean;
-}
 
 export const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({
   image,

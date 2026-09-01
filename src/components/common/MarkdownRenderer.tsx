@@ -1,12 +1,8 @@
 'use client';
 
 import React, { useMemo } from 'react';
+import { MarkdownRendererProps } from '@/types/common';
 
-interface MarkdownRendererProps {
-  content: string;
-  className?: string;
-  style?: React.CSSProperties;
-}
 
 /**
  * Zero-dependency inline markdown-to-HTML renderer.

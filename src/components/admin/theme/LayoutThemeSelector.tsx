@@ -1,15 +1,11 @@
 'use client';
 
 import React from 'react';
-import { SiteTheme } from '../../common/DynamicThemeProvider';
 import { SectionCard } from './ThemeUIPrimitives';
-
-interface LayoutThemeSelectorProps {
-  layoutTheme: SiteTheme['layoutTheme'];
-  onSelectPreset: (preset: 'classic' | 'modern-green' | 'theme1') => void;
-}
+import { LayoutThemeSelectorProps } from '@/types/theme';
 
 export function LayoutThemeSelector({ layoutTheme, onSelectPreset }: LayoutThemeSelectorProps) {
+
   return (
     <SectionCard title="Layout Theme & Storefront Style" icon="fas fa-desktop" badge="1-Click Presets">
       <p className="text-muted small mb-3" style={{ fontSize: '0.83rem' }}>

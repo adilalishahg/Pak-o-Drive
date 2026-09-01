@@ -1,28 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { ProductSEOOptimizerProps } from '@/types/product';
 
-// Props matching product form fields
-interface ProductSEOOptimizerProps {
-  name: string;
-  setName: (v: string) => void;
-  description: string;
-  setDescription: (v: string) => void;
-  price: string;
-  originalPrice: string;
-  image: string;
-  images: string[];
-  video: string;
-  seoTitle: string;
-  setSeoTitle: (v: string) => void;
-  seoDescription: string;
-  setSeoDescription: (v: string) => void;
-  seoKeywords: string;
-  setSeoKeywords: (v: string) => void;
-  category: string;
-  specs: Array<{ key: string; value: string }>;
-  variants: any[];
-}
 
 export default function ProductSEOOptimizer({
   name,

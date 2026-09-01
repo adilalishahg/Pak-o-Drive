@@ -5,24 +5,8 @@ import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, PieChart, Pie, Cell, Legend, BarChart, Bar
 } from 'recharts';
+import { TimeSeriesItem, DeviceItem, AgeItem } from '@/types/common';
 
-interface TimeSeriesItem {
-  name: string;
-  Revenue: number;
-  Pageviews: number;
-  Conversion: number;
-}
-
-interface DeviceItem {
-  name: string;
-  value: number;
-  color: string;
-}
-
-interface AgeItem {
-  name: string;
-  count: number;
-}
 
 export function TrendChart({ data }: { data: TimeSeriesItem[] }) {
   return (

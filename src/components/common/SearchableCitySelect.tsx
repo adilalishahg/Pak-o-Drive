@@ -1,33 +1,10 @@
 'use client';
 
 import React, { useState, useRef, useEffect, useMemo, useId } from 'react';
-import { PAKISTAN_MAJOR_CITIES } from '../../lib/constants';
+import { PAKISTAN_MAJOR_CITIES, DEFAULT_POPULAR_CITIES } from '../../lib/constants';
+import { SearchableCitySelectProps } from '@/types/common';
+export type { SearchableCitySelectProps };
 
-export interface SearchableCitySelectProps {
-  value: string;
-  onChange: (city: string) => void;
-  placeholder?: string;
-  required?: boolean;
-  name?: string;
-  id?: string;
-  disabled?: boolean;
-  className?: string;
-  inputStyle?: React.CSSProperties;
-  popularCities?: string[];
-}
-
-const DEFAULT_POPULAR_CITIES = [
-  'Rawalpindi',
-  'Islamabad',
-  'Lahore',
-  'Karachi',
-  'Faisalabad',
-  'Peshawar',
-  'Multan',
-  'Sialkot',
-  'Gujranwala',
-  'Quetta',
-];
 
 export function SearchableCitySelect({
   value,

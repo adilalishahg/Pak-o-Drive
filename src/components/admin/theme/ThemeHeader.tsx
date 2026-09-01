@@ -1,15 +1,10 @@
 'use client';
 
 import React from 'react';
-
-interface ThemeHeaderProps {
-  saving: boolean;
-  toast: { type: 'success' | 'danger'; message: string } | null;
-  onSave: () => Promise<void>;
-  onReset: () => void;
-}
+import { ThemeHeaderProps } from '@/types/theme';
 
 export function ThemeHeader({ saving, toast, onSave, onReset }: ThemeHeaderProps) {
+
   return (
     <>
       {/* Top Header Bar */}

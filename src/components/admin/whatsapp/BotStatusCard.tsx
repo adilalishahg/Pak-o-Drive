@@ -1,16 +1,10 @@
 'use client';
 
 import React from 'react';
-import { BotState } from '../../../hooks/useWhatsAppBot';
-
-interface BotStatusCardProps {
-  botState: BotState;
-  actionLoading: boolean;
-  onStartBot: () => Promise<void>;
-  onOpenLogoutConfirm: () => void;
-}
+import { BotStatusCardProps } from '@/types/whatsapp';
 
 export function BotStatusCard({
+
   botState,
   actionLoading,
   onStartBot,

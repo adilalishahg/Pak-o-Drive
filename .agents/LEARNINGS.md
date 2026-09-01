@@ -60,7 +60,18 @@ This file serves as persistent dynamic memory across coding agent sessions. Ever
 
 ## 📝 PART 2: Project-Specific Resolution History
 
+### 2026-09-01 — Project-Wide Types, Interfaces & Static Constants Clean Separation
+- **📌 Issue**: Components across the project had inline `interface`, `type`, and static arrays/presets defined directly within UI presentational files (violating Rule 8).
+- **🔍 Root Cause & Failed Attempts**: Component files like `SvgLogoStudio.tsx`, `TypographySection.tsx`, `CategorySidebar.tsx`, `LiveSalesNotification.tsx`, `SearchableCitySelect.tsx`, and `AnalyticsCharts.tsx` declared ad-hoc types and duplicate static arrays.
+- **🛠️ Verified Code Fix**:
+  1. Created modular domain type files: `src/types/theme.ts`, `src/types/product.ts`, `src/types/whatsapp.ts`, `src/types/marketIntelligence.ts`, and `src/types/common.ts`.
+  2. Centralized theme presets and typography options in `src/lib/themeConstants.ts` (`FONT_OPTIONS`, `FONT_SIZE_OPTIONS`, `LOGO_PRESETS`, `DEFAULT_THEME`, `DEFAULT_SVG_LOGO`).
+  3. Centralized static lookup arrays in `src/lib/constants.ts` (`DEFAULT_CATEGORIES`, `PAKISTANI_CUSTOMERS`, `DEFAULT_POPULAR_CITIES`, `ANALYTICS_TABS`).
+  4. Refactored 18+ component files across `src/components/` to import their types and constants cleanly.
+  5. Verified 0 compilation errors via `pnpm tsc --noEmit`.
+
 ### 2026-09-01 — Alwaysdata WhatsApp 24/7 Daemon Real-Time Web Status Bridge
+
 - **📌 Issue**: Admin panel at `/admin/whatsapp-bot` displayed "Disconnected" even though the Baileys daemon was active and responding on Alwaysdata.
 - **🔍 Root Cause & Failed Attempts**: Next.js serverless functions checked the local in-process singleton instance (`WhatsAppBotManager`), which was disconnected on Vercel while the actual socket was running in the background Node daemon on Alwaysdata.
 - **🛠️ Verified Code Fix**:

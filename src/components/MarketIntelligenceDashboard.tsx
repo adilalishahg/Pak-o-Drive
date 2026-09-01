@@ -1,40 +1,8 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
+import { MetaAd, TikTokPost, MarketIntelligenceDashboardProps } from '@/types/marketIntelligence';
 
-// ── Types ──
-interface MetaAd {
-  id: string;
-  adCreativeBody: string;
-  adCreativeLinkTitle: string;
-  pageName: string;
-  pageId: string;
-  startDate: string;
-  liveDays: number;
-  estimatedSalesConfidence: 'HIGH (Winning Product)' | 'MEDIUM' | 'LOW';
-  impressionsLower?: number;
-  impressionsUpper?: number;
-  spendLower?: number;
-  spendUpper?: number;
-  currency?: string;
-}
-
-interface TikTokPost {
-  id: string;
-  creatorHandle: string;
-  creatorAvatar?: string;
-  videoUrl?: string;
-  caption: string;
-  viewsCount: number;
-  likesCount: number;
-  commentsCount: number;
-  sharesCount: number;
-  engagementRate: number;
-}
-
-interface MarketIntelligenceDashboardProps {
-  initialQuery?: string;
-}
 
 // ── Custom SVGs ──
 const SparklesIcon = () => (

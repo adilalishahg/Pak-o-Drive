@@ -4,28 +4,8 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { OptimizedImage } from './OptimizedImage';
-
-interface NotificationItem {
-  customerName: string;
-  city: string;
-  productName: string;
-  productImage: string;
-  productLink: string;
-  timeAgo: string;
-}
-
-const PAKISTANI_CUSTOMERS = [
-  { name: 'Hamza K.', city: 'Lahore' },
-  { name: 'Usman A.', city: 'Karachi' },
-  { name: 'Zainab B.', city: 'Islamabad' },
-  { name: 'Bilal M.', city: 'Rawalpindi' },
-  { name: 'Ahmad R.', city: 'Faisalabad' },
-  { name: 'Fatima S.', city: 'Multan' },
-  { name: 'Ali Raza', city: 'Sialkot' },
-  { name: 'Saad N.', city: 'Peshawar' },
-  { name: 'Ayesha T.', city: 'Gujranwala' },
-  { name: 'Hassan K.', city: 'Hyderabad' },
-];
+import { NotificationItem } from '@/types/common';
+import { PAKISTANI_CUSTOMERS } from '@/lib/constants';
 
 const TIME_AGO_LIST = [
   'Just now',
@@ -35,7 +15,7 @@ const TIME_AGO_LIST = [
   '9 minutes ago',
 ];
 
-export function LiveSalesNotification() {
+export default function LiveSalesNotification() {
   const pathname = usePathname();
   const [currentNotification, setCurrentNotification] = useState<NotificationItem | null>(null);
   const [isVisible, setIsVisible] = useState(false);
@@ -184,4 +164,6 @@ export function LiveSalesNotification() {
     </div>
   );
 }
-export default LiveSalesNotification;
+
+export { LiveSalesNotification };
+

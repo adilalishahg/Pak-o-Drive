@@ -1,21 +1,11 @@
 'use client';
 
 import React from 'react';
-import { SiteTheme } from '../../common/DynamicThemeProvider';
 import { optimizeImageBeforeUpload } from '../../../utils/imageOptimizer';
-
-interface HeroSlidesManagerProps {
-  form: SiteTheme;
-  availableProducts: any[];
-  onAddSlide: () => void;
-  onUpdateSlide: (idx: number, field: string, val: any) => void;
-  onDeleteSlide: (idx: number) => void;
-  onMoveSlide: (idx: number, direction: 'up' | 'down') => void;
-  onSelectProduct: (idx: number, prodId: string) => void;
-  onUpdateSliderSetting: (key: string, val: any) => void;
-}
+import { HeroSlidesManagerProps } from '@/types/theme';
 
 export function HeroSlidesManager({
+
   form,
   availableProducts,
   onAddSlide,

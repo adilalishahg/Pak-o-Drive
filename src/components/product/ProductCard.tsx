@@ -7,12 +7,9 @@ import { useRouter } from 'next/navigation';
 import { useCart } from '../../context/CartContext';
 import { useWishlist } from '../../context/WishlistContext';
 import { IProduct } from '../../types';
+import { ProductCardProps } from '@/types/product';
 import { useSiteTheme } from '../common/DynamicThemeProvider';
 
-interface ProductCardProps {
-  product: IProduct;
-  priority?: boolean;
-}
 
 export const ProductCard: React.FC<ProductCardProps> = ({ product, priority }) => {
   const { addToCart, cartCount } = useCart();

@@ -2,15 +2,10 @@
 
 import { useEffect } from 'react';
 import { logInteraction } from './AnalyticsTracker';
-
-interface ProductViewLoggerProps {
-  id: string;
-  name: string;
-  category: string;
-  price: number;
-}
+import { ProductViewLoggerProps } from '@/types/common';
 
 export function ProductViewLogger({ id, name, category, price }: ProductViewLoggerProps) {
+
   useEffect(() => {
     logInteraction('view_product', window.location.pathname, {
       product_id: id,

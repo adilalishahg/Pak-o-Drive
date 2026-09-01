@@ -2,18 +2,10 @@
 
 import React from 'react';
 import { WhatsAppRuleItem } from '../../../hooks/useWhatsAppBot';
-
-interface BotRulesTableProps {
-  rules: WhatsAppRuleItem[];
-  actionLoading: boolean;
-  onOpenCreateModal: () => void;
-  onOpenEditModal: (rule: WhatsAppRuleItem) => void;
-  onToggleRule: (rule: WhatsAppRuleItem) => Promise<void>;
-  onOpenDeleteConfirm: (ruleId: string) => void;
-  onSeedDefaults: () => Promise<void>;
-}
+import { BotRulesTableProps } from '@/types/whatsapp';
 
 export function BotRulesTable({
+
   rules,
   actionLoading,
   onOpenCreateModal,

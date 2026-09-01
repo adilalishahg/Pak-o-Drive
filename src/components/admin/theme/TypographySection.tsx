@@ -1,24 +1,12 @@
 'use client';
 
 import React from 'react';
-import { SiteTheme } from '../../common/DynamicThemeProvider';
 import { SectionCard } from './ThemeUIPrimitives';
-
-const FONT_OPTIONS = [
-  'Inter', 'Roboto', 'Poppins', 'Montserrat', 'Plus Jakarta Sans',
-  'Nunito', 'Raleway', 'DM Sans', 'Lato', 'Open Sans',
-  'Outfit', 'Figtree', 'Sora', 'Space Grotesk', 'Josefin Sans',
-];
-
-const FONT_SIZE_OPTIONS = ['13px', '14px', '15px', '16px', '17px', '18px', '20px'];
-
-interface TypographySectionProps {
-  fontFamily: string;
-  fontSizeBase: string;
-  onSet: <K extends keyof SiteTheme>(key: K, val: SiteTheme[K]) => void;
-}
+import { TypographySectionProps } from '@/types/theme';
+import { FONT_OPTIONS, FONT_SIZE_OPTIONS } from '@/lib/themeConstants';
 
 export function TypographySection({ fontFamily, fontSizeBase, onSet }: TypographySectionProps) {
+
   return (
     <SectionCard title="Typography & Fonts" icon="fas fa-font" badge="Google Fonts">
       <div className="row g-3">

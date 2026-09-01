@@ -2,13 +2,9 @@
 
 import React from 'react';
 import Image, { ImageProps } from 'next/image';
+import { OptimizedImageProps } from '@/types/common';
 
-interface OptimizedImageProps extends Omit<ImageProps, 'loader'> {
-  /**
-   * Fallback image URL to display if the main image fails to load.
-   */
-  fallbackSrc?: string;
-}
+
 
 /**
  * Custom Cloudinary Loader to leverage Cloudinary's global CDN features:

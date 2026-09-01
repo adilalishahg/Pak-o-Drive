@@ -1,32 +1,9 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import { CategorySidebarProps, SidebarCategory } from '@/types/product';
+import { DEFAULT_CATEGORIES } from '@/lib/constants';
 
-interface CategorySidebarProps {
-  selectedCategory: string | null;
-  onSelectCategory: (category: string | null) => void;
-  priceRange: { min: number; max: number };
-  onPriceRangeChange: (min: number, max: number) => void;
-  selectedRating: number | null;
-  onSelectRating: (rating: number | null) => void;
-  onReset: () => void;
-}
-
-interface SidebarCategory {
-  name: string;
-  slug: string;
-  icon: string;
-  parentCategory?: string;
-  image?: string;
-}
-
-const DEFAULT_CATEGORIES: SidebarCategory[] = [
-  { name: 'Headphones', slug: 'headphones', icon: 'fas fa-headphones-alt', parentCategory: '' },
-  { name: 'Chargers & Cables', slug: 'chargers', icon: 'fas fa-bolt', parentCategory: '' },
-  { name: 'Automotive', slug: 'automotive', icon: 'fas fa-car', parentCategory: '' },
-  { name: 'Smartwatches', slug: 'smartwatches', icon: 'fas fa-clock', parentCategory: '' },
-  { name: 'Mobile Accessories', slug: 'accessories', icon: 'fas fa-mobile-alt', parentCategory: '' },
-];
 
 const PRICE_MAX = 150000;
 const PRICE_MIN = 0;

@@ -164,3 +164,48 @@ export const ANALYTICS_TABS = [
   { key: 'market', label: 'Market Intelligence', icon: 'fas fa-brain' },
 ] as const;
 
+import { SidebarCategory } from '../types/product';
+
+export const DEFAULT_CATEGORIES: SidebarCategory[] = [
+  { name: 'Headphones', slug: 'headphones', icon: 'fas fa-headphones-alt', parentCategory: '' },
+  { name: 'Chargers & Cables', slug: 'chargers', icon: 'fas fa-bolt', parentCategory: '' },
+  { name: 'Automotive', slug: 'automotive', icon: 'fas fa-car', parentCategory: '' },
+  { name: 'Smartwatches', slug: 'smartwatches', icon: 'fas fa-clock', parentCategory: '' },
+  { name: 'Mobile Accessories', slug: 'accessories', icon: 'fas fa-mobile-alt', parentCategory: '' },
+];
+
+export const PAKISTANI_CUSTOMERS = [
+  { name: 'Hamza K.', city: 'Lahore' },
+  { name: 'Usman A.', city: 'Karachi' },
+  { name: 'Zainab B.', city: 'Islamabad' },
+  { name: 'Bilal M.', city: 'Rawalpindi' },
+  { name: 'Ahmad R.', city: 'Faisalabad' },
+  { name: 'Fatima S.', city: 'Multan' },
+  { name: 'Ali Raza', city: 'Sialkot' },
+  { name: 'Saad N.', city: 'Peshawar' },
+  { name: 'Hassan T.', city: 'Gujranwala' },
+  { name: 'Ayesha D.', city: 'Hyderabad' },
+  { name: 'Kashif M.', city: 'Quetta' },
+  { name: 'Zeeshan J.', city: 'Sargodha' },
+  { name: 'Mariam E.', city: 'Bahawalpur' },
+  { name: 'Danial S.', city: 'Sukkur' },
+  { name: 'Shahmeer A.', city: 'Abbottabad' },
+];
+
+export const DEFAULT_POPULAR_CITIES: string[] = [
+  'Rawalpindi',
+  'Islamabad',
+  'Lahore',
+  'Karachi',
+  'Faisalabad',
+  'Peshawar',
+  'Multan',
+  'Sialkot',
+  'Gujranwala',
+  'Quetta',
+];
+
+
+
+
+

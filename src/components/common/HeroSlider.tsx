@@ -3,27 +3,9 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { HeroSlide, HeroSliderProps } from '@/types/common';
+export type { HeroSlide };
 
-export interface HeroSlide {
-  badge: string;
-  tagline: string;
-  title: string;
-  desc: string;
-  btnLink: string;
-  btnLabel: string;
-  accent: string;
-  bg: string;
-  productImage?: string;
-  productImageAlt?: string;
-}
-
-interface HeroSliderProps {
-  slides: HeroSlide[];
-  autoPlayMs?: number;
-  autoPlayEnabled?: boolean;
-  showArrows?: boolean;
-  showDots?: boolean;
-}
 
 export function HeroSlider({
   slides,

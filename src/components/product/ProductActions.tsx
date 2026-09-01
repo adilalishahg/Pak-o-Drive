@@ -6,11 +6,8 @@ import { useRouter } from 'next/navigation';
 import { useCart } from '../../context/CartContext';
 import { useWishlist } from '../../context/WishlistContext';
 import { IProduct, IProductVariant } from '../../types';
+import { ProductActionsProps } from '@/types/product';
 
-interface ProductActionsProps {
-  product: IProduct;
-  selectedVariant?: IProductVariant;
-}
 
 export const ProductActions: React.FC<ProductActionsProps> = ({ product, selectedVariant }) => {
   const router = useRouter();

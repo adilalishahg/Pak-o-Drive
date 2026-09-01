@@ -22,11 +22,10 @@ const cleanStorefrontDescription = (desc: string): string => {
     .trim();
 };
 
-interface ProductDetailInteractiveProps {
-  product: IProduct;
-}
+import { ProductDetailInteractiveProps } from '@/types/product';
 
 export const ProductDetailInteractive: React.FC<ProductDetailInteractiveProps> = ({ product }) => {
+
   const [selectedVariant, setSelectedVariant] = useState<IProductVariant | undefined>(
     product.variants && product.variants.length > 0 ? product.variants[0] : undefined
   );

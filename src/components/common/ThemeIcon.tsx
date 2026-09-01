@@ -2,14 +2,10 @@
 
 import React from 'react';
 import { useSiteTheme } from './DynamicThemeProvider';
-
-interface ThemeIconProps {
-  name: string;
-  className?: string;
-  style?: React.CSSProperties;
-}
+import { ThemeIconProps } from '@/types/common';
 
 export const ThemeIcon: React.FC<ThemeIconProps> = ({ name, className = '', style }) => {
+
   const { theme } = useSiteTheme();
   const lib = theme.iconLibrary ?? 'fontawesome';
 

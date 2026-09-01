@@ -1,18 +1,14 @@
 'use client';
 
 import React from 'react';
-import { SiteTheme } from '../../common/DynamicThemeProvider';
 import { SectionCard } from './ThemeUIPrimitives';
+import { SiteTheme, NavbarFooterSectionProps } from '@/types/theme';
 
 const NAVBAR_STYLE_OPTIONS: SiteTheme['navbarStyle'][] = ['dark', 'light', 'gradient'];
 const FOOTER_STYLE_OPTIONS: SiteTheme['footerStyle'][] = ['dark', 'light'];
 
-interface NavbarFooterSectionProps {
-  form: SiteTheme;
-  onSet: <K extends keyof SiteTheme>(key: K, val: SiteTheme[K]) => void;
-}
-
 export function NavbarFooterSection({ form, onSet }: NavbarFooterSectionProps) {
+
   return (
     <SectionCard title="Navbar, Footer & Announcement Bar" icon="fas fa-bars">
       <div className="row g-3 mb-4">

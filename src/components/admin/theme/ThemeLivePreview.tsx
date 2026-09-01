@@ -1,15 +1,11 @@
 'use client';
 
 import React from 'react';
-import { SiteTheme } from '../../common/DynamicThemeProvider';
 import { PakODriveLogo } from '../../common/PakODriveLogo';
-
-interface ThemeLivePreviewProps {
-  theme: SiteTheme;
-  onSetForm?: React.Dispatch<React.SetStateAction<SiteTheme>>;
-}
+import { ThemeLivePreviewProps } from '@/types/theme';
 
 export function ThemeLivePreview({ theme, onSetForm }: ThemeLivePreviewProps) {
+
   const primaryRgb = (theme.primaryColor || '#ea580c')
     .replace('#', '')
     .match(/.{2}/g)
