@@ -121,6 +121,7 @@ export async function POST(request: Request) {
         price,
         originalPrice,
         category,
+        subcategory,
         image,
         images,
         video,
@@ -134,6 +135,7 @@ export async function POST(request: Request) {
         isTopSelling,
         stock,
         specifications,
+        variants,
       } = body;
 
       if (!name || !description || price === undefined || !category || !image) {
@@ -143,33 +145,63 @@ export async function POST(request: Request) {
         );
       }
 
-      // Auto-create category if it does not exist in the database
+      // Auto-create Main Category & Subcategory if they do not exist
       const categoryName = (category || 'General').trim();
       const categorySlug = categoryName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 
       let existingCategory = await Category.findOne({
-        $or: [{ slug: categorySlug }, { name: new RegExp(`^${categoryName}$`, 'i') }],
+        $or: [{ slug: categorySlug }, { name: new RegExp(`^${categoryName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') }],
       });
 
       if (!existingCategory) {
         existingCategory = await Category.create({
-          name: categoryName,
+          name: categoryName.replace(/-/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase()),
           slug: categorySlug,
           icon: 'fas fa-tag',
           image: image || '',
+          parentCategory: '',
           productCount: 1,
         });
       } else {
         await Category.updateOne({ _id: existingCategory._id }, { $inc: { productCount: 1 } });
       }
 
+      let finalSubcategorySlug = '';
+      if (subcategory && subcategory.trim()) {
+        const subName = subcategory.trim();
+        const subSlug = subName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+
+        let existingSub = await Category.findOne({
+          $or: [{ slug: subSlug }, { name: new RegExp(`^${subName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') }],
+        });
+
+        if (!existingSub) {
+          existingSub = await Category.create({
+            name: subName.replace(/-/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase()),
+            slug: subSlug,
+            icon: 'fas fa-angle-right',
+            image: image || '',
+            parentCategory: existingCategory.slug,
+            productCount: 1,
+          });
+        } else {
+          if (!existingSub.parentCategory) {
+            await Category.updateOne({ _id: existingSub._id }, { parentCategory: existingCategory.slug, $inc: { productCount: 1 } });
+          } else {
+            await Category.updateOne({ _id: existingSub._id }, { $inc: { productCount: 1 } });
+          }
+        }
+        finalSubcategorySlug = existingSub.slug;
+      }
+
       // Create new product
       const newProduct = new Product({
-        name,
-        description,
+        name: name.trim(),
+        description: description.trim(),
         price: Number(price),
         originalPrice: originalPrice !== undefined ? Number(originalPrice) : Number(price),
         category: existingCategory.slug,
+        subcategory: finalSubcategorySlug,
         image,
         images: images || [],
         video: video || '',
@@ -183,11 +215,13 @@ export async function POST(request: Request) {
         isTopSelling: !!isTopSelling,
         stock: stock !== undefined ? Number(stock) : 10,
         specifications: specifications || {},
+        variants: variants || [],
       });
 
       const saved = await newProduct.save();
       return NextResponse.json({ success: true, message: 'Product created successfully!', data: saved }, { status: 201 });
     }
+
 
     // Default to seeding if requested or if no body provided
     const count = await Product.countDocuments();

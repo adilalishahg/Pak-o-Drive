@@ -12,50 +12,253 @@ export default function BulkImportProductsPage() {
   const [importing, setImporting] = useState(false);
   const [importResult, setImportResult] = useState<any>(null);
 
-  // Sample template generator
+  // Sample template generator covering all 5 core verticals with parent & subcategories
   const sampleTemplate = [
+    // 🚗 1. CAR ACCESSORIES
     {
-      name: "15W Magnetic Wireless Car Phone Mount Charger",
+      name: "Solar Powered Helicopter Dashboard Car Perfume & Rotating Freshener",
       category: "Car Accessories",
-      price: 2499,
-      originalPrice: 3499,
-      image: "car-charger-main.webp",
-      images: [
-        "car-charger-main.webp",
-        "car-charger-angle.webp",
-        "car-charger-in-car.webp"
-      ],
-      description: "Fast 15W Qi-certified magnetic wireless car charger with 360-degree rotation. Secure air vent clip designed for Pakistani road bumps.",
-      stock: 30,
+      subcategory: "Car Perfumes & Fresheners",
+      price: 1999,
+      originalPrice: 2899,
+      image: "/img/product-8.png",
+      images: ["/img/product-8.png", "/img/product-13.png"],
+      description: "Aviation-grade solar aroma diffuser with auto-rotating propeller blades when sunlight hits. Emits continuous natural essential fragrance without batteries.",
+      stock: 45,
       isFeatured: true,
       isTopSelling: true,
       specifications: {
-        "Output": "15W / 10W / 7.5W Fast Charge",
-        "Material": "ABS + Aluminum Alloy",
-        "Compatibility": "iPhone 12-16 & MagSafe Android"
+        "Material": "Zinc Alloy + Solar Panel",
+        "Fragrance Duration": "Up to 90 Days",
+        "Mount Type": "Non-Slip Dashboard Adhesive"
       }
     },
     {
-      name: "A11 Pro ANC Wireless Earbuds with Smart Screen Display",
-      category: "Mobile Accessories",
-      price: 1899,
-      originalPrice: 2899,
-      image: "a11-pro-main.webp",
-      images: [
-        "a11-pro-main.webp",
-        "a11-pro-case.webp"
-      ],
-      description: "Active Noise Cancelling TWS Earbuds with smart LCD touch screen charging case. Control music, volume and equalizer directly from the case.",
-      stock: 45,
+      name: "64-Color Symphony DreamColor Car Interior LED Ambient Lighting Kit",
+      category: "Car Accessories",
+      subcategory: "Interior Styling & Ambient Lights",
+      price: 3499,
+      originalPrice: 4999,
+      image: "/img/product-13.png",
+      images: ["/img/product-13.png", "/img/product-8.png"],
+      description: "Universal acrylic fiber optic RGB ambient strip with wireless smartphone Bluetooth App control and sound-activated music sync mode.",
+      stock: 35,
+      isFeatured: true,
+      isTopSelling: true,
+      specifications: {
+        "Strip Length": "110cm + 75cm + Footwell LEDs",
+        "Control": "Bluetooth App + Wireless Remote",
+        "Voltage": "12V USB / Cigarette Lighter"
+      }
+    },
+    {
+      name: "120W Super Fast Retractable Dual Port 3-in-1 Car Charger",
+      category: "Car Accessories",
+      subcategory: "Dash Cams & Car Electronics",
+      price: 2799,
+      originalPrice: 3899,
+      image: "/img/product-12.png",
+      images: ["/img/product-12.png", "/img/product-4.png"],
+      description: "Auto-retractable 80cm cables for Type-C and Lightning plus dual USB ports. Fast charges up to 4 devices simultaneously with digital voltage monitor.",
+      stock: 60,
+      isFeatured: false,
+      isTopSelling: true,
+      specifications: {
+        "Max Output": "120W Super Fast Charging",
+        "Cable Length": "80cm Auto-Retractable",
+        "Display": "Real-time LED Battery Voltage"
+      }
+    },
+
+    // 📱 2. MOBILE & SMART TECH
+    {
+      name: "T900 Ultra 2 Max Smartwatch with NFC, Compass & BT Calling",
+      category: "Mobile & Smart Tech",
+      subcategory: "Smartwatches & Bands",
+      price: 3899,
+      originalPrice: 5500,
+      image: "/img/product-2.png",
+      images: ["/img/product-2.png", "/img/product-3.png"],
+      description: "Large 2.19-inch HD Infinite Display smartwatch with real screw back, strap locks, wireless magnetic charging, blood oxygen & heart rate tracking.",
+      stock: 50,
+      isFeatured: true,
+      isTopSelling: true,
+      specifications: {
+        "Screen": "2.19 inch IPS HD Touchscreen",
+        "Battery Life": "3-5 Days Active Usage",
+        "Compatibility": "Android 5.0+ & iOS 9.0+"
+      }
+    },
+    {
+      name: "ANC Pro Wireless Bluetooth Earbuds with Spatial Audio & Touch Control",
+      category: "Mobile & Smart Tech",
+      subcategory: "Wireless Earbuds & Audio",
+      price: 2499,
+      originalPrice: 3999,
+      image: "/img/product-3.png",
+      images: ["/img/product-3.png", "/img/product-5.png"],
+      description: "True wireless stereo earbuds with active noise reduction, transparency mode, deep bass drivers, and IPX5 sweat-resistant coating.",
+      stock: 75,
+      isFeatured: true,
+      isTopSelling: true,
+      specifications: {
+        "Bluetooth": "V5.3 EDR Instant Pair",
+        "Playtime": "Up to 28 Hours with Case",
+        "Latency": "45ms Ultra Low Latency for Gaming"
+      }
+    },
+    {
+      name: "65W GaN III Fast Wall Charger Dual USB-C + USB-A",
+      category: "Mobile & Smart Tech",
+      subcategory: "Fast Chargers & Cables",
+      price: 2999,
+      originalPrice: 4200,
+      image: "/img/product-4.png",
+      images: ["/img/product-4.png", "/img/product-12.png"],
+      description: "Ultra-compact Gallium Nitride (GaN) fast charger capable of charging laptops, tablets, and smartphones at maximum rated speeds.",
+      stock: 40,
+      isFeatured: false,
+      isTopSelling: true,
+      specifications: {
+        "Max Power": "65W Power Delivery 3.0",
+        "Ports": "2x Type-C + 1x USB-A",
+        "Technology": "GaN III High Efficiency"
+      }
+    },
+
+    // 🏠 3. HOME & KITCHEN GADGETS
+    {
+      name: "Rechargeable Motion Sensor LED Magnetic Under-Cabinet Wardrobe Light",
+      category: "Home & Kitchen Smart Gadgets",
+      subcategory: "Smart Home Lighting",
+      price: 1499,
+      originalPrice: 2200,
+      image: "/img/product-10.png",
+      images: ["/img/product-10.png"],
+      description: "Ultra-slim wireless LED bar with PIR infrared human motion detector. Snaps magnetically to any surface with 3 color light modes (Warm, White, Mixed).",
+      stock: 55,
+      isFeatured: true,
+      isTopSelling: true,
+      specifications: {
+        "Sensor Range": "120 Degree / 3-5 Meters",
+        "Battery": "USB-C Rechargeable Lithium Battery",
+        "Mounting": "Magnetic 3M Adhesive Plates Included"
+      }
+    },
+    {
+      name: "Wireless Portable Electric USB Blender Smoothie & Fresh Juice Bottle (350ml)",
+      category: "Home & Kitchen Smart Gadgets",
+      subcategory: "Kitchen Mini Appliances",
+      price: 2899,
+      originalPrice: 4100,
+      image: "/img/product-1.png",
+      images: ["/img/product-1.png"],
+      description: "Heavy duty 4-blade stainless steel personal juicer cup. Blend protein shakes, fresh fruits, and baby food anywhere on the go.",
+      stock: 30,
       isFeatured: true,
       isTopSelling: false,
       specifications: {
-        "Bluetooth": "V5.4 Ultra Low Latency",
-        "Battery Life": "Up to 32 Hours with Case",
-        "Features": "Full Color Touch Screen, ANC"
+        "Blade Material": "304 Food Grade Stainless Steel",
+        "Capacity": "350ml BPA Free Bottle",
+        "Motor Speed": "20,000 RPM Powerful Pulse"
+      }
+    },
+    {
+      name: "9000Pa High Power Cordless Portable Handheld Vacuum Cleaner 2-in-1",
+      category: "Home & Kitchen Smart Gadgets",
+      subcategory: "Cleaning & Vacuum Gadgets",
+      price: 3299,
+      originalPrice: 4600,
+      image: "/img/product-10.png",
+      images: ["/img/product-10.png"],
+      description: "Dual function vacuum suction and air duster blower. Ideal for cleaning sofas, computer keyboards, drawers, and car seat crevices.",
+      stock: 40,
+      isFeatured: false,
+      isTopSelling: true,
+      specifications: {
+        "Suction Power": "9000Pa Cyclone Suction",
+        "Filter": "Washable HEPA Filter",
+        "Runtime": "30 Minutes Continuous"
+      }
+    },
+
+    // 🏍️ 4. BIKES & MOTORCYCLING
+    {
+      name: "Anti-Shake Shock Absorption Vibration Dampener Motorcycle Phone Mount",
+      category: "Bikes & Motorcycling Essentials",
+      subcategory: "Bike Phone Holders",
+      price: 2199,
+      originalPrice: 3200,
+      image: "/img/product-7.png",
+      images: ["/img/product-7.png"],
+      description: "Heavy duty alloy motorcycle handlebar holder with 4-corner silicone cushions that protect optical image stabilization (OIS) phone cameras.",
+      stock: 65,
+      isFeatured: true,
+      isTopSelling: true,
+      specifications: {
+        "Handlebar Diameter": "22mm - 32mm Universal",
+        "Phone Size": "4.7 inch to 7.2 inch",
+        "Locking Mechanism": "One-Touch Mechanical Lock"
+      }
+    },
+    {
+      name: "Heavy Duty 110dB Siren Alarm Disc Brake Lock for Motorbikes & Scooters",
+      category: "Bikes & Motorcycling Essentials",
+      subcategory: "Safety & Security Locks",
+      price: 2599,
+      originalPrice: 3600,
+      image: "/img/product-9.png",
+      images: ["/img/product-9.png"],
+      description: "Waterproof forged alloy disc lock with built-in vibration sensor alarm. Rings loud 110dB warning siren against bike theft attempts.",
+      stock: 45,
+      isFeatured: false,
+      isTopSelling: true,
+      specifications: {
+        "Alarm Loudness": "110 Decibels",
+        "Pin Diameter": "7mm Hardened Steel",
+        "Waterproof": "IP67 Weatherproof Sealed"
+      }
+    },
+
+    // ✨ 5. PERSONAL CARE & LIFESTYLE
+    {
+      name: "Vintage T9 Metal Cordless Hair & Beard Precision Trimmer",
+      category: "Personal Care & Daily Lifestyle",
+      subcategory: "Hair & Beard Care",
+      price: 1799,
+      originalPrice: 2500,
+      image: "/img/product-6.png",
+      images: ["/img/product-6.png"],
+      description: "Zero gapped titanium T-blade professional hair clipper with engraved bronze dragon body, high speed motor, and 4 guide combs (1.5mm - 4mm).",
+      stock: 80,
+      isFeatured: true,
+      isTopSelling: true,
+      specifications: {
+        "Blade Type": "Zero-Gapped T-Blade",
+        "Battery": "1200mAh USB Rechargeable",
+        "Run Time": "120 Minutes Non-Stop"
+      }
+    },
+    {
+      name: "Deep Tissue Percussion Muscle Massage Gun with 4 Interchangeable Heads",
+      category: "Personal Care & Daily Lifestyle",
+      subcategory: "Massagers & Wellness",
+      price: 3999,
+      originalPrice: 5800,
+      image: "/img/product-11.png",
+      images: ["/img/product-11.png"],
+      description: "Multi-speed handheld cordless vibration massager for muscle soreness, post-workout recovery, neck, and shoulder stiffness relief.",
+      stock: 25,
+      isFeatured: false,
+      isTopSelling: true,
+      specifications: {
+        "Speed Levels": "6 Adjustable Vibration Levels",
+        "Massage Heads": "Ball, Fork, Bullet, Flat Heads",
+        "Noise Level": "Below 45dB Whisper Quiet"
       }
     }
   ];
+
 
   const handleJsonChange = (val: string) => {
     setJsonText(val);
@@ -145,13 +348,13 @@ export default function BulkImportProductsPage() {
             </p>
           </div>
 
-          <div className="d-flex gap-2">
+          <div className="d-flex flex-wrap gap-2">
             <button
               type="button"
               onClick={handleLoadSample}
-              className="btn btn-outline-secondary btn-sm px-3"
+              className="btn btn-success btn-sm px-3 fw-bold text-white shadow-sm"
             >
-              <i className="fas fa-file-code me-1" /> Load Sample JSON
+              <i className="fas fa-sparkles me-1" /> 🌱 Load 15+ Multi-Niche Sample Products
             </button>
             <Link href="/admin/products" className="btn btn-outline-dark btn-sm px-3">
               View Catalog
@@ -167,16 +370,15 @@ export default function BulkImportProductsPage() {
                 <i className="fas fa-magic" />
               </div>
               <div className="small text-dark">
-                <strong>⚡ Gemini AI Workflow:</strong>
-                <ol className="m-0 ps-3 mt-1 text-secondary">
-                  <li>Apne product ki photos Gemini ko dein aur hamara format prompt paste karein.</li>
-                  <li>Gemini ke banaye hue JSON ko copy karein aur neeche paste karein (ya <code>.json</code> file upload karein).</li>
-                  <li>Images ko <code>public/product-imports/</code> folder me rakh dein — system automatically gallery images connect kar dega!</li>
-                </ol>
+                <strong>⚡ Universal Multi-Niche & Auto-Category Creation:</strong>
+                <p className="m-0 mt-1 text-secondary">
+                  Aap JSON me koi bhi <code>category</code> aur <code>subcategory</code> likh kar import kar sakte hain. Agar category database me mojood nahi hogi, tou system khud ba khud <strong>Parent Category</strong> aur uski <strong>Child Subcategory</strong> create karke uske andar product link kar dega!
+                </p>
               </div>
             </div>
           </div>
         </div>
+
 
         <div className="row g-4">
           
