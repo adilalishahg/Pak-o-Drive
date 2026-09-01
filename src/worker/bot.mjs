@@ -282,11 +282,27 @@ const SiteInfoSchema = new mongoose.Schema(
   { strict: false }
 );
 
+const WhatsAppBotStatusSchema = new mongoose.Schema(
+  {
+    status: { type: String, default: 'DISCONNECTED' },
+    phoneNumber: { type: String, default: null },
+    platform: { type: String, default: 'Alwaysdata 24/7 Cloud Daemon' },
+    qrCodeBase64: { type: String, default: null },
+    lastPingAt: { type: Date, default: Date.now },
+    lastConnectedAt: { type: Date, default: null },
+    totalMessagesProcessed: { type: Number, default: 0 },
+    totalAutoRepliesSent: { type: Number, default: 0 },
+  },
+  { timestamps: true }
+);
+
 const WhatsAppRule = mongoose.models.WhatsAppRule || mongoose.model('WhatsAppRule', WhatsAppRuleSchema);
 const Order = mongoose.models.Order || mongoose.model('Order', OrderSchema);
 const Product = mongoose.models.Product || mongoose.model('Product', ProductSchema);
 const WebChatSession = mongoose.models.WebChatSession || mongoose.model('WebChatSession', WebChatSessionSchema);
 const SiteInfo = mongoose.models.SiteInfo || mongoose.model('SiteInfo', SiteInfoSchema);
+const WhatsAppBotStatus = mongoose.models.WhatsAppBotStatus || mongoose.model('WhatsAppBotStatus', WhatsAppBotStatusSchema);
+
 
 
 
@@ -698,6 +714,15 @@ async function start() {
       const shouldReconnect = statusCode !== DisconnectReason.loggedOut;
 
       console.log(`[WhatsApp] Connection closed (code: ${statusCode}). Reconnecting: ${shouldReconnect}`);
+      WhatsAppBotStatus.findOneAndUpdate(
+        {},
+        {
+          status: 'DISCONNECTED',
+          lastPingAt: new Date(),
+        },
+        { upsert: true }
+      ).catch(() => {});
+
       if (shouldReconnect) {
         setTimeout(start, 4000);
       } else {
@@ -706,13 +731,46 @@ async function start() {
     } else if (connection === 'open') {
       const userJid = socket.user?.id || '';
       const phone = userJid.split(':')[0] || userJid.split('@')[0];
-      console.log(`\n🟢 [WhatsApp Bot ONLINE & Active 24/7] Connected as: ${phone}\n`);
+      const formattedPhone = phone ? (phone.startsWith('+') ? phone : `+${phone}`) : '+923185205667';
+      console.log(`\n🟢 [WhatsApp Bot ONLINE & Active 24/7] Connected as: ${formattedPhone}\n`);
+
+      // Sync connected status to MongoDB so web dashboard displays real-time connection info
+      WhatsAppBotStatus.findOneAndUpdate(
+        {},
+        {
+          status: 'CONNECTED',
+          phoneNumber: formattedPhone,
+          platform: 'Alwaysdata 24/7 Cloud Daemon',
+          lastPingAt: new Date(),
+          lastConnectedAt: new Date(),
+        },
+        { upsert: true, new: true }
+      ).catch(() => {});
+
+      // Heartbeat ping every 15 seconds to keep dashboard live
+      setInterval(async () => {
+        try {
+          if (mongoose.connection.readyState === 1) {
+            await WhatsAppBotStatus.findOneAndUpdate(
+              {},
+              {
+                status: 'CONNECTED',
+                phoneNumber: formattedPhone,
+                platform: 'Alwaysdata 24/7 Cloud Daemon',
+                lastPingAt: new Date(),
+              },
+              { upsert: true }
+            );
+          }
+        } catch (e) {}
+      }, 15000);
 
       // Start automatic background watchers
       startOrderWatcher(socket);
       startDailyTrendsScheduler(socket);
       startWebChatWatcher(socket);
     }
+
   });
 
 

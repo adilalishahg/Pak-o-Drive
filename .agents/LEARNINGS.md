@@ -60,7 +60,17 @@ This file serves as persistent dynamic memory across coding agent sessions. Ever
 
 ## 📝 PART 2: Project-Specific Resolution History
 
+### 2026-09-01 — Alwaysdata WhatsApp 24/7 Daemon Real-Time Web Status Bridge
+- **📌 Issue**: Admin panel at `/admin/whatsapp-bot` displayed "Disconnected" even though the Baileys daemon was active and responding on Alwaysdata.
+- **🔍 Root Cause & Failed Attempts**: Next.js serverless functions checked the local in-process singleton instance (`WhatsAppBotManager`), which was disconnected on Vercel while the actual socket was running in the background Node daemon on Alwaysdata.
+- **🛠️ Verified Code Fix**:
+  1. Created `WhatsAppBotStatus.ts` Mongoose model to store real-time daemon state, connected phone number, message counters, and heartbeat pings.
+  2. Updated `bot.mjs` to emit a 15-second heartbeat ping and sync connection events to MongoDB.
+  3. Updated `/api/whatsapp-bot/status` route to return the active daemon connection state (`🟢 Online — +92 318 5205667`).
+  4. Verified 0 compilation errors via `pnpm tsc --noEmit`.
+
 ### 2026-09-01 — 5-Part Architectural & Feature Upgrade (Multi-Admin WhatsApp, Dynamic Slugs OpenGraph, Clean Types)
+
 - **📌 Issue**: City pre-selected by default on checkout, trending products search limit not configurable from admin UI, inquiry alerts limited to single phone, types/constants scattered inside TSX components, and WhatsApp link shares missing dynamic product image previews.
 - **🔍 Root Cause & Failed Attempts**:
   1. `useCheckout.ts` initialized with `city: 'Lahore'`.
