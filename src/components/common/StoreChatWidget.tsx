@@ -62,7 +62,7 @@ export const StoreChatWidget: React.FC = () => {
         <div
           className="chat-window-box"
           style={{
-            background: '#ffffff',
+            background: '#f8fafc',
             boxShadow: '0 25px 70px -15px rgba(15, 23, 42, 0.35), 0 0 0 1px rgba(15, 23, 42, 0.08)',
             display: 'flex',
             flexDirection: 'column',
@@ -74,7 +74,7 @@ export const StoreChatWidget: React.FC = () => {
             className="chat-header"
             style={{
               background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
-              padding: '14px 16px',
+              padding: '12px 16px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
@@ -84,23 +84,24 @@ export const StoreChatWidget: React.FC = () => {
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
-              {/* Mobile Back button / Close icon */}
+              {/* Mobile Back button */}
               <button
                 onClick={toggleChat}
                 className="mobile-back-btn"
                 style={{
-                  background: 'rgba(255,255,255,0.1)',
+                  background: 'rgba(255,255,255,0.12)',
                   border: 'none',
                   color: '#ffffff',
                   borderRadius: '50%',
-                  width: '32px',
-                  height: '32px',
+                  width: '34px',
+                  height: '34px',
                   display: 'none',
                   alignItems: 'center',
                   justifyContent: 'center',
                   cursor: 'pointer',
-                  fontSize: '16px',
+                  fontSize: '18px',
                   flexShrink: 0,
+                  transition: 'background 0.15s ease',
                 }}
                 aria-label="Back"
               >
@@ -123,14 +124,14 @@ export const StoreChatWidget: React.FC = () => {
                 >
                   🚗
                 </div>
-                {/* Active Green Dot */}
+                {/* Active Green Pulse Dot */}
                 <span
                   style={{
                     position: 'absolute',
                     bottom: '0px',
                     right: '0px',
-                    width: '10px',
-                    height: '10px',
+                    width: '11px',
+                    height: '11px',
                     background: '#22c55e',
                     borderRadius: '50%',
                     border: '2px solid #0f172a',
@@ -148,11 +149,11 @@ export const StoreChatWidget: React.FC = () => {
                   </h3>
                   <span
                     style={{
-                      background: 'rgba(16, 185, 129, 0.2)',
+                      background: 'rgba(16, 185, 129, 0.25)',
                       color: '#34d399',
                       fontSize: '10px',
                       fontWeight: 700,
-                      padding: '1px 5px',
+                      padding: '1px 6px',
                       borderRadius: '8px',
                       flexShrink: 0,
                     }}
@@ -183,7 +184,7 @@ export const StoreChatWidget: React.FC = () => {
                 style={{
                   background: 'rgba(37, 211, 102, 0.15)',
                   border: '1px solid rgba(37, 211, 102, 0.3)',
-                  borderRadius: '8px',
+                  borderRadius: '10px',
                   width: '32px',
                   height: '32px',
                   display: 'flex',
@@ -245,7 +246,7 @@ export const StoreChatWidget: React.FC = () => {
           <div
             style={{
               padding: '8px 12px',
-              background: '#f8fafc',
+              background: '#ffffff',
               borderBottom: '1px solid #e2e8f0',
               display: 'flex',
               gap: '6px',
@@ -260,16 +261,17 @@ export const StoreChatWidget: React.FC = () => {
                 key={action.id}
                 onClick={() => handleQuickAction(action.query)}
                 style={{
-                  background: '#ffffff',
-                  border: '1px solid #cbd5e1',
+                  background: '#f8fafc',
+                  border: '1px solid #e2e8f0',
                   borderRadius: '16px',
-                  padding: '5px 11px',
+                  padding: '5px 12px',
                   fontSize: '12px',
                   fontWeight: 600,
                   color: '#334155',
                   cursor: 'pointer',
                   transition: 'all 0.15s ease',
                   flexShrink: 0,
+                  boxShadow: '0 1px 2px rgba(0,0,0,0.02)',
                 }}
               >
                 {action.label}
@@ -283,16 +285,18 @@ export const StoreChatWidget: React.FC = () => {
               flex: 1,
               padding: '14px',
               overflowY: 'auto',
-              background: '#f1f5f9',
+              background: '#f8fafc',
               display: 'flex',
               flexDirection: 'column',
-              gap: '10px',
+              gap: '12px',
               minHeight: 0,
             }}
           >
             {messages.map((msg) => {
               const isUser = msg.sender === 'user';
               const isAgent = msg.sender === 'agent';
+              const isHandoffNotice = msg.text.includes('*Live Support Agent Handoff*');
+
               return (
                 <div
                   key={msg.id}
@@ -300,126 +304,151 @@ export const StoreChatWidget: React.FC = () => {
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: isUser ? 'flex-end' : 'flex-start',
-                    maxWidth: '90%',
+                    maxWidth: isHandoffNotice ? '96%' : '88%',
                     alignSelf: isUser ? 'flex-end' : 'flex-start',
                   }}
                 >
                   {isAgent && (
-                    <span style={{ fontSize: '10.5px', fontWeight: 700, color: '#2563eb', marginBottom: '2px', paddingLeft: '4px' }}>
-                      👨‍💼 Store Agent (WhatsApp Live)
+                    <span style={{ fontSize: '11px', fontWeight: 700, color: '#2563eb', marginBottom: '3px', paddingLeft: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      👨‍💼 Store Executive (WhatsApp Live)
                     </span>
                   )}
-                  <div
-                    style={{
-                      background: isUser
-                        ? '#10b981'
-                        : isAgent
-                        ? 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)'
-                        : '#ffffff',
-                      color: isUser || isAgent ? '#ffffff' : '#0f172a',
-                      padding: '10px 13px',
-                      borderRadius: isUser ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
-                      fontSize: '13.5px',
-                      lineHeight: '1.45',
-                      boxShadow: '0 2px 6px rgba(0,0,0,0.05)',
-                      whiteSpace: 'pre-wrap',
-                      wordBreak: 'break-word',
-                      borderLeft: msg.source === 'order_lookup' ? '4px solid #10b981' : undefined,
-                    }}
-                  >
-                    {msg.text}
 
+                  {/* System Handoff Card (Styled as modern card rather than harsh block) */}
+                  {isHandoffNotice ? (
+                    <div
+                      style={{
+                        background: 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)',
+                        border: '1px solid #bfdbfe',
+                        color: '#1e3a8a',
+                        padding: '12px 14px',
+                        borderRadius: '16px',
+                        fontSize: '13px',
+                        lineHeight: '1.5',
+                        boxShadow: '0 2px 8px rgba(37,99,235,0.06)',
+                        whiteSpace: 'pre-wrap',
+                        wordBreak: 'break-word',
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 700, color: '#1d4ed8', marginBottom: '4px' }}>
+                        <span>👨‍💼</span>
+                        <span>Live Support Agent Handoff</span>
+                      </div>
+                      <div>{msg.text.replace(/👨‍💼\s*\*Live Support Agent Handoff\*\s*/g, '')}</div>
+                    </div>
+                  ) : (
+                    <div
+                      style={{
+                        background: isUser
+                          ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)'
+                          : isAgent
+                          ? 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)'
+                          : '#ffffff',
+                        color: isUser || isAgent ? '#ffffff' : '#0f172a',
+                        padding: '10px 14px',
+                        borderRadius: isUser ? '18px 18px 4px 18px' : '18px 18px 18px 4px',
+                        fontSize: '13.5px',
+                        lineHeight: '1.5',
+                        boxShadow: isUser || isAgent ? '0 2px 8px rgba(0,0,0,0.1)' : '0 2px 6px rgba(0,0,0,0.04)',
+                        border: !isUser && !isAgent ? '1px solid #e2e8f0' : 'none',
+                        whiteSpace: 'pre-wrap',
+                        wordBreak: 'break-word',
+                      }}
+                    >
+                      {msg.text}
 
-                    {/* Matched Product Preview Cards */}
-                    {msg.products && msg.products.length > 0 && (
-                      <div
-                        style={{
-                          marginTop: '8px',
-                          display: 'flex',
-                          flexDirection: 'column',
-                          gap: '6px',
-                        }}
-                      >
-                        {msg.products.map((prod: ChatProduct, idx: number) => (
-                          <Link
-                            key={prod._id || idx}
-                            href={`/product/${prod.slug || prod._id}`}
-                            onClick={toggleChat}
-                            style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '8px',
-                              padding: '6px 8px',
-                              background: '#f8fafc',
-                              borderRadius: '10px',
-                              border: '1px solid #e2e8f0',
-                              textDecoration: 'none',
-                              color: 'inherit',
-                            }}
-                          >
-                            <div
+                      {/* Matched Product Preview Cards */}
+                      {msg.products && msg.products.length > 0 && (
+                        <div
+                          style={{
+                            marginTop: '10px',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '6px',
+                          }}
+                        >
+                          {msg.products.map((prod: ChatProduct, idx: number) => (
+                            <Link
+                              key={prod._id || idx}
+                              href={`/product/${prod.slug || prod._id}`}
+                              onClick={toggleChat}
                               style={{
-                                width: '42px',
-                                height: '42px',
-                                position: 'relative',
-                                borderRadius: '6px',
-                                overflow: 'hidden',
-                                background: '#e2e8f0',
-                                flexShrink: 0,
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '8px',
+                                padding: '8px',
+                                background: '#f8fafc',
+                                borderRadius: '12px',
+                                border: '1px solid #e2e8f0',
+                                textDecoration: 'none',
+                                color: 'inherit',
+                                transition: 'transform 0.15s ease',
                               }}
                             >
-                              {prod.image ? (
-                                <Image
-                                  src={prod.image}
-                                  alt={prod.name}
-                                  fill
-                                  sizes="42px"
-                                  style={{ objectFit: 'contain' }}
-                                />
-                              ) : (
-                                <div
+                              <div
+                                style={{
+                                  width: '44px',
+                                  height: '44px',
+                                  position: 'relative',
+                                  borderRadius: '8px',
+                                  overflow: 'hidden',
+                                  background: '#f1f5f9',
+                                  flexShrink: 0,
+                                }}
+                              >
+                                {prod.image ? (
+                                  <Image
+                                    src={prod.image}
+                                    alt={prod.name}
+                                    fill
+                                    sizes="44px"
+                                    style={{ objectFit: 'contain' }}
+                                  />
+                                ) : (
+                                  <div
+                                    style={{
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'center',
+                                      height: '100%',
+                                      fontSize: '16px',
+                                    }}
+                                  >
+                                    📦
+                                  </div>
+                                )}
+                              </div>
+                              <div style={{ flex: 1, minWidth: 0 }}>
+                                <p
+                                  className="leading-normal truncate"
                                   style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    height: '100%',
-                                    fontSize: '16px',
+                                    fontSize: '12px',
+                                    fontWeight: 600,
+                                    color: '#0f172a',
+                                    margin: 0,
                                   }}
                                 >
-                                  📦
-                                </div>
-                              )}
-                            </div>
-                            <div style={{ flex: 1, minWidth: 0 }}>
-                              <p
-                                className="leading-normal truncate"
-                                style={{
-                                  fontSize: '11.5px',
-                                  fontWeight: 600,
-                                  color: '#0f172a',
-                                  margin: 0,
-                                }}
-                              >
-                                {prod.name}
-                              </p>
-                              <p
-                                className="leading-normal"
-                                style={{
-                                  fontSize: '11.5px',
-                                  fontWeight: 700,
-                                  color: '#059669',
-                                  margin: 0,
-                                }}
-                              >
-                                Rs. {prod.price?.toLocaleString()}
-                              </p>
-                            </div>
-                            <span style={{ fontSize: '13px', color: '#10b981' }}>➔</span>
-                          </Link>
-                        ))}
-                      </div>
-                    )}
-                  </div>
+                                  {prod.name}
+                                </p>
+                                <p
+                                  className="leading-normal"
+                                  style={{
+                                    fontSize: '12px',
+                                    fontWeight: 700,
+                                    color: '#059669',
+                                    margin: 0,
+                                  }}
+                                >
+                                  Rs. {prod.price?.toLocaleString()}
+                                </p>
+                              </div>
+                              <span style={{ fontSize: '14px', color: '#10b981', fontWeight: 'bold' }}>➔</span>
+                            </Link>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
 
                   {/* Timestamp & checkmark */}
                   <div
@@ -427,12 +456,12 @@ export const StoreChatWidget: React.FC = () => {
                       display: 'flex',
                       alignItems: 'center',
                       gap: '4px',
-                      marginTop: '2px',
+                      marginTop: '3px',
                       padding: '0 4px',
                     }}
                   >
                     <span style={{ fontSize: '10px', color: '#94a3b8' }}>{msg.timestamp}</span>
-                    {isUser && <span style={{ fontSize: '10px', color: '#10b981' }}>✓✓</span>}
+                    {isUser && <span style={{ fontSize: '10px', color: '#10b981', fontWeight: 'bold' }}>✓✓</span>}
                   </div>
                 </div>
               );
@@ -446,31 +475,24 @@ export const StoreChatWidget: React.FC = () => {
                   alignItems: 'center',
                   gap: '6px',
                   background: '#ffffff',
-                  padding: '8px 14px',
-                  borderRadius: '16px 16px 16px 4px',
-                  alignSelf: 'flex-start',
-                  boxShadow: '0 2px 6px rgba(0,0,0,0.05)',
+                  padding: '9px 14px',
+                  borderRadius: '18px 18px 18px 4px',
+                  maxWidth: '120px',
+                  boxShadow: '0 2px 6px rgba(0,0,0,0.04)',
+                  border: '1px solid #e2e8f0',
                 }}
               >
-                <span style={{ fontSize: '12px', color: '#64748b', fontWeight: 500 }}>
-                  Ali is typing
-                </span>
-                <span className="typing-dot" style={{ animationDelay: '0s' }}>
-                  •
-                </span>
-                <span className="typing-dot" style={{ animationDelay: '0.2s' }}>
-                  •
-                </span>
-                <span className="typing-dot" style={{ animationDelay: '0.4s' }}>
-                  •
-                </span>
+                <span className="typing-dot" style={{ animationDelay: '0s' }}>•</span>
+                <span className="typing-dot" style={{ animationDelay: '0.2s' }}>•</span>
+                <span className="typing-dot" style={{ animationDelay: '0.4s' }}>•</span>
+                <span style={{ fontSize: '11px', color: '#64748b', marginLeft: '4px' }}>Typing...</span>
               </div>
             )}
 
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Input Bar */}
+          {/* 3. Input & Send Bar */}
           <form
             onSubmit={(e) => {
               e.preventDefault();
@@ -478,7 +500,7 @@ export const StoreChatWidget: React.FC = () => {
             }}
             className="chat-input-form"
             style={{
-              padding: '10px 12px',
+              padding: '10px 14px',
               background: '#ffffff',
               borderTop: '1px solid #e2e8f0',
               display: 'flex',
@@ -495,107 +517,114 @@ export const StoreChatWidget: React.FC = () => {
               disabled={isTyping}
               style={{
                 flex: 1,
+                padding: '10px 14px',
+                borderRadius: '24px',
                 border: '1px solid #cbd5e1',
-                borderRadius: '20px',
-                padding: '9px 14px',
-                fontSize: '13px',
+                fontSize: '13.5px',
                 outline: 'none',
-                color: '#0f172a',
                 background: '#f8fafc',
+                color: '#0f172a',
+                transition: 'border 0.2s ease',
               }}
-              onFocus={(e) => (e.currentTarget.style.borderColor = '#10b981')}
-              onBlur={(e) => (e.currentTarget.style.borderColor = '#cbd5e1')}
+              onFocus={(e) => (e.target.style.borderColor = '#10b981')}
+              onBlur={(e) => (e.target.style.borderColor = '#cbd5e1')}
             />
 
             <button
               type="submit"
               disabled={!inputText.trim() || isTyping}
               style={{
-                background: inputText.trim() ? '#10b981' : '#cbd5e1',
+                background: inputText.trim() && !isTyping
+                  ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)'
+                  : '#e2e8f0',
                 border: 'none',
                 borderRadius: '50%',
-                width: '36px',
-                height: '36px',
+                width: '38px',
+                height: '38px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                cursor: inputText.trim() ? 'pointer' : 'default',
-                color: '#ffffff',
+                cursor: inputText.trim() && !isTyping ? 'pointer' : 'default',
+                color: inputText.trim() && !isTyping ? '#ffffff' : '#94a3b8',
                 transition: 'all 0.2s ease',
                 flexShrink: 0,
+                boxShadow: inputText.trim() && !isTyping ? '0 4px 12px rgba(16,185,129,0.3)' : 'none',
               }}
-              aria-label="Send message"
+              aria-label="Send Message"
             >
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
               </svg>
             </button>
           </form>
 
-          {/* Sub-footer branding */}
+          {/* Bottom Security Footer */}
           <div
             style={{
+              padding: '6px',
+              textAlign: 'center',
+              fontSize: '11px',
+              color: '#94a3b8',
               background: '#f8fafc',
               borderTop: '1px solid #f1f5f9',
-              padding: '4px 10px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '10.5px',
-              color: '#94a3b8',
               flexShrink: 0,
             }}
           >
-            <span>⚡ Pak-o-Drive Instant Support Bot</span>
+            ⚡ Pak-o-Drive Instant Support Bot
           </div>
         </div>
       )}
 
-      {/* 2. Floating Launcher Button & Tooltip */}
-      <div
-        className="chat-launcher-container"
-        style={{
-          position: 'relative',
-          display: isOpen && typeof window !== 'undefined' && window.innerWidth <= 640 ? 'none' : 'flex',
-          alignItems: 'center',
-        }}
-      >
-        {/* Tooltip Bubble */}
+      {/* 2. Floating Launcher Trigger Button */}
+      <div className="chat-launcher-container" style={{ position: 'relative' }}>
+        {/* Prompt Notification Bubble */}
         {showPromptBadge && !isOpen && (
           <div
-            onClick={toggleChat}
             style={{
-              background: '#0f172a',
-              color: '#ffffff',
-              fontSize: '12.5px',
-              fontWeight: 600,
-              padding: '9px 14px',
-              borderRadius: '14px',
-              boxShadow: '0 8px 24px rgba(15,23,42,0.25)',
+              position: 'absolute',
+              bottom: '70px',
+              right: '0px',
+              background: '#ffffff',
+              padding: '10px 14px',
+              borderRadius: '16px',
+              boxShadow: '0 10px 30px rgba(0,0,0,0.15), 0 0 0 1px rgba(0,0,0,0.05)',
               display: 'flex',
               alignItems: 'center',
               gap: '8px',
-              position: 'absolute',
-              bottom: '68px',
-              right: '0px',
               whiteSpace: 'nowrap',
+              animation: 'chatBadgeBounce 3s infinite ease-in-out',
+              zIndex: 99999,
               cursor: 'pointer',
-              animation: 'chatBadgeBounce 2s infinite ease-in-out',
             }}
+            onClick={toggleChat}
           >
-            <span>💬 Need Help? Live Chat Here!</span>
+            <span style={{ fontSize: '16px' }}>👋</span>
+            <div>
+              <p
+                className="leading-normal font-semibold"
+                style={{ fontSize: '12.5px', color: '#0f172a', margin: 0 }}
+              >
+                Help chahiye? Hum hazir hain!
+              </p>
+              <p
+                className="leading-normal"
+                style={{ fontSize: '10.5px', color: '#64748b', margin: 0 }}
+              >
+                Order status ya koi bhi sawal poochiye
+              </p>
+            </div>
             <button
               onClick={(e) => {
                 e.stopPropagation();
                 setShowPromptBadge(false);
               }}
               style={{
-                background: 'none',
+                background: 'transparent',
                 border: 'none',
                 color: '#94a3b8',
                 cursor: 'pointer',
-                fontSize: '13px',
-                padding: '0 2px',
+                padding: '2px',
+                fontSize: '12px',
               }}
               aria-label="Dismiss tooltip"
             >
@@ -677,17 +706,22 @@ export const StoreChatWidget: React.FC = () => {
         @media (max-width: 640px) {
           .chat-widget-root.is-open {
             position: fixed !important;
-            inset: 0 !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            bottom: 0 !important;
             width: 100vw !important;
             height: 100vh !important;
             height: 100dvh !important;
-            bottom: 0 !important;
-            right: 0 !important;
             z-index: 999999 !important;
+            align-items: stretch !important;
           }
           .chat-window-box {
             position: fixed !important;
-            inset: 0 !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            bottom: 0 !important;
             width: 100vw !important;
             max-width: 100vw !important;
             height: 100vh !important;
@@ -711,9 +745,9 @@ export const StoreChatWidget: React.FC = () => {
 
         @media (min-width: 641px) {
           .chat-window-box {
-            width: 380px;
+            width: 390px;
             max-width: calc(100vw - 32px);
-            height: 560px;
+            height: 580px;
             max-height: calc(100vh - 120px);
             border-radius: 24px;
             margin-bottom: 14px;
