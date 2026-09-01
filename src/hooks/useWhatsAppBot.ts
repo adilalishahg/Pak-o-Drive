@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { BotState, WhatsAppRuleItem } from '@/types';
+export type { BotState, WhatsAppRuleItem };
+
 
 
 export function useWhatsAppBot() {

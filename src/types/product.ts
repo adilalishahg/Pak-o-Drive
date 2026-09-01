@@ -1,8 +1,44 @@
 /**
- * Product & Catalog Component Types for Pak-o-Drive Platform
+ * Product & Catalog Domain Types for Pak-o-Drive Platform
  */
 
-import { IProduct, IProductVariant } from './index';
+export interface IProductVariant {
+  _id?: string;
+  name: string;
+  description?: string;
+  price: number;
+  originalPrice?: number;
+  stock: number;
+  image?: string;
+}
+
+export interface IProduct {
+  _id?: string;
+  name: string;
+  description: string;
+  price: number;
+  originalPrice: number;
+  category: string;
+  subcategory?: string;
+  image: string;
+  images?: string[];
+  video?: string;
+  showVideoOnFront?: boolean;
+  seoTitle?: string;
+  seoDescription?: string;
+  seoKeywords?: string;
+  rating: number;
+  reviewsCount: number;
+  isNewArrival: boolean;
+  isFeatured: boolean;
+  isTopSelling: boolean;
+  stock: number;
+  heroText?: string;
+  specifications: Record<string, string>;
+  variants?: IProductVariant[];
+  slug?: string;
+  createdAt?: string | Date;
+}
 
 export interface ProductCardProps {
   product: IProduct;
@@ -14,12 +50,10 @@ export interface ProductDetailInteractiveProps {
   relatedProducts?: IProduct[];
 }
 
-
 export interface ProductActionsProps {
   product: IProduct;
   selectedVariant?: IProductVariant;
 }
-
 
 export interface ProductImageGalleryProps {
   image: string;
@@ -28,7 +62,6 @@ export interface ProductImageGalleryProps {
   video?: string;
   showVideoOnFront?: boolean;
 }
-
 
 export interface ProductSEOOptimizerProps {
   name: string;
@@ -70,10 +103,18 @@ export interface CategorySidebarProps {
   onReset: () => void;
 }
 
-
 export interface ProductCardListProps {
   product: IProduct;
   priority?: boolean;
+}
+
+export interface ShopClientProps {
+  initialProducts: IProduct[];
+}
+
+export interface HomePageClientProps {
+  initialProducts: IProduct[];
+  initialCategories: any[];
 }
 
 export interface VariantInput {
@@ -126,5 +167,3 @@ export interface BulkImportProductInput {
     image?: string;
   }>;
 }
-
-

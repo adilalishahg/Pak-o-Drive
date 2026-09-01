@@ -50,8 +50,9 @@ export function SiteInfoProvider({ children, initialInfo }: SiteInfoProviderProp
   }, [initialInfo, fetch_]);
 
   return (
-    <SiteInfoContext.Provider value={{ info, loading, refresh: fetch_ }}>
+    <SiteInfoContext.Provider value={{ info, loading, error: null, refresh: fetch_ }}>
       {children}
     </SiteInfoContext.Provider>
   );
+
 }

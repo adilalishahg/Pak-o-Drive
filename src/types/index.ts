@@ -2,6 +2,8 @@
  * Global Barrel Export for Pak-o-Drive Domain Types
  */
 
+import { IProduct, IProductVariant } from './product';
+
 export * from './product';
 export * from './order';
 export * from './siteInfo';
@@ -26,7 +28,7 @@ export interface ICategory {
 }
 
 export interface ICartItem {
-  product: import('./product').IProduct;
+  product: IProduct;
   quantity: number;
-  variant?: import('./product').IProductVariant;
+  variant?: IProductVariant;
 }

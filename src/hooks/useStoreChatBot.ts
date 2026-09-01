@@ -3,6 +3,8 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { usePathname } from 'next/navigation';
 import { ChatProduct, ChatMessage } from '@/types';
+export type { ChatProduct, ChatMessage };
+
 
 
 const STORAGE_KEY = 'pakodrive_chat_history_v1';

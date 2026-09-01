@@ -42,11 +42,12 @@ export interface SiteInfo {
 export type SiteInfoActiveTab = 'general' | 'contact' | 'social' | 'policies' | 'seo';
 
 export interface SiteInfoContextValue {
-  info: SiteInfo | null;
+  info: SiteInfo;
   loading: boolean;
-  error: string | null;
+  error?: string | null;
   refresh: () => Promise<void>;
 }
+
 
 export const DEFAULT_SITE_INFO: SiteInfo = {
   siteName: 'PAKODRIVE',
