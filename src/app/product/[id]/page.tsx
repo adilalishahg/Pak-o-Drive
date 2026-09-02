@@ -260,9 +260,6 @@ async function ProductDetailContent({ id }: { id: string }) {
 
   return (
     <>
-      {productPreloadUrls.map((url, i) => (
-        <link key={i} rel="preload" as="image" href={url} fetchPriority="high" />
-      ))}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchema) }}

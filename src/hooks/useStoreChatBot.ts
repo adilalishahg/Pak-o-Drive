@@ -67,7 +67,7 @@ export function useStoreChatBot() {
           setMessages(parsed);
         }
       }
-    } catch {}
+    } catch { }
 
     const sId = getSessionId();
     setShortCode('W' + sId.slice(-4).toUpperCase());
@@ -84,7 +84,7 @@ export function useStoreChatBot() {
     if (!isMounted) return;
     try {
       sessionStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
-    } catch {}
+    } catch { }
   }, [messages, isMounted]);
 
   // Auto scroll to bottom
@@ -239,7 +239,7 @@ export function useStoreChatBot() {
     setIsAgentLive(false);
     try {
       sessionStorage.removeItem(STORAGE_KEY);
-    } catch {}
+    } catch { }
   };
 
   return {

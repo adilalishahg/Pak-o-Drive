@@ -1,35 +1,51 @@
-import { getCachedAllProducts, getCachedAllCategories, getCachedSiteSettings } from '../lib/cache';
+import { getCachedHomeProducts, getCachedAllCategories, getCachedSiteSettings } from '../lib/cache';
 import { HomePageClient } from '../components/home/HomePageClient';
 
 export default async function Home() {
   const [products, categories, settings] = await Promise.all([
-    getCachedAllProducts(),
+    getCachedHomeProducts(),
     getCachedAllCategories(),
     getCachedSiteSettings(),
   ]);
+
+  const preloadUrls: string[] = [];
+
+  const getPreloadUrl = (imgUrl: string, width = 384) => {
+    if (!imgUrl) return null;
+    if (imgUrl.includes('res.cloudinary.com')) {
+      const uploadIndex = imgUrl.indexOf('/upload/');
+      if (uploadIndex !== -1) {
+        const prefix = imgUrl.substring(0, uploadIndex + 8);
+        let suffix = imgUrl.substring(uploadIndex + 8);
+        suffix = suffix.replace(/^(?:[a-z_]+[,/])*(?:v\d+\/)?/, (match: string) => {
+          const versionMatch = match.match(/(v\d+\/)/);
+          return versionMatch ? versionMatch[1] : '';
+        });
+        return `${prefix}f_auto,q_75,w_${width},c_limit/${suffix}`;
+      }
+    }
+    return `/_next/image?url=${encodeURIComponent(imgUrl)}&w=${width}&q=75`;
+  };
 
   const heroBigImg =
     settings?.homepageSections?.heroBig?.imageUrl ||
     'https://images.unsplash.com/photo-1543512214-318c7553f230?auto=format&fit=crop&w=600&q=80';
 
-  const preloadUrls: string[] = [];
   if (heroBigImg) {
-    if (heroBigImg.includes('res.cloudinary.com')) {
-      const uploadIndex = heroBigImg.indexOf('/upload/');
-      if (uploadIndex !== -1) {
-        const prefix = heroBigImg.substring(0, uploadIndex + 8);
-        let suffix = heroBigImg.substring(uploadIndex + 8);
-        suffix = suffix.replace(/^(?:[a-z_]+[,/])*(?:v\d+\/)?/, (match: string) => {
-          const versionMatch = match.match(/(v\d+\/)/);
-          return versionMatch ? versionMatch[1] : '';
-        });
-        preloadUrls.push(`${prefix}f_auto,q_70,w_256,c_limit/${suffix}`);
-        preloadUrls.push(`${prefix}f_auto,q_70,w_384,c_limit/${suffix}`);
+    const url256 = getPreloadUrl(heroBigImg, 256);
+    const url384 = getPreloadUrl(heroBigImg, 384);
+    if (url256) preloadUrls.push(url256);
+    if (url384) preloadUrls.push(url384);
+  }
+
+  // Also preload custom hero slides if configured
+  if (Array.isArray(settings?.heroSlides)) {
+    settings.heroSlides.filter((s: any) => s.enabled && s.imageUrl).slice(0, 3).forEach((s: any) => {
+      const url = getPreloadUrl(s.imageUrl, 400);
+      if (url && !preloadUrls.includes(url)) {
+        preloadUrls.push(url);
       }
-    } else {
-      preloadUrls.push(`/_next/image?url=${encodeURIComponent(heroBigImg)}&w=256&q=75`);
-      preloadUrls.push(`/_next/image?url=${encodeURIComponent(heroBigImg)}&w=384&q=75`);
-    }
+    });
   }
 
   return (

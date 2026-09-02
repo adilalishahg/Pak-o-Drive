@@ -1,67 +1,23 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import { Subscriber } from '@/types';
+import React from 'react';
+import { DeleteConfirmModal } from '@/components/admin/common/DeleteConfirmModal';
+import { useAdminSubscribers } from '@/hooks/useAdminSubscribers';
 
 export default function AdminSubscribersPage() {
-
-  const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
-  const [searchQuery, setSearchQuery] = useState('');
-
-  useEffect(() => {
-    fetchSubscribers();
-  }, []);
-
-  async function fetchSubscribers() {
-    try {
-      setLoading(true);
-      setError('');
-      const res = await fetch('/api/newsletter');
-      const json = await res.json();
-      if (json.success) {
-        setSubscribers(json.data || []);
-      } else {
-        throw new Error(json.error || 'Failed to retrieve newsletter subscribers.');
-      }
-    } catch (err: any) {
-      console.error(err);
-      setError(err.message || 'Error connecting to server.');
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to remove this subscriber?')) return;
-
-    setError('');
-    setSuccess('');
-
-    try {
-      const res = await fetch(`/api/newsletter?id=${id}`, {
-        method: 'DELETE',
-      });
-      const json = await res.json();
-
-      if (json.success) {
-        setSuccess('Subscriber removed successfully!');
-        setSubscribers((prev) => prev.filter((sub) => sub._id !== id));
-        setTimeout(() => setSuccess(''), 4000);
-      } else {
-        throw new Error(json.error || 'Failed to unsubscribe user.');
-      }
-    } catch (err: any) {
-      console.error(err);
-      setError(err.message || 'Failed to delete subscriber.');
-    }
-  };
-
-  const filteredSubscribers = subscribers.filter((sub) =>
-    sub.email.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const {
+    subscribers,
+    filteredSubscribers,
+    loading,
+    error,
+    success,
+    searchQuery,
+    setSearchQuery,
+    deleteTarget,
+    setDeleteTarget,
+    deleteLoading,
+    confirmDelete,
+  } = useAdminSubscribers();
 
   return (
     <div className="fade-in">
@@ -149,7 +105,8 @@ export default function AdminSubscribersPage() {
                     </td>
                     <td className="px-4 py-3 text-end">
                       <button
-                        onClick={() => handleDelete(sub._id)}
+                        type="button"
+                        onClick={() => setDeleteTarget({ id: sub._id, email: sub.email })}
                         className="btn btn-outline-danger btn-sm rounded-pill px-3"
                         title="Delete Subscriber"
                       >
@@ -163,6 +120,17 @@ export default function AdminSubscribersPage() {
           </div>
         )}
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmModal
+        isOpen={Boolean(deleteTarget)}
+        title="Remove Subscriber?"
+        message="Are you sure you want to permanently remove this subscriber from the mailing list?"
+        itemName={deleteTarget?.email}
+        onCancel={() => setDeleteTarget(null)}
+        onConfirm={confirmDelete}
+        loading={deleteLoading}
+      />
     </div>
   );
 }

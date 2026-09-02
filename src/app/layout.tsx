@@ -32,7 +32,6 @@ const roboto = Roboto({
   variable: '--font-roboto',
   weight: ['400', '500', '700'],
 });
-import TemplateScripts from '../components/common/TemplateScripts';
 import AnalyticsTracker from '../components/common/AnalyticsTracker';
 import { DynamicThemeProvider } from '../components/common/DynamicThemeProvider';
 import { SiteInfoProvider } from '../components/common/SiteInfoProvider';
@@ -49,8 +48,8 @@ export async function generateMetadata(): Promise<Metadata> {
   const activeSiteUrl = process.env.NEXT_PUBLIC_SITE_URL
     ? process.env.NEXT_PUBLIC_SITE_URL.replace(/\/$/, '')
     : (process.env.VERCEL_PROJECT_PRODUCTION_URL
-        ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
-        : SITE_URL);
+      ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+      : SITE_URL);
 
   let siteName = SITE_NAME;
   let defaultTitle = `${SITE_NAME} — Pakistan's #1 Automotive & Tech Store`;
@@ -248,18 +247,19 @@ export default async function RootLayout({
   return (
     <html lang="en" className={`${inter.variable} ${roboto.variable}`}>
       <head>
-        {/* Universal Icon Libraries (FontAwesome, Material Icons, Bootstrap Icons, Remix, Phosphor) */}
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossOrigin="anonymous" />
-        <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons+Round&display=swap" />
-        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
-        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css" />
-        <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css" />
-        
-        {/* Preconnect to external image domains for ultra-fast LCP */}
+        {/* Preconnect to external image & font domains */}
         <link rel="preconnect" href="https://images.unsplash.com" crossOrigin="anonymous" />
         <link rel="preconnect" href="https://res.cloudinary.com" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://cdn.jsdelivr.net" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://unpkg.com" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://images.unsplash.com" />
         <link rel="dns-prefetch" href="https://res.cloudinary.com" />
+
+        {/* Dynamic Icon Library Support (Material, Remix, Phosphor) */}
+        <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" />
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css" />
+        <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.0.3/src/regular/style.css" />
+        <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.0.3/src/fill/style.css" />
         {/* JSON-LD Structured Data */}
         <script
           type="application/ld+json"
@@ -285,7 +285,6 @@ export default async function RootLayout({
                   </LayoutWrapper>
                 )}
                 <LiveSalesNotification />
-                <TemplateScripts />
                 {process.env.NODE_ENV === 'production' && (
                   <>
                     <Analytics />

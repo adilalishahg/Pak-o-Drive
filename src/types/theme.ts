@@ -67,6 +67,7 @@ export interface SiteTheme {
   homepageSections: {
     heroSlides?: IHeroSlideItem[];
     heroSliderSettings?: {
+      sliderEngine?: 'classic' | 'smooothy';
       autoSlideEnabled?: boolean;
       autoSlideIntervalSec?: number;
       showArrows?: boolean;

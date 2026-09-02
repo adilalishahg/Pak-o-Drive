@@ -16,10 +16,10 @@ export async function GET() {
       settings = await SiteSettings.create({});
     }
     return NextResponse.json(
-      { success: true, data: settings },
+      { success: true, data: settings, settings },
       {
         headers: {
-          'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600',
+          'Cache-Control': 'no-store, no-cache, must-revalidate',
         },
       }
     );
@@ -50,10 +50,11 @@ export async function PUT(request: Request) {
       { upsert: true, new: true, runValidators: true }
     );
 
-    purgeCacheTags('site-settings');
+    purgeCacheTags(['site-settings', 'site-settings-global']);
 
     try {
       revalidatePath('/', 'layout');
+      revalidatePath('/');
     } catch (err) {
       console.warn('Revalidation warning for site-settings:', err);
     }
@@ -62,6 +63,7 @@ export async function PUT(request: Request) {
       success: true,
       message: 'Theme settings saved successfully!',
       data: settings,
+      settings,
     });
   } catch (error: any) {
     console.error('PUT /api/site-settings error:', error);

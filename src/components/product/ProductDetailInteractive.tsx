@@ -1,50 +1,28 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import Link from 'next/link';
 import { OptimizedImage } from '../common/OptimizedImage';
-import { IProduct, IProductVariant } from '../../types';
 import { ProductImageGallery } from './ProductImageGallery';
 import { ProductActions } from './ProductActions';
 import { ProductViewLogger } from '../common/ProductViewLogger';
 import { MarkdownRenderer } from '../common/MarkdownRenderer';
-
-const cleanStorefrontDescription = (desc: string): string => {
-  if (!desc) return '';
-  return desc
-    .split('\n')
-    .filter(line => {
-      const lower = line.toLowerCase();
-      return !lower.includes('pov:') && !lower.includes('#tiktokmademebuyit') && !lower.includes('#unboxing') && !lower.includes('#viral') && !lower.includes('#trending');
-    })
-    .join('\n')
-    .replace(/#\w+/g, '')
-    .trim();
-};
-
 import { ProductDetailInteractiveProps } from '@/types/product';
+import { useProductDetail } from '@/hooks/useProductDetail';
 
 export const ProductDetailInteractive: React.FC<ProductDetailInteractiveProps> = ({ product }) => {
-
-  const [selectedVariant, setSelectedVariant] = useState<IProductVariant | undefined>(
-    product.variants && product.variants.length > 0 ? product.variants[0] : undefined
-  );
-
-  // Fallbacks based on selected variant
-  const currentPrice = selectedVariant ? selectedVariant.price : product.price;
-  const currentOriginalPrice = selectedVariant
-    ? selectedVariant.originalPrice || selectedVariant.price
-    : product.originalPrice || product.price;
-
-  const currentImage = selectedVariant && selectedVariant.image ? selectedVariant.image : product.image;
-  const currentDescription = selectedVariant && selectedVariant.description ? selectedVariant.description : product.description;
-  const currentStock = selectedVariant !== undefined ? selectedVariant.stock : product.stock;
-
-  const discountPercent = currentOriginalPrice > currentPrice
-    ? Math.round(((currentOriginalPrice - currentPrice) / currentOriginalPrice) * 100)
-    : 0;
-
-  const specs = product.specifications ? Object.entries(product.specifications) : [];
+  const {
+    selectedVariant,
+    handleSelectVariant,
+    currentPrice,
+    currentOriginalPrice,
+    currentImage,
+    currentDescription,
+    cleanedDescription,
+    currentStock,
+    discountPercent,
+    specs,
+  } = useProductDetail({ product });
 
   return (
     <>
@@ -141,7 +119,7 @@ export const ProductDetailInteractive: React.FC<ProductDetailInteractiveProps> =
                     return (
                       <button
                         key={v._id || v.name}
-                        onClick={() => setSelectedVariant(v)}
+                        onClick={() => handleSelectVariant(v)}
                         type="button"
                         className="btn btn-sm d-flex align-items-center gap-1.5 px-3 py-2 border rounded-pill transition-all"
                         style={{
@@ -240,7 +218,7 @@ export const ProductDetailInteractive: React.FC<ProductDetailInteractiveProps> =
             {/* Description — rendered as markdown */}
             {currentDescription && (
               <MarkdownRenderer
-                content={cleanStorefrontDescription(currentDescription)}
+                content={cleanedDescription}
                 style={{
                   borderTop: '1px solid #f0f0f0',
                   paddingTop: '12px',

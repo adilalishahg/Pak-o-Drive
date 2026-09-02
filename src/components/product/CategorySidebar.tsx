@@ -1,12 +1,8 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
-import { CategorySidebarProps, SidebarCategory } from '@/types/product';
-import { DEFAULT_CATEGORIES } from '@/lib/constants';
-
-
-const PRICE_MAX = 150000;
-const PRICE_MIN = 0;
+import React from 'react';
+import { CategorySidebarProps } from '@/types/product';
+import { useCategorySidebar, PRICE_MAX, PRICE_MIN } from '@/hooks/useCategorySidebar';
 
 export const CategorySidebar: React.FC<CategorySidebarProps> = ({
   selectedCategory,
@@ -17,96 +13,26 @@ export const CategorySidebar: React.FC<CategorySidebarProps> = ({
   onSelectRating,
   onReset,
 }) => {
-  const [categories, setCategories] = useState<SidebarCategory[]>(DEFAULT_CATEGORIES);
-  const [localMin, setLocalMin] = useState(priceRange.min);
-  const [localMax, setLocalMax] = useState(priceRange.max);
-  const [minInput, setMinInput] = useState(String(priceRange.min));
-  const [maxInput, setMaxInput] = useState(String(priceRange.max));
-  const trackRef = useRef<HTMLDivElement>(null);
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  useEffect(() => {
-    (async () => {
-      try {
-        const { fetchCategoriesClient } = await import('../../lib/client-cache');
-        const data = await fetchCategoriesClient();
-        if (data && data.length > 0) {
-          const mapped = data.map((c: any) => ({
-            name: c.name,
-            slug: c.slug,
-            icon: c.icon || 'fas fa-tag',
-            parentCategory: c.parentCategory || '',
-            image: c.image || '',
-            productCount: Number(c.productCount ?? c.totalProductCount ?? 0)
-          }));
-
-          const hasAnyWithProducts = mapped.some((c: any) => (c.productCount || 0) > 0);
-          const activeOnly = hasAnyWithProducts ? mapped.filter((c: any) => {
-            if ((c.productCount || 0) > 0) return true;
-            if (!c.parentCategory) {
-              return mapped.some((sub: any) => sub.parentCategory === c.slug && (sub.productCount || 0) > 0);
-            }
-            return false;
-          }) : mapped;
-
-          setCategories(activeOnly);
-        }
-
-      } catch {}
-    })();
-  }, []);
-
-  // Sync if parent resets
-  useEffect(() => {
-    setLocalMin(priceRange.min);
-    setLocalMax(priceRange.max);
-    setMinInput(String(priceRange.min));
-    setMaxInput(String(priceRange.max));
-  }, [priceRange.min, priceRange.max]);
-
-  const applyRange = (min: number, max: number) => {
-    if (debounceRef.current) clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => {
-      onPriceRangeChange(min, max);
-    }, 400);
-  };
-
-  const handleMinSlider = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const v = Math.min(Number(e.target.value), localMax - 500);
-    setLocalMin(v);
-    setMinInput(String(v));
-    applyRange(v, localMax);
-  };
-
-  const handleMaxSlider = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const v = Math.max(Number(e.target.value), localMin + 500);
-    setLocalMax(v);
-    setMaxInput(String(v));
-    applyRange(localMin, v);
-  };
-
-  const handleMinInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setMinInput(e.target.value);
-    const v = parseInt(e.target.value) || 0;
-    if (!isNaN(v) && v >= PRICE_MIN && v < localMax) {
-      setLocalMin(v);
-      applyRange(v, localMax);
-    }
-  };
-
-  const handleMaxInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setMaxInput(e.target.value);
-    const v = parseInt(e.target.value) || 0;
-    if (!isNaN(v) && v <= PRICE_MAX && v > localMin) {
-      setLocalMax(v);
-      applyRange(localMin, v);
-    }
-  };
-
-  const minPct = ((localMin - PRICE_MIN) / (PRICE_MAX - PRICE_MIN)) * 100;
-  const maxPct = ((localMax - PRICE_MIN) / (PRICE_MAX - PRICE_MIN)) * 100;
-
-  const hasFilters = !!(selectedCategory || selectedRating || priceRange.max < PRICE_MAX || priceRange.min > PRICE_MIN);
+  const {
+    categories,
+    localMin,
+    localMax,
+    minInput,
+    maxInput,
+    minPct,
+    maxPct,
+    hasFilters,
+    trackRef,
+    handleMinSlider,
+    handleMaxSlider,
+    handleMinInput,
+    handleMaxInput,
+  } = useCategorySidebar({
+    selectedCategory,
+    priceRange,
+    onPriceRangeChange,
+    selectedRating,
+  });
 
   const section = (children: React.ReactNode) => (
     <div style={{ background: '#fff', borderRadius: '10px', padding: '14px', marginBottom: '10px', border: '1px solid #eef2f7' }}>

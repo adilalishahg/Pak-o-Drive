@@ -35,11 +35,13 @@ export async function GET(request: Request) {
       }
     }
 
-    if (search) {
-      query.$or = [
-        { name: { $regex: search, $options: 'i' } },
-        { description: { $regex: search, $options: 'i' } },
-      ];
+    if (search && search.trim()) {
+      const cleanSearch = search.trim();
+      if (cleanSearch.length > 2) {
+        query.$text = { $search: cleanSearch };
+      } else {
+        query.name = { $regex: cleanSearch, $options: 'i' };
+      }
     }
 
     if (minPrice || maxPrice) {

@@ -17,12 +17,14 @@ export function HeroSlidesManager({
 }: HeroSlidesManagerProps) {
   const heroSlidesList = form.homepageSections?.heroSlides || [];
   const sliderCfg = form.homepageSections?.heroSliderSettings || {
+    sliderEngine: 'smooothy',
     autoSlideEnabled: true,
     autoSlideIntervalSec: 5,
     showArrows: true,
     showDots: true,
   };
 
+  const sliderEngine = sliderCfg.sliderEngine || 'smooothy';
   const autoPlay = sliderCfg.autoSlideEnabled !== false;
   const intervalSec = sliderCfg.autoSlideIntervalSec ?? 5;
   const showArrows = sliderCfg.showArrows !== false;
@@ -44,22 +46,78 @@ export function HeroSlidesManager({
         <button
           type="button"
           onClick={onAddSlide}
-          className="btn btn-primary btn-sm rounded-pill px-3 d-flex align-items-center gap-1.5 shadow-sm ms-auto"
+          className="btn btn-primary btn-sm rounded-pill px-3 fw-bold d-flex align-items-center gap-1.5 shadow-sm"
         >
-          <i className="fas fa-plus" /> Add New Slide
+          <i className="fas fa-plus" /> Add Slide
         </button>
       </div>
 
       <div className="card-body p-3 p-md-4 bg-white">
-        {/* ⚙️ Hero Slider Controls & Behavior Settings */}
+        {/* ⚙️ Hero Slider Engine & Behavior Controls */}
         <div className="bg-light p-3 rounded-3 border mb-3">
-          <div className="d-flex align-items-center justify-content-between mb-2 flex-wrap gap-2">
+          <div className="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
             <span className="fw-bold text-dark small d-flex align-items-center gap-1.5">
-              <i className="fas fa-sliders-h text-primary" /> Slider Timing & Navigation Controls
+              <i className="fas fa-sliders-h text-primary" /> Slider Engine & Physics Controls
             </span>
             <span className="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25" style={{ fontSize: '0.72rem' }}>
               Live Auto-Sync
             </span>
+          </div>
+
+          {/* Engine Selector Cards */}
+          <div className="row g-2 mb-3">
+            <div className="col-12 col-md-6">
+              <div
+                onClick={() => onUpdateSliderSetting('sliderEngine', 'smooothy')}
+                className={`p-2.5 rounded-3 border cursor-pointer transition-all d-flex align-items-start gap-2.5 ${
+                  sliderEngine === 'smooothy' ? 'bg-primary bg-opacity-10 border-primary shadow-sm' : 'bg-white'
+                }`}
+                style={{ cursor: 'pointer' }}
+              >
+                <input
+                  type="radio"
+                  name="sliderEngine"
+                  checked={sliderEngine === 'smooothy'}
+                  onChange={() => onUpdateSliderSetting('sliderEngine', 'smooothy')}
+                  className="form-check-input mt-1"
+                />
+                <div>
+                  <div className="fw-bold text-dark small d-flex align-items-center gap-1.5">
+                    <span>🚀 Smooothy Physics Engine</span>
+                    <span className="badge bg-success bg-opacity-15 text-success" style={{ fontSize: '0.65rem' }}>Fast & Smooth</span>
+                  </div>
+                  <p className="text-muted mb-0" style={{ fontSize: '0.72rem', lineHeight: 1.4 }}>
+                    60fps momentum drag, physics lerp interpolation & velocity touch swipe (github.com/vallafederico/smooothy).
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="col-12 col-md-6">
+              <div
+                onClick={() => onUpdateSliderSetting('sliderEngine', 'classic')}
+                className={`p-2.5 rounded-3 border cursor-pointer transition-all d-flex align-items-start gap-2.5 ${
+                  sliderEngine === 'classic' ? 'bg-primary bg-opacity-10 border-primary shadow-sm' : 'bg-white'
+                }`}
+                style={{ cursor: 'pointer' }}
+              >
+                <input
+                  type="radio"
+                  name="sliderEngine"
+                  checked={sliderEngine === 'classic'}
+                  onChange={() => onUpdateSliderSetting('sliderEngine', 'classic')}
+                  className="form-check-input mt-1"
+                />
+                <div>
+                  <div className="fw-bold text-dark small">
+                    ⚡ Classic Engine
+                  </div>
+                  <p className="text-muted mb-0" style={{ fontSize: '0.72rem', lineHeight: 1.4 }}>
+                    Standard hardware-accelerated CSS fade & slide transitions.
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
 
           <div className="row g-3 pt-1">

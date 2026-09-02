@@ -76,6 +76,7 @@ export interface ISvgLogoSettings {
 }
 
 export interface IHeroSliderSettings {
+  sliderEngine?: 'classic' | 'smooothy';
   autoSlideEnabled?: boolean;
   autoSlideIntervalSec?: number;
   showArrows?: boolean;
@@ -211,6 +212,7 @@ const OfferBannerSchema = new Schema({
 }, { _id: false });
 
 const HeroSliderSettingsSchema = new Schema({
+  sliderEngine:         { type: String, enum: ['classic', 'smooothy'], default: 'smooothy' },
   autoSlideEnabled:     { type: Boolean, default: true },
   autoSlideIntervalSec: { type: Number,  default: 5 },
   showArrows:           { type: Boolean, default: true },

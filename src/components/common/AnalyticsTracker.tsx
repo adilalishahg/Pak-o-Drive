@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, Suspense } from 'react';
+import { useEffect, useRef, Suspense } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
 
 /**
@@ -168,6 +168,7 @@ export async function logInteraction(
 function TrackerInner() {
   const pathname    = usePathname();
   const searchParams= useSearchParams();
+  const lastTrackedPathRef = useRef<string | null>(null);
 
   // 1. Session + UTM + Pixels initialization
   useEffect(() => {
@@ -275,6 +276,8 @@ function TrackerInner() {
     if (!pathname || pathname.startsWith('/admin') || pathname.startsWith('/api')) return;
 
     const fullPath   = pathname + (searchParams?.toString() ? `?${searchParams.toString()}` : '');
+    if (lastTrackedPathRef.current === fullPath) return;
+    lastTrackedPathRef.current = fullPath;
     const utmSource  = sessionStorage.getItem('utm_source')      || '';
     const utmMedium  = sessionStorage.getItem('utm_medium')      || '';
     const utmCampaign= sessionStorage.getItem('utm_campaign')    || '';

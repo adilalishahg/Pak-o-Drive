@@ -1,12 +1,12 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { IOrder, OrderStatus } from '@/types';
+import { OrderStatus } from '@/types';
+import { useOrderTracking } from '@/hooks/useOrderTracking';
 
 const STATUS_STEPS: OrderStatus[] = ['Pending', 'Processing', 'On the Way', 'Shipped', 'Delivered'];
-
 
 const STATUS_CONFIG: Record<string, { color: string; bg: string; icon: string; label: string }> = {
   Pending:      { color: '#d97706', bg: '#fef3c7', icon: 'fas fa-clock',           label: 'Pending'      },
@@ -23,55 +23,23 @@ function getStepIndex(status: string) {
 }
 
 export default function TrackOrderPage() {
-  const [searchType, setSearchType] = useState<'email' | 'phone'>('email');
-  const [inputValue, setInputValue] = useState('');
-  const [orders, setOrders] = useState<IOrder[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [searched, setSearched] = useState(false);
-  const [expandedId, setExpandedId] = useState<string | null>(null);
-
-  const handleSearch = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    setOrders([]);
-    setSearched(false);
-
-    if (!inputValue.trim()) {
-      setError('Please enter your email or phone number.');
-      return;
-    }
-
-    try {
-      setLoading(true);
-      const payload = searchType === 'email'
-        ? { email: inputValue.trim() }
-        : { phone: inputValue.trim() };
-
-      const res = await fetch('/api/orders/track', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-
-      const data = await res.json();
-
-      if (data.success) {
-        setOrders(data.data);
-      } else {
-        setError(data.error || 'No orders found.');
-      }
-    } catch {
-      setError('Connection failed. Please try again.');
-    } finally {
-      setLoading(false);
-      setSearched(true);
-    }
-  };
+  const {
+    searchType,
+    setSearchType,
+    inputValue,
+    setInputValue,
+    orders,
+    loading,
+    error,
+    setError,
+    searched,
+    expandedId,
+    toggleExpand,
+    handleSearch,
+  } = useOrderTracking();
 
   return (
     <div style={{ background: '#f4f4f4', minHeight: '100vh', paddingBottom: '32px' }}>
-
       {/* Breadcrumb */}
       <div style={{ background: '#fff', borderBottom: '1px solid #f0f0f0', padding: '10px 0' }}>
         <div className="container-fluid px-3">
@@ -83,7 +51,6 @@ export default function TrackOrderPage() {
       </div>
 
       <div style={{ maxWidth: '680px', margin: '16px auto 0', padding: '0 12px' }}>
-
         {/* Search Card */}
         <div style={{ background: '#fff', borderRadius: '12px', padding: '20px', marginBottom: '16px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
           <div style={{ textAlign: 'center', marginBottom: '18px' }}>
@@ -149,7 +116,7 @@ export default function TrackOrderPage() {
                 />
               </div>
 
-              {/* Track button — full width below */}
+              {/* Track button */}
               <button
                 type="submit"
                 disabled={loading}
@@ -197,7 +164,7 @@ export default function TrackOrderPage() {
                     <div
                       className="p-4 d-flex flex-wrap align-items-center justify-content-between gap-3"
                       style={{ borderLeft: `4px solid ${cfg.color}`, cursor: 'pointer' }}
-                      onClick={() => setExpandedId(isExpanded ? null : (order._id || null))}
+                      onClick={() => toggleExpand(order._id || null)}
                     >
                       <div className="d-flex align-items-center gap-3">
                         <div
@@ -231,7 +198,6 @@ export default function TrackOrderPage() {
                     {/* Expanded Content */}
                     {isExpanded && (
                       <div className="px-4 pb-4">
-
                         {/* Progress Tracker */}
                         {!isCancelled && (
                           <div className="mb-4 pt-3">

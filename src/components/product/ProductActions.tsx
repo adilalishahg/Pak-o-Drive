@@ -1,92 +1,30 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { useCart } from '../../context/CartContext';
-import { useWishlist } from '../../context/WishlistContext';
-import { IProduct, IProductVariant } from '../../types';
 import { ProductActionsProps } from '@/types/product';
-
+import { useProductActions } from '@/hooks/useProductActions';
 
 export const ProductActions: React.FC<ProductActionsProps> = ({ product, selectedVariant }) => {
-  const router = useRouter();
-  const { addToCart, cartCount } = useCart();
-  const { toggleWishlist, isInWishlist } = useWishlist();
-  const [quantity, setQuantity] = useState(1);
-  const [added, setAdded] = useState(false);
-  const [showSticky, setShowSticky] = useState(false);
-  const whatsappNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '+923185205667';
-
-  const stockLimit = selectedVariant !== undefined ? selectedVariant.stock : product.stock;
-  const outOfStock = stockLimit === 0;
-  const isUnlimited = stockLimit < 0;
-  const finalPrice = selectedVariant ? selectedVariant.price : product.price;
-
-  // Reset quantity to 1 if the selected variant changes
-  useEffect(() => {
-    setQuantity(1);
-  }, [selectedVariant]);
-
-  // Monitor scroll for mobile sticky bar
-  useEffect(() => {
-    const handleScroll = () => {
-      if (window.scrollY > 280) {
-        setShowSticky(true);
-      } else {
-        setShowSticky(false);
-      }
-    };
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  const handleAdd = () => {
-    addToCart(product, quantity, selectedVariant);
-    setAdded(true);
-    setTimeout(() => setAdded(false), 1500);
-  };
-
-  const handleBuyNow = () => {
-    addToCart(product, quantity, selectedVariant);
-    router.push('/checkout');
-  };
-
-  const [copied, setCopied] = useState(false);
-
-  const handleWhatsApp = () => {
-    const url = typeof window !== 'undefined' ? window.location.href : '';
-    const displayName = selectedVariant ? `${product.name} (${selectedVariant.name})` : product.name;
-    const text = encodeURIComponent(
-      `السلام علیکم! Mujhe yeh product order karna hai:\n\n*Product:* ${displayName}\n*Price:* Rs. ${finalPrice.toLocaleString()} (Cash On Delivery)\n\n${url}\n\nDelivery Address aur details share kar raha hoon:`
-    );
-    window.open(`https://wa.me/${whatsappNumber.replace('+', '')}?text=${text}`, '_blank');
-  };
-
-  const handleNativeShare = async () => {
-    const url = typeof window !== 'undefined' ? window.location.href : '';
-    const displayName = selectedVariant ? `${product.name} (${selectedVariant.name})` : product.name;
-    const shareData = {
-      title: `${displayName} — Pak-o-Drive`,
-      text: `${displayName} (Rs. ${finalPrice.toLocaleString()})\nOrder Online on Pak-o-Drive:`,
-      url,
-    };
-
-
-    if (typeof navigator !== 'undefined' && navigator.share && navigator.canShare && navigator.canShare(shareData)) {
-      try {
-        await navigator.share(shareData);
-      } catch {
-        // User cancelled or aborted native share
-      }
-    } else {
-      if (typeof navigator !== 'undefined' && navigator.clipboard) {
-        await navigator.clipboard.writeText(`${shareData.text}\n\n${url}`);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
-      }
-    }
-  };
+  const {
+    quantity,
+    added,
+    showSticky,
+    copied,
+    stockLimit,
+    outOfStock,
+    isUnlimited,
+    finalPrice,
+    cartCount,
+    isInWishlist,
+    toggleWishlist,
+    handleAdd,
+    handleBuyNow,
+    handleWhatsApp,
+    handleNativeShare,
+    incrementQuantity,
+    decrementQuantity,
+  } = useProductActions({ product, selectedVariant });
 
   return (
     <div>
@@ -100,7 +38,7 @@ export const ProductActions: React.FC<ProductActionsProps> = ({ product, selecte
           }}>
             <button
               type="button"
-              onClick={() => setQuantity(q => Math.max(1, q - 1))}
+              onClick={decrementQuantity}
               disabled={quantity <= 1 || outOfStock}
               style={{
                 width: '38px', height: '38px', border: 'none', background: '#f8fafc',
@@ -117,7 +55,7 @@ export const ProductActions: React.FC<ProductActionsProps> = ({ product, selecte
             </span>
             <button
               type="button"
-              onClick={() => setQuantity(q => (!isUnlimited ? Math.min(stockLimit, q + 1) : q + 1))}
+              onClick={incrementQuantity}
               disabled={(!isUnlimited && quantity >= stockLimit) || outOfStock}
               style={{
                 width: '38px', height: '38px', border: 'none', background: '#f8fafc',
@@ -291,7 +229,7 @@ export const ProductActions: React.FC<ProductActionsProps> = ({ product, selecte
           {/* Wishlist Button */}
           <button
             type="button"
-            onClick={() => toggleWishlist(product._id || '')}
+            onClick={toggleWishlist}
             style={{
               display: 'flex',
               alignItems: 'center',
@@ -303,14 +241,14 @@ export const ProductActions: React.FC<ProductActionsProps> = ({ product, selecte
               flexShrink: 0,
               cursor: 'pointer',
               background: '#fff',
-              color: isInWishlist(product._id || '') ? '#ef4444' : '#64748b',
+              color: isInWishlist ? '#ef4444' : '#64748b',
               transition: 'all 0.2s',
               outline: 'none',
             }}
             title="Save to Wishlist"
             aria-label="Wishlist"
           >
-            <i className={isInWishlist(product._id || '') ? 'fas fa-heart' : 'far fa-heart'} style={{ fontSize: '1.1rem' }} />
+            <i className={isInWishlist ? 'fas fa-heart' : 'far fa-heart'} style={{ fontSize: '1.1rem' }} />
           </button>
         </div>
       </div>

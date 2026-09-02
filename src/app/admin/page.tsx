@@ -1,54 +1,25 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import Link from 'next/link';
 import MetricCard from '../../components/common/MetricCard';
-import { DashboardData } from '@/types';
+import { useAdminDashboard } from '@/hooks/useAdminDashboard';
 
 export default function AdminDashboardPage() {
-
-  const [data, setData] = useState<DashboardData | null>(null);
-  const [recentOrders, setRecentOrders] = useState<any[]>([]);
-  const [recentContacts, setRecentContacts] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-
-  useEffect(() => {
-    async function fetchDashboardData() {
-      try {
-        const [analyticsRes, ordersRes, contactsRes] = await Promise.all([
-          fetch('/api/analytics'),
-          fetch('/api/orders'),
-          fetch('/api/contacts'),
-        ]);
-
-        const analyticsJson = await analyticsRes.json();
-        const ordersJson = await ordersRes.json();
-        const contactsJson = await contactsRes.json();
-
-        if (analyticsJson.success) {
-          setData(analyticsJson.data);
-        } else {
-          throw new Error(analyticsJson.error || 'Failed to fetch analytics data');
-        }
-
-        if (ordersJson.success) {
-          setRecentOrders(ordersJson.data.slice(0, 5));
-        }
-
-        if (contactsJson.success) {
-          setRecentContacts(contactsJson.data.slice(0, 5));
-        }
-      } catch (err: any) {
-        console.error('Error fetching dashboard content:', err);
-        setError(err.message || 'Failed to load dashboard data. Ensure MongoDB is running.');
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    fetchDashboardData();
-  }, []);
+  const {
+    data,
+    stats,
+    charts,
+    recentOrders,
+    recentContacts,
+    searches,
+    popularProducts,
+    salesChange,
+    viewsChange,
+    loading,
+    error,
+    getSvgPoints,
+  } = useAdminDashboard();
 
   if (loading) {
     return (
@@ -109,37 +80,7 @@ export default function AdminDashboardPage() {
     );
   }
 
-  if (!data) return null;
-
-  const { stats, charts } = data;
-  const searches = (data as any).insights?.searches || (data as any).searches || [];
-  const popularProducts = (data as any).popularProducts || [];
-
-  // Helper to generate SVG polyline points for chart
-  const getSvgPoints = (values: number[] = [], width: number, height: number) => {
-    if (!values || values.length === 0) return '';
-    const maxVal = Math.max(...values, 1);
-    const minVal = Math.min(...values, 0);
-    const range = maxVal - minVal;
-
-    return values
-      .map((val, idx) => {
-        const x = (idx / (values.length - 1)) * width;
-        // Invert Y since (0,0) is top-left in SVG
-        const y = height - ((val - minVal) / range) * (height - 10) - 5;
-        return `${x},${y}`;
-      })
-      .join(' ');
-  };
-
-  // Calculate dynamic sales and views change percentages vs previous day
-  const lastSales = charts.sales && charts.sales.length > 1 ? charts.sales[charts.sales.length - 1] : 0;
-  const prevSales = charts.sales && charts.sales.length > 1 ? charts.sales[charts.sales.length - 2] : 0;
-  const salesChange = prevSales > 0 ? ((lastSales - prevSales) / prevSales) * 100 : 0;
-
-  const lastViews = charts.pageviews && charts.pageviews.length > 1 ? charts.pageviews[charts.pageviews.length - 1] : 0;
-  const prevViews = charts.pageviews && charts.pageviews.length > 1 ? charts.pageviews[charts.pageviews.length - 2] : 0;
-  const viewsChange = prevViews > 0 ? ((lastViews - prevViews) / prevViews) * 100 : 0;
+  if (!data || !stats || !charts) return null;
 
   return (
     <div className="fade-in">
@@ -290,7 +231,7 @@ export default function AdminDashboardPage() {
               </svg>
             </div>
             <div className="d-flex justify-content-between mt-2">
-              {charts.labels.map((lbl, idx) => (
+              {charts.labels.map((lbl: string, idx: number) => (
                 <span key={idx} className="text-muted" style={{ fontSize: '0.65rem' }}>{lbl}</span>
               ))}
             </div>
@@ -320,7 +261,7 @@ export default function AdminDashboardPage() {
               </svg>
             </div>
             <div className="d-flex justify-content-between mt-2">
-              {charts.labels.map((lbl, idx) => (
+              {charts.labels.map((lbl: string, idx: number) => (
                 <span key={idx} className="text-muted" style={{ fontSize: '0.65rem' }}>{lbl}</span>
               ))}
             </div>

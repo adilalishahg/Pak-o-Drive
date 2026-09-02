@@ -1,26 +1,34 @@
 'use client';
 
 import React from 'react';
-import { useSiteTheme } from '../common/DynamicThemeProvider';
+import dynamic from 'next/dynamic';
 import { Navbar } from './Navbar';
-import { NavbarClassic } from './NavbarClassic';
 import { Footer } from './Footer';
-import { FooterClassic } from './FooterClassic';
-import { WhatsAppSupport } from '../common/WhatsAppSupport';
 import { AnnouncementBar } from './AnnouncementBar';
-import { FloatingCartButton } from '../common/FloatingCartButton';
-import { RecentSalesNotification } from '../common/RecentSalesNotification';
+
+// Lazy-load non-critical floating widgets to slash initial page payload
+const WhatsAppSupport = dynamic(
+  () => import('../common/WhatsAppSupport').then((m) => m.WhatsAppSupport),
+  { ssr: false }
+);
+
+const FloatingCartButton = dynamic(
+  () => import('../common/FloatingCartButton').then((m) => m.FloatingCartButton),
+  { ssr: false }
+);
+
+const RecentSalesNotification = dynamic(
+  () => import('../common/RecentSalesNotification').then((m) => m.RecentSalesNotification),
+  { ssr: false }
+);
 
 export function LayoutWrapper({ children }: { children: React.ReactNode }) {
-  const { theme } = useSiteTheme();
-  const isClassic = theme.layoutTheme === 'classic';
-
   return (
     <>
       <AnnouncementBar />
-      {isClassic ? <NavbarClassic /> : <Navbar />}
+      <Navbar />
       <main>{children}</main>
-      {isClassic ? <FooterClassic /> : <Footer />}
+      <Footer />
       <WhatsAppSupport />
       <FloatingCartButton />
       <RecentSalesNotification />

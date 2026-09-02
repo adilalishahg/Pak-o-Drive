@@ -2,97 +2,17 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { MetaAd, TikTokPost, MarketIntelligenceDashboardProps } from '@/types/marketIntelligence';
-
-
-// ── Custom SVGs ──
-const SparklesIcon = () => (
-  <svg className="w-4 h-4 text-orange-500 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
-    <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 21l-.813-5.096L3 15l5.187-.813L9 9l.813 5.187L15 15l-5.187.813zM19.071 4.929l-.707 3.535-3.536.708 3.536.707.707 3.536 3.536-3.536.707-.707-3.536-.708-3.536-.707z" />
-  </svg>
-);
-
-const SearchIcon = () => (
-  <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-    <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-  </svg>
-);
-
-const LoaderIcon = () => (
-  <svg className="w-4 h-4 animate-spin text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
-    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-  </svg>
-);
-
-const FacebookIcon = () => (
-  <svg className="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
-    <path d="M22 12c0-5.52-4.48-10-10-10S2 6.48 2 12c0 4.84 3.44 8.87 8 9.8V15H8v-3h2V9.5C10 7.57 11.57 6 13.5 6H16v3h-2c-.55 0-1 .45-1 1v2h3v3h-3v6.95c4.56-.93 8-4.96 8-9.75z" />
-  </svg>
-);
-
-const VideoIcon = () => (
-  <svg className="w-4 h-4 text-rose-600" fill="currentColor" viewBox="0 0 24 24">
-    <path d="M12.525.02c1.31-.03 2.61-.01 3.91-.02.08 1.53.63 3.02 1.63 4.16 1.02.99 2.4 1.6 3.86 1.68v3.91a8.941 8.941 0 01-5.49-1.89v8.52a8.382 8.382 0 01-13.9 6.22 8.382 8.382 0 014.28-14.77c.05 1.25.43 2.5 1.16 3.5a4.472 4.472 0 00-.54 4.87c.72 1.45 2.2 2.37 3.82 2.37 2.43 0 4.41-1.98 4.41-4.41V0h.67z" />
-  </svg>
-);
-
-const CalendarIcon = () => (
-  <svg className="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-    <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-    <line x1="16" y1="2" x2="16" y2="6" />
-    <line x1="8" y1="2" x2="8" y2="6" />
-    <line x1="3" y1="10" x2="21" y2="10" />
-  </svg>
-);
-
-const AlertCircleIcon = () => (
-  <svg className="w-4 h-4 text-orange-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
-    <circle cx="12" cy="12" r="10" />
-    <line x1="12" y1="8" x2="12" y2="12" />
-    <line x1="12" y1="16" x2="12.01" y2="16" />
-  </svg>
-);
-
-const ShoppingBagIcon = () => (
-  <svg className="w-8 h-8 mx-auto mb-2 text-slate-400 opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-    <path strokeLinecap="round" strokeLinejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-  </svg>
-);
-
-const TrendingUpIcon = () => (
-  <svg className="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
-    <path strokeLinecap="round" strokeLinejoin="round" d="M13 7h8m0 0v8m0-8L13 14l-4-4-6 6" />
-  </svg>
-);
-
-const EyeIcon = () => (
-  <svg className="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-    <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-    <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-  </svg>
-);
-
-const HeartIcon = () => (
-  <svg className="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-    <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-  </svg>
-);
-
-const MessageIcon = () => (
-  <svg className="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-    <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-  </svg>
-);
-
-const ShareIcon = () => (
-  <svg className="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-    <circle cx="18" cy="5" r="3" />
-    <circle cx="6" cy="12" r="3" />
-    <circle cx="18" cy="19" r="3" />
-    <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
-    <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
-  </svg>
-);
+import {
+  SparklesIcon,
+  SearchIcon,
+  LoaderIcon,
+  FacebookIcon,
+  VideoIcon,
+  AlertCircleIcon,
+  ShoppingBagIcon,
+} from './market-intelligence/MarketIntelligenceIcons';
+import { CompetitorAdCard } from './market-intelligence/CompetitorAdCard';
+import { TikTokTrendingCard } from './market-intelligence/TikTokTrendingCard';
 
 export default function MarketIntelligenceDashboard({ initialQuery = 'smartwatch' }: MarketIntelligenceDashboardProps) {
   const [query, setQuery] = useState(initialQuery);
@@ -153,26 +73,20 @@ export default function MarketIntelligenceDashboard({ initialQuery = 'smartwatch
   }, []);
 
   const fetchMoreTikTok = async () => {
-    if (tiktokLoadingMore || !tiktokHasMore) return;
+    if (tiktokLoadingMore || !tiktokHasMore || !query.trim()) return;
     setTiktokLoadingMore(true);
-    setTikTokError(null);
     try {
       const res = await fetch(`/api/analytics/tiktok?q=${encodeURIComponent(query)}&cursor=${tiktokCursor}`);
-      const json = await res.json();
-      if (json.success) {
-        const newPosts = json.data || [];
-        setTikTokPosts((prev) => [...prev, ...newPosts]);
-        setTiktokCursor(json.nextCursor || '0');
-        setTiktokHasMore(json.hasMore !== false && newPosts.length > 0);
-        if (json.error) {
-          setTikTokError(json.error);
-        }
+      const data = await res.json();
+      if (data.success && data.data?.length > 0) {
+        setTikTokPosts(prev => [...prev, ...data.data]);
+        setTiktokCursor(data.nextCursor || '0');
+        setTiktokHasMore(data.hasMore !== false);
       } else {
-        setTikTokError(json.error || 'Failed to fetch more TikTok data');
+        setTiktokHasMore(false);
       }
     } catch (err) {
-      console.error('Error loading more TikTok content:', err);
-      setTikTokError('Failed to load more TikTok creative posts.');
+      console.error('Error loading more TikTok videos:', err);
     } finally {
       setTiktokLoadingMore(false);
     }
@@ -182,74 +96,84 @@ export default function MarketIntelligenceDashboard({ initialQuery = 'smartwatch
     fetchIntelligence(initialQuery);
   }, [initialQuery, fetchIntelligence]);
 
-  const handleSearchSubmit = (e: React.FormEvent) => {
+  const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     fetchIntelligence(query);
   };
 
-  const formatNumber = (num: number) => {
-    if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
-    if (num >= 1000) return `${(num / 1000).toFixed(1)}K`;
-    return num.toString();
+  const handleChipClick = (keyword: string) => {
+    setQuery(keyword);
+    fetchIntelligence(keyword);
   };
 
   return (
-    <div className="bg-white rounded-4 shadow-sm border p-3 p-md-4 mb-3 border-slate-100 text-slate-800">
-      
-      {/* Title & Filters Row */}
-      <div className="d-flex flex-column flex-md-row align-items-md-center justify-content-between border-bottom pb-2 mb-3 gap-2">
+    <div className="bg-white rounded-4 border p-4 shadow-sm flex flex-col gap-4" style={{ borderColor: '#f1f5f9' }}>
+      {/* Header & Search Bar */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pb-3 border-b border-slate-100">
         <div>
-          <h6 className="fw-black text-dark mb-0 font-extrabold text-sm tracking-wider uppercase flex items-center gap-1.5">
-            <SparklesIcon />
-            🚀 AI Ads Finder & Viral TikTok Intelligence
-          </h6>
-          <p className="text-muted mb-0 mt-1 text-[0.72rem]">
-            Cross-reference live competitor Meta ad creatives and trending high-engagement TikTok campaigns to source items.
+          <div className="flex items-center gap-2">
+            <h4 className="fw-bold text-dark text-base mb-0">
+              Live Product Market Intelligence
+            </h4>
+            <span className="badge bg-orange-50 text-orange-600 border border-orange-200 px-2 py-0.5 rounded-pill text-[0.68rem] font-bold flex items-center gap-1">
+              <SparklesIcon /> AI Sourced
+            </span>
+          </div>
+          <p className="text-muted text-xs mb-0 mt-0.5">
+            Monitor real-time competitor ad spend on Meta and consumer viral engagement on TikTok in Pakistan.
           </p>
         </div>
 
-        <form onSubmit={handleSearchSubmit} className="d-flex align-items-center w-full md:w-auto max-w-sm gap-2">
+        {/* Search Input Form */}
+        <form onSubmit={handleSearch} className="flex items-center gap-2 max-w-sm w-full">
           <div className="relative flex-grow">
-            <div className="absolute left-3 top-1/2 -translate-y-1/2">
-              <SearchIcon />
-            </div>
             <input
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search product (e.g. smartwatch, earbuds)..."
-              className="form-control form-control-sm rounded-pill pl-9 pr-3 text-xs text-dark"
+              placeholder="Search product (e.g., smartwatch, earbuds)..."
+              className="form-control form-control-sm rounded-pill pl-8 pr-3 text-xs bg-slate-50 border-slate-200 focus:bg-white"
               style={{ fontSize: '0.78rem' }}
             />
+            <div className="absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none">
+              <SearchIcon />
+            </div>
           </div>
           <button
             type="submit"
             disabled={loading}
-            className="btn btn-sm btn-primary rounded-pill px-3 py-1.5 font-bold text-white text-xs flex-shrink-0 flex items-center gap-1"
-            style={{
-              background: 'linear-gradient(to right, #ea580c, #f97316)',
-              border: 'none',
-              fontSize: '0.72rem',
-              fontWeight: 600,
-            }}
+            className="btn btn-sm btn-dark rounded-pill px-3 font-bold text-xs flex-shrink-0 flex items-center gap-1.5"
+            style={{ fontSize: '0.75rem', background: '#0f172a' }}
           >
-            {loading ? (
-              <>
-                <LoaderIcon />
-                Analyzing
-              </>
-            ) : (
-              'Apply'
-            )}
+            {loading ? <LoaderIcon /> : 'Scan Market'}
           </button>
         </form>
       </div>
 
-      {/* Target Status Indicator */}
-      <div className="alert alert-light border d-flex flex-wrap align-items-center gap-1.5 py-2 px-3 mb-3 rounded-3 text-[0.75rem]">
+      {/* Suggested Query Chips */}
+      <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none text-xs">
+        <span className="text-muted text-[11px] font-bold flex-shrink-0 uppercase tracking-wider">Top Niches:</span>
+        {['smartwatch', 'tws earbuds', 'car charger', 'mobile holder', 'magnetic cable', 'dash cam'].map((chip) => (
+          <button
+            key={chip}
+            type="button"
+            onClick={() => handleChipClick(chip)}
+            className={`badge rounded-pill px-2.5 py-1 text-[0.7rem] font-medium border flex-shrink-0 transition-all ${
+              query.toLowerCase() === chip 
+                ? 'bg-dark text-white border-dark' 
+                : 'bg-light text-dark border-slate-200 hover:bg-slate-100'
+            }`}
+          >
+            {chip}
+          </button>
+        ))}
+      </div>
+
+      {/* Market Pulse Status Sub-header */}
+      <div className="bg-slate-50 border border-slate-100 rounded-3 px-3 py-2 text-xs flex items-center gap-2">
         <i className="fas fa-chart-line text-primary" />
         <span className="text-muted">Analyzing Ads & Viral Content for:</span>
-        <strong className="text-dark">"{query}"</strong>
+        <strong className="text-dark">&quot;{query}&quot;</strong>
         <span className="text-muted">in</span>
         <strong className="text-dark">Pakistan & TikTok Global</strong>
       </div>
@@ -304,71 +228,13 @@ export default function MarketIntelligenceDashboard({ initialQuery = 'smartwatch
           ) : metaAds.length > 0 ? (
             <div className="flex flex-col gap-3 max-h-[600px] overflow-y-auto pr-1">
               {metaAds.map((ad) => (
-                <div
-                  key={ad.id}
-                  className="bg-light border rounded-4 p-3 hover:shadow-sm transition-all duration-200 flex flex-col gap-2.5"
-                  style={{ borderColor: '#e2e8f0' }}
-                >
-                  <div className="d-flex justify-content-between align-items-start gap-2">
-                    <div>
-                      <strong className="text-dark text-xs block">
-                        {ad.pageName}
-                      </strong>
-                      <span className="text-[10px] text-muted flex items-center gap-1 mt-0.5">
-                        <CalendarIcon />
-                        Started {new Date(ad.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                      </span>
-                    </div>
-
-                    <div className="d-flex flex-column align-items-end gap-1">
-                      <span className={`badge px-2 py-0.5 rounded-pill text-[0.62rem] fw-bold ${
-                        ad.liveDays > 14 
-                          ? 'bg-danger bg-opacity-10 text-danger border border-danger border-opacity-10' 
-                          : 'bg-success bg-opacity-10 text-success border border-success border-opacity-10'
-                      }`}>
-                        {ad.liveDays} Days Active
-                      </span>
-                      
-                      <span className={`badge px-2 py-0.5 rounded text-[9px] fw-black tracking-wider uppercase ${
-                        ad.estimatedSalesConfidence === 'HIGH (Winning Product)'
-                          ? 'bg-success text-white'
-                          : ad.estimatedSalesConfidence === 'MEDIUM'
-                          ? 'bg-warning text-dark'
-                          : 'bg-secondary text-white'
-                      }`} style={{
-                        background: ad.estimatedSalesConfidence === 'HIGH (Winning Product)' ? 'linear-gradient(to right, #ea580c, #f97316)' : undefined
-                      }}>
-                        {ad.estimatedSalesConfidence === 'HIGH (Winning Product)' ? '🔥 Winning Ad' : `${ad.estimatedSalesConfidence} Demand`}
-                      </span>
-                    </div>
-                  </div>
-
-                  <p className="text-dark text-[0.75rem] leading-relaxed whitespace-pre-line border-top border-slate-200 border-opacity-40 pt-2.5 mb-0" style={{ color: '#4a5568' }}>
-                    {ad.adCreativeBody}
-                  </p>
-
-                  {ad.adCreativeLinkTitle && (
-                    <div className="d-flex align-items-center justify-content-between p-2 bg-white rounded-3 border border-slate-200 border-opacity-40 mt-1">
-                      <span className="text-[11px] font-bold text-dark truncate pr-2">
-                        {ad.adCreativeLinkTitle}
-                      </span>
-                      <a
-                        href={`https://facebook.com/ads/library/?id=${ad.id}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-[10px] font-black text-primary uppercase tracking-wider hover:underline flex-shrink-0"
-                      >
-                        View Ad
-                      </a>
-                    </div>
-                  )}
-                </div>
+                <CompetitorAdCard key={ad.id} ad={ad} />
               ))}
             </div>
           ) : (
             <div className="p-5 bg-light rounded-4 text-center text-muted text-xs border border-dashed">
               <ShoppingBagIcon />
-              No active Meta ads found for "{query}".
+              No active Meta ads found for &quot;{query}&quot;.
             </div>
           )}
         </div>
@@ -408,125 +274,31 @@ export default function MarketIntelligenceDashboard({ initialQuery = 'smartwatch
           ) : tiktokPosts.length > 0 ? (
             <div className="flex flex-col gap-3 max-h-[600px] overflow-y-auto pr-1">
               {tiktokPosts.map((post) => (
-                <div
-                  key={post.id}
-                  className="bg-light border rounded-4 p-3 hover:shadow-sm transition-all duration-200 flex flex-col gap-2.5"
-                  style={{ borderColor: '#e2e8f0' }}
-                >
-                  <div className="d-flex justify-content-between align-items-center gap-2">
-                    <div className="d-flex align-items-center gap-2">
-                      <div className="w-7 h-7 rounded-circle bg-primary bg-opacity-10 text-primary fw-bold text-[10px] d-flex align-items-center justify-content-center shadow-sm uppercase">
-                        {post.creatorHandle.slice(0, 2)}
-                      </div>
-                      <div>
-                        <strong className="text-dark text-xs block">
-                          @{post.creatorHandle}
-                        </strong>
-                        <span className="text-[9px] text-muted uppercase tracking-widest font-black">Creator</span>
-                      </div>
-                    </div>
-
-                    <div className="d-flex flex-column align-items-end gap-1">
-                      <span className={`badge px-2 py-0.5 rounded-pill text-[0.62rem] fw-black border ${
-                        post.engagementRate >= 5 
-                          ? 'bg-purple-100 text-purple-700 border-purple-200'
-                          : 'bg-slate-100 text-slate-600 border-slate-200'
-                      }`}>
-                        ER: {post.engagementRate}%
-                      </span>
-                      {post.engagementRate >= 5 && (
-                        <span className="badge bg-purple text-white font-black uppercase px-1 rounded-sm text-[8px] tracking-wider flex align-items-center gap-0.5 shadow-sm" style={{ background: '#7c3aed' }}>
-                          <TrendingUpIcon />
-                          Viral Engagement
-                        </span>
-                      )}
-                    </div>
-                  </div>
-
-                  <p className="text-dark text-[0.75rem] leading-relaxed line-clamp-2 border-top border-slate-200 border-opacity-40 pt-2.5 mb-1" style={{ color: '#4a5568' }}>
-                    {post.caption}
-                  </p>
-
-                  {/* Grid Metrics */}
-                  <div className="grid grid-cols-4 gap-1 bg-white p-2 rounded-3 border border-slate-200 border-opacity-40 text-center">
-                    <div className="d-flex flex-column align-items-center">
-                      <span className="text-[9px] text-muted fw-bold d-flex align-items-center gap-1 mb-0.5">
-                        <EyeIcon /> Views
-                      </span>
-                      <strong className="text-dark text-[10px]">
-                        {formatNumber(post.viewsCount)}
-                      </strong>
-                    </div>
-
-                    <div className="d-flex flex-column align-items-center">
-                      <span className="text-[9px] text-muted fw-bold d-flex align-items-center gap-1 mb-0.5">
-                        <HeartIcon /> Likes
-                      </span>
-                      <strong className="text-dark text-[10px]">
-                        {formatNumber(post.likesCount)}
-                      </strong>
-                    </div>
-
-                    <div className="d-flex flex-column align-items-center">
-                      <span className="text-[9px] text-muted fw-bold d-flex align-items-center gap-1 mb-0.5">
-                        <MessageIcon /> Comments
-                      </span>
-                      <strong className="text-dark text-[10px]">
-                        {formatNumber(post.commentsCount)}
-                      </strong>
-                    </div>
-
-                    <div className="d-flex flex-column align-items-center">
-                      <span className="text-[9px] text-muted fw-bold d-flex align-items-center gap-1 mb-0.5">
-                        <ShareIcon /> Shares
-                      </span>
-                      <strong className="text-dark text-[10px]">
-                        {formatNumber(post.sharesCount)}
-                      </strong>
-                    </div>
-                  </div>
-
-                  {/* Watch Video link */}
-                  {post.videoUrl && (
-                    <div className="d-flex align-items-center justify-content-between p-2 bg-white rounded-3 border border-slate-200 border-opacity-40 mt-1">
-                      <span className="text-[11px] font-bold text-dark truncate pr-2">
-                        TikTok Creative Content
-                      </span>
-                      <a
-                        href={post.videoUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-[10px] font-black text-rose-600 uppercase tracking-wider hover:underline flex-shrink-0"
-                      >
-                        Watch Video
-                      </a>
-                    </div>
-                  )}
-                </div>
+                <TikTokTrendingCard key={post.id} post={post} />
               ))}
 
-              {/* Load More Button */}
               {tiktokHasMore && (
-                <div className="text-center pt-2 pb-1">
-                  <button
-                    type="button"
-                    disabled={tiktokLoadingMore}
-                    onClick={fetchMoreTikTok}
-                    className="btn btn-sm btn-outline-secondary rounded-pill px-4 py-1.5 font-bold"
-                    style={{ fontSize: '0.72rem', fontWeight: 600 }}
-                  >
-                    {tiktokLoadingMore ? (
-                      <span className="spinner-border spinner-border-sm me-1.5 animate-spin" role="status" aria-hidden="true" />
-                    ) : null}
-                    {tiktokLoadingMore ? 'Loading More...' : 'Load More Video Creative'}
-                  </button>
-                </div>
+                <button
+                  type="button"
+                  onClick={fetchMoreTikTok}
+                  disabled={tiktokLoadingMore}
+                  className="btn btn-sm btn-outline-dark rounded-pill py-1.5 mt-2 font-bold text-xs flex items-center justify-center gap-2"
+                >
+                  {tiktokLoadingMore ? (
+                    <>
+                      <LoaderIcon />
+                      Loading more TikTok videos...
+                    </>
+                  ) : (
+                    'Load More TikTok Trends ⬇'
+                  )}
+                </button>
               )}
             </div>
           ) : (
             <div className="p-5 bg-light rounded-4 text-center text-muted text-xs border border-dashed">
-              <VideoIcon />
-              No viral TikTok content matches "{query}".
+              <ShoppingBagIcon />
+              No viral TikTok content found for &quot;{query}&quot;.
             </div>
           )}
         </div>

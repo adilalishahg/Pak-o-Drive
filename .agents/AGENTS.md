@@ -42,9 +42,19 @@ This repository contains the full-stack Pak-o-Drive application. All work must f
    - All desktop logic in `desktop/` must strictly maintain `contextIsolation: true` and `nodeIntegration: false`.
    - Expose native functionalities (POS thermal receipt printing, WhatsApp external deep linking, local state storage) only via typed `window.electronAPI` bridge in `desktop/src/preload/index.ts`.
 
+10. 🌐 **Dynamic External Data & Tool Discovery (Monid Gateway)**:
+   - For ad-hoc web scraping, competitor pricing intelligence, social media data, or multi-provider API enrichment, proactively discover endpoints via `monid discover` and inspect schemas with `monid inspect` before building custom scrapers from scratch.
+   - Maintain API key authentication through `monid keys add` and verify health/cost metrics before running paid endpoints.
+
+11. ⚡ **Autonomous Agent Efficiency & Cost Optimization Protocol**:
+   - **Targeted Chunk Diffing**: Strictly use chunk replacements (`replace_file_content`) over full-file rewrites to preserve 80-90% output tokens.
+   - **Self-Healing Typecheck**: Automatically run `pnpm tsc --noEmit` and resolve all type/build errors before finalizing any task.
+   - **Smart Tool & Skill Activation**: Dynamically load specialized skills from `.agents/skills/` and suggest appropriate model/slash command modes (`/goal`, `/grill-me`, `/learn`) when task complexity demands it.
+
 ---
 
 ## Dynamic Memory & Changelog Directive
 - Update `.agents/LEARNINGS.md` in 3-bullet resolution format (`Issue`, `Root Cause`, `Verified Fix`) with date-stamped entries on every completed task.
 - Run `graft build` after architectural or knowledge updates to ensure the graph and code build pass with 0 errors.
+
 

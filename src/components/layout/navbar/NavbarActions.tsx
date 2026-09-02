@@ -1,0 +1,126 @@
+'use client';
+
+import React from 'react';
+import Link from 'next/link';
+
+interface NavbarActionsProps {
+  pathname: string;
+  safeCartCount: number;
+  safeCartTotal: number;
+  wishlistCount: number;
+  mobileOpen: boolean;
+  setMobileOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  primaryColor?: string;
+}
+
+export const NavbarActions: React.FC<NavbarActionsProps> = ({
+  pathname,
+  safeCartCount,
+  safeCartTotal,
+  wishlistCount,
+  mobileOpen,
+  setMobileOpen,
+  primaryColor = '#2563eb',
+}) => {
+  return (
+    <div className="flex items-center gap-1.5 sm:gap-2">
+      {/* Track Order Button — Desktop */}
+      <Link
+        href="/track-order"
+        className={`hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-decoration-none transition-all theme1-track-order-btn ${pathname === '/track-order' ? 'active' : ''}`}
+        aria-label="Track Order"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          strokeWidth="2"
+          stroke="currentColor"
+          style={{ width: '15px', height: '15px' }}
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 014.73 4.5H19.5a1.5 1.5 0 011.5 1.5v7m-9.75 4.5H18m0 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0"
+          />
+        </svg>
+        Track Order
+      </Link>
+
+      {/* Admin Panel Icon (Visible on /admin routes) */}
+      {pathname.startsWith('/admin') && (
+        <Link
+          href="/admin"
+          className="p-2 text-slate-500 hover:text-blue-600 rounded-full hover:bg-blue-50 transition-all"
+          aria-label="Admin Panel"
+          title="Admin Panel"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth="2"
+            stroke="currentColor"
+            className="w-5 h-5"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"
+            />
+          </svg>
+        </Link>
+      )}
+
+      {/* Cart Button with SSR Hydration Guard */}
+      <Link
+        href="/cart"
+        className="p-2 text-slate-700 hover:text-slate-900 rounded-full hover:bg-slate-50 relative transition-all text-decoration-none"
+        aria-label={`Cart with ${safeCartCount} items`}
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          strokeWidth="2"
+          stroke="currentColor"
+          className="w-6 h-6"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z"
+          />
+        </svg>
+        {safeCartCount > 0 && (
+          <span className="theme1-cart-badge absolute top-1 right-1 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center animate-in zoom-in">
+            {safeCartCount}
+          </span>
+        )}
+      </Link>
+
+      {/* Mobile Drawer Trigger */}
+      <button
+        type="button"
+        onClick={() => setMobileOpen((o) => !o)}
+        className="md:hidden p-2 text-slate-700 hover:text-slate-900 rounded-lg hover:bg-slate-50 transition-all border-0 bg-transparent"
+        aria-label="Open mobile menu"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          strokeWidth="2"
+          stroke="currentColor"
+          className="w-6 h-6"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"
+          />
+        </svg>
+      </button>
+    </div>
+  );
+};

@@ -48,25 +48,27 @@ export function useAdminTheme(): AdminThemeHookReturn {
 
         if (themeRes.ok) {
           const themeData = await themeRes.json();
-          if (themeData.success && themeData.settings) {
+          const s = themeData.data || themeData.settings;
+          if (themeData.success && s) {
             setForm((prev) => ({
               ...prev,
-              ...themeData.settings,
+              ...s,
               svgLogo: {
                 ...DEFAULT_SVG_LOGO,
-                ...(themeData.settings.svgLogo || {}),
+                ...(s.svgLogo || {}),
               },
               homepageSections: {
                 ...DEFAULT_THEME.homepageSections,
-                ...(themeData.settings.homepageSections || {}),
+                ...(s.homepageSections || {}),
                 heroSliderSettings: {
+                  sliderEngine: 'smooothy',
                   autoSlideEnabled: true,
                   autoSlideIntervalSec: 5,
                   showArrows: true,
                   showDots: true,
-                  ...(themeData.settings.homepageSections?.heroSliderSettings || {}),
+                  ...(s.homepageSections?.heroSliderSettings || {}),
                 },
-                heroSlides: themeData.settings.homepageSections?.heroSlides || [],
+                heroSlides: s.homepageSections?.heroSlides || [],
               },
             }));
           }
@@ -305,6 +307,10 @@ export function useAdminTheme(): AdminThemeHookReturn {
       const data = await res.json();
       if (data.success) {
         setToast({ type: 'success', message: 'Theme & appearance settings saved and applied live!' });
+        try {
+          window.dispatchEvent(new Event('pakodrive:theme_updated'));
+          localStorage.setItem('pakodrive:theme_ts', String(Date.now()));
+        } catch {}
       } else {
         setToast({ type: 'danger', message: data.error || 'Failed to save settings.' });
       }

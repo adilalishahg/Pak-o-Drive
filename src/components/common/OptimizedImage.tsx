@@ -40,9 +40,21 @@ export const cloudinaryLoader = ({ src, width, quality }: { src: string; width: 
 };
 
 /**
- * Generates an instant, zero-network-cost blurred shimmer SVG data-URI.
+ * Generates an instant blurred placeholder for Cloudinary or fallback SVG shimmer.
  */
-const getBlurPlaceholder = (_src: string): string => {
+export const getBlurPlaceholder = (src?: string): string => {
+  if (src && src.includes('res.cloudinary.com')) {
+    const uploadIndex = src.indexOf('/upload/');
+    if (uploadIndex !== -1) {
+      const prefix = src.substring(0, uploadIndex + 8);
+      let suffix = src.substring(uploadIndex + 8);
+      suffix = suffix.replace(/^(?:[a-z_]+[,/])*(?:v\d+\/)?/, (match) => {
+        const versionMatch = match.match(/(v\d+\/)/);
+        return versionMatch ? versionMatch[1] : '';
+      });
+      return `${prefix}f_auto,q_10,w_30,e_blur:1000/${suffix}`;
+    }
+  }
   return 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMCIgaGVpZ2h0PSIxMCI+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0iI2YxZjVmOSIvPjwvc3ZnPg==';
 };
 
@@ -128,12 +140,13 @@ export const OptimizedImage: React.FC<OptimizedImageProps> = ({
 
   // Check if we can use custom loader (only for Cloudinary assets)
   const isCloudinary = finalSrc.includes('res.cloudinary.com');
-  const isLocalOrData = finalSrc.startsWith('/') || finalSrc.startsWith('data:');
+  // Only bypass optimization for data-URIs or SVGs unless explicitly specified
+  const isSvgOrData = finalSrc.startsWith('data:') || finalSrc.toLowerCase().endsWith('.svg');
 
   // Next.js: If priority is true, completely omit loading prop and force fetchPriority="high"
   const isPriority = props.priority === true;
 
-  // Build image props — when priority is set we must NOT pass loading at all
+  // Build image props — when priority is set we must NOT pass loading at all to prevent Next.js warnings
   const imageProps: Record<string, unknown> = {
     src: finalSrc || fallbackSrc,
     alt: alt || 'Product Image',
@@ -141,15 +154,14 @@ export const OptimizedImage: React.FC<OptimizedImageProps> = ({
     placeholder,
     blurDataURL: placeholder === 'blur' ? (blurDataURL || getBlurPlaceholder(finalSrc)) : undefined,
     loader: isCloudinary ? cloudinaryLoader : undefined,
-    unoptimized: props.unoptimized !== undefined ? props.unoptimized : isLocalOrData,
+    unoptimized: props.unoptimized !== undefined ? props.unoptimized : isSvgOrData,
     onError: handleImageError,
     ...props,
   };
 
   if (isPriority) {
-    delete imageProps.loading;
-    imageProps.fetchPriority = 'high';
     imageProps.priority = true;
+    delete imageProps.loading;
   } else {
     imageProps.loading = loading;
   }

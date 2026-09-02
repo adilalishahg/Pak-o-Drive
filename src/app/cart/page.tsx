@@ -6,7 +6,18 @@ import { OptimizedImage } from '@/components/common/OptimizedImage';
 import { useCart } from '../../context/CartContext';
 
 export default function CartPage() {
-  const { cart, updateQuantity, removeFromCart, cartTotal } = useCart();
+  const { cart, updateQuantity, removeFromCart, cartTotal, isHydrated } = useCart();
+
+  if (!isHydrated) {
+    return (
+      <div style={{ minHeight: '60vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px 20px', background: '#f9fafb' }}>
+        <div className="spinner-border text-primary mb-3" role="status" style={{ width: '2.5rem', height: '2.5rem' }}>
+          <span className="visually-hidden">Loading Cart...</span>
+        </div>
+        <p style={{ color: '#6b7280', fontSize: '0.9rem' }}>Loading your cart...</p>
+      </div>
+    );
+  }
 
   if (cart.length === 0) {
     return (

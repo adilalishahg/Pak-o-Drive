@@ -1,97 +1,28 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import Link from 'next/link';
 import { OptimizedImage } from '@/components/common/OptimizedImage';
 import { DeleteConfirmModal } from '../../../components/admin/common/DeleteConfirmModal';
-
-interface ProductData {
-  _id: string;
-  name: string;
-  price: number;
-  originalPrice: number;
-  category: string;
-  stock: number;
-  image: string;
-  rating: number;
-}
+import { useAdminProducts } from '@/hooks/useAdminProducts';
 
 export default function AdminProductsPage() {
-  const [products, setProducts] = useState<ProductData[]>([]);
-  const [categories, setCategories] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [filterCategory, setFilterCategory] = useState('All');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [failedImages, setFailedImages] = useState<Record<string, boolean>>({});
-
-  useEffect(() => {
-    fetchProducts();
-    fetchCategories();
-  }, []);
-
-  async function fetchProducts() {
-    try {
-      setLoading(true);
-      const res = await fetch('/api/products');
-      const json = await res.json();
-      if (json.success) {
-        setProducts(json.data);
-      } else {
-        throw new Error(json.error || 'Failed to load products');
-      }
-    } catch (err: any) {
-      console.error(err);
-      setError(err.message || 'Error loading products database.');
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function fetchCategories() {
-    try {
-      const res = await fetch('/api/categories');
-      const json = await res.json();
-      if (json.success) {
-        setCategories(json.data);
-      }
-    } catch (err) {
-      console.error('Error fetching categories:', err);
-    }
-  }
-
-  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
-  const [deleteLoading, setDeleteLoading] = useState(false);
-  const [toast, setToast] = useState<string | null>(null);
-
-  const confirmDelete = async () => {
-    if (!deleteTarget) return;
-    setDeleteLoading(true);
-    try {
-      const res = await fetch(`/api/products/${deleteTarget.id}`, {
-        method: 'DELETE',
-      });
-      const json = await res.json();
-      if (json.success) {
-        setProducts((prev) => prev.filter((p) => p._id !== deleteTarget.id));
-        setToast(`Product "${deleteTarget.name}" deleted successfully.`);
-        setTimeout(() => setToast(null), 3500);
-      } else {
-        setError(json.error || 'Failed to delete product.');
-      }
-    } catch {
-      setError('Network error, could not delete product.');
-    } finally {
-      setDeleteLoading(false);
-      setDeleteTarget(null);
-    }
-  };
-
-  const filteredProducts = products.filter((p) => {
-    const matchesCategory = filterCategory === 'All' || p.category.toLowerCase() === filterCategory.toLowerCase();
-    const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase()) || p.category.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesCategory && matchesSearch;
-  });
+  const {
+    products,
+    categories,
+    loading,
+    error,
+    filterCategory,
+    setFilterCategory,
+    searchQuery,
+    setSearchQuery,
+    deleteTarget,
+    setDeleteTarget,
+    deleteLoading,
+    toast,
+    confirmDelete,
+    filteredProducts,
+  } = useAdminProducts();
 
   if (loading && products.length === 0) {
     return (

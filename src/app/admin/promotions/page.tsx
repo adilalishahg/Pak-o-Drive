@@ -1,120 +1,30 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import { PromoData } from '@/types';
+import React from 'react';
+import { DeleteConfirmModal } from '@/components/admin/common/DeleteConfirmModal';
+import { useAdminPromotions } from '@/hooks/useAdminPromotions';
 
 export default function AdminPromotionsPage() {
-
-  const [promos, setPromos] = useState<PromoData[]>([]);
-  const [code, setCode] = useState('');
-  const [discountPercent, setDiscountPercent] = useState('10');
-  const [expiryDate, setExpiryDate] = useState('');
-  const [isActive, setIsActive] = useState(true);
-
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState('');
-
-  useEffect(() => {
-    fetchPromos();
-    // Default expiry date to 7 days from now
-    const nextWeek = new Date();
-    nextWeek.setDate(nextWeek.getDate() + 7);
-    setExpiryDate(nextWeek.toISOString().split('T')[0]);
-  }, []);
-
-  async function fetchPromos() {
-    try {
-      setLoading(true);
-      const res = await fetch('/api/promotions');
-      const json = await res.json();
-      if (json.success) {
-        setPromos(json.data);
-      } else {
-        throw new Error(json.error || 'Failed to fetch promotions');
-      }
-    } catch (err: any) {
-      console.error(err);
-      setError(err.message || 'Error fetching promotions data.');
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!code || !discountPercent || !expiryDate) return;
-    setSaving(true);
-    setError('');
-
-    const payload = {
-      code: code.toUpperCase().trim(),
-      discountPercent: Number(discountPercent),
-      expiryDate: new Date(expiryDate),
-      isActive,
-    };
-
-    try {
-      const res = await fetch('/api/promotions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-      const json = await res.json();
-
-      if (json.success) {
-        setPromos([json.data, ...promos]);
-        setCode('');
-        setDiscountPercent('10');
-        setIsActive(true);
-      } else {
-        throw new Error(json.error || 'Failed to save coupon code');
-      }
-    } catch (err: any) {
-      console.error(err);
-      setError(err.message || 'Error occurred while creating promo code.');
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const handleToggleActive = async (id: string, currentStatus: boolean) => {
-    try {
-      const res = await fetch(`/api/promotions/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ isActive: !currentStatus }),
-      });
-      const json = await res.json();
-      if (json.success) {
-        setPromos(promos.map((p) => (p._id === id ? { ...p, isActive: !currentStatus } : p)));
-      } else {
-        alert(json.error || 'Failed to toggle status.');
-      }
-    } catch (err) {
-      console.error(err);
-      alert('Error saving status changes.');
-    }
-  };
-
-  const handleDelete = async (id: string, promoCode: string) => {
-    if (!confirm(`Are you sure you want to delete coupon code "${promoCode}"?`)) return;
-
-    try {
-      const res = await fetch(`/api/promotions/${id}`, {
-        method: 'DELETE',
-      });
-      const json = await res.json();
-      if (json.success) {
-        setPromos(promos.filter((p) => p._id !== id));
-      } else {
-        alert(json.error || 'Failed to delete coupon.');
-      }
-    } catch (err) {
-      console.error(err);
-      alert('Network error, could not delete coupon.');
-    }
-  };
+  const {
+    promos,
+    code,
+    setCode,
+    discountPercent,
+    setDiscountPercent,
+    expiryDate,
+    setExpiryDate,
+    isActive,
+    setIsActive,
+    loading,
+    saving,
+    error,
+    deleteTarget,
+    setDeleteTarget,
+    deleteLoading,
+    handleSubmit,
+    handleToggleActive,
+    confirmDelete,
+  } = useAdminPromotions();
 
   if (loading && promos.length === 0) {
     return (
@@ -189,7 +99,8 @@ export default function AdminPromotionsPage() {
                           </td>
                           <td className="text-end">
                             <button
-                              onClick={() => handleDelete(promo._id, promo.code)}
+                              type="button"
+                              onClick={() => setDeleteTarget({ id: promo._id, code: promo.code })}
                               className="btn btn-sm btn-outline-danger border-0 rounded-circle"
                               style={{ width: '32px', height: '32px' }}
                               title="Delete Coupon"
@@ -280,6 +191,17 @@ export default function AdminPromotionsPage() {
           </div>
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmModal
+        isOpen={Boolean(deleteTarget)}
+        title="Delete Coupon Code?"
+        message="Are you sure you want to permanently delete this coupon code?"
+        itemName={deleteTarget?.code}
+        onCancel={() => setDeleteTarget(null)}
+        onConfirm={confirmDelete}
+        loading={deleteLoading}
+      />
     </div>
   );
 }

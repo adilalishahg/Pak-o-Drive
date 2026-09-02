@@ -92,6 +92,7 @@ export interface HeroSliderProps {
   autoPlayEnabled?: boolean;
   showArrows?: boolean;
   showDots?: boolean;
+  engine?: 'classic' | 'smooothy';
 }
 
 export interface TimeSeriesItem {

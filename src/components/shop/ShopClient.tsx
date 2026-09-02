@@ -1,84 +1,42 @@
 'use client';
 
-import React, { useState, useEffect, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
+import React, { Suspense } from 'react';
 import Link from 'next/link';
 import { CategorySidebar } from '../product/CategorySidebar';
 import { ProductCardAuto } from '../product/ProductCardAuto';
 import { ProductCardList } from '../product/ProductCardList';
-import { IProduct } from '../../types';
 import { ShopClientProps } from '@/types/product';
 import { useSiteTheme } from '../common/DynamicThemeProvider';
-
+import { useShopFilters } from '@/hooks/useShopFilters';
 
 function ShopContent({ initialProducts }: ShopClientProps) {
-  const searchParams = useSearchParams();
   const { theme } = useSiteTheme();
   const isCleanWhite = theme.layoutTheme === 'theme1';
   const isModernGreen = theme.layoutTheme === 'modern-green';
   const bg = isCleanWhite ? '#f8fafc' : isModernGreen ? '#f7f5ed' : '#f5f7fa';
 
-  const [products, setProducts] = useState<IProduct[]>(initialProducts);
-  const [loading, setLoading] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(searchParams.get('category'));
-  const [searchQuery, setSearchQuery] = useState<string | null>(searchParams.get('search'));
-  const [priceRange, setPriceRange] = useState({ min: 0, max: 150000 });
-  const [selectedRating, setSelectedRating] = useState<number | null>(null);
-  const [sortBy, setSortBy] = useState('default');
-  const [keywords, setKeywords] = useState('');
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
-
-  /* Sync URL params */
-  useEffect(() => {
-    setSelectedCategory(searchParams.get('category'));
-    setSearchQuery(searchParams.get('search'));
-  }, [searchParams]);
-
-  /* Fetch filtered products when user changes filters */
-  useEffect(() => {
-    // If default state, keep initialProducts
-    if (!selectedCategory && !searchQuery && priceRange.min === 0 && priceRange.max === 150000 && !selectedRating) {
-      setProducts(initialProducts);
-      setLoading(false);
-      return;
-    }
-
-    let isMounted = true;
-    (async () => {
-      try {
-        setLoading(true);
-        let url = '/api/products?';
-        if (selectedCategory) url += `category=${encodeURIComponent(selectedCategory)}&`;
-        if (searchQuery) url += `search=${encodeURIComponent(searchQuery)}&`;
-        if (priceRange.min > 0) url += `minPrice=${priceRange.min}&`;
-        if (priceRange.max < 150000) url += `maxPrice=${priceRange.max}&`;
-        if (selectedRating) url += `rating=${selectedRating}&`;
-        url = url.replace(/[&?]$/, '');
-        const res = await fetch(url);
-        const data = await res.json();
-        if (isMounted && data.success) setProducts(data.data);
-      } catch { }
-      finally { if (isMounted) setLoading(false); }
-    })();
-
-    return () => { isMounted = false; };
-  }, [selectedCategory, searchQuery, priceRange, selectedRating, initialProducts]);
-
-  const handleReset = () => {
-    setSelectedCategory(null); setSearchQuery(null);
-    setPriceRange({ min: 0, max: 150000 });
-    setSelectedRating(null); setSortBy('default'); setKeywords('');
-  };
-
-  const sorted = [...products].sort((a, b) => {
-    if (sortBy === 'price-asc') return a.price - b.price;
-    if (sortBy === 'price-desc') return b.price - a.price;
-    if (sortBy === 'rating-desc') return b.rating - a.rating;
-    return 0;
-  });
-
-  const hasFilters = !!(selectedCategory || selectedRating || priceRange.max < 150000 || searchQuery);
+  const {
+    sortedProducts: sorted,
+    loading,
+    selectedCategory,
+    setSelectedCategory,
+    searchQuery,
+    setSearchQuery,
+    priceRange,
+    setPriceRange,
+    selectedRating,
+    setSelectedRating,
+    sortBy,
+    setSortBy,
+    keywords,
+    setKeywords,
+    viewMode,
+    setViewMode,
+    mobileFilterOpen,
+    setMobileFilterOpen,
+    handleReset,
+    hasFilters,
+  } = useShopFilters({ initialProducts });
 
   return (
     <div style={{ background: bg, minHeight: '100vh' }}>
@@ -107,14 +65,14 @@ function ShopContent({ initialProducts }: ShopClientProps) {
         </div>
       </div>
 
-      <div style={{ 
-        maxWidth: '1440px', 
-        margin: '0 auto', 
-        width: '100%', 
-        display: 'flex', 
-        gap: '24px', 
-        padding: '16px 12px 24px', 
-        alignItems: 'flex-start' 
+      <div style={{
+        maxWidth: '1440px',
+        margin: '0 auto',
+        width: '100%',
+        display: 'flex',
+        gap: '24px',
+        padding: '16px 12px 24px',
+        alignItems: 'flex-start'
       }}>
 
         {/* ── Sidebar (desktop) ── */}
@@ -191,7 +149,7 @@ function ShopContent({ initialProducts }: ShopClientProps) {
 
             {/* Row 2: Filters + Results Count + Sort + Grid/List Switcher */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px', borderTop: '1px solid #f1f5f9', paddingTop: '8px' }}>
-              
+
               {/* Left: Mobile Filters Button & Results Count */}
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <button

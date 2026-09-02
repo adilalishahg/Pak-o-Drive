@@ -1,214 +1,46 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { OptimizedImage } from '@/components/common/OptimizedImage';
-import { optimizeImageBeforeUpload } from '@/utils/imageOptimizer';
 import { DeleteConfirmModal } from '@/components/admin/common/DeleteConfirmModal';
-import { CategoryData } from '@/types';
+import { useAdminCategories } from '@/hooks/useAdminCategories';
 
 export default function AdminCategoriesPage() {
-
-  const [categories, setCategories] = useState<CategoryData[]>([]);
-  const [failedImages, setFailedImages] = useState<Record<string, boolean>>({});
-  const [name, setName] = useState('');
-  const [slug, setSlug] = useState('');
-  const [icon, setIcon] = useState('fas fa-tag');
-  const [image, setImage] = useState('');
-  const [parentCategory, setParentCategory] = useState('');
-  const [uploading, setUploading] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState('');
-  const [editingCategory, setEditingCategory] = useState<CategoryData | null>(null);
-
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    setUploading(true);
-    setError('');
-
-    try {
-      const optimizedFile = await optimizeImageBeforeUpload(file);
-      const formData = new FormData();
-      formData.append('file', optimizedFile);
-      const res = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData,
-      });
-
-      const json = await res.json();
-      if (json.success) {
-        setImage(json.url);
-      } else {
-        throw new Error(json.error || 'Failed to upload image file.');
-      }
-    } catch (err: any) {
-      console.error(err);
-      setError(err.message || 'Error uploading file.');
-    } finally {
-      setUploading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchCategories();
-  }, []);
-
-  async function fetchCategories() {
-    try {
-      setLoading(true);
-      const res = await fetch('/api/categories');
-      const json = await res.json();
-      if (json.success) {
-        const normalized = (json.data || []).map((c: any) => ({
-          ...c,
-          id: c.id || c._id || c.slug,
-        }));
-        setCategories(normalized);
-      } else {
-        throw new Error(json.error || 'Failed to fetch categories');
-      }
-    } catch (err: any) {
-      console.error(err);
-      setError(err.message || 'Error connecting to database.');
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = e.target.value;
-    setName(val);
-    // Auto slug generation
-    setSlug(val.toLowerCase().trim().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-'));
-  };
-
-  const handleStartEdit = (cat: CategoryData) => {
-    setEditingCategory(cat);
-    setName(cat.name);
-    setSlug(cat.slug);
-    setIcon(cat.icon || 'fas fa-tag');
-    setImage(cat.image || '');
-    setParentCategory(cat.parentCategory || '');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  const handleCancelEdit = () => {
-    setEditingCategory(null);
-    setName('');
-    setSlug('');
-    setIcon('fas fa-tag');
-    setImage('');
-    setParentCategory('');
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!name || !slug) return;
-    setSaving(true);
-    setError('');
-
-    try {
-      if (editingCategory) {
-        // Update Category
-        const res = await fetch(`/api/categories/${editingCategory.id}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name, slug, icon, image, parentCategory }),
-        });
-        const json = await res.json();
-        if (json.success) {
-          setCategories(categories.map((c) => c.id === editingCategory.id ? json.data : c).sort((a, b) => a.name.localeCompare(b.name)));
-          handleCancelEdit();
-        } else {
-          throw new Error(json.error || 'Failed to update category');
-        }
-      } else {
-        // Create Category
-        const res = await fetch('/api/categories', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name, slug, icon, image, parentCategory }),
-        });
-        const json = await res.json();
-
-        if (json.success) {
-          setCategories([...categories, json.data].sort((a, b) => a.name.localeCompare(b.name)));
-          setName('');
-          setSlug('');
-          setIcon('fas fa-tag');
-          setImage('');
-          setParentCategory('');
-        } else {
-          throw new Error(json.error || 'Failed to create category');
-        }
-      }
-    } catch (err: any) {
-      console.error(err);
-      setError(err.message || 'Error occurred while saving category.');
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
-  const [deleteLoading, setDeleteLoading] = useState(false);
-
-  const confirmDelete = async () => {
-    if (!deleteTarget) return;
-    setDeleteLoading(true);
-    try {
-      const res = await fetch(`/api/categories/${deleteTarget.id}`, {
-        method: 'DELETE',
-      });
-      const json = await res.json();
-      if (json.success) {
-        setCategories((prev) => prev.filter((c) => c.id !== deleteTarget.id));
-      } else {
-        setError(json.error || 'Failed to delete category.');
-      }
-    } catch {
-      setError('Network error, could not delete category.');
-    } finally {
-      setDeleteLoading(false);
-      setDeleteTarget(null);
-    }
-  };
-
-  const [filterMode, setFilterMode] = useState<'all' | 'roots' | 'subs'>('all');
-  const [seeding, setSeeding] = useState(false);
-
-  const handleSeedDefaults = async () => {
-    setSeeding(true);
-    setError('');
-    try {
-      const res = await fetch('/api/categories', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'seed_defaults' }),
-      });
-      const json = await res.json();
-      if (json.success) {
-        await fetchCategories();
-      } else {
-        throw new Error(json.error || 'Failed to seed categories');
-      }
-    } catch (err: any) {
-      setError(err.message || 'Failed to seed categories.');
-    } finally {
-      setSeeding(false);
-    }
-  };
-
-  const rootCategories = categories.filter((c) => !c.parentCategory);
-  const subCategories = categories.filter((c) => Boolean(c.parentCategory));
-
-  const displayedCategories = categories.filter((c) => {
-    if (filterMode === 'roots') return !c.parentCategory;
-    if (filterMode === 'subs') return Boolean(c.parentCategory);
-    return true;
-  });
+  const {
+    categories,
+    displayedCategories,
+    rootCategories,
+    subCategories,
+    failedImages,
+    markImageFailed,
+    name,
+    slug,
+    setSlug,
+    icon,
+    setIcon,
+    image,
+    setImage,
+    parentCategory,
+    setParentCategory,
+    uploading,
+    loading,
+    saving,
+    error,
+    editingCategory,
+    deleteTarget,
+    setDeleteTarget,
+    deleteLoading,
+    filterMode,
+    setFilterMode,
+    seeding,
+    handleFileChange,
+    handleNameChange,
+    handleStartEdit,
+    handleCancelEdit,
+    handleSubmit,
+    confirmDelete,
+    handleSeedDefaults,
+  } = useAdminCategories();
 
   if (loading && categories.length === 0) {
     return (
@@ -300,9 +132,7 @@ export default function AdminCategoriesPage() {
                               fill
                               sizes="36px"
                               style={{ objectFit: 'cover' }}
-                              onError={() => {
-                                setFailedImages((prev) => ({ ...prev, [cat.id]: true }));
-                              }}
+                              onError={() => markImageFailed(cat.id)}
                             />
                           ) : (
                             <i className={cat.icon || 'fas fa-tag'} />
@@ -407,7 +237,7 @@ export default function AdminCategoriesPage() {
                 >
                   <option value="">None (Make Root Category)</option>
                   {categories
-                    .filter((c) => !c.parentCategory) // only root categories as parents
+                    .filter((c) => !c.parentCategory)
                     .map((c) => (
                       <option key={c._id || c.id || c.slug} value={c.slug}>
                         {c.name}
@@ -469,7 +299,7 @@ export default function AdminCategoriesPage() {
                       fill
                       sizes="150px"
                       style={{ objectFit: 'contain' }}
-                      unoptimized // Since it can be a local blob URL during upload
+                      unoptimized
                     />
                   </div>
                   <div className="text-muted small mt-1">Image Preview</div>
