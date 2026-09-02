@@ -47,6 +47,28 @@ export const ACTIVE_ICON_REGISTRY = new Set([
 
 // Semantic keyword-to-icon mapping matrix
 const SEMANTIC_ICON_RULES: Array<{ keywords: string[]; icon: string }> = [
+  // Mobile, Smartphones & Accessories
+  {
+    keywords: ['mobile-accessories', 'mobile-tech', 'mobile', 'smartphone', 'phone', 'iphone', 'android', 'case', 'protector'],
+    icon: 'fas fa-mobile-alt',
+  },
+  {
+    keywords: ['charger', 'fast-charger', 'cable', 'wire', 'adapter', 'pd', 'type-c', 'usb', 'charging'],
+    icon: 'fas fa-bolt',
+  },
+  {
+    keywords: ['power-bank', 'powerbank', 'battery', 'battery-pack', 'accumulator'],
+    icon: 'fas fa-battery-full',
+  },
+  {
+    keywords: ['earbud', 'earbuds', 'headphone', 'headphones', 'airpod', 'earphone', 'audio', 'sound', 'speaker', 'handsfree', 'bluetooth', 'tws'],
+    icon: 'fas fa-headphones',
+  },
+  {
+    keywords: ['smartwatch', 'smart-watch', 'watch', 'band', 'fitness-tracker', 'clock'],
+    icon: 'fas fa-clock',
+  },
+
   // Car / Automotive Specifics
   {
     keywords: ['car-accessories', 'car', 'automotive', 'vehicle', 'auto', 'drive', 'engine', 'motor'],
@@ -57,7 +79,7 @@ const SEMANTIC_ICON_RULES: Array<{ keywords: string[]; icon: string }> = [
     icon: 'fas fa-car-side',
   },
   {
-    keywords: ['perfume', 'freshener', 'scent', 'fragrance', 'aroma', 'diffuser', 'spray'],
+    keywords: ['perfume', 'perfumes', 'freshener', 'scent', 'fragrance', 'aroma', 'diffuser', 'spray'],
     icon: 'fas fa-spray-can',
   },
   {
@@ -91,32 +113,9 @@ const SEMANTIC_ICON_RULES: Array<{ keywords: string[]; icon: string }> = [
     icon: 'fas fa-shield-alt',
   },
 
-  // Mobile & Charging
-  {
-    keywords: ['mobile', 'smartphone', 'phone', 'iphone', 'android', 'case', 'protector'],
-    icon: 'fas fa-mobile-alt',
-  },
-  {
-    keywords: ['charger', 'fast-charger', 'cable', 'wire', 'adapter', 'pd', 'type-c', 'usb'],
-    icon: 'fas fa-bolt',
-  },
-  {
-    keywords: ['power-bank', 'powerbank', 'battery', 'battery-pack', 'accumulator'],
-    icon: 'fas fa-battery-full',
-  },
   {
     keywords: ['mount', 'holder', 'tripod', 'stand', 'magnetic-mount'],
     icon: 'fas fa-camera',
-  },
-
-  // Audio & Smart Tech
-  {
-    keywords: ['earbud', 'earbuds', 'headphone', 'headphones', 'airpod', 'earphone', 'audio', 'sound', 'speaker', 'handsfree', 'bluetooth'],
-    icon: 'fas fa-headphones',
-  },
-  {
-    keywords: ['smartwatch', 'smart-watch', 'watch', 'band', 'fitness-tracker', 'clock'],
-    icon: 'fas fa-clock',
   },
 
   // Home & Kitchen Gadgets
@@ -215,15 +214,20 @@ export function getBestCategoryIcon(categoryNameOrSlug: string, userProvidedIcon
     }
   }
 
-  if (!categoryNameOrSlug) return 'fas fa-tag';
+  const clean = categoryNameOrSlug.toLowerCase().trim();
+  const words = clean.replace(/[^a-z0-9]+/g, ' ').split(/\s+/).filter(Boolean);
 
-  const clean = categoryNameOrSlug.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
-  const words = clean.split(' ').filter(Boolean);
-
-  // Exact rule search
+  // Exact rule search with exact word & phrase boundaries
   for (const rule of SEMANTIC_ICON_RULES) {
     for (const kw of rule.keywords) {
-      if (clean.includes(kw) || words.some((w) => w === kw || kw.includes(w))) {
+      const cleanKw = kw.replace(/[^a-z0-9]+/g, ' ').trim();
+      if (clean === kw || clean === cleanKw) {
+        return rule.icon;
+      }
+      if (words.includes(kw) || words.includes(cleanKw)) {
+        return rule.icon;
+      }
+      if (clean.includes(cleanKw) && cleanKw.length > 3) {
         return rule.icon;
       }
     }
@@ -299,3 +303,46 @@ export async function resolveCategoryIcon(categoryName: string, userProvidedIcon
 
   return heuristicIcon || 'fas fa-tag';
 }
+
+/**
+ * Intelligently infers category name, slug, and verified icon from product name and description
+ * when a JSON product has no category specified.
+ */
+export function inferCategoryFromProduct(productName: string, productDesc?: string): { name: string; slug: string; icon: string } {
+  const text = `${productName} ${productDesc || ''}`.toLowerCase();
+
+  if (text.includes('perfume') || text.includes('scent') || text.includes('fragrance') || text.includes('freshener') || text.includes('aroma') || text.includes('diffuser')) {
+    return { name: 'Car Perfumes & Fresheners', slug: 'perfumes', icon: 'fas fa-spray-can' };
+  }
+  if (text.includes('phone') || text.includes('mobile') || text.includes('iphone') || text.includes('holder') || text.includes('mount') || text.includes('charger') || text.includes('cable')) {
+    return { name: 'Mobile Accessories', slug: 'mobile-accessories', icon: 'fas fa-mobile-alt' };
+  }
+  if (text.includes('led') || text.includes('light') || text.includes('ambient') || text.includes('headlight') || text.includes('fog light') || text.includes('neon')) {
+    return { name: 'Car Lighting & LEDs', slug: 'car-lighting', icon: 'fas fa-lightbulb' };
+  }
+  if (text.includes('audio') || text.includes('speaker') || text.includes('headphone') || text.includes('earbud') || text.includes('bluetooth') || text.includes('sound')) {
+    return { name: 'Audio & Gadgets', slug: 'audio-gadgets', icon: 'fas fa-headphones' };
+  }
+  if (text.includes('watch') || text.includes('smartwatch') || text.includes('clock') || text.includes('fitness')) {
+    return { name: 'Smart Watches', slug: 'smartwatches', icon: 'fas fa-clock' };
+  }
+  if (text.includes('camera') || text.includes('dashcam') || text.includes('dvr') || text.includes('security')) {
+    return { name: 'Dashcams & Security', slug: 'dashcams', icon: 'fas fa-video' };
+  }
+  if (text.includes('seat') || text.includes('mat') || text.includes('cushion') || text.includes('steering') || text.includes('interior') || text.includes('trunk')) {
+    return { name: 'Car Interior', slug: 'car-interior', icon: 'fas fa-car-side' };
+  }
+  if (text.includes('wash') || text.includes('shampoo') || text.includes('polish') || text.includes('microfiber') || text.includes('cleaner') || text.includes('wax')) {
+    return { name: 'Car Detailing & Care', slug: 'car-detailing', icon: 'fas fa-soap' };
+  }
+  if (text.includes('tool') || text.includes('wrench') || text.includes('jack') || text.includes('inflator') || text.includes('pump')) {
+    return { name: 'Emergency Tools & Inflators', slug: 'tools', icon: 'fas fa-tools' };
+  }
+  if (text.includes('car') || text.includes('auto') || text.includes('vehicle') || text.includes('drive')) {
+    return { name: 'Car Accessories', slug: 'car-accessories', icon: 'fas fa-car' };
+  }
+
+  const icon = getBestCategoryIcon(productName);
+  return { name: 'Automotive & Gadgets', slug: 'automotive-gadgets', icon: icon !== 'fas fa-tag' ? icon : 'fas fa-car' };
+}
+

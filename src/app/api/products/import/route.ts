@@ -6,25 +6,41 @@ import dbConnect from '@/lib/mongodb';
 import Product from '@/models/Product';
 import Category from '@/models/Category';
 import { BulkImportProductInput } from '@/types';
-import { resolveCategoryIcon } from '@/lib/categoryIconService';
+import { resolveCategoryIcon, inferCategoryFromProduct, isIconValidInActiveLibrary } from '@/lib/categoryIconService';
 
 /**
  * Ensures Main Category & Subcategory exist in DB.
- * If either is missing, it creates it on the fly!
+ * If category is missing in JSON, infers it using product name & AI rules.
+ * If category exists but has a generic or invalid icon, auto-heals it to the accurate icon!
  */
-async function resolveAndEnsureCategories(catInput?: string, subcatInput?: string, fallbackImage?: string) {
-  const catName = (catInput || 'General').trim();
-  const catSlug = catName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+async function resolveAndEnsureCategories(
+  productName: string,
+  productDesc?: string,
+  catInput?: string,
+  subcatInput?: string,
+  fallbackImage?: string
+) {
+  let catName = (catInput || '').trim();
+  let catSlug = catName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+  let defaultInferredIcon = '';
 
-  // 1. Find or create Main Category
+  // 1. If category is omitted in JSON, infer intelligently from product
+  if (!catName || catName.toLowerCase() === 'general' || catName.toLowerCase() === 'all') {
+    const inferred = inferCategoryFromProduct(productName, productDesc);
+    catName = inferred.name;
+    catSlug = inferred.slug;
+    defaultInferredIcon = inferred.icon;
+  }
+
+  // 2. Find or create Main Category
   let mainCategory = await Category.findOne({
     $or: [{ slug: catSlug }, { name: new RegExp(`^${catName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') }],
   });
 
   if (!mainCategory) {
-    const verifiedIcon = await resolveCategoryIcon(catName);
+    const verifiedIcon = defaultInferredIcon || (await resolveCategoryIcon(catName));
     mainCategory = await Category.create({
-      name: catName.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
+      name: catName.replace(/-/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase()),
       slug: catSlug,
       icon: verifiedIcon,
       image: fallbackImage || '',
@@ -32,10 +48,18 @@ async function resolveAndEnsureCategories(catInput?: string, subcatInput?: strin
       productCount: 1,
     });
   } else {
-    await Category.updateOne({ _id: mainCategory._id }, { $inc: { productCount: 1 } });
+    // Auto-heal existing icon if it's generic ('fas fa-tag', 'fas fa-box') or not in active library
+    const currIcon = mainCategory.icon || '';
+    if (!isIconValidInActiveLibrary(currIcon) || currIcon === 'fas fa-tag' || currIcon === 'fas fa-box') {
+      const accurateIcon = await resolveCategoryIcon(mainCategory.name);
+      await Category.updateOne({ _id: mainCategory._id }, { icon: accurateIcon, $inc: { productCount: 1 } });
+      mainCategory.icon = accurateIcon;
+    } else {
+      await Category.updateOne({ _id: mainCategory._id }, { $inc: { productCount: 1 } });
+    }
   }
 
-  // 2. Find or create Subcategory if provided
+  // 3. Find or create Subcategory if provided
   let subCategorySlug = '';
   if (subcatInput && subcatInput.trim()) {
     const subName = subcatInput.trim();
@@ -48,7 +72,7 @@ async function resolveAndEnsureCategories(catInput?: string, subcatInput?: strin
     if (!subCategory) {
       const verifiedSubIcon = await resolveCategoryIcon(subName);
       subCategory = await Category.create({
-        name: subName.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
+        name: subName.replace(/-/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase()),
         slug: subSlug,
         icon: verifiedSubIcon,
         image: fallbackImage || '',
@@ -56,12 +80,19 @@ async function resolveAndEnsureCategories(catInput?: string, subcatInput?: strin
         productCount: 1,
       });
     } else {
-      // Ensure it points to this parent if it had no parent
-      if (!subCategory.parentCategory) {
-        await Category.updateOne({ _id: subCategory._id }, { parentCategory: mainCategory.slug, $inc: { productCount: 1 } });
-      } else {
-        await Category.updateOne({ _id: subCategory._id }, { $inc: { productCount: 1 } });
-      }
+      const currSubIcon = subCategory.icon || '';
+      const accurateSubIcon = (!isIconValidInActiveLibrary(currSubIcon) || currSubIcon === 'fas fa-tag' || currSubIcon === 'fas fa-box')
+        ? await resolveCategoryIcon(subCategory.name)
+        : currSubIcon;
+
+      await Category.updateOne(
+        { _id: subCategory._id },
+        {
+          parentCategory: subCategory.parentCategory || mainCategory.slug,
+          icon: accurateSubIcon,
+          $inc: { productCount: 1 },
+        }
+      );
     }
     subCategorySlug = subCategory.slug;
   }
@@ -105,8 +136,10 @@ export async function POST(request: Request) {
         continue;
       }
 
-      // Resolve and auto-create category + subcategory
+      // Resolve and auto-create or auto-heal category + subcategory
       const { categorySlug, subcategorySlug } = await resolveAndEnsureCategories(
+        item.name,
+        item.description,
         item.category,
         item.subcategory,
         item.image
