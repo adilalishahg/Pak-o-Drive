@@ -161,9 +161,11 @@ export const OptimizedImage: React.FC<OptimizedImageProps> = ({
 
   if (isPriority) {
     imageProps.priority = true;
+    imageProps.fetchPriority = 'high';
     delete imageProps.loading;
   } else {
     imageProps.loading = loading;
+    imageProps.fetchPriority = 'auto';
   }
 
   return (

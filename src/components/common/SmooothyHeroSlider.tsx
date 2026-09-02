@@ -258,7 +258,8 @@ export function SmooothyHeroSlider({
                       sizes="(max-width: 767px) 40vw, (max-width: 991px) 35vw, 260px"
                       style={{ objectFit: 'contain' }}
                       priority={idx === 0}
-                      loading={idx === 0 ? 'eager' : 'lazy'}
+                      fetchPriority={idx === 0 ? 'high' : 'auto'}
+                      loading={idx === 0 ? undefined : 'lazy'}
                       draggable={false}
                     />
                   </div>

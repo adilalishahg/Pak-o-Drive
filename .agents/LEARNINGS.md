@@ -883,6 +883,14 @@ This file serves as persistent dynamic memory across coding agent sessions. Ever
   4. Updated [src/hooks/useAdminCategories.ts](file:///d:/proj/Pak-o-Drive/src/hooks/useAdminCategories.ts) and [src/app/admin/categories/page.tsx](file:///d:/proj/Pak-o-Drive/src/app/admin/categories/page.tsx) with live icon auto-suggestions and a `✨ AI Auto-Pick Icon` action.
   5. Verified `pnpm tsc --noEmit` passing with 0 errors.
 
+### 2026-09-02: Next.js LCP Image Priority & High-Speed Asset Preload
+- **Issue**: Next.js terminal warned `Image was detected as the Largest Contentful Paint (LCP). Please add the loading="eager" property if this image is above the fold` when rendering the hero slide image.
+- **Root Cause**: Next.js 16 requires above-the-fold hero images to have `priority={true}` with `fetchPriority="high"` while strictly omitting conflicting `loading="lazy"` props.
+- **Verified Fix**:
+  1. Updated [HeroSlider.tsx](file:///d:/proj/Pak-o-Drive/src/components/common/HeroSlider.tsx) and [SmooothyHeroSlider.tsx](file:///d:/proj/Pak-o-Drive/src/components/common/SmooothyHeroSlider.tsx) to set `priority={true}` and `fetchPriority="high"` on the first slide image.
+  2. Enhanced [OptimizedImage.tsx](file:///d:/proj/Pak-o-Drive/src/components/common/OptimizedImage.tsx) to automatically attach `fetchPriority="high"` and eliminate conflicting `loading` attributes whenever `priority` is requested.
+  3. Verified `pnpm tsc --noEmit` passing with 0 errors.
+
 ### 2026-09-02: Order Confirmation Page Pure-UI Architecture & Custom Hook Decoupling
 - **Issue**: `src/app/order-confirmation/[id]/page.tsx` contained 325 lines of mixed API calls, confetti triggers, Meta and TikTok Pixel fires, WhatsApp deep-link string formatting, and inline invoice markup, violating Rule #8 (Zero Logic in UI).
 - **Root Cause**: All tracking side-effects, deep-linking templates, and invoice markup were bundled into the page component.

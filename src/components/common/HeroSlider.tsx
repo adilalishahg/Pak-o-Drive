@@ -190,8 +190,8 @@ function ClassicHeroSlider({
                 fill
                 sizes="(max-width: 767px) 40vw, (max-width: 991px) 35vw, 260px"
                 style={{ objectFit: 'contain' }}
-                priority={current === 0}
-                loading={current === 0 ? 'eager' : 'lazy'}
+                priority={true}
+                fetchPriority="high"
               />
             </div>
           </div>
