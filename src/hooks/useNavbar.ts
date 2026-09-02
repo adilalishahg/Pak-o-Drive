@@ -56,6 +56,17 @@ export function useNavbar(): NavbarHookReturn {
     setSearchOpen(false);
   }, [pathname]);
 
+  // Lock body scroll when mobile drawer is open so page doesn't scroll
+  useEffect(() => {
+    if (mobileOpen) {
+      const originalOverflow = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = originalOverflow;
+      };
+    }
+  }, [mobileOpen]);
+
   // Fetch categories using client-side cache
   useEffect(() => {
     let isSubscribed = true;

@@ -799,6 +799,14 @@ This file serves as persistent dynamic memory across coding agent sessions. Ever
   3. Streamed `RelatedProductsSection` using React 19 `<Suspense>`, allowing the main product detail to render immediately without blocking on secondary queries.
   4. Verified `pnpm tsc --noEmit` passing with 0 errors.
 
+### 2026-09-02: Mobile Hamburger Sidebar Sticky & Scroll-Lock Resolution
+- **Issue**: Opening the mobile hamburger menu did not remain sticky/fixed; scrolling up caused the drawer to scroll off the screen.
+- **Root Cause**: `MobileNavDrawer.tsx` was rendered as a static inline `<div>` directly inside the document flow with no fixed positioning or backdrop, and the background page body was not locked when the menu opened.
+- **Verified Fix**:
+  1. Converted `MobileNavDrawer.tsx` into an off-canvas drawer with `position: fixed; inset: 0; zIndex: 9998` backdrop blur overlay and `position: fixed; top: 0; left: 0; bottom: 0; height: 100dvh; zIndex: 9999` panel with sticky header and close button (✕).
+  2. Implemented automated `document.body.style.overflow = 'hidden'` in `useNavbar.ts` when `mobileOpen` is true so the background page never scrolls.
+  3. Verified `pnpm tsc --noEmit` passing with 0 errors.
+
 
 
 
