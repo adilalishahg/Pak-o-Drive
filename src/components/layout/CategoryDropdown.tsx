@@ -3,26 +3,15 @@
 import React from 'react';
 import Link from 'next/link';
 import { OptimizedImage } from '../common/OptimizedImage';
-
-const CAT_ICONS: Record<string, string> = {
-  headphones: 'fas fa-headphones-alt',
-  chargers: 'fas fa-bolt',
-  automotive: 'fas fa-car',
-  smartwatches: 'fas fa-clock',
-  accessories: 'fas fa-mobile-alt',
-  laptops: 'fas fa-laptop',
-  cameras: 'fas fa-camera',
-  gaming: 'fas fa-gamepad',
-  speakers: 'fas fa-volume-up',
-  tablets: 'fas fa-tablet-alt',
-  cables: 'fas fa-plug',
-  networking: 'fas fa-wifi',
-};
+import { getBestCategoryIcon } from '@/lib/categoryIconService';
 
 const CAT_COLORS: Record<string, string> = {
   headphones: '#7c3aed',
   chargers: '#f59e0b',
   automotive: '#0891b2',
+  'car-accessories': '#0891b2',
+  'mobile-accessories': '#db2777',
+  perfumes: '#ec4899',
   smartwatches: '#059669',
   accessories: '#db2777',
   laptops: '#2563eb',
@@ -34,7 +23,7 @@ const CAT_COLORS: Record<string, string> = {
   networking: '#0284c7',
 };
 
-export const getCatIcon = (s: string) => CAT_ICONS[s] ?? 'fas fa-tag';
+export const getCatIcon = (s: string) => getBestCategoryIcon(s);
 export const getCatColor = (s: string, primaryColor?: string) =>
   CAT_COLORS[s] ?? (primaryColor || 'var(--pd-primary)');
 

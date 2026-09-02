@@ -3,6 +3,7 @@
 import React from 'react';
 import { CategorySidebarProps } from '@/types/product';
 import { useCategorySidebar, PRICE_MAX, PRICE_MIN } from '@/hooks/useCategorySidebar';
+import { CategoryIcon } from '@/components/common/ThemeIcon';
 
 export const CategorySidebar: React.FC<CategorySidebarProps> = ({
   selectedCategory,
@@ -132,7 +133,7 @@ export const CategorySidebar: React.FC<CategorySidebarProps> = ({
                           style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                         />
                       ) : (
-                        <i className={root.icon || 'fas fa-tag'} style={{ fontSize: '10px', color: rootActive ? '#fff' : '#64748b' }} />
+                        <CategoryIcon icon={root.icon} style={{ fontSize: '10px', color: rootActive ? '#fff' : '#64748b' }} />
                       )}
                     </div>
                     <span style={{ fontSize: '0.8rem', fontWeight: rootActive ? 700 : 500, color: rootActive ? 'var(--pd-primary)' : '#374151', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>

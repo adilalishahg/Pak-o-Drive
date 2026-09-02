@@ -182,6 +182,6 @@ export const getCachedAllCategories = unstable_cache(
       return [];
     }
   },
-  ['all-categories-tree-v2'],
+  ['all-categories-tree-v3'],
   { revalidate: 300, tags: ['categories'] }
 );

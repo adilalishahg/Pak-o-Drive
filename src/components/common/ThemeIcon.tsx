@@ -192,3 +192,229 @@ export const ThemeIcon: React.FC<ThemeIconProps> = ({ name, className = '', styl
 
   return <i className={`${value} ${className}`} style={style} />;
 };
+
+/**
+ * Universal Category Icon Component:
+ * Automatically adapts any category icon (FontAwesome, etc.) to whichever
+ * of the 5 icon libraries is currently active in Theme Settings!
+ */
+export const CategoryIcon: React.FC<{
+  icon?: string;
+  className?: string;
+  style?: React.CSSProperties;
+  fallback?: string;
+}> = ({ icon, className = '', style, fallback = 'fas fa-tag' }) => {
+  const { theme } = useSiteTheme();
+  const lib = theme.iconLibrary ?? 'fontawesome';
+
+  const rawIcon = (icon && icon !== 'fas fa-tag' && icon !== 'fas fa-box') ? icon : fallback;
+
+  // Cross-library category icon translation map
+  const categoryLibraryMap: Record<string, Record<string, string>> = {
+    'fas fa-car': {
+      fontawesome: 'fas fa-car',
+      bootstrap: 'bi bi-car-front-fill',
+      material: 'directions_car',
+      remix: 'ri-car-fill',
+      phosphor: 'ph-fill ph-car',
+    },
+    'fas fa-mobile-alt': {
+      fontawesome: 'fas fa-mobile-alt',
+      bootstrap: 'bi bi-phone-fill',
+      material: 'smartphone',
+      remix: 'ri-smartphone-line',
+      phosphor: 'ph-fill ph-device-mobile',
+    },
+    'fas fa-spray-can': {
+      fontawesome: 'fas fa-spray-can',
+      bootstrap: 'bi bi-droplet-fill',
+      material: 'air',
+      remix: 'ri-spray-line',
+      phosphor: 'ph-fill ph-drop',
+    },
+    'fas fa-headphones': {
+      fontawesome: 'fas fa-headphones',
+      bootstrap: 'bi bi-headphones',
+      material: 'headphones',
+      remix: 'ri-headphone-line',
+      phosphor: 'ph ph-headphones',
+    },
+    'fas fa-bolt': {
+      fontawesome: 'fas fa-bolt',
+      bootstrap: 'bi bi-lightning-charge-fill',
+      material: 'bolt',
+      remix: 'ri-flashlight-line',
+      phosphor: 'ph-fill ph-lightning',
+    },
+    'fas fa-clock': {
+      fontawesome: 'fas fa-clock',
+      bootstrap: 'bi bi-smartwatch',
+      material: 'watch',
+      remix: 'ri-time-line',
+      phosphor: 'ph ph-clock',
+    },
+    'fas fa-tools': {
+      fontawesome: 'fas fa-tools',
+      bootstrap: 'bi bi-tools',
+      material: 'build',
+      remix: 'ri-tools-line',
+      phosphor: 'ph ph-wrench',
+    },
+    'fas fa-soap': {
+      fontawesome: 'fas fa-soap',
+      bootstrap: 'bi bi-water',
+      material: 'cleaning_services',
+      remix: 'ri-sparkling-line',
+      phosphor: 'ph ph-sparkle',
+    },
+    'fas fa-lightbulb': {
+      fontawesome: 'fas fa-lightbulb',
+      bootstrap: 'bi bi-lightbulb-fill',
+      material: 'lightbulb',
+      remix: 'ri-lightbulb-line',
+      phosphor: 'ph-fill ph-lightbulb',
+    },
+    'fas fa-video': {
+      fontawesome: 'fas fa-video',
+      bootstrap: 'bi bi-camera-video-fill',
+      material: 'videocam',
+      remix: 'ri-video-line',
+      phosphor: 'ph-fill ph-video-camera',
+    },
+    'fas fa-car-side': {
+      fontawesome: 'fas fa-car-side',
+      bootstrap: 'bi bi-car-front',
+      material: 'drive_eta',
+      remix: 'ri-car-line',
+      phosphor: 'ph ph-car',
+    },
+    'fas fa-battery-full': {
+      fontawesome: 'fas fa-battery-full',
+      bootstrap: 'bi bi-battery-full',
+      material: 'battery_full',
+      remix: 'ri-battery-fill',
+      phosphor: 'ph-fill ph-battery-full',
+    },
+    'fas fa-motorcycle': {
+      fontawesome: 'fas fa-motorcycle',
+      bootstrap: 'bi bi-bicycle',
+      material: 'two_wheeler',
+      remix: 'ri-motorbike-line',
+      phosphor: 'ph ph-motorcycle',
+    },
+    'fas fa-shield-alt': {
+      fontawesome: 'fas fa-shield-alt',
+      bootstrap: 'bi bi-shield-check',
+      material: 'verified_user',
+      remix: 'ri-shield-check-line',
+      phosphor: 'ph ph-shield-check',
+    },
+    'fas fa-home': {
+      fontawesome: 'fas fa-home',
+      bootstrap: 'bi bi-house-fill',
+      material: 'home',
+      remix: 'ri-home-fill',
+      phosphor: 'ph-fill ph-house',
+    },
+    'fas fa-cut': {
+      fontawesome: 'fas fa-cut',
+      bootstrap: 'bi bi-scissors',
+      material: 'content_cut',
+      remix: 'ri-scissors-line',
+      phosphor: 'ph ph-scissors',
+    },
+    'fas fa-blender': {
+      fontawesome: 'fas fa-blender',
+      bootstrap: 'bi bi-cup-straw',
+      material: 'blender',
+      remix: 'ri-cup-line',
+      phosphor: 'ph ph-cooking-pot',
+    },
+    'fas fa-broom': {
+      fontawesome: 'fas fa-broom',
+      bootstrap: 'bi bi-brush',
+      material: 'cleaning_services',
+      remix: 'ri-brush-line',
+      phosphor: 'ph ph-broom',
+    },
+    'fas fa-boxes': {
+      fontawesome: 'fas fa-boxes',
+      bootstrap: 'bi bi-boxes',
+      material: 'inventory_2',
+      remix: 'ri-archive-line',
+      phosphor: 'ph ph-package',
+    },
+    'fas fa-gamepad': {
+      fontawesome: 'fas fa-gamepad',
+      bootstrap: 'bi bi-controller',
+      material: 'sports_esports',
+      remix: 'ri-gamepad-line',
+      phosphor: 'ph ph-game-controller',
+    },
+    'fas fa-tshirt': {
+      fontawesome: 'fas fa-tshirt',
+      bootstrap: 'bi bi-person-badge',
+      material: 'checkroom',
+      remix: 'ri-t-shirt-line',
+      phosphor: 'ph ph-t-shirt',
+    },
+    'fas fa-laptop': {
+      fontawesome: 'fas fa-laptop',
+      bootstrap: 'bi bi-laptop',
+      material: 'laptop_mac',
+      remix: 'ri-macbook-line',
+      phosphor: 'ph ph-laptop',
+    },
+    'fas fa-gift': {
+      fontawesome: 'fas fa-gift',
+      bootstrap: 'bi bi-gift-fill',
+      material: 'card_giftcard',
+      remix: 'ri-gift-line',
+      phosphor: 'ph-fill ph-gift',
+    },
+    'fas fa-heartbeat': {
+      fontawesome: 'fas fa-heartbeat',
+      bootstrap: 'bi bi-activity',
+      material: 'monitor_heart',
+      remix: 'ri-heart-pulse-line',
+      phosphor: 'ph ph-heartbeat',
+    },
+    'fas fa-couch': {
+      fontawesome: 'fas fa-couch',
+      bootstrap: 'bi bi-inbox',
+      material: 'weekend',
+      remix: 'ri-armchair-line',
+      phosphor: 'ph ph-armchair',
+    },
+    'fas fa-camera': {
+      fontawesome: 'fas fa-camera',
+      bootstrap: 'bi bi-camera-fill',
+      material: 'photo_camera',
+      remix: 'ri-camera-fill',
+      phosphor: 'ph-fill ph-camera',
+    },
+    'fas fa-wifi': {
+      fontawesome: 'fas fa-wifi',
+      bootstrap: 'bi bi-wifi',
+      material: 'wifi',
+      remix: 'ri-wifi-line',
+      phosphor: 'ph ph-wifi-high',
+    },
+  };
+
+  const matched = categoryLibraryMap[rawIcon];
+  if (matched) {
+    const val = matched[lib] || matched['fontawesome'];
+    if (lib === 'material') {
+      return (
+        <span className={`material-icons-round ${className}`} style={{ ...style, fontSize: style?.fontSize || 'inherit' }}>
+          {val}
+        </span>
+      );
+    }
+    return <i className={`${val} ${className}`} style={style} />;
+  }
+
+  return <i className={`${rawIcon} ${className}`} style={style} />;
+};
+

@@ -4,6 +4,7 @@ import React, { useRef } from 'react';
 import Link from 'next/link';
 import { CategorySection } from '@/hooks/useHomePage';
 import { ProductCardAuto } from '@/components/product/ProductCardAuto';
+import { CategoryIcon } from '@/components/common/ThemeIcon';
 import { SiteTheme } from '@/types/theme';
 
 export interface CategoryProductsBlockProps {
@@ -58,7 +59,7 @@ export function CategoryProductsBlock({
                   flexShrink: 0,
                 }}
               >
-                <i className={sec.icon || 'fas fa-tag'} style={{ fontSize: '11px', color: 'var(--pd-primary, #ea580c)' }} />
+                <CategoryIcon icon={sec.icon} style={{ fontSize: '11px', color: 'var(--pd-primary, #ea580c)' }} />
                 <span>{sec.name}</span>
                 <span
                   style={{
@@ -114,7 +115,7 @@ export function CategoryProductsBlock({
                       flexShrink: 0,
                     }}
                   >
-                    <i className={sec.icon || 'fas fa-th-large'} />
+                    <CategoryIcon icon={sec.icon} fallback="fas fa-th-large" />
                   </div>
                   <div>
                     <h2

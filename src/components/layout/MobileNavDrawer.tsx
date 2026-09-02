@@ -3,6 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { getCatIcon, getCatColor } from './CategoryDropdown';
+import { CategoryIcon } from '@/components/common/ThemeIcon';
 
 interface NavLink {
   href: string;
@@ -281,8 +282,8 @@ export function MobileNavDrawer({
                     transition: 'background 0.15s ease',
                   }}
                 >
-                  <i
-                    className={getCatIcon(cat.slug)}
+                  <CategoryIcon
+                    icon={cat.icon || getCatIcon(cat.slug)}
                     style={{ fontSize: '10px', color: getCatColor(cat.slug) }}
                   />
                   {cat.name}

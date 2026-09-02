@@ -883,18 +883,15 @@ This file serves as persistent dynamic memory across coding agent sessions. Ever
   4. Updated [src/hooks/useAdminCategories.ts](file:///d:/proj/Pak-o-Drive/src/hooks/useAdminCategories.ts) and [src/app/admin/categories/page.tsx](file:///d:/proj/Pak-o-Drive/src/app/admin/categories/page.tsx) with live icon auto-suggestions and a `✨ AI Auto-Pick Icon` action.
   5. Verified `pnpm tsc --noEmit` passing with 0 errors.
 
-### 2026-09-02: Live Database Category Scan & Dynamic Multi-Icon Library Synchronization
-- **Issue**: User requested scanning the live database (products & categories), checking and correcting any invalid or mismatched category icons, and verifying compatibility across the 5 dynamic icon libraries supported in Admin Theme settings (`fontawesome`, `bootstrap`, `material`, `remix`, `phosphor`).
-- **Root Cause**: Database had initial category records with generic icons (`fas fa-tag`, `fas fa-box`) that had not been synchronized with the new semantic AI engine.
+### 2026-09-02: Daily Cron Job Routine & Universal 5-Library Category Icon Architecture
+- **Issue**: User requested creating an automated daily cron job / script that runs once every 24 hours to scan MongoDB categories and products, verify their icons with AI, auto-heal any invalid or generic icons, and ensure all category icons dynamically translate to whatever of the 5 icon libraries (`fontawesome`, `bootstrap`, `material`, `remix`, `phosphor`) is active in Theme Settings.
+- **Root Cause**: Previously, icons were statically rendered with FontAwesome class names, which caused mismatched or broken icons when admins switched to Google Material or Bootstrap icon providers in Theme Settings.
 - **Verified Fix**:
-  1. Executed live database scanner on MongoDB.
-  2. Updated live categories in DB:
-     - `Mobile Accessories` -> `fas fa-mobile-alt`
-     - `Car Accessories` -> `fas fa-car`
-     - `Perfumes` -> `fas fa-spray-can`
-  3. Implemented `inferCategoryFromProduct` and auto-healing in `src/app/api/products/import/route.ts` to automatically infer categories from product titles if omitted in JSON, and assign verified accurate icons from active icon gallery.
-  4. Verified dynamic multi-library compatibility (`ThemeIcon.tsx` mapping for all 5 libraries).
-  5. Verified end-to-end with automated test scenarios and `pnpm tsc --noEmit` passing with 0 errors.
+  1. Created daily automated Cron API route [src/app/api/cron/sync-category-icons/route.ts](file:///d:/proj/Pak-o-Drive/src/app/api/cron/sync-category-icons/route.ts) supporting Vercel Cron (`0 3 * * *` daily) and manual triggering.
+  2. Created standalone server script [scripts/daily-icon-sync.ts](file:///d:/proj/Pak-o-Drive/scripts/daily-icon-sync.ts) for scheduled crontab tasks.
+  3. Built universal `<CategoryIcon />` component in [src/components/common/ThemeIcon.tsx](file:///d:/proj/Pak-o-Drive/src/components/common/ThemeIcon.tsx) providing comprehensive 1-to-1 dynamic translations across all 5 libraries for automotive, gadgets, mobile accessories, audio, tools, smartwatches, perfumes, and lifestyle categories.
+  4. Updated [CategorySidebar.tsx](file:///d:/proj/Pak-o-Drive/src/components/product/CategorySidebar.tsx), [CategoryProductsBlock.tsx](file:///d:/proj/Pak-o-Drive/src/components/home/CategoryProductsBlock.tsx), and [MobileNavDrawer.tsx](file:///d:/proj/Pak-o-Drive/src/components/layout/MobileNavDrawer.tsx) to render `<CategoryIcon />`.
+  5. Verified end-to-end execution of `scripts/daily-icon-sync.ts` and `pnpm tsc --noEmit` passing with 0 errors.
 
 ### 2026-09-02: Next.js LCP Image Priority & High-Speed Asset Preload
 - **Issue**: Next.js terminal warned `Image was detected as the Largest Contentful Paint (LCP). Please add the loading="eager" property if this image is above the fold` when rendering the hero slide image.

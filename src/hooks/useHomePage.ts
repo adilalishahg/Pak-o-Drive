@@ -149,10 +149,14 @@ export function useHomePage({ initialProducts, initialCategories }: UseHomePageP
 
         if (matchingProducts.length > 0) {
           matchingProducts.forEach(p => usedProductIds.add(String(p._id)));
+          const resolvedIcon = (pCat.icon && pCat.icon !== 'fas fa-tag' && pCat.icon !== 'fas fa-box')
+            ? pCat.icon
+            : getCatIcon(pCat.slug || pCat.name);
+
           sections.push({
             name: pCat.name,
             slug: pCat.slug,
-            icon: pCat.icon || getCatIcon(pCat.slug),
+            icon: resolvedIcon,
             image: pCat.image || '',
             productCount: matchingProducts.length,
             products: matchingProducts,
@@ -178,7 +182,7 @@ export function useHomePage({ initialProducts, initialCategories }: UseHomePageP
         sections.push({
           name: catName,
           slug: slug,
-          icon: getCatIcon(slug),
+          icon: getCatIcon(slug || catName),
           productCount: prods.length,
           products: prods,
         });
