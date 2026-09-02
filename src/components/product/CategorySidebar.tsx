@@ -5,6 +5,7 @@ import { CategorySidebarProps } from '@/types/product';
 import { useCategorySidebar, PRICE_MAX, PRICE_MIN } from '@/hooks/useCategorySidebar';
 import { CategoryIcon } from '@/components/common/ThemeIcon';
 import { buildCategoryTree, CategoryTreeNode } from '@/lib/categoryTree';
+import { getBestCategoryIcon } from '@/lib/categoryIconService';
 
 /**
  * Recursive Category Sidebar Node Component
@@ -19,6 +20,12 @@ const RecursiveSidebarNode: React.FC<{
   const isDirectActive = selectedCategory === node.slug;
   const childList = node.children || [];
   const hasChildren = childList.length > 0;
+  const [imageError, setImageError] = useState(false);
+
+  const resolvedIcon =
+    node.icon && node.icon !== 'fas fa-tag' && node.icon !== 'fas fa-box'
+      ? node.icon
+      : getBestCategoryIcon(node.slug || node.name);
 
   // Check if any descendant is currently selected
   const hasActiveDescendant = React.useMemo(() => {
@@ -83,30 +90,43 @@ const RecursiveSidebarNode: React.FC<{
                 height: '24px',
                 borderRadius: '6px',
                 flexShrink: 0,
-                background: isDirectActive ? 'var(--pd-primary)' : '#f1f5f9',
+                background: isDirectActive ? 'var(--pd-primary)' : 'rgba(var(--pd-primary-rgb,234,88,12),0.1)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 overflow: 'hidden',
               }}
             >
-              {node.image ? (
+              {node.image && !imageError ? (
                 <img
                   src={node.image}
                   alt={node.name}
                   style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  onError={() => setImageError(true)}
                 />
               ) : (
                 <CategoryIcon
-                  icon={node.icon}
-                  style={{ fontSize: '10px', color: isDirectActive ? '#fff' : '#64748b' }}
+                  icon={resolvedIcon}
+                  style={{
+                    fontSize: '11px',
+                    color: isDirectActive ? '#fff' : 'var(--pd-primary, #ea580c)',
+                  }}
                 />
               )}
             </div>
           ) : (
-            <span style={{ fontSize: '10px', color: isDirectActive ? 'var(--pd-primary)' : '#94a3b8', flexShrink: 0 }}>
-              {'↳'.repeat(Math.min(depth, 3))}
-            </span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '5px', flexShrink: 0 }}>
+              <span style={{ fontSize: '10px', color: isDirectActive ? 'var(--pd-primary)' : '#94a3b8' }}>
+                {'↳'.repeat(Math.min(depth, 3))}
+              </span>
+              <CategoryIcon
+                icon={resolvedIcon}
+                style={{
+                  fontSize: '9px',
+                  color: isDirectActive ? 'var(--pd-primary)' : '#94a3b8',
+                }}
+              />
+            </div>
           )}
 
           <span

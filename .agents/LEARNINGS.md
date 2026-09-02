@@ -883,13 +883,13 @@ This file serves as persistent dynamic memory across coding agent sessions. Ever
   4. Updated [src/hooks/useAdminCategories.ts](file:///d:/proj/Pak-o-Drive/src/hooks/useAdminCategories.ts) and [src/app/admin/categories/page.tsx](file:///d:/proj/Pak-o-Drive/src/app/admin/categories/page.tsx) with live icon auto-suggestions and a `✨ AI Auto-Pick Icon` action.
   5. Verified `pnpm tsc --noEmit` passing with 0 errors.
 
-### 2026-09-02: Live Chat Header Dynamic Cross (Close) Button
-- **Issue**: Live support chat modal on mobile showed a subtle back arrow `←` which was ambiguous for closing the full-screen chat window.
-- **Root Cause**: `ChatHeader.tsx` rendered static string `←` in `mobile-back-btn` instead of a standardized cross close button connected to the dynamic theme icon engine.
+### 2026-09-02: Shop Category Sidebar Dynamic Icon Resolution & Broken Image Fallback
+- **Issue**: Shop page mobile filter drawer and sidebar showed broken image placeholder icon `<img>` next to "Car Accessories" instead of its dynamic car icon.
+- **Root Cause**: `RecursiveSidebarNode` prioritized `node.image` without error handling, and if an invalid/broken image path existed in the database, the browser displayed a broken image placeholder icon instead of falling back to `<CategoryIcon />`.
 - **Verified Fix**:
-  1. Replaced `←` in [src/components/chat/ChatHeader.tsx](file:///d:/proj/Pak-o-Drive/src/components/chat/ChatHeader.tsx) with `<ThemeIcon name="times" />`.
-  2. Enhanced button styling with a modern translucent glassmorphism background (`rgba(255,255,255,0.16)`), subtle border, and shadow.
-  3. Added `close` mapping alias in [src/components/common/ThemeIcon.tsx](file:///d:/proj/Pak-o-Drive/src/components/common/ThemeIcon.tsx) for 5-library compatibility (`FontAwesome`, `Bootstrap`, `Material`, `Remix`, `Phosphor`).
+  1. Updated [src/components/product/CategorySidebar.tsx](file:///d:/proj/Pak-o-Drive/src/components/product/CategorySidebar.tsx) to resolve category icons with `getBestCategoryIcon` fallback.
+  2. Added `imageError` state and `onError` handler on `<img>` so any broken or missing image immediately falls back to rendering the crisp, dynamic `<CategoryIcon icon={resolvedIcon} />`.
+  3. Added subcategory dynamic icon rendering alongside `↳` indentation.
   4. Verified with `pnpm tsc --noEmit` passing with 0 errors.
 
 ### 2026-09-02: Next.js LCP Image Priority & High-Speed Asset Preload
