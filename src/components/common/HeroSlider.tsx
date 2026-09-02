@@ -68,7 +68,7 @@ function ClassicHeroSlider({
         {/* Left Column */}
         <div style={{ flex: '1 1 0', minWidth: 0 }}>
           {slide.badge && (
-            <div style={{ marginBottom: '10px', paddingTop: '4px' }}>
+            <div style={{ marginBottom: '8px' }}>
               <span
                 style={{
                   display: 'inline-block',
@@ -77,7 +77,7 @@ function ClassicHeroSlider({
                   fontSize: '10px',
                   fontWeight: 800,
                   letterSpacing: '1px',
-                  padding: '4px 12px',
+                  padding: '3px 10px',
                   borderRadius: '20px',
                   textTransform: 'uppercase',
                   boxShadow: '0 3px 10px rgba(234,88,12,0.25)',
@@ -319,14 +319,16 @@ function ClassicHeroSlider({
       <style>{`
         @media (max-width: 767px) {
           .hero-slide-clickable {
-            min-height: 220px !important;
-            padding-top: 16px !important;
-            padding-bottom: 16px !important;
+            align-items: flex-start !important;
+            min-height: 200px !important;
+            padding-top: 14px !important;
+            padding-bottom: 14px !important;
             padding-left: 44px !important;
             padding-right: 44px !important;
             gap: 12px !important;
           }
           .hero-slide-image-col {
+            align-self: center !important;
             margin-top: 0 !important;
             padding-right: 0 !important;
             max-width: 140px !important;
