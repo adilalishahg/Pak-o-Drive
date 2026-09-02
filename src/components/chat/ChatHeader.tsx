@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { ThemeIcon } from '../common/ThemeIcon';
 
 export interface ChatHeaderProps {
   toggleChat: () => void;
@@ -32,13 +33,13 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0, flex: 1 }}>
-        {/* Mobile Back button */}
+        {/* Mobile Close (Cross) button */}
         <button
           onClick={toggleChat}
           className="mobile-back-btn"
           style={{
-            background: 'rgba(255,255,255,0.12)',
-            border: 'none',
+            background: 'rgba(255, 255, 255, 0.16)',
+            border: '1px solid rgba(255, 255, 255, 0.25)',
             color: '#ffffff',
             borderRadius: '50%',
             width: '32px',
@@ -47,13 +48,15 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
             alignItems: 'center',
             justifyContent: 'center',
             cursor: 'pointer',
-            fontSize: '17px',
+            fontSize: '14px',
             flexShrink: 0,
-            transition: 'background 0.15s ease',
+            transition: 'all 0.2s ease',
+            boxShadow: '0 2px 6px rgba(0, 0, 0, 0.2)',
           }}
-          aria-label="Back"
+          aria-label="Close Chat"
+          title="Close Chat"
         >
-          ←
+          <ThemeIcon name="times" style={{ fontSize: '13px' }} />
         </button>
 
         <div style={{ position: 'relative', flexShrink: 0 }}>

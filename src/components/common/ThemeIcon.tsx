@@ -124,7 +124,14 @@ export const ThemeIcon: React.FC<ThemeIconProps> = ({ name, className = '', styl
       phosphor: 'ph ph-list',
     },
     times: {
-      fontawesome: 'fas fa-xmark',
+      fontawesome: 'fas fa-times',
+      bootstrap: 'bi bi-x-lg',
+      material: 'close',
+      remix: 'ri-close-line',
+      phosphor: 'ph ph-x',
+    },
+    close: {
+      fontawesome: 'fas fa-times',
       bootstrap: 'bi bi-x-lg',
       material: 'close',
       remix: 'ri-close-line',

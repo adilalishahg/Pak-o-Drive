@@ -883,13 +883,13 @@ This file serves as persistent dynamic memory across coding agent sessions. Ever
   4. Updated [src/hooks/useAdminCategories.ts](file:///d:/proj/Pak-o-Drive/src/hooks/useAdminCategories.ts) and [src/app/admin/categories/page.tsx](file:///d:/proj/Pak-o-Drive/src/app/admin/categories/page.tsx) with live icon auto-suggestions and a `✨ AI Auto-Pick Icon` action.
   5. Verified `pnpm tsc --noEmit` passing with 0 errors.
 
-### 2026-09-02: Visual Icon Palette Picker & Intelligent Multi-Level Bulk Import Hierarchy
-- **Issue**: User requested adding an interactive visual icon palette with real-time keyword search in the Admin Category form so admins can pick icons visually, backed by AI auto-correction if an invalid/generic icon is chosen. Additionally, requested that Bulk Product Import intelligently discover and create multi-level nested category chains (`Category ➔ Subcategory ➔ Inner Subcategory`) and auto-heal missing or generic icons.
-- **Root Cause**: Category icon input was previously a raw text field requiring manual FontAwesome class typing without live visual previews, and bulk import only supported flat 1-level subcategory assignment.
+### 2026-09-02: Live Chat Header Dynamic Cross (Close) Button
+- **Issue**: Live support chat modal on mobile showed a subtle back arrow `←` which was ambiguous for closing the full-screen chat window.
+- **Root Cause**: `ChatHeader.tsx` rendered static string `←` in `mobile-back-btn` instead of a standardized cross close button connected to the dynamic theme icon engine.
 - **Verified Fix**:
-  1. Built [IconPalettePicker.tsx](file:///d:/proj/Pak-o-Drive/src/components/admin/categories/IconPalettePicker.tsx) with live category filtering (`Automotive`, `Electronics`, `Audio`, `Tools`, `Lifestyle`), instant keyword search, and dynamic `<CategoryIcon />` previews.
-  2. Integrated icon palette picker into [useAdminCategories.ts](file:///d:/proj/Pak-o-Drive/src/hooks/useAdminCategories.ts) and [admin/categories/page.tsx](file:///d:/proj/Pak-o-Drive/src/app/admin/categories/page.tsx).
-  3. Upgraded `resolveAndEnsureCategories` in [src/app/api/products/import/route.ts](file:///d:/proj/Pak-o-Drive/src/app/api/products/import/route.ts) to support multi-level nested category hierarchies, intelligent parent chain resolution, and AI auto-correction.
+  1. Replaced `←` in [src/components/chat/ChatHeader.tsx](file:///d:/proj/Pak-o-Drive/src/components/chat/ChatHeader.tsx) with `<ThemeIcon name="times" />`.
+  2. Enhanced button styling with a modern translucent glassmorphism background (`rgba(255,255,255,0.16)`), subtle border, and shadow.
+  3. Added `close` mapping alias in [src/components/common/ThemeIcon.tsx](file:///d:/proj/Pak-o-Drive/src/components/common/ThemeIcon.tsx) for 5-library compatibility (`FontAwesome`, `Bootstrap`, `Material`, `Remix`, `Phosphor`).
   4. Verified with `pnpm tsc --noEmit` passing with 0 errors.
 
 ### 2026-09-02: Next.js LCP Image Priority & High-Speed Asset Preload
