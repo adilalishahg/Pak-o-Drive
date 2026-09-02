@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import Link from 'next/link';
 import { OptimizedImage } from '../common/OptimizedImage';
 import { IProduct } from '@/types';
 
@@ -23,6 +24,7 @@ export interface ProductCardModernProps {
 export const ProductCardModern: React.FC<ProductCardModernProps> = ({
   product,
   priority,
+  formattedId,
   adding,
   displayImage,
   discountPercent,
@@ -58,8 +60,11 @@ export const ProductCardModern: React.FC<ProductCardModernProps> = ({
       <meta itemProp="name" content={product.name} />
 
       {/* ── Image Area ── */}
-      <div
+      <Link
+        href={`/product/${formattedId}`}
+        prefetch={true}
         className="product-card-image-wrapper"
+        onClick={(e) => e.stopPropagation()}
         style={{
           position: 'relative',
           width: '100%',
@@ -67,6 +72,8 @@ export const ProductCardModern: React.FC<ProductCardModernProps> = ({
           overflow: 'hidden',
           background: '#f8fafc',
           flexShrink: 0,
+          display: 'block',
+          textDecoration: 'none',
         }}
       >
         {/* Wishlist toggle */}
@@ -184,7 +191,7 @@ export const ProductCardModern: React.FC<ProductCardModernProps> = ({
           <i className="fas fa-truck-moving" style={{ fontSize: '7px' }} />
           <span>COD Available</span>
         </div>
-      </div>
+      </Link>
 
       {/* ── Content ── */}
       <div
@@ -198,25 +205,32 @@ export const ProductCardModern: React.FC<ProductCardModernProps> = ({
         }}
       >
         {/* Name */}
-        <p
-          className="product-card-title"
-          style={{
-            margin: 0,
-            fontSize: '0.82rem',
-            fontWeight: 600,
-            color: '#0f172a',
-            lineHeight: 1.4,
-            display: '-webkit-box',
-            WebkitLineClamp: 2,
-            WebkitBoxOrient: 'vertical',
-            overflow: 'hidden',
-            minHeight: '2.2em',
-            paddingTop: '2px',
-            paddingBottom: '2px',
-          }}
+        <Link
+          href={`/product/${formattedId}`}
+          prefetch={true}
+          className="text-decoration-none block"
+          onClick={(e) => e.stopPropagation()}
         >
-          {product.name}
-        </p>
+          <p
+            className="product-card-title"
+            style={{
+              margin: 0,
+              fontSize: '0.82rem',
+              fontWeight: 600,
+              color: '#0f172a',
+              lineHeight: 1.4,
+              display: '-webkit-box',
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: 'vertical',
+              overflow: 'hidden',
+              minHeight: '2.2em',
+              paddingTop: '2px',
+              paddingBottom: '2px',
+            }}
+          >
+            {product.name}
+          </p>
+        </Link>
 
         {/* Stars */}
         <div className="product-card-stars" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>

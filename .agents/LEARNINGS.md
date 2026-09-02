@@ -787,6 +787,18 @@ This file serves as persistent dynamic memory across coding agent sessions. Ever
   3. Added full `HeroSlider` and `sliderEngine` support to `HomeCleanWhiteLayout.tsx` for custom slides.
   4. Verified `pnpm tsc --noEmit` passing with 0 errors, and confirmed active API returns `layoutTheme: classic` and `sliderEngine: classic`.
 
+### 2026-09-02: Mobile Product Detail 3-5s Transition Latency Optimization
+- **Issue**: Tapping a product card on mobile took 3-5 seconds to navigate to the `/product/[id]` detail page, causing users to wait on a frozen screen.
+- **Root Cause**:
+  1. Product cards used programmatic `onClick` + `router.push()`, so Next.js's automatic viewport prefetching never triggered on mobile (since touchscreens have no mouse hover for `onMouseEnter`).
+  2. The detail route was missing an instant loading state (`src/app/product/[id]/loading.tsx`), forcing Next.js to halt screen transition until the entire server render finished.
+  3. `ProductDetailContent` awaited both the main product query AND `getCachedRelatedProducts` query simultaneously before streaming any above-the-fold HTML.
+- **Verified Fix**:
+  1. Created `src/app/product/[id]/loading.tsx` for instant (0ms) skeleton presentation upon tap.
+  2. Wrapped product image and title in semantic `<Link href={`/product/${id}`} prefetch={true}>`, enabling Next.js viewport prefetching on mobile.
+  3. Streamed `RelatedProductsSection` using React 19 `<Suspense>`, allowing the main product detail to render immediately without blocking on secondary queries.
+  4. Verified `pnpm tsc --noEmit` passing with 0 errors.
+
 
 
 

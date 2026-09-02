@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import Link from 'next/link';
 import { OptimizedImage } from '../common/OptimizedImage';
 import { IProduct } from '@/types';
 
@@ -23,6 +24,7 @@ export interface ProductCardCleanWhiteProps {
 export const ProductCardCleanWhite: React.FC<ProductCardCleanWhiteProps> = ({
   product,
   priority,
+  formattedId,
   adding,
   displayImage,
   discountPercent,
@@ -62,7 +64,12 @@ export const ProductCardCleanWhite: React.FC<ProductCardCleanWhiteProps> = ({
         )}
       </div>
 
-      <div className="aspect-square w-full bg-slate-50 rounded-lg sm:rounded-xl overflow-hidden mb-2 sm:mb-4 flex items-center justify-center p-1.5 sm:p-2 relative">
+      <Link
+        href={`/product/${formattedId}`}
+        prefetch={true}
+        className="aspect-square w-full bg-slate-50 rounded-lg sm:rounded-xl overflow-hidden mb-2 sm:mb-4 flex items-center justify-center p-1.5 sm:p-2 relative text-decoration-none block group/img"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Wishlist toggle */}
         <button
           onClick={handleToggleWishlist}
@@ -105,13 +112,20 @@ export const ProductCardCleanWhite: React.FC<ProductCardCleanWhiteProps> = ({
         <div className="absolute bottom-1.5 left-2 bg-emerald-50 text-emerald-700 border border-emerald-200 text-[8px] sm:text-[9px] font-bold px-1.5 py-0.5 rounded flex items-center gap-1 leading-normal">
           <i className="fas fa-truck-moving text-[8px]" /> COD
         </div>
-      </div>
+      </Link>
 
       <div className="flex flex-col flex-grow justify-between">
         <div>
-          <h3 className="text-[12px] sm:text-xs font-semibold text-slate-800 line-clamp-2 mb-1 theme1-product-title leading-normal py-0.5">
-            {product.name}
-          </h3>
+          <Link
+            href={`/product/${formattedId}`}
+            prefetch={true}
+            className="text-decoration-none block"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="text-[12px] sm:text-xs font-semibold text-slate-800 line-clamp-2 mb-1 theme1-product-title leading-normal py-0.5 hover:text-orange-600 transition-colors">
+              {product.name}
+            </h3>
+          </Link>
           <div className="flex items-center gap-1.5 mb-1.5 sm:mb-2">
             <div className="flex text-amber-400 text-[10px] sm:text-xs">
               {Array.from({ length: 5 }, (_, i) => (
