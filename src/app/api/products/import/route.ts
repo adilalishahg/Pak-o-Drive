@@ -6,24 +6,7 @@ import dbConnect from '@/lib/mongodb';
 import Product from '@/models/Product';
 import Category from '@/models/Category';
 import { BulkImportProductInput } from '@/types';
-
-
-// Icon auto-guesser for newly created categories
-function guessCategoryIcon(nameOrSlug: string): string {
-  const s = nameOrSlug.toLowerCase();
-  if (s.includes('car') || s.includes('auto') || s.includes('drive')) return 'fas fa-car';
-  if (s.includes('phone') || s.includes('mobile')) return 'fas fa-mobile-alt';
-  if (s.includes('charge') || s.includes('cable') || s.includes('wire')) return 'fas fa-bolt';
-  if (s.includes('perfume') || s.includes('scent') || s.includes('freshener')) return 'fas fa-spray-can';
-  if (s.includes('light') || s.includes('led') || s.includes('ambient') || s.includes('lamp')) return 'fas fa-lightbulb';
-  if (s.includes('watch') || s.includes('clock') || s.includes('band')) return 'fas fa-clock';
-  if (s.includes('earbud') || s.includes('headphone') || s.includes('audio') || s.includes('speaker') || s.includes('sound')) return 'fas fa-headphones';
-  if (s.includes('bike') || s.includes('motor') || s.includes('cycling') || s.includes('helmet') || s.includes('glove')) return 'fas fa-motorcycle';
-  if (s.includes('home') || s.includes('kitchen') || s.includes('blender') || s.includes('clean') || s.includes('vacuum')) return 'fas fa-home';
-  if (s.includes('trimmer') || s.includes('care') || s.includes('massag') || s.includes('beauty')) return 'fas fa-spa';
-  if (s.includes('power') || s.includes('battery')) return 'fas fa-battery-full';
-  return 'fas fa-tag';
-}
+import { resolveCategoryIcon } from '@/lib/categoryIconService';
 
 /**
  * Ensures Main Category & Subcategory exist in DB.
@@ -39,10 +22,11 @@ async function resolveAndEnsureCategories(catInput?: string, subcatInput?: strin
   });
 
   if (!mainCategory) {
+    const verifiedIcon = await resolveCategoryIcon(catName);
     mainCategory = await Category.create({
       name: catName.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
       slug: catSlug,
-      icon: guessCategoryIcon(catName),
+      icon: verifiedIcon,
       image: fallbackImage || '',
       parentCategory: '',
       productCount: 1,
@@ -62,10 +46,11 @@ async function resolveAndEnsureCategories(catInput?: string, subcatInput?: strin
     });
 
     if (!subCategory) {
+      const verifiedSubIcon = await resolveCategoryIcon(subName);
       subCategory = await Category.create({
         name: subName.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
         slug: subSlug,
-        icon: guessCategoryIcon(subName),
+        icon: verifiedSubIcon,
         image: fallbackImage || '',
         parentCategory: mainCategory.slug,
         productCount: 1,

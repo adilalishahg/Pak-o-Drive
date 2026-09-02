@@ -40,6 +40,7 @@ export default function AdminCategoriesPage() {
     handleSubmit,
     confirmDelete,
     handleSeedDefaults,
+    handleAutoPickIcon,
   } = useAdminCategories();
 
   if (loading && categories.length === 0) {
@@ -247,19 +248,31 @@ export default function AdminCategoriesPage() {
               </div>
 
               <div className="mb-3">
-                <label className="form-label text-muted small fw-semibold">FontAwesome Icon Class</label>
-                <input
-                  type="text"
-                  value={icon}
-                  onChange={(e) => setIcon(e.target.value)}
-                  className="form-control rounded-3"
-                  placeholder="e.g. fas fa-clock"
-                />
-                <div className="form-text small">
-                  Icon preview:{' '}
-                  <span className="ms-2 px-1 text-primary">
-                    <i className={icon} />
+                <div className="d-flex align-items-center justify-content-between mb-1">
+                  <label className="form-label text-muted small fw-semibold mb-0">FontAwesome Icon Class</label>
+                  <button
+                    type="button"
+                    onClick={handleAutoPickIcon}
+                    className="btn btn-link btn-sm p-0 text-decoration-none text-primary"
+                    style={{ fontSize: '0.75rem', fontWeight: 600 }}
+                  >
+                    ✨ AI Auto-Pick Icon
+                  </button>
+                </div>
+                <div className="input-group">
+                  <span className="input-group-text bg-light text-primary">
+                    <i className={icon || 'fas fa-tag'} />
                   </span>
+                  <input
+                    type="text"
+                    value={icon}
+                    onChange={(e) => setIcon(e.target.value)}
+                    className="form-control rounded-end-3"
+                    placeholder="e.g. fas fa-car"
+                  />
+                </div>
+                <div className="form-text small text-muted">
+                  Auto-validated against active FontAwesome & Bootstrap icon library.
                 </div>
               </div>
 

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { revalidatePath } from 'next/cache';
 import { purgeCacheTags } from '@/lib/cache';
+import { resolveCategoryIcon } from '@/lib/categoryIconService';
 import dbConnect from '../../../../lib/mongodb';
 import Category from '../../../../models/Category';
 
@@ -12,6 +13,10 @@ export async function PUT(
     await dbConnect();
     const { id } = await params;
     const body = await request.json();
+
+    if (body.icon || body.name) {
+      body.icon = await resolveCategoryIcon(body.name || '', body.icon);
+    }
 
     const updatedCategory = await Category.findByIdAndUpdate(
       id,

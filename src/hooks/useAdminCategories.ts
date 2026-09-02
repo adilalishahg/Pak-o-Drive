@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { CategoryData } from '@/types';
 import { optimizeImageBeforeUpload } from '@/utils/imageOptimizer';
+import { getBestCategoryIcon } from '@/lib/categoryIconService';
 
 export function useAdminCategories() {
   const [categories, setCategories] = useState<CategoryData[]>([]);
@@ -82,6 +83,19 @@ export function useAdminCategories() {
     const val = e.target.value;
     setName(val);
     setSlug(val.toLowerCase().trim().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-'));
+
+    // Automatically suggest the most fitting icon from active library if currently on default or empty
+    if (!icon || icon === 'fas fa-tag') {
+      const suggested = getBestCategoryIcon(val);
+      if (suggested && suggested !== 'fas fa-tag') {
+        setIcon(suggested);
+      }
+    }
+  };
+
+  const handleAutoPickIcon = () => {
+    const suggested = getBestCategoryIcon(name);
+    setIcon(suggested || 'fas fa-tag');
   };
 
   const handleStartEdit = (cat: CategoryData) => {
@@ -241,5 +255,6 @@ export function useAdminCategories() {
     handleSubmit,
     confirmDelete,
     handleSeedDefaults,
+    handleAutoPickIcon,
   };
 }

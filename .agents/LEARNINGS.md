@@ -873,14 +873,15 @@ This file serves as persistent dynamic memory across coding agent sessions. Ever
   3. Reduced [src/components/common/FloatingCartButton.tsx](file:///d:/proj/Pak-o-Drive/src/components/common/FloatingCartButton.tsx) to pure presentational JSX rendering.
   4. Verified `pnpm tsc --noEmit` passing with 0 errors.
 
-### 2026-09-02: Hero Slider Layout Refinement — Price Below Title & Reduced Height
-- **Issue**: User requested moving the `FEATURED PRODUCT` badge to the top with proper spacing, moving the price badge directly beneath the title on its own line, and reducing the overall slider height for a sleeker mobile profile.
-- **Root Cause**: Price badge was previously overlaid on the right image column, taking up vertical space and stretching the slider height.
+### 2026-09-02: Category Icon Intelligence Engine & Active Library Validation
+- **Issue**: User requested that when adding/updating categories manually or bulk importing products via JSON, the system must analyze if the chosen icon exists in the active icon library (FontAwesome / Bootstrap Icons). If missing, invalid, or generic, the AI/semantic engine must automatically select and set the most fitting icon for that category.
+- **Root Cause**: Category creation previously accepted arbitrary icon strings or blindly defaulted to `'fas fa-tag'`, risking broken or mismatched icons across the storefront.
 - **Verified Fix**:
-  1. Placed `FEATURED PRODUCT` badge at the top with clean margin spacing.
-  2. Moved the price badge (`Rs. Original  Rs. Sale`) directly under `<h2>{slide.title}</h2>` in both [HeroSlider.tsx](file:///d:/proj/Pak-o-Drive/src/components/common/HeroSlider.tsx) and [SmooothyHeroSlider.tsx](file:///d:/proj/Pak-o-Drive/src/components/common/SmooothyHeroSlider.tsx).
-  3. Reduced slider `minHeight` from 340px to 260px (desktop) and 220px (mobile) with compact padding.
-  4. Verified layout via automated mobile viewport screenshot and `pnpm tsc --noEmit` passing with 0 errors.
+  1. Built [src/lib/categoryIconService.ts](file:///d:/proj/Pak-o-Drive/src/lib/categoryIconService.ts) containing a validated `ACTIVE_ICON_REGISTRY`, normalizer, 100+ semantic category keywords matrix, and Google Gemini AI deep analyzer fallback.
+  2. Integrated `resolveCategoryIcon` into category creation (`POST /api/categories`) and updates (`PUT /api/categories/[id]`).
+  3. Integrated `resolveCategoryIcon` into JSON product bulk import (`POST /api/products/import`) when auto-creating parent and sub-categories on the fly.
+  4. Updated [src/hooks/useAdminCategories.ts](file:///d:/proj/Pak-o-Drive/src/hooks/useAdminCategories.ts) and [src/app/admin/categories/page.tsx](file:///d:/proj/Pak-o-Drive/src/app/admin/categories/page.tsx) with live icon auto-suggestions and a `✨ AI Auto-Pick Icon` action.
+  5. Verified `pnpm tsc --noEmit` passing with 0 errors.
 
 ### 2026-09-02: Order Confirmation Page Pure-UI Architecture & Custom Hook Decoupling
 - **Issue**: `src/app/order-confirmation/[id]/page.tsx` contained 325 lines of mixed API calls, confetti triggers, Meta and TikTok Pixel fires, WhatsApp deep-link string formatting, and inline invoice markup, violating Rule #8 (Zero Logic in UI).

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { revalidatePath } from 'next/cache';
 import { purgeCacheTags } from '@/lib/cache';
+import { resolveCategoryIcon } from '@/lib/categoryIconService';
 import dbConnect from '../../../lib/mongodb';
 import Category from '../../../models/Category';
 import Product from '../../../models/Product';
@@ -158,10 +159,13 @@ export async function POST(request: Request) {
       $or: [{ category: cleanSlug }, { subcategory: cleanSlug }]
     });
 
+    // Intelligent icon validation & AI analysis
+    const verifiedIcon = await resolveCategoryIcon(name, icon);
+
     const newCategory = new Category({
       name,
       slug: cleanSlug,
-      icon: icon || 'fas fa-tag',
+      icon: verifiedIcon,
       image: image || '',
       productCount,
       parentCategory: parentCategory || '',
