@@ -824,6 +824,16 @@ This file serves as persistent dynamic memory across coding agent sessions. Ever
   5. Updated `IHeroSlideItem` schemas and `useHomePage.ts` to automatically populate and resolve `price` and `originalPrice`.
   6. Verified `pnpm tsc --noEmit` passing with 0 errors.
 
+### 2026-09-02: Category-Wise Homepage Architecture (PriceOye Model with Pak-o-Drive Aesthetics)
+- **Issue**: Homepage previously dumped all products in a single generic grid with mixed categories, whereas users wanted products structured section-by-section according to their main parent categories like PriceOye.
+- **Root Cause**: Homepage only rendered a single tabbed list (`filteredProducts`) loaded from an arbitrary 24-product limit query without category-based section grouping.
+- **Verified Fix**:
+  1. Updated `page.tsx` to fetch the complete product catalog with lean fields (`getCachedAllProducts`).
+  2. Created `CategoryProductsBlock.tsx` and computed `categorySections` in `useHomePage.ts` grouping catalog products under main parent categories (and nested subcategories).
+  3. Styled each section with Pak-o-Drive's premium design: dedicated category header with icon, product count, "View All →" button, quick jump-to-category pill bar, uncropped product card grid, and bottom category CTA.
+  4. Integrated seamlessly into both `HomeModernLayout.tsx` and `HomeCleanWhiteLayout.tsx`.
+  5. Verified via Puppeteer screenshots and `pnpm tsc --noEmit` with 0 compilation errors.
+
 
 
 

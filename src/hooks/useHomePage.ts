@@ -4,6 +4,16 @@ import { useState, useEffect, useMemo } from 'react';
 import { IProduct } from '@/types';
 import { HeroSlide } from '@/types/common';
 import { useSiteTheme } from '@/components/common/DynamicThemeProvider';
+import { getCatIcon } from '@/components/layout/CategoryDropdown';
+
+export interface CategorySection {
+  name: string;
+  slug: string;
+  icon?: string;
+  image?: string;
+  productCount: number;
+  products: IProduct[];
+}
 
 export const HERO_SLIDES: HeroSlide[] = [
   {
@@ -105,6 +115,78 @@ export function useHomePage({ initialProducts, initialCategories }: UseHomePageP
     { key: 'featured', label: 'Featured' },
     { key: 'selling', label: 'Top Selling' },
   ];
+
+  /* ── Group products by Main Parent Categories (PriceOye pattern) ── */
+  const categorySections = useMemo<CategorySection[]>(() => {
+    if (!products || products.length === 0) return [];
+
+    // Filter root/parent categories (parentCategory is falsy/empty)
+    const parentCats = (cats && cats.length > 0)
+      ? cats.filter(c => !c.parentCategory)
+      : [];
+
+    const sections: CategorySection[] = [];
+    const usedProductIds = new Set<string>();
+
+    if (parentCats.length > 0) {
+      for (const pCat of parentCats) {
+        const pSlug = (pCat.slug || '').toLowerCase();
+        const pName = (pCat.name || '').toLowerCase();
+        const subSlugs = (pCat.subcategories || pCat.children || []).map((s: any) => (s.slug || s.name || '').toLowerCase());
+
+        const matchingProducts = products.filter(p => {
+          const cat = (p.category || '').toLowerCase();
+          const sub = (p.subcategory || '').toLowerCase();
+          return (
+            cat === pSlug ||
+            cat === pName ||
+            subSlugs.includes(cat) ||
+            subSlugs.includes(sub) ||
+            (pSlug && cat.includes(pSlug)) ||
+            (cat && pSlug.includes(cat))
+          );
+        });
+
+        if (matchingProducts.length > 0) {
+          matchingProducts.forEach(p => usedProductIds.add(String(p._id)));
+          sections.push({
+            name: pCat.name,
+            slug: pCat.slug,
+            icon: pCat.icon || getCatIcon(pCat.slug),
+            image: pCat.image || '',
+            productCount: matchingProducts.length,
+            products: matchingProducts,
+          });
+        }
+      }
+    }
+
+    // Group any remaining products by product.category
+    const remaining = products.filter(p => !usedProductIds.has(String(p._id)));
+    if (remaining.length > 0) {
+      const groupMap = new Map<string, IProduct[]>();
+      for (const p of remaining) {
+        const catKey = p.category ? p.category.trim() : 'Accessories';
+        if (!groupMap.has(catKey)) {
+          groupMap.set(catKey, []);
+        }
+        groupMap.get(catKey)!.push(p);
+      }
+
+      for (const [catName, prods] of groupMap.entries()) {
+        const slug = catName.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+        sections.push({
+          name: catName,
+          slug: slug,
+          icon: getCatIcon(slug),
+          productCount: prods.length,
+          products: prods,
+        });
+      }
+    }
+
+    return sections;
+  }, [products, cats]);
 
   /* ── Safely resolve homepageSections with fallbacks ── */
   const hs = theme.homepageSections ?? ({} as typeof theme.homepageSections);
@@ -261,5 +343,6 @@ export function useHomePage({ initialProducts, initialCategories }: UseHomePageP
     dynamicHeroSlides,
     dynamicOffers,
     sliderConfig,
+    categorySections,
   };
 }

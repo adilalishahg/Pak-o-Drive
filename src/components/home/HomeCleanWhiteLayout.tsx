@@ -9,6 +9,8 @@ import { ProductCard } from '@/components/product/ProductCard';
 import { HomeTopCollections } from './HomeTopCollections';
 import { HeroSlider } from '@/components/common/HeroSlider';
 import { HeroSlide } from '@/types/common';
+import { CategorySection } from '@/hooks/useHomePage';
+import { CategoryProductsBlock } from './CategoryProductsBlock';
 
 export interface HomeCleanWhiteLayoutProps {
   theme: SiteTheme;
@@ -24,6 +26,7 @@ export interface HomeCleanWhiteLayoutProps {
   valProps: any;
   dynamicHeroSlides?: HeroSlide[];
   sliderConfig?: any;
+  categorySections?: CategorySection[];
 }
 
 export const HomeCleanWhiteLayout: React.FC<HomeCleanWhiteLayoutProps> = ({
@@ -40,6 +43,7 @@ export const HomeCleanWhiteLayout: React.FC<HomeCleanWhiteLayoutProps> = ({
   valProps,
   dynamicHeroSlides = [],
   sliderConfig = {},
+  categorySections = [],
 }) => {
   const hasCustomSlides =
     Array.isArray(theme.homepageSections?.heroSlides) &&
@@ -160,6 +164,17 @@ export const HomeCleanWhiteLayout: React.FC<HomeCleanWhiteLayoutProps> = ({
               <ProductCard key={prod._id} product={prod} priority={idx < 4} />
             ))}
           </div>
+        </section>
+      )}
+
+      {/* ── Category Wise Sections (PriceOye Style with Pak-o-Drive Design) ── */}
+      {categorySections && categorySections.length > 0 && (
+        <section className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6" aria-label="Category Sections">
+          <CategoryProductsBlock
+            sections={categorySections}
+            theme={theme}
+            isCleanWhite={true}
+          />
         </section>
       )}
 

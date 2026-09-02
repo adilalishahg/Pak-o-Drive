@@ -34,6 +34,7 @@ export function HomePageClient({ initialProducts, initialCategories }: HomePageC
     dynamicHeroSlides,
     dynamicOffers,
     sliderConfig,
+    categorySections,
   } = useHomePage({ initialProducts, initialCategories });
 
   if (isCleanWhite) {
@@ -52,6 +53,7 @@ export function HomePageClient({ initialProducts, initialCategories }: HomePageC
         valProps={valProps}
         dynamicHeroSlides={dynamicHeroSlides}
         sliderConfig={sliderConfig}
+        categorySections={categorySections}
       />
     );
   }
@@ -69,6 +71,7 @@ export function HomePageClient({ initialProducts, initialCategories }: HomePageC
       filteredProducts={filteredProducts}
       tabs={tabs}
       sliderConfig={sliderConfig}
+      categorySections={categorySections}
     />
   );
 }

@@ -1,9 +1,9 @@
-import { getCachedHomeProducts, getCachedAllCategories, getCachedSiteSettings } from '../lib/cache';
+import { getCachedAllProducts, getCachedAllCategories, getCachedSiteSettings } from '../lib/cache';
 import { HomePageClient } from '../components/home/HomePageClient';
 
 export default async function Home() {
   const [products, categories, settings] = await Promise.all([
-    getCachedHomeProducts(),
+    getCachedAllProducts(),
     getCachedAllCategories(),
     getCachedSiteSettings(),
   ]);
