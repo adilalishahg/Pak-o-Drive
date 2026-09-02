@@ -834,6 +834,63 @@ This file serves as persistent dynamic memory across coding agent sessions. Ever
   4. Integrated seamlessly into both `HomeModernLayout.tsx` and `HomeCleanWhiteLayout.tsx`.
   5. Verified via Puppeteer screenshots and `pnpm tsc --noEmit` with 0 compilation errors.
 
+### 2026-09-02: Product Detail Page Pure-UI Refactoring & Logic Decoupling
+- **Issue**: `src/app/product/[id]/page.tsx` contained 358 lines with mixed URL string logic, SEO metadata generation, JSON-LD schema builder logic, hardcoded Cloudinary crawler transformations, breadcrumb rendering, and inline related products components, violating Rule #8 (Zero Logic in UI).
+- **Root Cause**: Business logic, data transformations, and metadata generators had accumulated directly inside the server component view.
+- **Verified Fix**:
+  1. Extracted all SEO metadata generation and JSON-LD schema builders (`generateProductMetadata`, `buildProductJsonLd`, `buildBreadcrumbJsonLd`, `getStaticSiteUrl`) into [src/lib/productSeo.ts](file:///d:/proj/Pak-o-Drive/src/lib/productSeo.ts).
+  2. Extracted the presentational breadcrumb into [src/components/product/ProductBreadcrumb.tsx](file:///d:/proj/Pak-o-Drive/src/components/product/ProductBreadcrumb.tsx).
+  3. Extracted related products section and skeleton into [src/components/product/RelatedProductsSection.tsx](file:///d:/proj/Pak-o-Drive/src/components/product/RelatedProductsSection.tsx).
+  4. Reduced `src/app/product/[id]/page.tsx` down to 88 clean, declarative lines of pure presentational JSX.
+  5. Verified `pnpm tsc --noEmit` passing with 0 errors.
+
+### 2026-09-02: Track Order Page Pure-UI Architecture & Zero Repetition Refactoring
+- **Issue**: `src/app/track-order/page.tsx` contained 356 lines of hardcoded status dictionaries, step calculation helpers, duplicate button markup, and inline order card views, violating Rule #6 (Enum Normalization) and Rule #8 (Zero Logic in UI).
+- **Root Cause**: `STATUS_STEPS`, `STATUS_CONFIG`, and `getStepIndex` were declared locally in the page component, and repetitive search button markup was hardcoded.
+- **Verified Fix**:
+  1. Moved `ORDER_TRACKING_STEPS`, `ORDER_STATUS_CONFIG`, and `getOrderStepIndex` to [src/lib/constants.ts](file:///d:/proj/Pak-o-Drive/src/lib/constants.ts).
+  2. Created [src/components/track-order/OrderSearchCard.tsx](file:///d:/proj/Pak-o-Drive/src/components/track-order/OrderSearchCard.tsx) eliminating repeated tab buttons via map iteration.
+  3. Created [src/components/track-order/OrderProgressTracker.tsx](file:///d:/proj/Pak-o-Drive/src/components/track-order/OrderProgressTracker.tsx) and [src/components/track-order/OrderTrackingCard.tsx](file:///d:/proj/Pak-o-Drive/src/components/track-order/OrderTrackingCard.tsx) for modular presentational tracking views.
+  4. Created [src/components/track-order/OrderEmptyState.tsx](file:///d:/proj/Pak-o-Drive/src/components/track-order/OrderEmptyState.tsx) and [src/components/track-order/TrackOrderBreadcrumb.tsx](file:///d:/proj/Pak-o-Drive/src/components/track-order/TrackOrderBreadcrumb.tsx).
+  5. Reduced `src/app/track-order/page.tsx` from 356 lines to 74 lines of pure, elegant JSX.
+  6. Verified `pnpm tsc --noEmit` passing with 0 errors.
+
+### 2026-09-02: Wishlist Page Pure-UI Architecture & Custom Hook Decoupling
+- **Issue**: `src/app/wishlist/page.tsx` contained raw side-effects (`fetch('/api/products')`, filtering logic, mounting guards), state management, inline skeletons, and hardcoded responsive styling blocks, violating Rule #8 (Zero Logic in UI).
+- **Root Cause**: Business logic, API calls, and view rendering were tightly coupled in the page component.
+- **Verified Fix**:
+  1. Extracted all wishlist data fetching, filtering, and theme background state into custom hook [src/hooks/useWishlistPage.ts](file:///d:/proj/Pak-o-Drive/src/hooks/useWishlistPage.ts).
+  2. Extracted presentation into modular components: [WishlistBreadcrumb.tsx](file:///d:/proj/Pak-o-Drive/src/components/wishlist/WishlistBreadcrumb.tsx), [WishlistHeader.tsx](file:///d:/proj/Pak-o-Drive/src/components/wishlist/WishlistHeader.tsx), [WishlistSkeleton.tsx](file:///d:/proj/Pak-o-Drive/src/components/wishlist/WishlistSkeleton.tsx), [WishlistEmptyState.tsx](file:///d:/proj/Pak-o-Drive/src/components/wishlist/WishlistEmptyState.tsx), and [WishlistGrid.tsx](file:///d:/proj/Pak-o-Drive/src/components/wishlist/WishlistGrid.tsx).
+  3. Reduced `src/app/wishlist/page.tsx` to 28 clean lines of purely declarative JSX.
+  4. Verified `pnpm tsc --noEmit` passing with 0 errors.
+
+### 2026-09-02: FloatingCartButton Pure-UI Architecture & SSR Guard Refactor
+- **Issue**: `src/components/common/FloatingCartButton.tsx` contained routing pathname condition checks (`isCartOrCheckout`, `isProductPage`), theme gradient computations, and un-guarded client cart access, violating Rule #1 (Cart SSR Hydration Guard) and Rule #8 (Zero Logic in UI).
+- **Root Cause**: Route-filtering logic and theme color generation were tightly bundled directly into the presentational button.
+- **Verified Fix**:
+  1. Extracted route exclusion prefixes to `FLOATING_CART_EXCLUDED_PREFIXES` in [src/lib/constants.ts](file:///d:/proj/Pak-o-Drive/src/lib/constants.ts).
+  2. Created [src/hooks/useFloatingCart.ts](file:///d:/proj/Pak-o-Drive/src/hooks/useFloatingCart.ts) with `isMounted` hydration guard, pathname exclusion checking, currency formatting, and theme background gradient mapping.
+  3. Reduced [src/components/common/FloatingCartButton.tsx](file:///d:/proj/Pak-o-Drive/src/components/common/FloatingCartButton.tsx) to pure presentational JSX rendering.
+  4. Verified `pnpm tsc --noEmit` passing with 0 errors.
+
+### 2026-09-02: Hero Slider Layout Refinement — Price Below Title & Reduced Height
+- **Issue**: User requested moving the `FEATURED PRODUCT` badge to the top with proper spacing, moving the price badge directly beneath the title on its own line, and reducing the overall slider height for a sleeker mobile profile.
+- **Root Cause**: Price badge was previously overlaid on the right image column, taking up vertical space and stretching the slider height.
+- **Verified Fix**:
+  1. Placed `FEATURED PRODUCT` badge at the top with clean margin spacing.
+  2. Moved the price badge (`Rs. Original  Rs. Sale`) directly under `<h2>{slide.title}</h2>` in both [HeroSlider.tsx](file:///d:/proj/Pak-o-Drive/src/components/common/HeroSlider.tsx) and [SmooothyHeroSlider.tsx](file:///d:/proj/Pak-o-Drive/src/components/common/SmooothyHeroSlider.tsx).
+  3. Reduced slider `minHeight` from 340px to 260px (desktop) and 220px (mobile) with compact padding.
+  4. Verified layout via automated mobile viewport screenshot and `pnpm tsc --noEmit` passing with 0 errors.
+
+### 2026-09-02: Order Confirmation Page Pure-UI Architecture & Custom Hook Decoupling
+- **Issue**: `src/app/order-confirmation/[id]/page.tsx` contained 325 lines of mixed API calls, confetti triggers, Meta and TikTok Pixel fires, WhatsApp deep-link string formatting, and inline invoice markup, violating Rule #8 (Zero Logic in UI).
+- **Root Cause**: All tracking side-effects, deep-linking templates, and invoice markup were bundled into the page component.
+- **Verified Fix**:
+  1. Extracted API fetching, Pixel tracking, confetti, WhatsApp order confirmation template generation, and print handling into custom hook [src/hooks/useOrderConfirmation.ts](file:///d:/proj/Pak-o-Drive/src/hooks/useOrderConfirmation.ts).
+  2. Modularized presentational views: [OrderSuccessBanner.tsx](file:///d:/proj/Pak-o-Drive/src/components/order-confirmation/OrderSuccessBanner.tsx), [OrderInvoiceCard.tsx](file:///d:/proj/Pak-o-Drive/src/components/order-confirmation/OrderInvoiceCard.tsx), [OrderLoadingState.tsx](file:///d:/proj/Pak-o-Drive/src/components/order-confirmation/OrderLoadingState.tsx), and [OrderErrorState.tsx](file:///d:/proj/Pak-o-Drive/src/components/order-confirmation/OrderErrorState.tsx).
+  3. Reduced `src/app/order-confirmation/[id]/page.tsx` from 325 lines to 50 lines of pure presentational JSX.
+  4. Verified `pnpm tsc --noEmit` passing with 0 errors.
+
 
 
 

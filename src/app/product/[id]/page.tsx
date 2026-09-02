@@ -1,126 +1,38 @@
 import React, { Suspense } from 'react';
-import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
-import { ProductCard } from '../../../components/product/ProductCard';
-import { ProductDetailInteractive } from '../../../components/product/ProductDetailInteractive';
-import { getCachedProduct, getCachedRelatedProducts, getCachedSiteInfo } from '../../../lib/cache';
+import { getCachedProduct, getCachedSiteInfo } from '@/lib/cache';
+import {
+  generateProductMetadata,
+  buildProductJsonLd,
+  buildBreadcrumbJsonLd,
+  getStaticSiteUrl,
+} from '@/lib/productSeo';
+import { ProductBreadcrumb } from '@/components/product/ProductBreadcrumb';
+import { ProductDetailInteractive } from '@/components/product/ProductDetailInteractive';
+import {
+  RelatedProductsSection,
+  RelatedProductsSkeleton,
+} from '@/components/product/RelatedProductsSection';
 
-function getStaticSiteUrl() {
-  if (process.env.NEXT_PUBLIC_SITE_URL) {
-    return process.env.NEXT_PUBLIC_SITE_URL.replace(/\/$/, '');
-  }
-  if (process.env.VERCEL_PROJECT_PRODUCTION_URL) {
-    return `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`;
-  }
-  return 'https://www.pakodrive.pk';
+interface PageProps {
+  params: Promise<{ id: string }>;
 }
-
-interface PageProps { params: Promise<{ id: string }> }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { id } = await params;
-  const p = await getCachedProduct(id);
-  const siteUrl = getStaticSiteUrl();
-
-  let siteLogoText = 'PAKODRIVE';
-  const siteInfo = await getCachedSiteInfo();
-
-  if (siteInfo && siteInfo.logoText) {
-    siteLogoText = siteInfo.logoText as string;
-  }
-
-  const fallbackImg = siteInfo?.logoImage 
-    ? (siteInfo.logoImage.startsWith('http') ? siteInfo.logoImage : `${siteUrl}${siteInfo.logoImage}`)
-    : `${siteUrl}/img/carousel-1.jpg`;
-
-  if (!p) {
-    const fallbackTitle = siteInfo?.seoTitle || `Order Online | ${siteLogoText}`;
-    const fallbackDesc = siteInfo?.seoDescription || "Shop automotive accessories & electronics on PAKODRIVE.";
-
-    return {
-      title: fallbackTitle,
-      description: fallbackDesc,
-      openGraph: {
-        title: fallbackTitle,
-        description: fallbackDesc,
-        url: `${siteUrl}/product/${id}`,
-        images: [{ url: fallbackImg }],
-      }
-    };
-  }
-
-  const metaTitle = p.seoTitle || `${p.name} — Rs. ${p.price?.toLocaleString()} | ${siteLogoText}`;
-  const metaDesc = p.seoDescription || `Buy ${p.name} online in Pakistan for Rs. ${p.price?.toLocaleString()}. Fast Cash on Delivery & 7-Day Checking Warranty. Order now!`;
-  const keywords = p.seoKeywords ? p.seoKeywords.split(',').map((k: string) => k.trim()).filter(Boolean) : undefined;
-  const productUrl = `${siteUrl}/product/${id}`;
-  
-  let imageUrl = p.image
-    ? (p.image.startsWith('http') ? p.image : `${siteUrl}${p.image.startsWith('/') ? '' : '/'}${p.image}`)
-    : fallbackImg;
-
-  // Cloudinary WhatsApp / Social Crawler optimization (Standard 1200x630 JPEG under 70KB with true .jpg extension)
-  if (imageUrl.includes('res.cloudinary.com') && imageUrl.includes('/upload/')) {
-    imageUrl = imageUrl.replace('/upload/', '/upload/f_jpg,q_80,w_1200,h_630,c_pad,b_white/');
-    imageUrl = imageUrl.replace(/\.(webp|png|jpeg)$/i, '.jpg');
-  }
-
-
-  return {
-    title: metaTitle,
-    description: metaDesc,
-    keywords,
-    metadataBase: new URL(siteUrl),
-    alternates: {
-      canonical: productUrl,
-    },
-    openGraph: {
-      title: metaTitle,
-      description: metaDesc,
-      url: productUrl,
-      type: 'website',
-      siteName: siteLogoText,
-      locale: 'en_PK',
-      images: [
-        {
-          url: imageUrl,
-          secureUrl: imageUrl,
-          width: 1200,
-          height: 630,
-          type: 'image/jpeg',
-          alt: p.name,
-        },
-      ],
-    },
-    twitter: {
-      card: 'summary_large_image',
-      title: metaTitle,
-      description: metaDesc,
-      images: [imageUrl],
-    },
-  };
+  return generateProductMetadata(id);
 }
-
 
 export default async function ProductDetailPage({ params }: PageProps) {
   const { id } = await params;
-  return <ProductDetailContent id={id} />;
-}
-
-
-async function ProductDetailContent({ id }: { id: string }) {
   const product = await getCachedProduct(id);
   if (!product) return notFound();
 
-  const discountPercent = product.originalPrice > product.price
-    ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100) : 0;
-
-  const specs = product.specifications
-    ? Object.entries(product.specifications as Record<string, unknown>) : [];
-
+  const siteInfo = await getCachedSiteInfo();
   let siteUrl = getStaticSiteUrl();
   let siteLogoText = 'PAKODRIVE';
-  const siteInfo = await getCachedSiteInfo();
+
   if (siteInfo) {
     if (siteInfo.website) {
       const ws = siteInfo.website as string;
@@ -131,130 +43,8 @@ async function ProductDetailContent({ id }: { id: string }) {
     }
   }
 
-  const productUrl = `${siteUrl}/product/${product.slug || product._id}`;
-  const brandName = product.specifications?.Brand || siteLogoText || 'PAKODRIVE';
-
-
-  const productSchema = {
-    '@context': 'https://schema.org',
-    '@type': 'Product',
-    name: product.name,
-    image: product.images && product.images.length > 0
-      ? product.images.map((img: string) => img.startsWith('http') ? img : `${siteUrl}${img}`)
-      : [product.image.startsWith('http') ? product.image : `${siteUrl}${product.image}`],
-    description: product.description,
-    sku: product._id,
-    brand: {
-      '@type': 'Brand',
-      name: brandName,
-    },
-    offers: {
-      '@type': 'Offer',
-      url: productUrl,
-      priceCurrency: 'PKR',
-      price: product.price,
-      itemCondition: 'https://schema.org/NewCondition',
-      availability: product.stock !== 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
-      priceValidUntil: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-      seller: {
-        '@type': 'Organization',
-        name: brandName,
-      },
-      shippingDetails: {
-        '@type': 'OfferShippingDetails',
-        shippingRate: {
-          '@type': 'MonetaryAmount',
-          value: '0',
-          currency: 'PKR',
-        },
-        shippingDestination: {
-          '@type': 'DefinedRegion',
-          addressCountry: 'PK',
-        },
-        deliveryTime: {
-          '@type': 'ShippingDeliveryTime',
-          handlingTime: {
-            '@type': 'QuantitativeValue',
-            minValue: 1,
-            maxValue: 2,
-            unitCode: 'DAY',
-          },
-          transitTime: {
-            '@type': 'QuantitativeValue',
-            minValue: 1,
-            maxValue: 4,
-            unitCode: 'DAY',
-          },
-        },
-      },
-      hasMerchantReturnPolicy: {
-        '@type': 'MerchantReturnPolicy',
-        applicableCountry: 'PK',
-        returnPolicyCategory: 'https://schema.org/MerchantReturnFiniteReturnWindow',
-        merchantReturnDays: 7,
-        returnMethod: 'https://schema.org/ReturnByMail',
-        returnFees: 'https://schema.org/FreeReturn',
-      },
-    },
-    aggregateRating: product.reviewsCount > 0 ? {
-      '@type': 'AggregateRating',
-      ratingValue: product.rating || 5,
-      reviewCount: product.reviewsCount,
-    } : undefined,
-  };
-
-  const breadcrumbSchema = {
-    '@context': 'https://schema.org',
-    '@type': 'BreadcrumbList',
-    itemListElement: [
-      {
-        '@type': 'ListItem',
-        position: 1,
-        name: 'Home',
-        item: siteUrl,
-      },
-      {
-        '@type': 'ListItem',
-        position: 2,
-        name: 'Shop',
-        item: `${siteUrl}/shop`,
-      },
-      {
-        '@type': 'ListItem',
-        position: 3,
-        name: product.category,
-        item: `${siteUrl}/shop?category=${product.category}`,
-      },
-      {
-        '@type': 'ListItem',
-        position: 4,
-        name: product.name,
-        item: productUrl,
-      },
-    ],
-  };
-
-  const mainProductImg = product.image ? (product.image.startsWith('http') ? product.image : `${siteUrl}${product.image}`) : '';
-
-  const productPreloadUrls: string[] = [];
-  if (mainProductImg) {
-    if (mainProductImg.includes('res.cloudinary.com')) {
-      const uploadIndex = mainProductImg.indexOf('/upload/');
-      if (uploadIndex !== -1) {
-        const prefix = mainProductImg.substring(0, uploadIndex + 8);
-        let suffix = mainProductImg.substring(uploadIndex + 8);
-        suffix = suffix.replace(/^(?:[a-z_]+[,/])*(?:v\d+\/)?/, (match: string) => {
-          const versionMatch = match.match(/(v\d+\/)/);
-          return versionMatch ? versionMatch[1] : '';
-        });
-        productPreloadUrls.push(`${prefix}f_auto,q_70,w_390,c_limit/${suffix}`);
-        productPreloadUrls.push(`${prefix}f_auto,q_70,w_640,c_limit/${suffix}`);
-      }
-    } else {
-      productPreloadUrls.push(`/_next/image?url=${encodeURIComponent(mainProductImg)}&w=390&q=75`);
-      productPreloadUrls.push(`/_next/image?url=${encodeURIComponent(mainProductImg)}&w=640&q=75`);
-    }
-  }
+  const productSchema = buildProductJsonLd(product, siteUrl, siteLogoText);
+  const breadcrumbSchema = buildBreadcrumbJsonLd(product, siteUrl);
 
   return (
     <>
@@ -277,81 +67,22 @@ async function ProductDetailContent({ id }: { id: string }) {
       `}</style>
 
       <div className="pd-detail-page">
-        {/* ── Breadcrumb ── */}
-        <div style={{ background: '#fff', borderBottom: '1px solid #eee', padding: '8px 0' }}>
-          <div className="container-fluid px-3">
-            <nav aria-label="breadcrumb">
-              <ol className="breadcrumb mb-0" style={{ fontSize: '0.75rem', flexWrap: 'nowrap', overflow: 'hidden' }}>
-                <li className="breadcrumb-item flex-shrink-0">
-                  <Link href="/" className="text-decoration-none text-muted">Home</Link>
-                </li>
-                <li className="breadcrumb-item flex-shrink-0">
-                  <Link href="/shop" className="text-decoration-none text-muted">Shop</Link>
-                </li>
-                <li className="breadcrumb-item flex-shrink-0">
-                  <Link href={`/shop?category=${product.category}`}
-                    className="text-decoration-none text-muted text-capitalize">
-                    {product.category}
-                  </Link>
-                </li>
-                <li className="breadcrumb-item active text-dark fw-semibold"
-                  style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {product.name}
-                </li>
-              </ol>
-            </nav>
-          </div>
-        </div>
+        {/* Presentational Breadcrumb */}
+        <ProductBreadcrumb category={product.category} productName={product.name} />
 
-        {/* ── Main section ── */}
+        {/* Main Product Container */}
         <div style={{ maxWidth: '1100px', margin: '12px auto 0', padding: '0' }}>
-
           {/* Interactive Card containing gallery, options, actions, specs */}
           <div className="pd-card">
             <ProductDetailInteractive product={product} />
           </div>
 
-          {/* Streamed Related Products Section */}
-          <Suspense fallback={
-            <div className="pd-card p-4 mt-2 mb-4 animate-pulse">
-              <div className="h-5 bg-slate-200 rounded w-36 mb-4" />
-              <div className="row g-2 g-md-3">
-                {[1, 2, 3, 4].map((i) => (
-                  <div key={i} className="col-6 col-md-3">
-                    <div className="h-44 bg-slate-100 rounded-xl" />
-                  </div>
-                ))}
-              </div>
-            </div>
-          }>
+          {/* Streamed Related Products Section with Skeleton fallback */}
+          <Suspense fallback={<RelatedProductsSkeleton />}>
             <RelatedProductsSection category={product.category} excludeId={product._id} />
           </Suspense>
         </div>
       </div>
     </>
-  );
-}
-
-async function RelatedProductsSection({ category, excludeId }: { category: string; excludeId: string }) {
-  const relatedProducts = await getCachedRelatedProducts(category, excludeId);
-  if (!relatedProducts || relatedProducts.length === 0) return null;
-
-  return (
-    <div className="pd-card" style={{ marginTop: '8px', marginBottom: '16px' }}>
-      <div style={{ padding: '16px 16px 8px' }}>
-        <h2 style={{
-          fontSize: '0.95rem', fontWeight: 800, color: '#111',
-          marginBottom: '12px', paddingBottom: '8px',
-          borderBottom: '2px solid var(--pd-primary)', display: 'inline-block',
-        }}>Related Products</h2>
-      </div>
-      <div className="row g-2 g-md-3" style={{ padding: '0 12px 16px' }}>
-        {relatedProducts.map((prod: any) => (
-          <div key={prod._id} className="col-6 col-md-4 col-lg-3">
-            <ProductCard product={prod} />
-          </div>
-        ))}
-      </div>
-    </div>
   );
 }

@@ -2,31 +2,12 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { useCart } from '../../context/CartContext';
-import { useSiteTheme } from './DynamicThemeProvider';
+import { useFloatingCart } from '@/hooks/useFloatingCart';
 
 export const FloatingCartButton: React.FC = () => {
-  const pathname = usePathname();
-  const { cartCount, cartTotal } = useCart();
-  const { theme } = useSiteTheme();
-  
-  const isCartOrCheckout = pathname === '/cart' || pathname === '/checkout' || pathname.startsWith('/order-confirmation');
-  const isProductPage = pathname?.startsWith('/product/');
-  
-  if (cartCount === 0 || isCartOrCheckout || isProductPage) {
-    return null;
-  }
+  const { isVisible, cartCount, formattedTotal, btnBackground, accentColor } = useFloatingCart();
 
-  const isModernGreen = theme.layoutTheme === 'modern-green';
-  const isCleanWhite = theme.layoutTheme === 'theme1';
-
-  // Determine colors based on active theme
-  const btnBackground = isModernGreen
-    ? 'linear-gradient(135deg, #d4af37, #b89324)'
-    : (isCleanWhite ? `linear-gradient(135deg, ${theme.primaryColor}, color-mix(in srgb, ${theme.primaryColor} 80%, #000))` : 'linear-gradient(135deg, var(--pd-primary), #c2410c)');
-
-  const accentColor = isModernGreen ? '#0d231d' : '#ffffff';
+  if (!isVisible) return null;
 
   return (
     <>
@@ -83,7 +64,7 @@ export const FloatingCartButton: React.FC = () => {
           </div>
           <div className="d-flex flex-column" style={{ lineHeight: 1.2 }}>
             <span style={{ fontSize: '0.72rem', opacity: 0.85, fontWeight: 600 }}>Checkout</span>
-            <span style={{ fontSize: '0.88rem', fontWeight: 800 }}>PKR {cartTotal.toLocaleString()}</span>
+            <span style={{ fontSize: '0.88rem', fontWeight: 800 }}>{formattedTotal}</span>
           </div>
         </div>
         <div className="d-flex align-items-center gap-1.5 ms-3">

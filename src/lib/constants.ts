@@ -205,6 +205,31 @@ export const DEFAULT_POPULAR_CITIES: string[] = [
   'Quetta',
 ];
 
+export const ORDER_TRACKING_STEPS = ['Pending', 'Processing', 'On the Way', 'Shipped', 'Delivered'] as const;
+
+export const ORDER_STATUS_CONFIG: Record<string, { color: string; bg: string; icon: string; label: string }> = {
+  Pending:      { color: '#d97706', bg: '#fef3c7', icon: 'fas fa-clock',           label: 'Pending'      },
+  Processing:   { color: '#2563eb', bg: '#dbeafe', icon: 'fas fa-cog fa-spin',     label: 'Processing'   },
+  'On the Way': { color: '#7c3aed', bg: '#ede9fe', icon: 'fas fa-truck',           label: 'On the Way'   },
+  Shipped:      { color: '#0891b2', bg: '#cffafe', icon: 'fas fa-shipping-fast',   label: 'Shipped'      },
+  Delivered:    { color: '#16a34a', bg: '#dcfce7', icon: 'fas fa-check-circle',    label: 'Delivered'    },
+  Cancelled:    { color: '#dc2626', bg: '#fee2e2', icon: 'fas fa-times-circle',    label: 'Cancelled'    },
+};
+
+export function getOrderStepIndex(status: string): number {
+  const idx = (ORDER_TRACKING_STEPS as readonly string[]).indexOf(status);
+  return idx === -1 ? 0 : idx;
+}
+
+export const FLOATING_CART_EXCLUDED_PREFIXES = [
+  '/cart',
+  '/checkout',
+  '/order-confirmation',
+  '/product/',
+] as const;
+
+
+
 
 
 

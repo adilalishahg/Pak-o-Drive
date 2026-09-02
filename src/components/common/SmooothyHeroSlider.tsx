@@ -114,65 +114,96 @@ export function SmooothyHeroSlider({
             style={{
               width: `${100 / slides.length}%`,
               flexShrink: 0,
-              display: 'flex',
-              alignItems: 'center',
-              padding: '36px 24px',
-              minHeight: '340px',
-              gap: '24px',
               background: slide.bg || 'var(--pd-hero-grad-start, #fff7ed)',
               transform: 'translateZ(0)',
             }}
           >
-            {/* Left Content Column */}
-            <div style={{ flex: '1 1 0', minWidth: 0 }}>
-              {/* Header row: Badge on left + Retail & Sale Prices on right */}
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  flexWrap: 'wrap',
-                  gap: '8px',
-                  marginBottom: '10px',
-                }}
-              >
+            <Link
+              href={slide.btnLink || '/shop'}
+              className="smooothy-slide-clickable text-decoration-none"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                width: '100%',
+                padding: '22px 28px',
+                minHeight: '260px',
+                gap: '20px',
+                cursor: 'pointer',
+                color: 'inherit',
+              }}
+            >
+              {/* Left Content Column */}
+              <div style={{ flex: '1 1 0', minWidth: 0 }}>
                 {slide.badge && (
-                  <span
-                    style={{
-                      display: 'inline-block',
-                      background: 'linear-gradient(135deg, var(--pd-primary, #ea580c), color-mix(in srgb, var(--pd-primary, #ea580c) 75%, #000))',
-                      color: '#fff',
-                      fontSize: '10px',
-                      fontWeight: 800,
-                      letterSpacing: '1px',
-                      padding: '5px 12px',
-                      borderRadius: '20px',
-                      textTransform: 'uppercase',
-                      boxShadow: '0 3px 10px rgba(234,88,12,0.3)',
-                    }}
-                  >
-                    {slide.badge}
-                  </span>
+                  <div style={{ marginBottom: '10px', paddingTop: '4px' }}>
+                    <span
+                      style={{
+                        display: 'inline-block',
+                        background: 'linear-gradient(135deg, var(--pd-primary, #ea580c), color-mix(in srgb, var(--pd-primary, #ea580c) 75%, #000))',
+                        color: '#fff',
+                        fontSize: '10px',
+                        fontWeight: 800,
+                        letterSpacing: '1px',
+                        padding: '4px 12px',
+                        borderRadius: '20px',
+                        textTransform: 'uppercase',
+                        boxShadow: '0 3px 10px rgba(234,88,12,0.25)',
+                      }}
+                    >
+                      {slide.badge}
+                    </span>
+                  </div>
                 )}
 
+                {slide.tagline && (
+                  <p
+                    style={{
+                      color: slide.accent || 'var(--pd-primary, #ea580c)',
+                      fontSize: '0.75rem',
+                      fontWeight: 700,
+                      letterSpacing: '2px',
+                      textTransform: 'uppercase',
+                      margin: '0 0 6px 0',
+                    }}
+                  >
+                    {slide.tagline}
+                  </p>
+                )}
+
+                <h2
+                  style={{
+                    fontWeight: 800,
+                    color: '#0f172a',
+                    margin: '0 0 10px 0',
+                    fontSize: 'clamp(1.15rem, 3.2vw, 2.2rem)',
+                    lineHeight: 1.18,
+                    letterSpacing: '-0.3px',
+                  }}
+                >
+                  {slide.title}
+                </h2>
+
+                {/* Price Tag Directly Below Title */}
                 {(slide.price || slide.originalPrice) && (
                   <div
+                    className="hero-slide-price-tag"
                     style={{
                       display: 'inline-flex',
                       alignItems: 'baseline',
                       gap: '8px',
-                      background: 'rgba(255, 255, 255, 0.92)',
+                      background: 'rgba(255, 255, 255, 0.95)',
                       backdropFilter: 'blur(8px)',
-                      padding: '3px 12px',
-                      borderRadius: '16px',
+                      WebkitBackdropFilter: 'blur(8px)',
+                      padding: '4px 14px',
+                      borderRadius: '20px',
                       border: '1px solid rgba(0,0,0,0.06)',
-                      boxShadow: '0 2px 6px rgba(0,0,0,0.04)',
+                      boxShadow: '0 2px 10px rgba(0,0,0,0.06)',
                     }}
                   >
                     {slide.originalPrice && slide.originalPrice > (slide.price || 0) && (
                       <del
                         style={{
-                          fontSize: '0.78rem',
+                          fontSize: '0.8rem',
                           color: '#94a3b8',
                           fontWeight: 600,
                           textDecoration: 'line-through',
@@ -184,7 +215,7 @@ export function SmooothyHeroSlider({
                     {slide.price && (
                       <span
                         style={{
-                          fontSize: '1.05rem',
+                          fontSize: '1.1rem',
                           fontWeight: 900,
                           color: 'var(--pd-primary, #ea580c)',
                           letterSpacing: '-0.3px',
@@ -197,113 +228,43 @@ export function SmooothyHeroSlider({
                 )}
               </div>
 
-              {slide.tagline && (
-                <p
-                  style={{
-                    color: slide.accent || 'var(--pd-primary, #ea580c)',
-                    fontSize: '0.75rem',
-                    fontWeight: 700,
-                    letterSpacing: '2px',
-                    textTransform: 'uppercase',
-                    margin: '0 0 6px 0',
-                  }}
-                >
-                  {slide.tagline}
-                </p>
-              )}
-
-              <h2
-                style={{
-                  fontWeight: 800,
-                  color: '#0f172a',
-                  margin: '0 0 16px 0',
-                  fontSize: 'clamp(1.3rem, 3.5vw, 2.6rem)',
-                  lineHeight: 1.18,
-                  letterSpacing: '-0.3px',
-                }}
-              >
-                {slide.title}
-              </h2>
-
-              <div style={{ display: 'flex', gap: '14px', alignItems: 'center', flexWrap: 'wrap' }}>
-                <Link
-                  href={slide.btnLink || '/shop'}
-                  className="btn-gradient"
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '7px',
-                    textDecoration: 'none',
-                    padding: '11px 24px',
-                    borderRadius: '50px',
-                    fontWeight: 700,
-                    fontSize: '0.88rem',
-                    whiteSpace: 'nowrap',
-                    lineHeight: 1,
-                  }}
-                >
-                  {slide.btnLabel || 'Shop Now'}
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <line x1="5" y1="12" x2="19" y2="12" />
-                    <polyline points="12 5 19 12 12 19" />
-                  </svg>
-                </Link>
-                <Link
-                  href="/shop"
-                  style={{
-                    fontSize: '0.82rem',
-                    color: '#64748b',
-                    textDecoration: 'none',
-                    fontWeight: 600,
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '3px',
-                  }}
-                >
-                  View All →
-                </Link>
-              </div>
-            </div>
-
-            {/* Right Product Image Column */}
-            {slide.productImage && (
-              <div
-                className="hero-slide-image-col"
-                style={{
-                  flex: '0 0 42%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  maxWidth: '340px',
-                  marginTop: '-36px',
-                  paddingRight: '16px',
-                  position: 'relative',
-                  zIndex: 1,
-                }}
-              >
+              {/* Right Product Image Column: Clean Centered Image */}
+              {slide.productImage && (
                 <div
-                  className="hero-slide-img-box"
+                  className="hero-slide-image-col"
                   style={{
+                    flex: '0 0 40%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    maxWidth: '260px',
                     position: 'relative',
-                    width: '100%',
-                    aspectRatio: '1 / 1',
-                    filter: 'drop-shadow(0 20px 32px rgba(0,0,0,0.12))',
-                    transform: 'translateY(-14px)',
+                    zIndex: 1,
                   }}
                 >
-                  <Image
-                    src={slide.productImage}
-                    alt={slide.productImageAlt || slide.title}
-                    fill
-                    sizes="(max-width: 767px) 42vw, (max-width: 991px) 38vw, 340px"
-                    style={{ objectFit: 'contain' }}
-                    priority={idx === 0}
-                    loading={idx === 0 ? 'eager' : 'lazy'}
-                    draggable={false}
-                  />
+                  <div
+                    className="hero-slide-img-box"
+                    style={{
+                      position: 'relative',
+                      width: '100%',
+                      aspectRatio: '1 / 1',
+                      filter: 'drop-shadow(0 14px 24px rgba(0,0,0,0.1))',
+                    }}
+                  >
+                    <Image
+                      src={slide.productImage}
+                      alt={slide.productImageAlt || slide.title}
+                      fill
+                      sizes="(max-width: 767px) 40vw, (max-width: 991px) 35vw, 260px"
+                      style={{ objectFit: 'contain' }}
+                      priority={idx === 0}
+                      loading={idx === 0 ? 'eager' : 'lazy'}
+                      draggable={false}
+                    />
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
+            </Link>
           </div>
         ))}
       </div>
@@ -341,7 +302,11 @@ export function SmooothyHeroSlider({
             <button
               key={i}
               type="button"
-              onClick={() => handleGoTo(i)}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                handleGoTo(i);
+              }}
               aria-label={`Slide ${i + 1}`}
               style={{
                 border: 'none',
@@ -363,56 +328,67 @@ export function SmooothyHeroSlider({
         <>
           <button
             type="button"
-            onClick={handlePrev}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              handlePrev();
+            }}
             style={{
               position: 'absolute',
-              left: '12px',
-              top: '62%',
+              left: '8px',
+              top: '55%',
               transform: 'translateY(-50%)',
-              width: '36px',
-              height: '36px',
+              width: '34px',
+              height: '34px',
               borderRadius: '50%',
-              background: 'rgba(255,255,255,0.9)',
-              backdropFilter: 'blur(8px)',
-              border: '1px solid rgba(0,0,0,0.08)',
+              background: 'rgba(255, 255, 255, 0.45)',
+              backdropFilter: 'blur(12px)',
+              WebkitBackdropFilter: 'blur(12px)',
+              border: '1px solid rgba(255, 255, 255, 0.7)',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              boxShadow: '0 4px 12px rgba(0,0,0,0.12)',
+              boxShadow: '0 4px 14px rgba(0,0,0,0.08)',
               zIndex: 10,
-              transition: 'transform 0.2s ease',
+              transition: 'all 0.2s ease',
             }}
             aria-label="Previous slide"
           >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0f172a" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#0f172a" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="15 18 9 12 15 6" />
             </svg>
           </button>
           <button
             type="button"
-            onClick={handleNext}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              handleNext();
+            }}
             style={{
               position: 'absolute',
-              right: '12px',
-              top: '62%',
+              right: '8px',
+              top: '55%',
               transform: 'translateY(-50%)',
-              width: '36px',
-              height: '36px',
+              width: '34px',
+              height: '34px',
               borderRadius: '50%',
-              background: 'linear-gradient(135deg, var(--pd-primary, #ea580c), color-mix(in srgb, var(--pd-primary, #ea580c) 75%, #000))',
-              border: 'none',
+              background: 'rgba(255, 255, 255, 0.45)',
+              backdropFilter: 'blur(12px)',
+              WebkitBackdropFilter: 'blur(12px)',
+              border: '1px solid rgba(255, 255, 255, 0.7)',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              boxShadow: '0 4px 12px rgba(234,88,12,0.3)',
+              boxShadow: '0 4px 14px rgba(0,0,0,0.08)',
               zIndex: 10,
-              transition: 'transform 0.2s ease',
+              transition: 'all 0.2s ease',
             }}
             aria-label="Next slide"
           >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#0f172a" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="9 18 15 12 9 6" />
             </svg>
           </button>
@@ -421,12 +397,21 @@ export function SmooothyHeroSlider({
 
       <style>{`
         @media (max-width: 767px) {
+          .smooothy-slide-clickable {
+            min-height: 220px !important;
+            padding-top: 16px !important;
+            padding-bottom: 16px !important;
+            padding-left: 44px !important;
+            padding-right: 44px !important;
+            gap: 12px !important;
+          }
           .hero-slide-image-col {
-            margin-top: -42px !important;
-            padding-right: 18px !important;
+            margin-top: 0 !important;
+            padding-right: 0 !important;
+            max-width: 140px !important;
           }
           .hero-slide-img-box {
-            transform: translateY(-18px) !important;
+            transform: none !important;
           }
         }
       `}</style>
