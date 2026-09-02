@@ -3,11 +3,15 @@
 import React from 'react';
 import { OptimizedImage } from '@/components/common/OptimizedImage';
 import { DeleteConfirmModal } from '@/components/admin/common/DeleteConfirmModal';
+import { IconPalettePicker } from '@/components/admin/categories/IconPalettePicker';
 import { useAdminCategories } from '@/hooks/useAdminCategories';
 
 export default function AdminCategoriesPage() {
   const {
     categories,
+    categoryTree,
+    flattenedHierarchy,
+    availableParentOptions,
     displayedCategories,
     rootCategories,
     subCategories,
@@ -18,6 +22,8 @@ export default function AdminCategoriesPage() {
     setSlug,
     icon,
     setIcon,
+    iconPaletteOpen,
+    setIconPaletteOpen,
     image,
     setImage,
     parentCategory,
@@ -36,6 +42,7 @@ export default function AdminCategoriesPage() {
     handleFileChange,
     handleNameChange,
     handleStartEdit,
+    handleQuickAddSubcategory,
     handleCancelEdit,
     handleSubmit,
     confirmDelete,
@@ -119,79 +126,103 @@ export default function AdminCategoriesPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {displayedCategories.map((cat) => (
-                    <tr key={cat.id || cat._id || cat.slug} className={cat.parentCategory ? 'bg-light bg-opacity-25' : ''}>
-                      <td>
-                        <div
-                          className="rounded bg-light d-flex align-items-center justify-content-center overflow-hidden border position-relative"
-                          style={{ width: '36px', height: '36px', color: cat.parentCategory ? '#0284c7' : '#ea580c' }}
-                        >
-                          {cat.image && !failedImages[cat.id] ? (
-                            <OptimizedImage
-                              src={cat.image}
-                              alt={cat.name}
-                              fill
-                              sizes="36px"
-                              style={{ objectFit: 'cover' }}
-                              onError={() => markImageFailed(cat.id)}
-                            />
-                          ) : (
-                            <i className={cat.icon || 'fas fa-tag'} />
-                          )}
-                        </div>
-                      </td>
-                      <td>
-                        <div className="d-flex align-items-center gap-1.5">
-                          {cat.parentCategory ? (
-                            <span className="text-primary fw-bold" style={{ fontSize: '1rem' }}>↳</span>
-                          ) : (
-                            <span className="badge bg-dark text-white rounded-pill" style={{ fontSize: '0.62rem' }}>MAIN</span>
-                          )}
-                          <span className={`text-dark ${cat.parentCategory ? 'fw-semibold text-secondary' : 'fw-bold'}`}>
-                            {cat.name}
-                          </span>
-                        </div>
-                        {cat.parentCategory && (
-                          <div className="small text-muted font-monospace ps-3" style={{ fontSize: '0.70rem' }}>
-                            Parent: {cat.parentCategory}
+                  {(filterMode === 'all' ? flattenedHierarchy : displayedCategories).map((cat: any) => {
+                    const depth = cat.depth || 0;
+                    return (
+                      <tr key={cat.id || cat._id || cat.slug} className={depth > 0 ? 'bg-light bg-opacity-25' : ''}>
+                        <td>
+                          <div
+                            className="rounded bg-light d-flex align-items-center justify-content-center overflow-hidden border position-relative"
+                            style={{
+                              width: '36px',
+                              height: '36px',
+                              color: depth > 0 ? '#0284c7' : '#ea580c',
+                              marginLeft: `${depth * 18}px`,
+                            }}
+                          >
+                            {cat.image && !failedImages[cat.id] ? (
+                              <OptimizedImage
+                                src={cat.image}
+                                alt={cat.name}
+                                fill
+                                sizes="36px"
+                                style={{ objectFit: 'cover' }}
+                                onError={() => markImageFailed(cat.id)}
+                              />
+                            ) : (
+                              <i className={cat.icon || 'fas fa-tag'} />
+                            )}
                           </div>
-                        )}
-                      </td>
-                      <td className="d-none d-md-table-cell">
-                        <code className="text-muted small">{cat.slug}</code>
-                      </td>
-                      <td>
-                        <span className={`badge rounded-pill px-2.5 py-1 ${cat.productCount > 0 ? 'bg-success bg-opacity-10 text-success' : 'bg-light text-muted'}`}>
-                          {cat.productCount} products
-                        </span>
-                      </td>
+                        </td>
+                        <td>
+                          <div className="d-flex align-items-center gap-1.5" style={{ paddingLeft: `${depth * 18}px` }}>
+                            {depth > 0 ? (
+                              <span className="text-primary fw-bold" style={{ fontSize: '0.9rem' }}>
+                                {'↳'.repeat(Math.min(depth, 3))}
+                              </span>
+                            ) : (
+                              <span className="badge bg-dark text-white rounded-pill" style={{ fontSize: '0.62rem' }}>MAIN</span>
+                            )}
+                            {depth > 0 && (
+                              <span className="badge bg-info bg-opacity-10 text-primary border border-info border-opacity-25 rounded-pill" style={{ fontSize: '0.6rem' }}>
+                                LEVEL {depth}
+                              </span>
+                            )}
+                            <span className={`text-dark ${depth > 0 ? 'fw-semibold text-secondary' : 'fw-bold'}`}>
+                              {cat.name}
+                            </span>
+                          </div>
+                          {cat.parentCategory && (
+                            <div className="small text-muted font-monospace" style={{ fontSize: '0.70rem', paddingLeft: `${depth * 18 + 14}px` }}>
+                              Parent: <span className="text-primary">{cat.parentCategory}</span>
+                            </div>
+                          )}
+                        </td>
+                        <td className="d-none d-md-table-cell">
+                          <code className="text-muted small">{cat.slug}</code>
+                        </td>
+                        <td>
+                          <span className={`badge rounded-pill px-2.5 py-1 ${cat.productCount > 0 ? 'bg-success bg-opacity-10 text-success' : 'bg-light text-muted'}`}>
+                            {cat.productCount} products
+                          </span>
+                        </td>
 
-                      <td className="text-end">
-                        <button
-                          onClick={() => handleStartEdit(cat)}
-                          className="btn btn-sm btn-outline-primary border-0 rounded-circle me-1"
-                          style={{ width: '32px', height: '32px' }}
-                          title="Edit Category"
-                        >
-                          <i className="fas fa-edit small" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setDeleteTarget({ id: cat.id, name: cat.name })}
-                          disabled={cat.productCount > 0}
-                          className="btn btn-sm btn-outline-danger border-0 rounded-circle"
-                          style={{ width: '32px', height: '32px' }}
-                          title={
-                            cat.productCount > 0
-                              ? 'Cannot delete category containing products'
-                              : 'Delete Category'
-                          }
-                        >
-                          <i className="fas fa-trash-alt small" />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
+                        <td className="text-end">
+                          <button
+                            type="button"
+                            onClick={() => handleQuickAddSubcategory(cat.slug)}
+                            className="btn btn-sm btn-outline-success border-0 rounded-pill me-1 px-2 py-1"
+                            style={{ fontSize: '0.72rem', fontWeight: 600 }}
+                            title={`Add Subcategory inside ${cat.name}`}
+                          >
+                            <i className="fas fa-plus me-1" /> Sub
+                          </button>
+                          <button
+                            onClick={() => handleStartEdit(cat)}
+                            className="btn btn-sm btn-outline-primary border-0 rounded-circle me-1"
+                            style={{ width: '30px', height: '30px' }}
+                            title="Edit Category"
+                          >
+                            <i className="fas fa-edit small" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setDeleteTarget({ id: cat.id, name: cat.name })}
+                            disabled={cat.productCount > 0}
+                            className="btn btn-sm btn-outline-danger border-0 rounded-circle"
+                            style={{ width: '30px', height: '30px' }}
+                            title={
+                              cat.productCount > 0
+                                ? 'Cannot delete category containing products'
+                                : 'Delete Category'
+                            }
+                          >
+                            <i className="fas fa-trash-alt small" />
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
@@ -234,17 +265,18 @@ export default function AdminCategoriesPage() {
                 <select
                   value={parentCategory}
                   onChange={(e) => setParentCategory(e.target.value)}
-                  className="form-select rounded-3 text-capitalize"
+                  className="form-select rounded-3 font-monospace small"
                 >
                   <option value="">None (Make Root Category)</option>
-                  {categories
-                    .filter((c) => !c.parentCategory)
-                    .map((c) => (
-                      <option key={c._id || c.id || c.slug} value={c.slug}>
-                        {c.name}
-                      </option>
-                    ))}
+                  {availableParentOptions.map((opt) => (
+                    <option key={opt.id} value={opt.slug}>
+                      {opt.depth > 0 ? `${'— '.repeat(opt.depth)}↳ ` : ''}{opt.name}
+                    </option>
+                  ))}
                 </select>
+                <div className="form-text small text-muted">
+                  Choose any root or subcategory to create unlimited nested levels.
+                </div>
               </div>
 
               <div className="mb-3">
@@ -272,8 +304,15 @@ export default function AdminCategoriesPage() {
                   />
                 </div>
                 <div className="form-text small text-muted">
-                  Auto-validated against active FontAwesome & Bootstrap icon library.
+                  Auto-validated against active icon library with AI auto-correction fallback.
                 </div>
+
+                <IconPalettePicker
+                  selectedIcon={icon}
+                  onSelectIcon={(selected) => setIcon(selected)}
+                  isOpen={iconPaletteOpen}
+                  onToggle={() => setIconPaletteOpen(!iconPaletteOpen)}
+                />
               </div>
 
               <div className="mb-3">

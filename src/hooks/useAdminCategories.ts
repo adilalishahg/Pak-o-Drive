@@ -1,9 +1,16 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { CategoryData } from '@/types';
 import { optimizeImageBeforeUpload } from '@/utils/imageOptimizer';
 import { getBestCategoryIcon } from '@/lib/categoryIconService';
+import {
+  buildCategoryTree,
+  flattenTreeWithIndentation,
+  validateNoCircularParent,
+  CategoryTreeNode,
+  FlattenedCategoryOption,
+} from '@/lib/categoryTree';
 
 export function useAdminCategories() {
   const [categories, setCategories] = useState<CategoryData[]>([]);
@@ -22,6 +29,7 @@ export function useAdminCategories() {
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [filterMode, setFilterMode] = useState<'all' | 'roots' | 'subs'>('all');
   const [seeding, setSeeding] = useState(false);
+  const [iconPaletteOpen, setIconPaletteOpen] = useState(false);
 
   useEffect(() => {
     fetchCategories();
@@ -108,6 +116,16 @@ export function useAdminCategories() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const handleQuickAddSubcategory = (parentCatSlug: string) => {
+    setEditingCategory(null);
+    setName('');
+    setSlug('');
+    setIcon('fas fa-tag');
+    setImage('');
+    setParentCategory(parentCatSlug);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   const handleCancelEdit = () => {
     setEditingCategory(null);
     setName('');
@@ -123,42 +141,49 @@ export function useAdminCategories() {
     setSaving(true);
     setError('');
 
+    // Prevent circular parenting
+    if (editingCategory && parentCategory) {
+      const isValidParent = validateNoCircularParent(editingCategory.slug, parentCategory, categories);
+      if (!isValidParent) {
+        setError('Cannot set a category or any of its subcategories as its own parent.');
+        setSaving(false);
+        return;
+      }
+    }
+
     try {
+      const payload = {
+        name,
+        slug,
+        icon: icon || 'fas fa-tag',
+        image,
+        parentCategory: parentCategory || '',
+      };
+
+      let res: Response;
       if (editingCategory) {
-        const res = await fetch(`/api/categories/${editingCategory.id}`, {
+        res = await fetch(`/api/categories/${(editingCategory as any).id || (editingCategory as any)._id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name, slug, icon, image, parentCategory }),
+          body: JSON.stringify(payload),
         });
-        const json = await res.json();
-        if (json.success) {
-          setCategories(categories.map((c) => (c.id === editingCategory.id ? json.data : c)).sort((a, b) => a.name.localeCompare(b.name)));
-          handleCancelEdit();
-        } else {
-          throw new Error(json.error || 'Failed to update category');
-        }
       } else {
-        const res = await fetch('/api/categories', {
+        res = await fetch('/api/categories', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name, slug, icon, image, parentCategory }),
+          body: JSON.stringify(payload),
         });
-        const json = await res.json();
+      }
 
-        if (json.success) {
-          setCategories([...categories, json.data].sort((a, b) => a.name.localeCompare(b.name)));
-          setName('');
-          setSlug('');
-          setIcon('fas fa-tag');
-          setImage('');
-          setParentCategory('');
-        } else {
-          throw new Error(json.error || 'Failed to create category');
-        }
+      const json = await res.json();
+      if (json.success) {
+        await fetchCategories();
+        handleCancelEdit();
+      } else {
+        throw new Error(json.error || 'Failed to save category');
       }
     } catch (err: any) {
-      console.error(err);
-      setError(err.message || 'Error occurred while saving category.');
+      setError(err.message || 'Error saving category.');
     } finally {
       setSaving(false);
     }
@@ -173,19 +198,20 @@ export function useAdminCategories() {
       });
       const json = await res.json();
       if (json.success) {
-        setCategories((prev) => prev.filter((c) => c.id !== deleteTarget.id));
+        await fetchCategories();
+        setDeleteTarget(null);
       } else {
-        setError(json.error || 'Failed to delete category.');
+        throw new Error(json.error || 'Failed to delete category');
       }
-    } catch {
-      setError('Network error, could not delete category.');
+    } catch (err: any) {
+      setError(err.message || 'Error deleting category.');
     } finally {
       setDeleteLoading(false);
-      setDeleteTarget(null);
     }
   };
 
   const handleSeedDefaults = async () => {
+    if (!confirm('Are you sure you want to load default categories? Existing ones will be preserved.')) return;
     setSeeding(true);
     setError('');
     try {
@@ -211,17 +237,31 @@ export function useAdminCategories() {
     setFailedImages((prev) => ({ ...prev, [id]: true }));
   };
 
+  const categoryTree = useMemo(() => buildCategoryTree(categories), [categories]);
+  const flattenedHierarchy = useMemo(() => flattenTreeWithIndentation(categoryTree), [categoryTree]);
+
+  // Available parent options (excluding currently edited category and its descendants)
+  const availableParentOptions = useMemo(() => {
+    if (!editingCategory) return flattenedHierarchy;
+    return flattenedHierarchy.filter((opt) =>
+      validateNoCircularParent(editingCategory.slug, opt.slug, categories)
+    );
+  }, [flattenedHierarchy, editingCategory, categories]);
+
   const rootCategories = categories.filter((c) => !c.parentCategory);
   const subCategories = categories.filter((c) => Boolean(c.parentCategory));
 
-  const displayedCategories = categories.filter((c) => {
-    if (filterMode === 'roots') return !c.parentCategory;
-    if (filterMode === 'subs') return Boolean(c.parentCategory);
-    return true;
-  });
+  const displayedCategories = useMemo(() => {
+    if (filterMode === 'roots') return categories.filter((c) => !c.parentCategory);
+    if (filterMode === 'subs') return categories.filter((c) => Boolean(c.parentCategory));
+    return categories;
+  }, [categories, filterMode]);
 
   return {
     categories,
+    categoryTree,
+    flattenedHierarchy,
+    availableParentOptions,
     displayedCategories,
     rootCategories,
     subCategories,
@@ -233,6 +273,8 @@ export function useAdminCategories() {
     setSlug,
     icon,
     setIcon,
+    iconPaletteOpen,
+    setIconPaletteOpen,
     image,
     setImage,
     parentCategory,
@@ -251,6 +293,7 @@ export function useAdminCategories() {
     handleFileChange,
     handleNameChange,
     handleStartEdit,
+    handleQuickAddSubcategory,
     handleCancelEdit,
     handleSubmit,
     confirmDelete,

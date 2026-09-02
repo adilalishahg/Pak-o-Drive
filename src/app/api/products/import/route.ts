@@ -59,7 +59,7 @@ async function resolveAndEnsureCategories(
     }
   }
 
-  // 3. Find or create Subcategory if provided
+  // 3. Find or create Subcategory if provided (supports multi-level nesting)
   let subCategorySlug = '';
   if (subcatInput && subcatInput.trim()) {
     const subName = subcatInput.trim();
@@ -76,7 +76,7 @@ async function resolveAndEnsureCategories(
         slug: subSlug,
         icon: verifiedSubIcon,
         image: fallbackImage || '',
-        parentCategory: mainCategory.slug,
+        parentCategory: mainCategory.slug, // Automatically nests under mainCategory (which itself can be a subcategory!)
         productCount: 1,
       });
     } else {
@@ -85,10 +85,13 @@ async function resolveAndEnsureCategories(
         ? await resolveCategoryIcon(subCategory.name)
         : currSubIcon;
 
+      // If subCategory has no parent yet, assign mainCategory as its parent
+      const newParent = subCategory.parentCategory || mainCategory.slug;
+
       await Category.updateOne(
         { _id: subCategory._id },
         {
-          parentCategory: subCategory.parentCategory || mainCategory.slug,
+          parentCategory: newParent,
           icon: accurateSubIcon,
           $inc: { productCount: 1 },
         }

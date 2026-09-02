@@ -22,6 +22,113 @@ interface MobileNavDrawerProps {
   categoryTree: any[];
 }
 
+/**
+ * Recursive Mobile Category Accordion Component
+ */
+function MobileCategoryTreeItem({
+  node,
+  onClose,
+  depth = 0,
+}: {
+  node: any;
+  onClose: () => void;
+  depth?: number;
+}) {
+  const childList = node.children || node.subcategories || [];
+  const hasChildren = Array.isArray(childList) && childList.length > 0;
+  const [expanded, setExpanded] = React.useState(false);
+
+  const paddingLeft = depth === 0 ? '12px' : `${12 + depth * 14}px`;
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column' }}>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          background: 'rgba(255, 255, 255, 0.05)',
+          border: '1px solid rgba(255, 255, 255, 0.08)',
+          borderRadius: '10px',
+          padding: `8px 10px 8px ${paddingLeft}`,
+          marginTop: '2px',
+        }}
+      >
+        <Link
+          href={`/shop?category=${node.slug}`}
+          onClick={onClose}
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '8px',
+            fontSize: depth === 0 ? '0.84rem' : '0.78rem',
+            color: '#ffffff',
+            textDecoration: 'none',
+            fontWeight: depth === 0 ? 600 : 500,
+            flex: 1,
+            minWidth: 0,
+          }}
+        >
+          {depth > 0 ? (
+            <span style={{ color: 'rgba(255, 255, 255, 0.4)', fontSize: '10px' }}>↳</span>
+          ) : (
+            <CategoryIcon
+              icon={node.icon || getCatIcon(node.slug)}
+              style={{ fontSize: '11px', color: getCatColor(node.slug) }}
+            />
+          )}
+          <span className="text-truncate">{node.name}</span>
+        </Link>
+
+        {hasChildren && (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setExpanded((prev) => !prev);
+            }}
+            style={{
+              border: 'none',
+              background: 'rgba(255, 255, 255, 0.08)',
+              color: '#ffffff',
+              borderRadius: '6px',
+              width: '24px',
+              height: '24px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+            }}
+            aria-label={expanded ? 'Collapse subcategories' : 'Expand subcategories'}
+          >
+            <i
+              className="fas fa-chevron-right"
+              style={{
+                fontSize: '9px',
+                transition: 'transform 0.2s ease',
+                transform: expanded ? 'rotate(90deg)' : 'none',
+              }}
+            />
+          </button>
+        )}
+      </div>
+
+      {hasChildren && expanded && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', marginTop: '2px' }}>
+          {childList.map((child: any) => (
+            <MobileCategoryTreeItem
+              key={child.slug}
+              node={child}
+              onClose={onClose}
+              depth={depth + 1}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function MobileNavDrawer({
   open,
   onClose,
@@ -261,33 +368,14 @@ export function MobileNavDrawer({
             >
               Browse Categories
             </p>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
               {categoryTree.map((cat) => (
-                <Link
+                <MobileCategoryTreeItem
                   key={cat.slug}
-                  href={`/shop?category=${cat.slug}`}
-                  onClick={onClose}
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    background: 'rgba(255, 255, 255, 0.06)',
-                    border: '1px solid rgba(255, 255, 255, 0.1)',
-                    borderRadius: '20px',
-                    padding: '6px 12px',
-                    fontSize: '0.78rem',
-                    color: '#ffffff',
-                    textDecoration: 'none',
-                    fontWeight: 500,
-                    transition: 'background 0.15s ease',
-                  }}
-                >
-                  <CategoryIcon
-                    icon={cat.icon || getCatIcon(cat.slug)}
-                    style={{ fontSize: '10px', color: getCatColor(cat.slug) }}
-                  />
-                  {cat.name}
-                </Link>
+                  node={cat}
+                  onClose={onClose}
+                  depth={0}
+                />
               ))}
             </div>
           </div>

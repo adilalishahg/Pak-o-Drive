@@ -5,6 +5,7 @@ import SiteInfo from '../models/SiteInfo';
 import SiteSettings from '../models/SiteSettings';
 import Product from '../models/Product';
 import Category from '../models/Category';
+import { buildCategoryTree } from './categoryTree';
 
 /**
  * Enterprise Cross-Request Data Caching Layer
@@ -152,36 +153,13 @@ export const getCachedAllCategories = unstable_cache(
     try {
       await dbConnect();
       const list: any[] = await Category.find({}).sort({ name: 1 }).lean();
-      
-      // Auto-construct nested parent-child hierarchy in memory
-      const rootCategories: any[] = [];
-      const subcategoriesMap = new Map<string, any[]>();
-
-      for (const cat of list) {
-        if (cat.parentCategory) {
-          const arr = subcategoriesMap.get(cat.parentCategory) || [];
-          arr.push(cat);
-          subcategoriesMap.set(cat.parentCategory, arr);
-        }
-      }
-
-      for (const cat of list) {
-        if (!cat.parentCategory) {
-          const children = subcategoriesMap.get(cat.slug) || subcategoriesMap.get(cat.name) || [];
-          rootCategories.push({
-            ...cat,
-            children,
-            subcategories: children,
-          });
-        }
-      }
-
-      return JSON.parse(JSON.stringify(rootCategories.length > 0 ? rootCategories : list));
+      const tree = buildCategoryTree(list);
+      return JSON.parse(JSON.stringify(tree.length > 0 ? tree : list));
     } catch (err) {
       console.error('Error in getCachedAllCategories:', err);
       return [];
     }
   },
-  ['all-categories-tree-v3'],
+  ['all-categories-tree-v4'],
   { revalidate: 300, tags: ['categories'] }
 );

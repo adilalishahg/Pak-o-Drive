@@ -4,6 +4,7 @@ import { purgeCacheTags } from '@/lib/cache';
 import dbConnect from '../../../lib/mongodb';
 import Product from '../../../models/Product';
 import Category from '../../../models/Category';
+import { getAllDescendantSlugs } from '@/lib/categoryTree';
 
 
 
@@ -26,13 +27,13 @@ export async function GET(request: Request) {
     const query: any = {};
 
     if (category) {
-      const subcats = await Category.find({ parentCategory: category });
-      if (subcats.length > 0) {
-        const slugs = [category, ...subcats.map(c => c.slug)];
-        query.category = { $in: slugs };
-      } else {
-        query.category = category;
-      }
+      const allCategories = await Category.find({}).lean();
+      const descendantSlugs = getAllDescendantSlugs(category, allCategories);
+      const allCategorySlugs = [category, ...descendantSlugs];
+      query.$or = [
+        { category: { $in: allCategorySlugs } },
+        { subcategory: { $in: allCategorySlugs } },
+      ];
     }
 
     if (search && search.trim()) {

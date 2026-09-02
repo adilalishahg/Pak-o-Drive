@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { OptimizedImage } from '../common/OptimizedImage';
 import { getBestCategoryIcon } from '@/lib/categoryIconService';
 
+import { CategoryIcon } from '../common/ThemeIcon';
+
 const CAT_COLORS: Record<string, string> = {
   headphones: '#7c3aed',
   chargers: '#f59e0b',
@@ -36,7 +38,8 @@ export function CategoryMenuItem({
   onClose: () => void;
   primaryColor?: string;
 }) {
-  const hasSubs = node.subcategories && node.subcategories.length > 0;
+  const childList = node.children || node.subcategories || [];
+  const hasSubs = Array.isArray(childList) && childList.length > 0;
   const color = getCatColor(node.slug, primaryColor);
   const icon = node.icon || getCatIcon(node.slug);
 
@@ -82,12 +85,12 @@ export function CategoryMenuItem({
               style={{ objectFit: 'cover' }}
             />
           ) : (
-            <i className={icon} style={{ fontSize: '12px', color }} />
+            <CategoryIcon icon={icon} style={{ fontSize: '12px', color }} />
           )}
         </div>
-        <span>{node.name}</span>
+        <span className="text-truncate">{node.name}</span>
         {hasSubs && (
-          <i className="fas fa-chevron-right ms-auto" style={{ fontSize: '9px', color: '#cbd5e1' }} />
+          <i className="fas fa-chevron-right ms-auto" style={{ fontSize: '9px', color: '#94a3b8' }} />
         )}
       </Link>
 
@@ -107,7 +110,7 @@ export function CategoryMenuItem({
             padding: '4px 0',
           }}
         >
-          {node.subcategories.map((subNode: any) => (
+          {childList.map((subNode: any) => (
             <CategoryMenuItem
               key={subNode.slug}
               node={subNode}

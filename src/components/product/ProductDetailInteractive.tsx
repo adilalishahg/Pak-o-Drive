@@ -9,6 +9,8 @@ import { ProductViewLogger } from '../common/ProductViewLogger';
 import { MarkdownRenderer } from '../common/MarkdownRenderer';
 import { ProductDetailInteractiveProps } from '@/types/product';
 import { useProductDetail } from '@/hooks/useProductDetail';
+import { CategoryIcon } from '../common/ThemeIcon';
+import { getBestCategoryIcon } from '@/lib/categoryIconService';
 
 export const ProductDetailInteractive: React.FC<ProductDetailInteractiveProps> = ({ product }) => {
   const {
@@ -49,25 +51,34 @@ export const ProductDetailInteractive: React.FC<ProductDetailInteractiveProps> =
         {/* Info col */}
         <div className="col-12 col-md-6">
           <div className="pd-detail-right" style={{ padding: '20px 20px 24px' }}>
-            {/* Category */}
-            <Link
-              href={`/shop?category=${product.category}`}
-              style={{
-                display: 'inline-block',
-                textDecoration: 'none',
-                background: 'rgba(var(--pd-primary-rgb,234,88,12),0.08)',
-                color: 'var(--pd-primary-dark)',
-                fontSize: '0.65rem',
-                fontWeight: 700,
-                padding: '3px 10px',
-                borderRadius: '20px',
-                textTransform: 'uppercase',
-                letterSpacing: '0.5px',
-                marginBottom: '8px',
-              }}
-            >
-              {product.category}
-            </Link>
+            {/* Category Badge with Dynamic Icon */}
+            {product.category && (
+              <Link
+                href={`/shop?category=${product.category}`}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  textDecoration: 'none',
+                  background: 'rgba(var(--pd-primary-rgb,234,88,12),0.08)',
+                  color: 'var(--pd-primary-dark, #c2410c)',
+                  fontSize: '0.72rem',
+                  fontWeight: 700,
+                  padding: '4px 12px',
+                  borderRadius: '20px',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.5px',
+                  marginBottom: '10px',
+                  transition: 'all 0.2s ease',
+                }}
+              >
+                <CategoryIcon
+                  icon={getBestCategoryIcon(product.category)}
+                  style={{ fontSize: '11px', color: 'var(--pd-primary, #ea580c)' }}
+                />
+                <span>{product.category.replace(/-/g, ' ')}</span>
+              </Link>
+            )}
 
             {/* Name */}
             <h1

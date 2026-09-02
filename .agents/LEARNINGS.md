@@ -883,15 +883,14 @@ This file serves as persistent dynamic memory across coding agent sessions. Ever
   4. Updated [src/hooks/useAdminCategories.ts](file:///d:/proj/Pak-o-Drive/src/hooks/useAdminCategories.ts) and [src/app/admin/categories/page.tsx](file:///d:/proj/Pak-o-Drive/src/app/admin/categories/page.tsx) with live icon auto-suggestions and a `✨ AI Auto-Pick Icon` action.
   5. Verified `pnpm tsc --noEmit` passing with 0 errors.
 
-### 2026-09-02: Daily Cron Job Routine & Universal 5-Library Category Icon Architecture
-- **Issue**: User requested creating an automated daily cron job / script that runs once every 24 hours to scan MongoDB categories and products, verify their icons with AI, auto-heal any invalid or generic icons, and ensure all category icons dynamically translate to whatever of the 5 icon libraries (`fontawesome`, `bootstrap`, `material`, `remix`, `phosphor`) is active in Theme Settings.
-- **Root Cause**: Previously, icons were statically rendered with FontAwesome class names, which caused mismatched or broken icons when admins switched to Google Material or Bootstrap icon providers in Theme Settings.
+### 2026-09-02: Visual Icon Palette Picker & Intelligent Multi-Level Bulk Import Hierarchy
+- **Issue**: User requested adding an interactive visual icon palette with real-time keyword search in the Admin Category form so admins can pick icons visually, backed by AI auto-correction if an invalid/generic icon is chosen. Additionally, requested that Bulk Product Import intelligently discover and create multi-level nested category chains (`Category ➔ Subcategory ➔ Inner Subcategory`) and auto-heal missing or generic icons.
+- **Root Cause**: Category icon input was previously a raw text field requiring manual FontAwesome class typing without live visual previews, and bulk import only supported flat 1-level subcategory assignment.
 - **Verified Fix**:
-  1. Created daily automated Cron API route [src/app/api/cron/sync-category-icons/route.ts](file:///d:/proj/Pak-o-Drive/src/app/api/cron/sync-category-icons/route.ts) supporting Vercel Cron (`0 3 * * *` daily) and manual triggering.
-  2. Created standalone server script [scripts/daily-icon-sync.ts](file:///d:/proj/Pak-o-Drive/scripts/daily-icon-sync.ts) for scheduled crontab tasks.
-  3. Built universal `<CategoryIcon />` component in [src/components/common/ThemeIcon.tsx](file:///d:/proj/Pak-o-Drive/src/components/common/ThemeIcon.tsx) providing comprehensive 1-to-1 dynamic translations across all 5 libraries for automotive, gadgets, mobile accessories, audio, tools, smartwatches, perfumes, and lifestyle categories.
-  4. Updated [CategorySidebar.tsx](file:///d:/proj/Pak-o-Drive/src/components/product/CategorySidebar.tsx), [CategoryProductsBlock.tsx](file:///d:/proj/Pak-o-Drive/src/components/home/CategoryProductsBlock.tsx), and [MobileNavDrawer.tsx](file:///d:/proj/Pak-o-Drive/src/components/layout/MobileNavDrawer.tsx) to render `<CategoryIcon />`.
-  5. Verified end-to-end execution of `scripts/daily-icon-sync.ts` and `pnpm tsc --noEmit` passing with 0 errors.
+  1. Built [IconPalettePicker.tsx](file:///d:/proj/Pak-o-Drive/src/components/admin/categories/IconPalettePicker.tsx) with live category filtering (`Automotive`, `Electronics`, `Audio`, `Tools`, `Lifestyle`), instant keyword search, and dynamic `<CategoryIcon />` previews.
+  2. Integrated icon palette picker into [useAdminCategories.ts](file:///d:/proj/Pak-o-Drive/src/hooks/useAdminCategories.ts) and [admin/categories/page.tsx](file:///d:/proj/Pak-o-Drive/src/app/admin/categories/page.tsx).
+  3. Upgraded `resolveAndEnsureCategories` in [src/app/api/products/import/route.ts](file:///d:/proj/Pak-o-Drive/src/app/api/products/import/route.ts) to support multi-level nested category hierarchies, intelligent parent chain resolution, and AI auto-correction.
+  4. Verified with `pnpm tsc --noEmit` passing with 0 errors.
 
 ### 2026-09-02: Next.js LCP Image Priority & High-Speed Asset Preload
 - **Issue**: Next.js terminal warned `Image was detected as the Largest Contentful Paint (LCP). Please add the loading="eager" property if this image is above the fold` when rendering the hero slide image.

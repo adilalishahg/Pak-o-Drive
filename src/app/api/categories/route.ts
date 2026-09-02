@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { revalidatePath } from 'next/cache';
 import { purgeCacheTags } from '@/lib/cache';
 import { resolveCategoryIcon } from '@/lib/categoryIconService';
+import { buildCategoryTree, flattenTreeWithIndentation } from '@/lib/categoryTree';
 import dbConnect from '../../../lib/mongodb';
 import Category from '../../../models/Category';
 import Product from '../../../models/Product';
@@ -80,28 +81,16 @@ export async function GET() {
       productCount: countMap[cat.slug] ?? countMap[cat.name] ?? cat.productCount ?? 0,
     }));
 
-    // Build hierarchical tree
-    const parentCats = populatedCategories.filter((c: any) => !c.parentCategory);
-    const childCats = populatedCategories.filter((c: any) => Boolean(c.parentCategory));
-
-    const tree = parentCats.map((parent: any) => {
-      const children = childCats.filter(
-        (child: any) => child.parentCategory === parent.slug || child.parentCategory === parent.name
-      );
-      const totalProducts = (parent.productCount || 0) + children.reduce((sum: number, ch: any) => sum + (ch.productCount || 0), 0);
-      return {
-        ...parent,
-        totalProductCount: totalProducts,
-        children,
-        subcategories: children,
-      };
-    });
+    // Build N-level deep hierarchical tree and flattened options
+    const tree = buildCategoryTree(populatedCategories);
+    const flattened = flattenTreeWithIndentation(tree);
 
     return NextResponse.json({
       success: true,
       count: populatedCategories.length,
       data: populatedCategories,
       tree,
+      flattened,
     }, {
       headers: {
         'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300'

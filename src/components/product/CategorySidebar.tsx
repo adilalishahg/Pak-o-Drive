@@ -1,9 +1,199 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { CategorySidebarProps } from '@/types/product';
 import { useCategorySidebar, PRICE_MAX, PRICE_MIN } from '@/hooks/useCategorySidebar';
 import { CategoryIcon } from '@/components/common/ThemeIcon';
+import { buildCategoryTree, CategoryTreeNode } from '@/lib/categoryTree';
+
+/**
+ * Recursive Category Sidebar Node Component
+ * Supports infinite depth (Category -> Sub -> Sub -> Sub...) with collapsible carets
+ */
+const RecursiveSidebarNode: React.FC<{
+  node: CategoryTreeNode;
+  selectedCategory: string | null;
+  onSelectCategory: (slug: string | null) => void;
+  depth: number;
+}> = ({ node, selectedCategory, onSelectCategory, depth }) => {
+  const isDirectActive = selectedCategory === node.slug;
+  const childList = node.children || [];
+  const hasChildren = childList.length > 0;
+
+  // Check if any descendant is currently selected
+  const hasActiveDescendant = React.useMemo(() => {
+    if (!selectedCategory) return false;
+    function checkNode(n: CategoryTreeNode): boolean {
+      if (n.slug === selectedCategory) return true;
+      return (n.children || []).some(checkNode);
+    }
+    return (node.children || []).some(checkNode);
+  }, [node, selectedCategory]);
+
+  // Expand if active or has active child
+  const [expanded, setExpanded] = useState(isDirectActive || hasActiveDescendant || depth === 0);
+
+  useEffect(() => {
+    if (isDirectActive || hasActiveDescendant) {
+      setExpanded(true);
+    }
+  }, [isDirectActive, hasActiveDescendant]);
+
+  const paddingLeft = depth === 0 ? '10px' : `${10 + depth * 14}px`;
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column' }}>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          borderRadius: '7px',
+          background: isDirectActive
+            ? 'rgba(var(--pd-primary-rgb,234,88,12),0.08)'
+            : hasActiveDescendant
+            ? 'rgba(0,0,0,0.02)'
+            : 'transparent',
+          borderLeft: isDirectActive ? '3px solid var(--pd-primary)' : '3px solid transparent',
+          transition: 'background 0.15s',
+          marginTop: '1px',
+        }}
+      >
+        <button
+          type="button"
+          onClick={() => onSelectCategory(node.slug)}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            padding: depth === 0 ? '7px 6px 7px 10px' : `5px 6px 5px ${paddingLeft}`,
+            border: 'none',
+            background: 'none',
+            cursor: 'pointer',
+            textAlign: 'left',
+            flex: 1,
+            minWidth: 0,
+          }}
+          title={node.name}
+        >
+          {depth === 0 ? (
+            <div
+              style={{
+                width: '24px',
+                height: '24px',
+                borderRadius: '6px',
+                flexShrink: 0,
+                background: isDirectActive ? 'var(--pd-primary)' : '#f1f5f9',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                overflow: 'hidden',
+              }}
+            >
+              {node.image ? (
+                <img
+                  src={node.image}
+                  alt={node.name}
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                />
+              ) : (
+                <CategoryIcon
+                  icon={node.icon}
+                  style={{ fontSize: '10px', color: isDirectActive ? '#fff' : '#64748b' }}
+                />
+              )}
+            </div>
+          ) : (
+            <span style={{ fontSize: '10px', color: isDirectActive ? 'var(--pd-primary)' : '#94a3b8', flexShrink: 0 }}>
+              {'↳'.repeat(Math.min(depth, 3))}
+            </span>
+          )}
+
+          <span
+            style={{
+              fontSize: depth === 0 ? '0.8rem' : '0.76rem',
+              fontWeight: isDirectActive ? 700 : hasActiveDescendant ? 600 : 500,
+              color: isDirectActive
+                ? 'var(--pd-primary)'
+                : hasActiveDescendant
+                ? '#1e293b'
+                : '#4b5563',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {node.name}
+          </span>
+        </button>
+
+        {/* Right side: Count badge & Expand Caret */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', paddingRight: '8px' }}>
+          {node.totalProductCount > 0 && (
+            <span
+              style={{
+                fontSize: '9px',
+                fontWeight: 700,
+                color: isDirectActive ? 'var(--pd-primary)' : '#94a3b8',
+                background: isDirectActive ? 'rgba(var(--pd-primary-rgb,234,88,12),0.12)' : '#f1f5f9',
+                padding: '1px 5px',
+                borderRadius: '8px',
+              }}
+            >
+              {node.totalProductCount}
+            </span>
+          )}
+
+          {hasChildren && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setExpanded((prev) => !prev);
+              }}
+              style={{
+                border: 'none',
+                background: 'transparent',
+                cursor: 'pointer',
+                padding: '4px',
+                color: '#94a3b8',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                borderRadius: '4px',
+              }}
+              aria-label={expanded ? 'Collapse' : 'Expand'}
+            >
+              <i
+                className="fas fa-chevron-right"
+                style={{
+                  fontSize: '9px',
+                  transition: 'transform 0.2s ease',
+                  transform: expanded ? 'rotate(90deg)' : 'none',
+                }}
+              />
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Render Nested Children */}
+      {hasChildren && expanded && (
+        <div style={{ display: 'flex', flexDirection: 'column' }}>
+          {childList.map((child) => (
+            <RecursiveSidebarNode
+              key={child.slug}
+              node={child}
+              selectedCategory={selectedCategory}
+              onSelectCategory={onSelectCategory}
+              depth={depth + 1}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
 
 export const CategorySidebar: React.FC<CategorySidebarProps> = ({
   selectedCategory,
@@ -99,74 +289,16 @@ export const CategorySidebar: React.FC<CategorySidebarProps> = ({
             );
           })()}
 
-          {/* Render Root Categories and their Sub-categories */}
-          {categories
-            .filter(c => !c.parentCategory)
-            .map(root => {
-              const rootActive = selectedCategory === root.slug;
-              const subcats = categories.filter(c => c.parentCategory === root.slug);
-
-              return (
-                <div key={root.slug} style={{ display: 'flex', flexDirection: 'column' }}>
-                  {/* Root Category */}
-                  <button onClick={() => onSelectCategory(root.slug)}
-                    style={{
-                      display: 'flex', alignItems: 'center', gap: '9px',
-                      padding: '7px 10px', border: 'none', borderRadius: '7px', cursor: 'pointer',
-                      background: rootActive ? 'rgba(var(--pd-primary-rgb,234,88,12),0.08)' : 'transparent',
-                      textAlign: 'left', width: '100%', transition: 'background 0.15s',
-                      borderLeft: rootActive ? '3px solid var(--pd-primary)' : '3px solid transparent',
-                    }}
-                    onMouseEnter={e => { if (!rootActive) (e.currentTarget as HTMLButtonElement).style.background = '#f8fafc'; }}
-                    onMouseLeave={e => { if (!rootActive) (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; }}
-                  >
-                    <div style={{
-                      width: '24px', height: '24px', borderRadius: '6px', flexShrink: 0,
-                      background: rootActive ? 'var(--pd-primary)' : '#f1f5f9',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      overflow: 'hidden', position: 'relative'
-                    }}>
-                      {root.image ? (
-                        <img
-                          src={root.image}
-                          alt={root.name}
-                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                        />
-                      ) : (
-                        <CategoryIcon icon={root.icon} style={{ fontSize: '10px', color: rootActive ? '#fff' : '#64748b' }} />
-                      )}
-                    </div>
-                    <span style={{ fontSize: '0.8rem', fontWeight: rootActive ? 700 : 500, color: rootActive ? 'var(--pd-primary)' : '#374151', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {root.name}
-                    </span>
-                  </button>
-
-                  {/* Sub-categories */}
-                  {subcats.map(sub => {
-                    const subActive = selectedCategory === sub.slug;
-                    return (
-                      <button key={sub.slug} onClick={() => onSelectCategory(sub.slug)}
-                        style={{
-                          display: 'flex', alignItems: 'center', gap: '8px',
-                          padding: '5px 10px 5px 28px', border: 'none', borderRadius: '7px', cursor: 'pointer',
-                          background: subActive ? 'rgba(var(--pd-primary-rgb,234,88,12),0.05)' : 'transparent',
-                          textAlign: 'left', width: '100%', transition: 'background 0.15s',
-                          borderLeft: subActive ? '2.5px solid var(--pd-primary)' : '2.5px solid transparent',
-                          marginTop: '1px',
-                        }}
-                        onMouseEnter={e => { if (!subActive) (e.currentTarget as HTMLButtonElement).style.background = '#f8fafc'; }}
-                        onMouseLeave={e => { if (!subActive) (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; }}
-                      >
-                        <i className="fas fa-level-up-alt fa-rotate-90 text-muted me-1" style={{ fontSize: '9px', opacity: 0.6 }} />
-                        <span style={{ fontSize: '0.76rem', fontWeight: subActive ? 700 : 500, color: subActive ? 'var(--pd-primary)' : '#4b5563', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                          {sub.name}
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-              );
-            })}
+          {/* Render Recursive N-Level Categories */}
+          {buildCategoryTree(categories).map((rootNode) => (
+            <RecursiveSidebarNode
+              key={rootNode.slug}
+              node={rootNode}
+              selectedCategory={selectedCategory}
+              onSelectCategory={onSelectCategory}
+              depth={0}
+            />
+          ))}
         </div>
       </>)}
 
