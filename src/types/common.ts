@@ -84,6 +84,8 @@ export interface HeroSlide {
   subtitle?: string;
   buttonText?: string;
   buttonLink?: string;
+  price?: number;
+  originalPrice?: number;
 }
 
 export interface HeroSliderProps {

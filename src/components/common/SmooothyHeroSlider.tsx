@@ -125,25 +125,77 @@ export function SmooothyHeroSlider({
           >
             {/* Left Content Column */}
             <div style={{ flex: '1 1 0', minWidth: 0 }}>
-              {slide.badge && (
-                <span
-                  style={{
-                    display: 'inline-block',
-                    background: 'linear-gradient(135deg, var(--pd-primary, #ea580c), color-mix(in srgb, var(--pd-primary, #ea580c) 75%, #000))',
-                    color: '#fff',
-                    fontSize: '10px',
-                    fontWeight: 800,
-                    letterSpacing: '1px',
-                    padding: '5px 12px',
-                    borderRadius: '20px',
-                    textTransform: 'uppercase',
-                    marginBottom: '10px',
-                    boxShadow: '0 3px 10px rgba(234,88,12,0.3)',
-                  }}
-                >
-                  {slide.badge}
-                </span>
-              )}
+              {/* Header row: Badge on left + Retail & Sale Prices on right */}
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  flexWrap: 'wrap',
+                  gap: '8px',
+                  marginBottom: '10px',
+                }}
+              >
+                {slide.badge && (
+                  <span
+                    style={{
+                      display: 'inline-block',
+                      background: 'linear-gradient(135deg, var(--pd-primary, #ea580c), color-mix(in srgb, var(--pd-primary, #ea580c) 75%, #000))',
+                      color: '#fff',
+                      fontSize: '10px',
+                      fontWeight: 800,
+                      letterSpacing: '1px',
+                      padding: '5px 12px',
+                      borderRadius: '20px',
+                      textTransform: 'uppercase',
+                      boxShadow: '0 3px 10px rgba(234,88,12,0.3)',
+                    }}
+                  >
+                    {slide.badge}
+                  </span>
+                )}
+
+                {(slide.price || slide.originalPrice) && (
+                  <div
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'baseline',
+                      gap: '8px',
+                      background: 'rgba(255, 255, 255, 0.92)',
+                      backdropFilter: 'blur(8px)',
+                      padding: '3px 12px',
+                      borderRadius: '16px',
+                      border: '1px solid rgba(0,0,0,0.06)',
+                      boxShadow: '0 2px 6px rgba(0,0,0,0.04)',
+                    }}
+                  >
+                    {slide.originalPrice && slide.originalPrice > (slide.price || 0) && (
+                      <del
+                        style={{
+                          fontSize: '0.78rem',
+                          color: '#94a3b8',
+                          fontWeight: 600,
+                          textDecoration: 'line-through',
+                        }}
+                      >
+                        Rs. {slide.originalPrice.toLocaleString()}
+                      </del>
+                    )}
+                    {slide.price && (
+                      <span
+                        style={{
+                          fontSize: '1.05rem',
+                          fontWeight: 900,
+                          color: 'var(--pd-primary, #ea580c)',
+                          letterSpacing: '-0.3px',
+                        }}
+                      >
+                        Rs. {slide.price.toLocaleString()}
+                      </span>
+                    )}
+                  </div>
+                )}
+              </div>
 
               {slide.tagline && (
                 <p
@@ -164,7 +216,7 @@ export function SmooothyHeroSlider({
                 style={{
                   fontWeight: 800,
                   color: '#0f172a',
-                  margin: '0 0 14px 0',
+                  margin: '0 0 16px 0',
                   fontSize: 'clamp(1.3rem, 3.5vw, 2.6rem)',
                   lineHeight: 1.18,
                   letterSpacing: '-0.3px',
@@ -172,20 +224,6 @@ export function SmooothyHeroSlider({
               >
                 {slide.title}
               </h2>
-
-              {slide.desc && (
-                <p
-                  style={{
-                    color: '#475569',
-                    fontSize: '0.92rem',
-                    lineHeight: 1.65,
-                    maxWidth: '440px',
-                    margin: '0 0 24px 0',
-                  }}
-                >
-                  {slide.desc}
-                </p>
-              )}
 
               <div style={{ display: 'flex', gap: '14px', alignItems: 'center', flexWrap: 'wrap' }}>
                 <Link
@@ -230,20 +268,27 @@ export function SmooothyHeroSlider({
             {/* Right Product Image Column */}
             {slide.productImage && (
               <div
+                className="hero-slide-image-col"
                 style={{
                   flex: '0 0 42%',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   maxWidth: '340px',
+                  marginTop: '-36px',
+                  paddingRight: '16px',
+                  position: 'relative',
+                  zIndex: 1,
                 }}
               >
                 <div
+                  className="hero-slide-img-box"
                   style={{
                     position: 'relative',
                     width: '100%',
                     aspectRatio: '1 / 1',
                     filter: 'drop-shadow(0 20px 32px rgba(0,0,0,0.12))',
+                    transform: 'translateY(-14px)',
                   }}
                 >
                   <Image
@@ -322,10 +367,10 @@ export function SmooothyHeroSlider({
             style={{
               position: 'absolute',
               left: '12px',
-              top: '50%',
+              top: '62%',
               transform: 'translateY(-50%)',
-              width: '38px',
-              height: '38px',
+              width: '36px',
+              height: '36px',
               borderRadius: '50%',
               background: 'rgba(255,255,255,0.9)',
               backdropFilter: 'blur(8px)',
@@ -350,10 +395,10 @@ export function SmooothyHeroSlider({
             style={{
               position: 'absolute',
               right: '12px',
-              top: '50%',
+              top: '62%',
               transform: 'translateY(-50%)',
-              width: '38px',
-              height: '38px',
+              width: '36px',
+              height: '36px',
               borderRadius: '50%',
               background: 'linear-gradient(135deg, var(--pd-primary, #ea580c), color-mix(in srgb, var(--pd-primary, #ea580c) 75%, #000))',
               border: 'none',
@@ -373,6 +418,18 @@ export function SmooothyHeroSlider({
           </button>
         </>
       )}
+
+      <style>{`
+        @media (max-width: 767px) {
+          .hero-slide-image-col {
+            margin-top: -42px !important;
+            padding-right: 18px !important;
+          }
+          .hero-slide-img-box {
+            transform: translateY(-18px) !important;
+          }
+        }
+      `}</style>
     </div>
   );
 }

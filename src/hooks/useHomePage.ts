@@ -17,6 +17,8 @@ export const HERO_SLIDES: HeroSlide[] = [
     bg: 'linear-gradient(135deg, var(--pd-hero-grad-start) 0%, color-mix(in srgb, var(--pd-hero-grad-start) 80%, #fff) 50%, var(--pd-hero-grad-end) 100%)',
     productImage: '/img/product-1.png',
     productImageAlt: 'Premium Headphones',
+    price: 449,
+    originalPrice: 798,
   },
   {
     badge: '⚡ Flash Sale',
@@ -29,6 +31,8 @@ export const HERO_SLIDES: HeroSlide[] = [
     bg: 'linear-gradient(135deg, color-mix(in srgb, var(--pd-accent) 10%, #fff) 0%, color-mix(in srgb, var(--pd-accent) 5%, #fff) 50%, #fff 100%)',
     productImage: '/img/product-2.png',
     productImageAlt: 'Smart Watch',
+    price: 899,
+    originalPrice: 1499,
   },
 ];
 
@@ -121,7 +125,9 @@ export function useHomePage({ initialProducts, initialCategories }: UseHomePageP
   if (hs?.heroSlides && Array.isArray(hs.heroSlides) && hs.heroSlides.length > 0) {
     const enabledSlides = hs.heroSlides.filter((s: any) => s.enabled !== false);
     for (const slide of enabledSlides) {
-      const linkedProduct = slide.productId ? initialProducts.find((p) => String(p._id) === String(slide.productId)) : undefined;
+      const linkedProduct = slide.productId 
+        ? initialProducts.find((p) => String(p._id) === String(slide.productId)) 
+        : initialProducts.find((p) => (slide.title && p.name && (p.name.toLowerCase().includes(slide.title.toLowerCase()) || slide.title.toLowerCase().includes(p.name.toLowerCase()))));
 
       const resolvedImg = slide.imageType === 'custom' && slide.imageUrl
         ? slide.imageUrl
@@ -129,9 +135,11 @@ export function useHomePage({ initialProducts, initialCategories }: UseHomePageP
 
       const resolvedBadge = slide.badge || linkedProduct?.heroText || '🔥 Featured Deal';
       const resolvedTitle = slide.title || linkedProduct?.name || 'Exclusive Product';
-      const resolvedDesc = slide.subtitle || (linkedProduct?.description ? linkedProduct.description.slice(0, 120) : 'Get the ultimate performance package.');
+      const resolvedDesc = slide.subtitle || (linkedProduct?.description ? linkedProduct.description.slice(0, 120) : '');
       const resolvedLink = slide.buttonLink || (linkedProduct ? `/product/${linkedProduct._id}` : '/shop');
       const resolvedBtnText = slide.buttonText || 'Shop Now';
+      const resolvedPrice = slide.price || linkedProduct?.price;
+      const resolvedOriginalPrice = slide.originalPrice || linkedProduct?.originalPrice;
 
       dynamicHeroSlides.push({
         badge: resolvedBadge,
@@ -144,6 +152,8 @@ export function useHomePage({ initialProducts, initialCategories }: UseHomePageP
         bg: slide.bgGradient || 'linear-gradient(135deg, var(--pd-hero-grad-start) 0%, color-mix(in srgb, var(--pd-hero-grad-start) 80%, #fff) 50%, var(--pd-hero-grad-end) 100%)',
         productImage: resolvedImg,
         productImageAlt: resolvedTitle,
+        price: resolvedPrice,
+        originalPrice: resolvedOriginalPrice,
       });
     }
   }

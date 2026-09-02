@@ -807,6 +807,23 @@ This file serves as persistent dynamic memory across coding agent sessions. Ever
   2. Implemented automated `document.body.style.overflow = 'hidden'` in `useNavbar.ts` when `mobileOpen` is true so the background page never scrolls.
   3. Verified `pnpm tsc --noEmit` passing with 0 errors.
 
+### 2026-09-02: Hero Slider Image Elevation, Price Display & Description Removal
+- **Issue**: 
+  1. Hero slider image was overlapping directly underneath the right navigation button (`>`) on mobile screens.
+  2. Long product description text (`slide.desc`) was cluttering the hero slide and pushing layout elements down.
+  3. Retail (original strike-through) and Sale (PKR current) prices were missing from the top badge area.
+- **Root Cause**:
+  1. Vertically centered flex alignment (`alignItems: center`) and large description height pushed the image directly to the 50% vertical center where navigation arrows are anchored.
+  2. Description block was rendered unconditionally on the slide.
+  3. Slide header only had the single badge on the left without a dual-price flex container.
+- **Verified Fix**:
+  1. Elevated right image column with `marginTop: -36px` (and `-42px` on mobile) and `transform: translateY(-14px)` / `-18px`, with `paddingRight: 16px` to keep it completely clear of the right navigation button.
+  2. Shifted navigation arrow buttons slightly lower (`top: 62%`) to ensure 0% collision with the elevated image.
+  3. Removed the cluttered description text `{slide.desc}` from both `HeroSlider.tsx` and `SmooothyHeroSlider.tsx`.
+  4. Added a modern top header row displaying Badge on the left and Retail (original strike-through) + Sale (PKR bold) prices in a blurred badge on the right opposite the badge.
+  5. Updated `IHeroSlideItem` schemas and `useHomePage.ts` to automatically populate and resolve `price` and `originalPrice`.
+  6. Verified `pnpm tsc --noEmit` passing with 0 errors.
+
 
 
 

@@ -39,6 +39,8 @@ export interface IHeroSlideItem {
   imageType: 'product' | 'custom';
   imageUrl: string;
   bgGradient?: string;
+  price?: number;
+  originalPrice?: number;
 }
 
 export interface SiteTheme {
