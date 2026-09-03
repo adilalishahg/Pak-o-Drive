@@ -58,6 +58,27 @@ This file serves as persistent dynamic memory across coding agent sessions. Ever
 
 ---
 
+### 2026-09-03 — Chat Header Close Cross Button High-Visibility Red Styling
+- **📌 Issue**: User reported that the circular `✖` close button in the top header of the chat widget was dark slate / translucent gray and blended into the dark background, making it hard for users to recognize as the close button.
+- **🔍 Root Cause & Failed Attempts**:
+  - `ChatHeader.tsx` had `background: 'rgba(255, 255, 255, 0.16)'` on `.mobile-back-btn` and transparent styling on desktop close button, blending into the `#0f172a` slate header.
+- **🛠️ Verified Code Fix**:
+  - Restyled both mobile and desktop close buttons in `ChatHeader.tsx` with vibrant high-visibility red gradient (`linear-gradient(135deg, #ef4444 0%, #dc2626 100%)`), `#f87171` border, white `✖` icon, and red glow shadow (`box-shadow: 0 2px 10px rgba(220, 38, 38, 0.45)`).
+  - Verified compilation via `pnpm tsc --noEmit` exiting with code 0.
+
+### 2026-09-03 — Live Agent Chat Message Duplicate Bubble Fix
+- **📌 Issue**: User reported that when searching for an unlisted product and triggering the live agent chat, the Central Warehouse Live Agent Connected response bubble was rendered twice in the chat window.
+- **🔍 Root Cause & Failed Attempts**:
+  1. In `sendMessage` (`useStoreChatBot.ts`), the client appended `botReply` with a locally generated ID (`'bot_' + Date.now()`).
+  2. Simultaneously, `/api/chat/route.ts` saved the message to MongoDB with its own ID and timestamp.
+  3. The background sync poller (`/api/chat/sync`) runs every 2.5 seconds and only deduplicated by `existingIds.has(ag.id)`. Because the server's ID differed from the client's temporary local ID, the poller treated the server message as an incoming reply from the WhatsApp Store Executive and appended it as a second message bubble.
+- **🛠️ Verified Code Fix**:
+  1. Updated `/api/chat/route.ts` to return the exact saved `messageId` in the JSON response.
+  2. Updated `sendMessage` in `useStoreChatBot.ts` to use `data.messageId` so the local message ID matches the database ID identically.
+  3. Added text-content deduplication in the sync poller (`existingTexts.has((ag.text || '').trim())`) so even if IDs differ, identical text is never inserted twice.
+  4. Added a 3-second debounce guard with `lastTriggeredQueryRef` to prevent double-firing of `pakodrive:open-chat`.
+  5. Verified compilation via `pnpm tsc --noEmit` exiting with code 0.
+
 ### 2026-09-03 — Compact Campaign Banner, Floating Price, Header Track Order Removal & Single Bundle Cart Item
 - **📌 Issue**: User requested multiple refinements from mobile testing:
   1. Top header had "Track Order" button taking up space next to the logo on mobile.

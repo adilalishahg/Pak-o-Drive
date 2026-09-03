@@ -33,30 +33,31 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0, flex: 1 }}>
-        {/* Mobile Close (Cross) button */}
+        {/* Mobile Close (Cross) button — Prominent Red */}
         <button
           onClick={toggleChat}
           className="mobile-back-btn"
           style={{
-            background: 'rgba(255, 255, 255, 0.16)',
-            border: '1px solid rgba(255, 255, 255, 0.25)',
+            background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
+            border: '1.5px solid #f87171',
             color: '#ffffff',
             borderRadius: '50%',
-            width: '32px',
-            height: '32px',
+            width: '34px',
+            height: '34px',
             display: 'none',
             alignItems: 'center',
             justifyContent: 'center',
             cursor: 'pointer',
-            fontSize: '14px',
+            fontSize: '15px',
+            fontWeight: 'bold',
             flexShrink: 0,
             transition: 'all 0.2s ease',
-            boxShadow: '0 2px 6px rgba(0, 0, 0, 0.2)',
+            boxShadow: '0 2px 10px rgba(220, 38, 38, 0.45)',
           }}
           aria-label="Close Chat"
           title="Close Chat"
         >
-          <ThemeIcon name="times" style={{ fontSize: '13px' }} />
+          <ThemeIcon name="times" style={{ fontSize: '14px', color: '#ffffff' }} />
         </button>
 
         <div style={{ position: 'relative', flexShrink: 0 }}>
@@ -157,19 +158,25 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
           🗑️
         </button>
 
-        {/* Close Button (Desktop Only) */}
+        {/* Close Button (Desktop Only) — Red Badge */}
         <button
           onClick={toggleChat}
           className="desktop-close-btn"
           style={{
-            background: 'transparent',
-            border: 'none',
-            color: '#cbd5e1',
+            background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
+            border: '1px solid #f87171',
+            color: '#ffffff',
             cursor: 'pointer',
-            fontSize: '16px',
+            fontSize: '13px',
             fontWeight: 'bold',
-            padding: '4px 6px',
-            borderRadius: '6px',
+            width: '28px',
+            height: '28px',
+            borderRadius: '50%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            boxShadow: '0 2px 6px rgba(220, 38, 38, 0.4)',
+            transition: 'all 0.15s ease',
           }}
           aria-label="Close chat window"
         >

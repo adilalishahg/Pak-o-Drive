@@ -24,6 +24,7 @@ export interface ChatMessageResponse {
   }>;
   orderData?: any;
   shortCode?: string;
+  messageId?: string;
   error?: string;
 }
 
@@ -238,8 +239,9 @@ export async function POST(req: NextRequest): Promise<NextResponse<ChatMessageRe
           `👉 *Mazeed kisi auto part ya gadget ki inquiry karni ho tou direct yahan type karein.*`;
       }
 
+      const msgId = 'bot_' + Date.now();
       session.messages.push({
-        id: 'bot_' + Date.now(),
+        id: msgId,
         sender: 'agent',
         text: agentReply,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
@@ -252,6 +254,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<ChatMessageRe
         reply: agentReply,
         source: 'agent',
         shortCode,
+        messageId: msgId,
       });
     }
 

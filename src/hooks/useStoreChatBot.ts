@@ -121,10 +121,15 @@ export function useStoreChatBot() {
           if (incomingAgentMsgs.length > 0) {
             setMessages((prev) => {
               const existingIds = new Set(prev.map((p) => p.id));
+              const existingTexts = new Set(prev.map((p) => (p.text || '').trim()));
               const toAdd: ChatMessage[] = [];
 
               for (const ag of incomingAgentMsgs) {
-                if (!existingIds.has(ag.id)) {
+                const isDuplicate =
+                  existingIds.has(ag.id) ||
+                  existingTexts.has((ag.text || '').trim());
+
+                if (!isDuplicate) {
                   toAdd.push({
                     id: ag.id,
                     sender: 'agent',
@@ -132,6 +137,8 @@ export function useStoreChatBot() {
                     timestamp: ag.timestamp || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
                     source: 'agent',
                   });
+                  existingIds.add(ag.id);
+                  existingTexts.add((ag.text || '').trim());
                 }
               }
 
@@ -203,7 +210,7 @@ export function useStoreChatBot() {
         await new Promise((resolve) => setTimeout(resolve, 500));
 
         const botReply: ChatMessage = {
-          id: 'bot_' + Date.now(),
+          id: data.messageId || ('bot_' + Date.now()),
           sender: data.source === 'agent' ? 'agent' : 'bot',
           text: data.reply || 'Jee bilkul, main aapki mazeed kia madad kar sakta hoon?',
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
@@ -233,6 +240,8 @@ export function useStoreChatBot() {
     [inputText, isTyping, getSessionId, isOpen]
   );
 
+  const lastTriggeredQueryRef = useRef<{ query: string; timestamp: number }>({ query: '', timestamp: 0 });
+
   // 📡 Global trigger listener to open chat with prefilled warehouse query
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -240,8 +249,18 @@ export function useStoreChatBot() {
     const handleCustomOpenChat = (event: any) => {
       setIsOpen(true);
       setShowPromptBadge(false);
-      const queryItem = event.detail?.query;
+      const queryItem = (event.detail?.query || '').trim();
       if (queryItem) {
+        const now = Date.now();
+        // Prevent duplicate trigger within 3 seconds
+        if (
+          now - lastTriggeredQueryRef.current.timestamp < 3000 &&
+          lastTriggeredQueryRef.current.query.toLowerCase() === queryItem.toLowerCase()
+        ) {
+          return;
+        }
+        lastTriggeredQueryRef.current = { query: queryItem, timestamp: now };
+
         setTimeout(() => {
           sendMessage(`Salam! Mujhe website par "${queryItem}" nahi mili. Please apne warehouse inventory se check kar ke batayein.`);
         }, 300);
