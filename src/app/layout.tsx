@@ -40,9 +40,9 @@ import LiveSalesNotification from '../components/common/LiveSalesNotification';
 import { getCachedSiteInfo, getCachedSiteSettings } from '../lib/cache';
 
 const SITE_URL = 'https://www.pakodrive.pk';
-const SITE_NAME = 'PAKODRIVE';
+const SITE_NAME = 'PAK-O-DRIVE';
 const SITE_DESC =
-  'Pak-o-Drive — Pakistan\'s trusted automotive accessories, car care & tech store. Free Nationwide Cash On Delivery (COD) & 7-Day Warranty.';
+  'Pak-o-Drive (Pak Drive) — Pakistan\'s #1 trusted online automotive accessories, viral car gadgets, LED lights & car care store. Free Nationwide Delivery on 2+ products & Cash On Delivery (COD).';
 
 export async function generateMetadata(): Promise<Metadata> {
   const activeSiteUrl = process.env.NEXT_PUBLIC_SITE_URL
@@ -52,15 +52,24 @@ export async function generateMetadata(): Promise<Metadata> {
       : SITE_URL);
 
   let siteName = SITE_NAME;
-  let defaultTitle = `${SITE_NAME} — Pakistan's #1 Automotive & Tech Store`;
+  let defaultTitle = `PAK-O-DRIVE™ | Pakistan's #1 Car Accessories & Auto Gadgets Store (Pak Drive)`;
   let description = SITE_DESC;
   let keywords = [
-    'automotive accessories Pakistan',
+    'pakodrive',
+    'pak drive',
+    'pak o drive',
+    'pakdrive',
+    'pakdrv',
+    'drive',
+    'pakodrive.pk',
+    'car accessories Pakistan',
+    'automotive accessories',
+    'car gadgets Pakistan',
     'car perfume Pakistan',
     'car LED lights',
     'car wax polish',
-    'Pak-o-Drive',
     'online shopping Pakistan',
+    'پاک او ڈرائیو',
   ];
   let favicon = '/favicon.ico';
   let ogImageUrl = `${activeSiteUrl}/img/carousel-1.jpg`;
@@ -214,10 +223,24 @@ export default async function RootLayout({
 
   const organizationSchema = {
     '@context': 'https://schema.org',
-    '@type': 'Organization',
-    name: siteName,
+    '@type': ['Organization', 'OnlineStore', 'AutoPartsStore'],
+    name: 'Pak-o-Drive',
+    alternateName: [
+      'Pak Drive',
+      'Pak-o-Drive',
+      'PakODrive',
+      'PakDrive',
+      'pakdrv',
+      'Pak Drive Store',
+      'پاک او ڈرائیو',
+    ],
     url: siteUrl,
     logo: `${siteUrl}/img/carousel-1.png`,
+    description:
+      "Pakistan's #1 trusted online store for car accessories, viral automotive gadgets, solar perfumes, ambient lights & car care with nationwide Cash On Delivery.",
+    currenciesAccepted: 'PKR',
+    paymentAccepted: 'Cash on Delivery',
+    priceRange: 'PKR',
     contactPoint: {
       '@type': 'ContactPoint',
       telephone: sitePhone,
@@ -230,13 +253,18 @@ export default async function RootLayout({
       addressLocality: siteCity,
       addressCountry: siteCountry,
     },
-    sameAs: [siteWhatsapp],
+    sameAs: [
+      siteWhatsapp,
+      'https://www.facebook.com/pakodrive',
+      'https://www.instagram.com/pakodrive',
+    ],
   };
 
   const webSiteSchema = {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
-    name: siteName,
+    name: 'Pak-o-Drive',
+    alternateName: ['Pak Drive', 'PakODrive', 'PakDrive', 'pakdrv'],
     url: siteUrl,
     potentialAction: {
       '@type': 'SearchAction',

@@ -58,6 +58,36 @@ This file serves as persistent dynamic memory across coding agent sessions. Ever
 
 ---
 
+### 2026-09-03 — Progressive Landmark & Pakistani Venue Address Search Enhancement
+- **📌 Issue**: User reported that searching for a specific local hall/venue like `"wedding palace ,muslim town,rawalpindi"` or `"khurram colony, rawalpindi"` returned 0 dropdown suggestions.
+- **🔍 Root Cause & Failed Attempts**:
+  - OpenStreetMap Nominatim treats the entire user string as a single entity name. Since private venues (e.g. "wedding palace") are not indexed as public municipal features, the entire search query failed to match.
+- **🛠️ Verified Code Fix**:
+  1. Enhanced `src/app/api/locations/autocomplete/route.ts` with Smart Progressive Landmark Parsing:
+     - When an exact match fails, it splits the query into venue/landmark (`wedding palace`) and locality (`muslim town, rawalpindi` / `khurram colony, rawalpindi`).
+     - Queries the broader locality, successfully resolves the area and city (`Rawalpindi`), and re-attaches the user's specific venue name: `"wedding palace, Muslim Town, Rawalpindi"`.
+  2. Added pluggable Google Places Autocomplete API support via `GOOGLE_MAPS_API_KEY` for commercial POIs.
+  3. Verified via direct Node fetch tests and `pnpm tsc --noEmit` passing with 0 errors.
+
+### 2026-09-03 — Desktop & Tablet Navbar Category Dropdown Implementation
+- **📌 Issue**: User requested that on non-mobile devices (desktop, tablet, laptop), the top navbar must display a visible Categories dropdown trigger button so users can quickly explore product categories and subcategories.
+- **🔍 Root Cause & Failed Attempts**:
+  - In `src/components/layout/Navbar.tsx`, the classic/default header layout only rendered `NavbarBrand`, the center search input, and `NavbarActions`. `NavbarNavLinks` and `CategoryDropdown` were only partially used in the clean-white alternate theme.
+- **🛠️ Verified Code Fix**:
+  1. Updated `src/components/layout/Navbar.tsx` to render a prominent `[ 🗂️ Categories ▾ ]` pill button between `NavbarBrand` and the search bar on desktop/tablets (`d-none d-md-flex`).
+  2. Connected `CategoryDropdown` with active toggle state (`catOpen`), chevron rotation animation, and full tree of categories/subcategories with links.
+  3. Verified via `pnpm tsc --noEmit` passing with 0 errors.
+
+### 2026-09-03 — Campaign Bundle Order Checkout ObjectId Cast Failure Fix
+- **📌 Issue**: Placing an order with a campaign bundle package in the cart failed with 500 error: `Cast to ObjectId failed for value "bundle_6a995fd3410abf4ddbeeae74" (type string) at path "_id" for model "Product"`.
+- **🔍 Root Cause & Failed Attempts**:
+  - `POST /api/orders` directly passed `cartItem.productId` into `Product.findById(cartItem.productId)`. Because bundle items use prefixed IDs (`bundle_...`), Mongoose threw an unhandled `CastError` when casting the string to a 24-char hexadecimal ObjectId.
+- **🛠️ Verified Code Fix**:
+  1. Updated `src/app/api/orders/route.ts` to detect `bundle_` and `offer_` prefixed IDs.
+  2. Dynamically resolved the package from `CampaignOffer.findById(rawOfferId)` with combined package title, package deal pricing, thumbnail, and variant details.
+  3. Added `mongoose.Types.ObjectId.isValid` validation before any `Product.findById` call with graceful fallback to `Product.findOne({ slug })`.
+  4. Verified via `pnpm tsc --noEmit` passing with 0 errors.
+
 ### 2026-09-03 — Free GPS Location Picker & Predictive Address Dropdown Implementation
 - **📌 Issue**: User requested a free, Google-accurate location picker and autocomplete dropdown for the delivery address field at checkout so customers don't have to manually type or struggle with exact Pakistani location details.
 - **🔍 Root Cause & Failed Attempts**:

@@ -36,6 +36,10 @@ export default function CartPage() {
 
   return (
     <div style={{ background: '#f4f4f4', minHeight: '100vh', paddingBottom: '32px' }}>
+      <head>
+        <meta name="robots" content="noindex, nofollow, noarchive" />
+        <title>Shopping Cart | PAKODRIVE</title>
+      </head>
 
       {/* Breadcrumb */}
       <div style={{ background: '#fff', borderBottom: '1px solid #f0f0f0', padding: '10px 0' }}>

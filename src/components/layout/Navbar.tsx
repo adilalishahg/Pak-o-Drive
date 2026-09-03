@@ -15,6 +15,7 @@ import { NavbarSearch } from './navbar/NavbarSearch';
 import { NavbarActions } from './navbar/NavbarActions';
 import { useMobileSmartSearch } from '@/hooks/useMobileSmartSearch';
 import { MobileSearchModal } from './search/MobileSearchModal';
+import { CategoryDropdown } from './CategoryDropdown';
 
 const NAV_LINKS = [
   { href: '/', label: 'Home' },
@@ -146,7 +147,49 @@ export const Navbar: React.FC = () => {
       <header className="sticky top-0 z-40 bg-white shadow-sm border-b border-slate-100 transition-all">
         <div className="container-fluid px-3 px-lg-4">
           <div className="d-flex align-items-center justify-content-between py-2">
-            <NavbarBrand info={info} theme={theme} isCleanWhite={false} />
+            <div className="d-flex align-items-center">
+              <NavbarBrand info={info} theme={theme} isCleanWhite={false} />
+
+              {/* Desktop / Tablet Categories Dropdown Trigger */}
+              <div className="d-none d-md-flex align-items-center ms-3 ms-lg-4" style={{ position: 'relative' }}>
+                <button
+                  type="button"
+                  onClick={() => setCatOpen((o) => !o)}
+                  className="btn d-inline-flex align-items-center gap-2 rounded-pill px-3 py-1.5 shadow-xs transition-all"
+                  style={{
+                    background: catOpen ? 'var(--pd-primary, #ea580c)' : '#f8fafc',
+                    border: '1.5px solid',
+                    borderColor: catOpen ? 'var(--pd-primary, #ea580c)' : '#e2e8f0',
+                    color: catOpen ? '#ffffff' : '#0f172a',
+                    fontSize: '0.84rem',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                  }}
+                  aria-expanded={catOpen}
+                >
+                  <i
+                    className="fas fa-th-large"
+                    style={{ color: catOpen ? '#ffffff' : 'var(--pd-primary, #ea580c)', fontSize: '13px' }}
+                  />
+                  <span>Categories</span>
+                  <i
+                    className="fas fa-chevron-down"
+                    style={{
+                      fontSize: '9px',
+                      transition: 'transform 0.2s ease',
+                      transform: catOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+                    }}
+                  />
+                </button>
+
+                <CategoryDropdown
+                  roots={categoryTree}
+                  open={catOpen}
+                  onClose={() => setCatOpen(false)}
+                  primaryColor={pc}
+                />
+              </div>
+            </div>
 
             <div className="d-none d-lg-block flex-grow-1 mx-4" style={{ maxWidth: '480px' }}>
               <form onSubmit={handleSearch} className="position-relative">

@@ -14,49 +14,110 @@ interface SuggestionItem {
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
-    const query = (searchParams.get('q') || '').trim();
+    const rawQuery = (searchParams.get('q') || '').trim();
     const cityFilter = (searchParams.get('city') || '').trim();
 
-    if (!query || query.length < 2) {
+    if (!rawQuery || rawQuery.length < 2) {
       return NextResponse.json({ success: true, suggestions: [] });
     }
 
-    const searchQuery = cityFilter && !query.toLowerCase().includes(cityFilter.toLowerCase())
-      ? `${query}, ${cityFilter}, Pakistan`
-      : `${query}, Pakistan`;
+    const googleKey = process.env.GOOGLE_MAPS_API_KEY || process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
 
-    // 1. Query Nominatim OpenStreetMap with Pakistan country code & English language
-    const nominatimUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
-      searchQuery
+    // ── OPTION A: Google Places Autocomplete (If Google API Key is provided) ──
+    if (googleKey) {
+      try {
+        const googleUrl = `https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${encodeURIComponent(
+          rawQuery
+        )}&components=country:pk&language=en&key=${googleKey}`;
+        const gRes = await fetch(googleUrl, { next: { revalidate: 3600 } });
+        if (gRes.ok) {
+          const gData = await gRes.json();
+          if (gData.status === 'OK' && Array.isArray(gData.predictions) && gData.predictions.length > 0) {
+            const suggestions: SuggestionItem[] = gData.predictions.slice(0, 6).map((p: any, idx: number) => {
+              const mainText = p.structured_formatting?.main_text || p.description.split(',')[0];
+              const secondaryText = p.structured_formatting?.secondary_text || p.description;
+
+              // Detect city from secondaryText or description
+              const matchedCity = PAKISTAN_MAJOR_CITIES.find((c) =>
+                p.description.toLowerCase().includes(c.toLowerCase())
+              );
+
+              return {
+                id: `gloc_${idx}_${Date.now()}`,
+                name: mainText,
+                subText: secondaryText,
+                fullAddress: p.description,
+                city: matchedCity || undefined,
+              };
+            });
+            return NextResponse.json({ success: true, suggestions, source: 'google' });
+          }
+        }
+      } catch (gErr) {
+        console.warn('Google Places autocomplete error, falling back to OSM:', gErr);
+      }
+    }
+
+    // ── OPTION B: Smart Pakistani Progressive Geocoder (100% Free OpenStreetMap + Photon) ──
+    let items: any[] = [];
+    let detectedLandmark = '';
+
+    // Step 1: Try exact query in Pakistan
+    const cleanQuery = rawQuery.replace(/[,]+/g, ', ').replace(/\s+/g, ' ').trim();
+    const exactNominatimUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
+      cleanQuery.includes('Pakistan') ? cleanQuery : `${cleanQuery}, Pakistan`
     )}&countrycodes=pk&addressdetails=1&limit=6`;
 
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 4000);
-
-    let items: any[] = [];
     try {
-      const res = await fetch(nominatimUrl, {
+      const res = await fetch(exactNominatimUrl, {
         headers: {
           'User-Agent': 'Pak-o-Drive-Ecommerce/1.0 (https://www.pakodrive.pk)',
           'Accept-Language': 'en',
         },
-        signal: controller.signal,
         next: { revalidate: 3600 },
       });
-      clearTimeout(timeoutId);
       if (res.ok) {
         items = await res.json();
       }
-    } catch (fetchErr) {
-      clearTimeout(timeoutId);
-      // Fallback to Photon if Nominatim times out
+    } catch {
+      // Fall through
     }
 
-    // 2. Fallback to Photon if Nominatim returned 0 items
+    // Step 2: Progressive Landmark Split (e.g. "wedding palace ,muslim town,rawalpindi")
+    // When a specific building/hall is typed with an area/city, split landmark from the area
+    if (!items || items.length === 0) {
+      const segments = cleanQuery.split(/[,–-]/).map((s) => s.trim()).filter(Boolean);
+
+      if (segments.length > 1) {
+        detectedLandmark = segments[0]; // e.g. "wedding palace"
+        const broaderAreaQuery = segments.slice(1).join(', '); // e.g. "muslim town, rawalpindi"
+
+        try {
+          const broaderUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
+            broaderAreaQuery.includes('Pakistan') ? broaderAreaQuery : `${broaderAreaQuery}, Pakistan`
+          )}&countrycodes=pk&addressdetails=1&limit=6`;
+
+          const bRes = await fetch(broaderUrl, {
+            headers: {
+              'User-Agent': 'Pak-o-Drive-Ecommerce/1.0 (https://www.pakodrive.pk)',
+              'Accept-Language': 'en',
+            },
+            next: { revalidate: 3600 },
+          });
+          if (bRes.ok) {
+            items = await bRes.json();
+          }
+        } catch {
+          // Fall through
+        }
+      }
+    }
+
+    // Step 3: Fallback to Photon
     if (!items || items.length === 0) {
       try {
         const photonUrl = `https://photon.komoot.io/api/?q=${encodeURIComponent(
-          query
+          cleanQuery
         )}&limit=6&bbox=60.87,23.69,77.84,37.08&lang=en`;
         const pRes = await fetch(photonUrl, { next: { revalidate: 3600 } });
         if (pRes.ok) {
@@ -74,17 +135,17 @@ export async function GET(req: NextRequest) {
             },
           }));
         }
-      } catch (pErr) {
-        // Ignore fallback error
+      } catch {
+        // Fall through
       }
     }
 
-    // 3. Format and clean results
+    // Step 4: Clean, deduplicate, and attach detected landmark
     const suggestions: SuggestionItem[] = (items || []).slice(0, 6).map((item, idx) => {
       const addr = item.address || {};
-      const suburb = addr.suburb || addr.neighbourhood || addr.residential || '';
-      const road = addr.road || '';
-      const rawCity = addr.city || addr.town || addr.county || addr.state_district || '';
+      const suburb = addr.suburb || addr.neighbourhood || addr.residential || addr.quarter || '';
+      const road = addr.road || addr.street || '';
+      const rawCity = addr.city || addr.town || addr.municipality || addr.county || addr.state_district || '';
 
       // Match closest city from PAKISTAN_MAJOR_CITIES
       const matchedCity = PAKISTAN_MAJOR_CITIES.find(
@@ -93,8 +154,14 @@ export async function GET(req: NextRequest) {
           item.display_name.toLowerCase().includes(c.toLowerCase())
       );
 
-      const parts = [road, suburb, matchedCity || rawCity].filter(Boolean);
-      const cleanName = parts.length > 0 ? parts.join(', ') : item.display_name.split(',')[0];
+      const baseParts = [road, suburb, matchedCity || rawCity].filter(Boolean);
+      let cleanName = baseParts.length > 0 ? baseParts.join(', ') : item.display_name.split(',')[0];
+
+      // If user typed a specific venue/hall/house prefix that we stripped earlier, prepend it!
+      if (detectedLandmark && !cleanName.toLowerCase().includes(detectedLandmark.toLowerCase())) {
+        cleanName = `${detectedLandmark}, ${cleanName}`;
+      }
+
       const subText = item.display_name
         .split(',')
         .slice(1, 4)
@@ -112,7 +179,7 @@ export async function GET(req: NextRequest) {
       };
     });
 
-    return NextResponse.json({ success: true, suggestions });
+    return NextResponse.json({ success: true, suggestions, source: 'osm' });
   } catch (error: any) {
     console.error('Location autocomplete error:', error);
     return NextResponse.json({ success: false, suggestions: [], error: error.message });

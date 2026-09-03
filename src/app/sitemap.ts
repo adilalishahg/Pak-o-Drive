@@ -6,12 +6,10 @@ import Category from '../models/Category';
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '') || 'https://pakodrive.pk';
 
-  // Static routes
+  // Static public indexed routes (Excluding transactional cart & checkout)
   const staticRoutes = [
     '',
     '/shop',
-    '/cart',
-    '/checkout',
     '/contact',
     '/about',
     '/track-order',

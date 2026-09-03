@@ -40,6 +40,10 @@ export default function CheckoutPage() {
 
   return (
     <div style={{ background: '#f8fafc', minHeight: '100vh', paddingBottom: '50px' }}>
+      <head>
+        <meta name="robots" content="noindex, nofollow, noarchive" />
+        <title>Checkout | PAKODRIVE</title>
+      </head>
 
       {/* Top Breadcrumb & Trust Banner */}
       <div style={{ background: '#fff', borderBottom: '1px solid #e2e8f0', padding: '12px 0' }}>
