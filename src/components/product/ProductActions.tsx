@@ -266,19 +266,38 @@ export const ProductActions: React.FC<ProductActionsProps> = ({ product, selecte
           backdropFilter: 'blur(12px)',
           WebkitBackdropFilter: 'blur(12px)',
           borderTop: '1px solid #e2e8f0',
-          padding: '8px 12px',
+          padding: '8px 12px calc(8px + env(safe-area-inset-bottom, 0px))',
           boxShadow: '0 -4px 20px rgba(0,0,0,0.1)',
           display: showSticky ? 'flex' : 'none',
           alignItems: 'center',
-          gap: '10px',
+          gap: '8px',
           transition: 'all 0.25s ease',
         }}
       >
-        <div style={{ flex: '0 0 auto', minWidth: '78px' }}>
-          <span style={{ fontSize: '0.62rem', color: '#64748b', display: 'block', fontWeight: 600 }}>Total Price</span>
-          <span style={{ fontSize: '0.96rem', fontWeight: 900, color: 'var(--pd-primary, #ea580c)', lineHeight: 1 }}>
-            Rs. {finalPrice.toLocaleString()}
-          </span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: '0 0 auto' }}>
+          <div
+            style={{
+              width: '36px',
+              height: '36px',
+              borderRadius: '6px',
+              overflow: 'hidden',
+              flexShrink: 0,
+              background: '#f8fafc',
+              border: '1px solid #e2e8f0',
+            }}
+          >
+            <img
+              src={selectedVariant?.image || product.image}
+              alt={product.name}
+              style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+            />
+          </div>
+          <div style={{ minWidth: '65px' }}>
+            <span style={{ fontSize: '0.6rem', color: '#64748b', display: 'block', fontWeight: 600 }}>Total</span>
+            <span style={{ fontSize: '0.94rem', fontWeight: 900, color: 'var(--pd-primary, #ea580c)', lineHeight: 1 }}>
+              Rs. {finalPrice.toLocaleString()}
+            </span>
+          </div>
         </div>
 
         <div style={{ display: 'flex', gap: '6px', flex: 1 }}>

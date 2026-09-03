@@ -58,6 +58,19 @@ This file serves as persistent dynamic memory across coding agent sessions. Ever
 
 ---
 
+### 2026-09-03 — Phase 1 CRO & Social Proof Engine: Sticky Buy Bar, Smart Bundles & Photo Reviews
+- **📌 Issue**: E-commerce platform needed immediate high-impact conversion drivers (sticky buy CTA on mobile, AOV bundle expansion, and authentic verified photo reviews) to scale sales without breaking any existing checkout or cart systems.
+- **🔍 Root Cause & Failed Attempts**:
+  - Reviews were limited to hardcoded numerical counts with no MongoDB collection, preventing customers from uploading car installation pictures or reading authentic feedback.
+  - No 1-click bundle engine existed on product pages to increase average order values.
+  - Mobile shoppers had to scroll back up after reading lengthy specs to access the Buy Now button.
+- **🛠️ Verified Code Fix**:
+  1. Enhanced `ProductActions.tsx` mobile floating buy bar with product thumbnail, price, safe-area inset padding, and 3 primary actions (WhatsApp, Cart, Buy Now).
+  2. Created `Review.ts` Mongoose model and `/api/reviews` API with rating aggregation, verified buyer tags, and photo attachments.
+  3. Created `useProductReviews.ts` hook and `ProductReviewsSection.tsx` component with full-screen lightbox preview and interactive review submission modal.
+  4. Created `useFrequentlyBoughtTogether.ts` hook and `FrequentlyBoughtTogether.tsx` component with 1-click dual-item addition and dynamic bundle discounts.
+  5. Verified with `pnpm tsc --noEmit` passing with 0 errors.
+
 ### 2026-09-03 — Subcategories Hover Dropdown & 50/50 Balanced Lower Section Layout
 - **📌 Issue**:
   1. Only parent categories (`Car Accessories`, `Mobile Accessories`) were showing in the dropdown and shop sidebar without their subcategories; user requested subcategories to open on hover in desktop and toggle on mobile, with subcategory filtering in shop.

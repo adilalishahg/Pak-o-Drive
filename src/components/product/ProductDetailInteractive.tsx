@@ -11,6 +11,8 @@ import { ProductDetailInteractiveProps } from '@/types/product';
 import { useProductDetail } from '@/hooks/useProductDetail';
 import { CategoryIcon } from '../common/ThemeIcon';
 import { getBestCategoryIcon } from '@/lib/categoryIconService';
+import { FrequentlyBoughtTogether } from './FrequentlyBoughtTogether';
+import { ProductReviewsSection } from './ProductReviewsSection';
 
 export const ProductDetailInteractive: React.FC<ProductDetailInteractiveProps> = ({ product }) => {
   const {
@@ -496,6 +498,16 @@ export const ProductDetailInteractive: React.FC<ProductDetailInteractiveProps> =
           </div>
         </div>
       )}
+
+      {/* ── Frequently Bought Together Bundle ── */}
+      <FrequentlyBoughtTogether currentProduct={product} />
+
+      {/* ── Verified Customer Ratings & Photo Reviews ── */}
+      <ProductReviewsSection
+        productId={product._id || ''}
+        initialRating={product.rating || 5}
+        initialReviewCount={product.reviewsCount || 0}
+      />
     </>
   );
 };
