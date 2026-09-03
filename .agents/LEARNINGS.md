@@ -58,6 +58,22 @@ This file serves as persistent dynamic memory across coding agent sessions. Ever
 
 ---
 
+### 2026-09-03 — High-Precision Zoom=18 Commercial Hub (Civic Center) & Fresh GPS Hardware Geocoding
+- **📌 Issue**: "Detect My Location" button resolved broad `"Bahria Town Phase 4"` on desktop and incorrectly returned `"Bahria Town Phase 3"` on mobile phone instead of the user's exact location in `"Civic Center, Bahria Town Phase 4"`.
+- **🔍 Root Cause & Failed Attempts**:
+  - `navigator.geolocation.getCurrentPosition` had `maximumAge: 60000`, causing mobile browsers to return stale cached cell-tower positions from nearby phases instead of acquiring fresh satellite GPS fixes.
+  - Reverse geocoding endpoint did not specify high-precision `zoom=18` (defaulted to coarse neighborhood zoom ~14).
+  - Reverse geocoding only read `addr.road` and `addr.suburb`, completely omitting `addr.commercial` (`"Civic Center"`), `addr.retail`, and commercial hub landmarks.
+- **🛠️ Verified Code Fix**:
+  1. Updated `src/components/checkout/AddressLocationPicker.tsx`:
+     - Changed `maximumAge: 0` to force real-time hardware satellite GPS lock on mobile phones with zero cache.
+     - Increased timeout to 15s to give GPS chips time to compute sub-10-meter precision.
+  2. Updated `src/app/api/locations/reverse/route.ts`:
+     - Set `zoom=18` in reverse geocoding request.
+     - Extracted `addr.commercial`, `addr.retail`, `addr.building`, `addr.block`, properly resolving `"Civic Center, Bahria Town Phase 4"`.
+     - Standardized courier routing city to `Rawalpindi` for Bahria Town Phase 1-8.
+  3. Verified locally via Node API test returning exact `"Civic Center, Bahria Town Phase 4"` and `pnpm tsc --noEmit` passing with 0 errors.
+
 ### 2026-09-03 — Dual-Layer 1-Click Saved Delivery Profile & Phone Auto-Suggest System
 - **📌 Issue**: User requested a frictionless saved address system for returning Pakistani customers so they don't have to re-enter their name, phone, city, and address on every checkout, while maintaining zero friction and zero password requirements.
 - **🔍 Root Cause & Failed Attempts**:

@@ -154,8 +154,15 @@ export async function generateMetadata(): Promise<Metadata> {
       canonical: activeSiteUrl,
     },
     icons: {
-      icon: favicon,
-      apple: favicon,
+      icon: [
+        { url: '/icon.png', sizes: '192x192', type: 'image/png' },
+        { url: '/favicon.svg', type: 'image/svg+xml' },
+        { url: '/favicon.ico', sizes: '48x48' },
+      ],
+      shortcut: '/favicon.ico',
+      apple: [
+        { url: '/apple-icon.png', sizes: '180x180', type: 'image/png' },
+      ],
     },
     verification: {
       google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION || 'google-site-verification-token',

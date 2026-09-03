@@ -129,10 +129,16 @@ export const AddressLocationPicker: React.FC<AddressLocationPickerProps> = ({
           const result = await res.json();
 
           if (result.success && result.data) {
-            const { formattedAddress, city, suburb, road } = result.data;
+            const { formattedAddress, city, landmark, suburb, road } = result.data;
 
-            // Combine road/suburb with existing house number if entered
-            const finalAddr = formattedAddress || [road, suburb].filter(Boolean).join(', ');
+            // Preserve house/apartment number if user already typed one
+            const houseMatch = address.match(/^(?:House|Flat|Apartment|Plot|H#|F#|Shop)\s*[^,]+/i);
+            const prefix = houseMatch ? `${houseMatch[0]}, ` : '';
+
+            const finalAddr = formattedAddress
+              ? `${prefix}${formattedAddress}`
+              : [prefix, landmark, road, suburb].filter(Boolean).join(', ');
+
             onChangeAddress(finalAddr);
 
             if (city) {
@@ -140,7 +146,7 @@ export const AddressLocationPicker: React.FC<AddressLocationPickerProps> = ({
             }
 
             setLocationSuccess(
-              `📍 Location Detected: ${suburb || road || 'Your Area'}, ${city || 'Pakistan'}`
+              `📍 Location Detected: ${formattedAddress || 'Your Area'}, ${city || 'Pakistan'}`
             );
           } else {
             throw new Error(result.error || 'Could not resolve address from GPS coordinates.');
@@ -154,15 +160,15 @@ export const AddressLocationPicker: React.FC<AddressLocationPickerProps> = ({
       (err) => {
         setIsLocating(false);
         if (err.code === 1) {
-          setLocationError('Location permission denied. Please enter address manually.');
+          setLocationError('Location permission denied. Please allow GPS access in browser.');
         } else {
           setLocationError('GPS signal weak or timed out. Please enter address manually.');
         }
       },
       {
         enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 60000,
+        timeout: 15000,
+        maximumAge: 0, // Force fresh satellite hardware GPS lock, never use cached coordinates
       }
     );
   };
