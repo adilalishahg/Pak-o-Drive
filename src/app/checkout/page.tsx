@@ -4,6 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { useCheckout } from '../../hooks/useCheckout';
 import { SearchableCitySelect } from '@/components/common/SearchableCitySelect';
+import { AddressLocationPicker } from '@/components/checkout/AddressLocationPicker';
 
 export default function CheckoutPage() {
   const {
@@ -179,24 +180,14 @@ export default function CheckoutPage() {
                     />
                   </div>
 
-                  {/* Street Delivery Address */}
-                  <div className="col-12">
-                    <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>
-                      Complete Delivery Address (گھر یا دکان کا مکمل پتہ) <span style={{ color: '#ef4444' }}>*</span>
-                    </label>
-                    <textarea
-                      required
-                      rows={2}
-                      placeholder="House / Flat No., Street / Sector, Landmark / Area"
-                      value={formData.address}
-                      onChange={e => updateField('address', e.target.value)}
-                      style={{
-                        width: '100%', border: '1.5px solid #cbd5e1', borderRadius: '8px',
-                        padding: '11px 14px', fontSize: '0.92rem', outline: 'none',
-                        color: '#0f172a', background: '#fff', resize: 'vertical',
-                      }}
-                    />
-                  </div>
+                  {/* Street Delivery Address with Free GPS Picker & Predictive Dropdown */}
+                  <AddressLocationPicker
+                    address={formData.address}
+                    onChangeAddress={val => updateField('address', val)}
+                    selectedCity={formData.city}
+                    onSelectCity={city => updateField('city', city)}
+                    required
+                  />
 
                   {/* Order Notes */}
                   <div className="col-12">

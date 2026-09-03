@@ -58,6 +58,20 @@ This file serves as persistent dynamic memory across coding agent sessions. Ever
 
 ---
 
+### 2026-09-03 — Free GPS Location Picker & Predictive Address Dropdown Implementation
+- **📌 Issue**: User requested a free, Google-accurate location picker and autocomplete dropdown for the delivery address field at checkout so customers don't have to manually type or struggle with exact Pakistani location details.
+- **🔍 Root Cause & Failed Attempts**:
+  - Google Maps Places API requires a paid Google Cloud billing account and credit card.
+  - The checkout address field was a plain static `<textarea>` without predictive address suggestions or browser geolocation autofill.
+- **🛠️ Verified Code Fix**:
+  1. Built `/api/locations/autocomplete` using OpenStreetMap Photon/Nominatim with bounds locked to Pakistan (`countrycodes=pk`, English format), resolving sectors, housing societies (DHA, Bahria, Gulberg, etc.), roads, and matching cities from `PAKISTAN_MAJOR_CITIES`.
+  2. Built `/api/locations/reverse` utilizing high-accuracy reverse-geocoding to turn GPS coordinates (`lat`, `lng`) into courier-ready addresses and auto-select matching cities.
+  3. Created [AddressLocationPicker.tsx](file:///d:/proj/Pak-o-Drive/src/components/checkout/AddressLocationPicker.tsx) with:
+     - 1-Tap `[ 📍 Detect My Location ]` GPS button with loading spinner and success notification
+     - Live predictive autocomplete dropdown as user types in the address box
+     - Auto-filling of both the address box and city dropdown on selection
+  4. Verified via `pnpm tsc --noEmit` and `pnpm run build` with 0 errors across all 64 routes.
+
 ### 2026-09-03 — Mobile Bundle Page Interactive Gallery, Quick-Inspect Modal & Free Delivery (2+ Items) Policy
 - **📌 Issue**: 
   1. Production build failed on Vercel with `Module not found: Can't resolve 'tls'` because server-side `whatsappNotification.ts` was imported in client component `BundleDetailInteractive.tsx`.
