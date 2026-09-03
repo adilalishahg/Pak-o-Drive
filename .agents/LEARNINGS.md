@@ -58,6 +58,24 @@ This file serves as persistent dynamic memory across coding agent sessions. Ever
 
 ---
 
+### 2026-09-03 — Compact Campaign Banner, Floating Price, Header Track Order Removal & Single Bundle Cart Item
+- **📌 Issue**: User requested multiple refinements from mobile testing:
+  1. Top header had "Track Order" button taking up space next to the logo on mobile.
+  2. Campaign offer banner on mobile took too much vertical space; product cards were too large with redundant "View Details" buttons.
+  3. User requested price badge to float on top of the product image to save space, and making the entire card clickable to open the product page.
+  4. User requested Admin controls to toggle display elements (timer, subtitle, savings badge, floating price, compact mobile mode).
+  5. When adding a campaign bundle/sale offer to the cart, individual products were added separately with separate prices instead of adding the bundle as a single package deal item with the promotional package price and title.
+- **🔍 Root Cause & Failed Attempts**:
+  1. `NavbarActions.tsx` rendered the Track Order button in the top navbar which overrode mobile styles due to CSS display conflicts.
+  2. `HomeCampaignOfferBanner.tsx` had bulky 280px tall cards with standalone "View Details" buttons and bottom price rows.
+  3. `useActiveCampaignOffer.ts` previously looped through `offer.products` and called `addToCart` on each product individually instead of packaging them as a single promotional package item.
+- **🛠️ Verified Code Fix**:
+  1. Removed Track Order button from `NavbarActions.tsx` so the header is clean (`Logo`, `Search`, `Cart`, `Menu`).
+  2. Redesigned `HomeCampaignOfferBanner.tsx` with floating price badges on top of product images, removed "View Details" buttons, and made the whole card a clickable `<Link>` with 110px compact height.
+  3. Extended `CampaignOffer.ts` schema, API routes, and `CampaignOfferEditorModal.tsx` with display controls (`showCountdownTimer`, `showSubtitle`, `showSavingsBadge`, `showFloatingPrice`, `showProductTitle`, `showOriginalPrice`, `compactMobile`).
+  4. Updated `handleAddBundleToCart` in `useActiveCampaignOffer.ts` to add the campaign bundle as a single package item with `offer.title`, `dealPrice`, and included items description.
+  5. Verified compilation via `pnpm tsc --noEmit` exiting with code 0.
+
 ### 2026-09-03 — Direct Live Agent Option 4 Handover & Above-Keyboard Button Placement
 - **📌 Issue**: User reported two specific bugs from mobile testing:
   1. When tapping the orange "Search" button or sending an unlisted warehouse product inquiry, the chat bot replied with a generic numeric menu ("Number reply karein 1, 2, 3, 4") instead of directly triggering Option 4 (Human Live Agent).

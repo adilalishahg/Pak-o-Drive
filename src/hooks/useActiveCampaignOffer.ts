@@ -109,23 +109,40 @@ export function useActiveCampaignOffer() {
     return `https://wa.me/${formattedWhatsapp}?text=${encodeURIComponent(message)}`;
   }, [offer, formattedWhatsapp]);
 
-  // Add all bundle products to cart
+  // Add entire campaign offer / bundle as a single package deal item to cart
   const handleAddBundleToCart = useCallback(() => {
     if (!offer) return;
-    offer.products.forEach((prod) => {
-      addToCart(
-        {
-          _id: prod.productId,
-          name: prod.name,
-          slug: prod.slug,
-          price: prod.offerPrice,
-          image: prod.image,
-          category: 'Bundle Deal',
-          stock: 99,
-        } as any,
-        1
-      );
-    });
+
+    const dealPrice =
+      offer.offerType === 'combo_bundle' && offer.bundlePrice > 0
+        ? offer.bundlePrice
+        : offer.products.reduce((a, b) => a + (b.offerPrice || 0), 0);
+
+    const originalPrice =
+      offer.bundleOriginalPrice ||
+      offer.products.reduce((a, b) => a + (b.originalPrice || 0), 0);
+
+    const includedNames = offer.products.map((p) => p.name).join(' + ');
+
+    const bundleProduct: any = {
+      _id: `bundle_${offer._id}`,
+      name: `${offer.title} (${offer.products.length} Items Package)`,
+      price: dealPrice,
+      originalPrice,
+      image: offer.products[0]?.image || '/img/product-placeholder.png',
+      category: 'Special Campaign Offer',
+      slug: offer.products[0]?.slug || '',
+      stock: 99,
+      description: `Includes: ${includedNames}`,
+    };
+
+    const bundleVariant: any = {
+      _id: `var_${offer._id}`,
+      name: `Package Deal: ${includedNames}`,
+      price: dealPrice,
+    };
+
+    addToCart(bundleProduct, 1, bundleVariant);
     setBundleAdded(true);
     setTimeout(() => setBundleAdded(false), 3000);
   }, [offer, addToCart]);

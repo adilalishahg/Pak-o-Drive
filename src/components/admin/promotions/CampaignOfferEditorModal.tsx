@@ -365,6 +365,7 @@ export function CampaignOfferEditorModal({ hook }: CampaignOfferEditorModalProps
                     </span>
                   </div>
                 )}
+              </div>
             </div>
 
             {/* Row 5: Card Elements & Mobile Layout Controls */}
