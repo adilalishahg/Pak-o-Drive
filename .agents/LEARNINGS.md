@@ -58,6 +58,32 @@ This file serves as persistent dynamic memory across coding agent sessions. Ever
 
 ---
 
+### 2026-09-03 — Direct Live Agent Option 4 Handover & Above-Keyboard Button Placement
+- **📌 Issue**: User reported two specific bugs from mobile testing:
+  1. When tapping the orange "Search" button or sending an unlisted warehouse product inquiry, the chat bot replied with a generic numeric menu ("Number reply karein 1, 2, 3, 4") instead of directly triggering Option 4 (Human Live Agent).
+  2. The action buttons on mobile were pushed down and obscured behind the open mobile keyboard, requiring the user to scroll or close the keyboard to discover them.
+- **🔍 Root Cause & Failed Attempts**:
+  1. In `src/app/api/chat/route.ts`, `isAgentQuery` only used a strict regex `^(4|agent|human...)`. Messages starting with "Salam! Mujhe website par 'Topcover' nahi mili..." failed this check and defaulted to the greeting rule with the numeric menu.
+  2. In `MobileSearchModal.tsx`, the zero-result card had a tall 72px icon and multiple long paragraphs (350px tall), pushing the action buttons down into the keyboard occlusion zone.
+- **🛠️ Verified Code Fix**:
+  1. Updated `src/app/api/chat/route.ts` with `isWarehouseInquiry` checking for warehouse/inventory/unlisted terms, directly activating `session.isAgentLive = true`, notifying the admin via WhatsApp with the session `#W1234`, and returning a dedicated **Central Warehouse Live Agent Connected** response without any numeric menus.
+  2. Updated `handleExecuteSearch` in `MobileSearchModal.tsx` so clicking the orange Search button (or pressing Enter) on an unfulfilled query directly triggers the Live Agent Chat with the inquiry sent.
+  3. Redesigned the zero-result card to be ultra-compact (under 150px) with the two high-converting buttons placed immediately below the title, making them 100% visible even with the tallest mobile keyboard active, and automatically blurring `inputRef.current?.blur()` on submit.
+  4. Verified compilation via `pnpm tsc --noEmit` exiting with code 0.
+
+### 2026-09-03 — Mobile Search Input Visibility Fix & Central Warehouse Live Agent Chat Integration
+- **📌 Issue**: User reported that tapping the search icon on mobile hid the search input behind the navbar/announcement bar with typed text completely invisible. Furthermore, on zero-result queries, the user requested that the app not say "market se arrange karwa dein ge" (unprofessional), but rather emphasize that the Central Warehouse has 15,000+ unlisted parts, and provide a 1-click button to open the bottom-right live agent chat widget directly with the inquiry pre-filled.
+- **🔍 Root Cause & Failed Attempts**:
+  1. `MobileSearchModal` previously used Bootstrap's `.z-3` (`z-index: 3 !important`), while the sticky `header` had `z-40` and `AnnouncementBar` had `zIndex: 1035`. The sticky header was physically drawn over the top 100px of the search modal, completely occluding the `<input>` element while opening the mobile keyboard.
+  2. The unfulfilled state previously displayed generic copy mentioning "market se arrange".
+  3. No event bridge existed between the search modal and the floating `StoreChatWidget` (`WhatsAppSupport.tsx`).
+- **🛠️ Verified Code Fix**:
+  1. Used React `createPortal(..., document.body)` in [MobileSearchModal.tsx](file:///d:/proj/Pak-o-Drive/src/components/layout/search/MobileSearchModal.tsx) with explicit `zIndex: 99999999 !important` and a sticky high-contrast search header bar with touch-friendly back arrow, search input (`16px` font to prevent iOS zoom), clear button, and real-time typed query indicator.
+  2. Added event listener in [useStoreChatBot.ts](file:///d:/proj/Pak-o-Drive/src/hooks/useStoreChatBot.ts) for `pakodrive:open-chat` that automatically opens the chat widget and dispatches the warehouse inquiry to the live agent.
+  3. Rewrote zero-result UI to emphasize **Central Warehouse Stock Check** (15,000+ unlisted inventory) with 2 primary actions: "Live Agent Se Chat Mein Poochhein" (triggers chat) and "WhatsApp Par Warehouse Stock Check Karwayein".
+  4. Updated [useMobileSmartSearch.ts](file:///d:/proj/Pak-o-Drive/src/hooks/useMobileSmartSearch.ts) WhatsApp template to ask for central warehouse inventory stock check.
+  5. Verified compilation via `pnpm tsc --noEmit` exiting with code 0.
+
 ### 2026-09-03 — Multi-Product Campaign Banner Homepage Placement Selector Suite
 - **📌 Issue**: User requested the ability to choose WHERE the campaign offer banner displays on the storefront homepage (e.g. on/below Hero Slider, inside Category-wise listing after 1st category, after a specific category slug, in the middle promotions area, or at the bottom before Why Choose Us).
 - **🔍 Root Cause & Failed Attempts**:

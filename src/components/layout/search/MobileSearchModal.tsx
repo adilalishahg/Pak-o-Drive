@@ -53,7 +53,7 @@ export function MobileSearchModal({ searchState }: MobileSearchModalProps) {
     }
   }, [isOpen]);
 
-  // Lock body scroll when open
+  // Lock body scroll when modal is open
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
@@ -67,8 +67,9 @@ export function MobileSearchModal({ searchState }: MobileSearchModalProps) {
 
   if (!isOpen || !mounted) return null;
 
-  // Handle opening live chat widget with warehouse inquiry
+  // 1-Click: Open Live Agent Chat (Option 4) with prefilled warehouse stock query
   const handleOpenLiveAgentChat = () => {
+    inputRef.current?.blur();
     setIsOpen(false);
     if (typeof window !== 'undefined') {
       window.dispatchEvent(
@@ -77,6 +78,24 @@ export function MobileSearchModal({ searchState }: MobileSearchModalProps) {
         })
       );
     }
+  };
+
+  // When user clicks the Search button or presses Enter
+  const handleExecuteSearch = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    inputRef.current?.blur();
+
+    const q = query.trim();
+    if (!q) return;
+
+    // If product is NOT in inventory (0 suggestions), clicking Search directly connects to the Live Agent!
+    if (suggestions.length === 0) {
+      handleOpenLiveAgentChat();
+      return;
+    }
+
+    // Otherwise, submit search and go to shop
+    handleSubmitSearch(e);
   };
 
   const modalContent = (
@@ -97,7 +116,7 @@ export function MobileSearchModal({ searchState }: MobileSearchModalProps) {
         fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
       }}
     >
-      {/* ── 1. Top Sticky Search Header Bar (Always 100% visible above everything) ── */}
+      {/* ── 1. Top Search Header Bar ──────────────────────────────── */}
       <header
         style={{
           position: 'sticky',
@@ -106,23 +125,23 @@ export function MobileSearchModal({ searchState }: MobileSearchModalProps) {
           right: 0,
           zIndex: 10,
           background: '#ffffff',
-          borderBottom: '2px solid #e2e8f0',
-          boxShadow: '0 4px 20px rgba(0,0,0,0.06)',
-          padding: '12px 14px',
+          borderBottom: '1px solid #e2e8f0',
+          boxShadow: '0 2px 12px rgba(0,0,0,0.05)',
+          padding: '10px 12px',
           display: 'flex',
           flexDirection: 'column',
-          gap: '8px',
+          gap: '6px',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           {/* Back Button */}
           <button
             type="button"
             onClick={() => setIsOpen(false)}
             aria-label="Back to store"
             style={{
-              width: '42px',
-              height: '42px',
+              width: '40px',
+              height: '40px',
               borderRadius: '50%',
               border: '1px solid #e2e8f0',
               background: '#f8fafc',
@@ -130,7 +149,7 @@ export function MobileSearchModal({ searchState }: MobileSearchModalProps) {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              fontSize: '18px',
+              fontSize: '17px',
               cursor: 'pointer',
               flexShrink: 0,
             }}
@@ -140,7 +159,7 @@ export function MobileSearchModal({ searchState }: MobileSearchModalProps) {
 
           {/* High-Contrast Search Input Container */}
           <form
-            onSubmit={handleSubmitSearch}
+            onSubmit={handleExecuteSearch}
             style={{
               flex: 1,
               position: 'relative',
@@ -149,13 +168,13 @@ export function MobileSearchModal({ searchState }: MobileSearchModalProps) {
               background: '#f1f5f9',
               border: '2px solid #ea580c',
               borderRadius: '9999px',
-              padding: '0 14px',
-              height: '46px',
+              padding: '0 12px',
+              height: '44px',
             }}
           >
             <i
               className="fas fa-search"
-              style={{ color: '#ea580c', fontSize: '16px', marginRight: '10px', flexShrink: 0 }}
+              style={{ color: '#ea580c', fontSize: '15px', marginRight: '8px', flexShrink: 0 }}
             />
             <input
               ref={inputRef}
@@ -168,7 +187,7 @@ export function MobileSearchModal({ searchState }: MobileSearchModalProps) {
                 border: 'none',
                 background: 'transparent',
                 outline: 'none',
-                fontSize: '16px', // 16px prevents mobile iOS auto-zoom
+                fontSize: '16px', // prevents mobile iOS zoom
                 color: '#0f172a',
                 fontWeight: 600,
                 width: '100%',
@@ -180,7 +199,7 @@ export function MobileSearchModal({ searchState }: MobileSearchModalProps) {
               <div
                 className="spinner-border spinner-border-sm text-primary"
                 role="status"
-                style={{ width: '16px', height: '16px', marginLeft: '8px', flexShrink: 0 }}
+                style={{ width: '15px', height: '15px', marginLeft: '6px', flexShrink: 0 }}
               >
                 <span className="visually-hidden">Loading...</span>
               </div>
@@ -193,10 +212,10 @@ export function MobileSearchModal({ searchState }: MobileSearchModalProps) {
                   border: 'none',
                   background: 'none',
                   color: '#64748b',
-                  fontSize: '18px',
+                  fontSize: '17px',
                   padding: '4px',
                   cursor: 'pointer',
-                  marginLeft: '6px',
+                  marginLeft: '4px',
                   flexShrink: 0,
                 }}
               >
@@ -205,52 +224,52 @@ export function MobileSearchModal({ searchState }: MobileSearchModalProps) {
             ) : null}
           </form>
 
-          {/* Submit Search Button */}
+          {/* Submit Search Button (Orange) */}
           {query.trim() && (
             <button
               type="button"
-              onClick={() => handleSubmitSearch()}
+              onClick={handleExecuteSearch}
               style={{
                 height: '42px',
-                padding: '0 14px',
+                padding: '0 15px',
                 borderRadius: '9999px',
                 border: 'none',
                 background: '#ea580c',
                 color: '#ffffff',
                 fontWeight: 700,
-                fontSize: '14px',
+                fontSize: '13.5px',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '6px',
+                gap: '5px',
                 cursor: 'pointer',
                 flexShrink: 0,
               }}
             >
-              <span>Search</span>
+              <span>{suggestions.length === 0 && !isLoading ? 'Chat' : 'Search'}</span>
             </button>
           )}
         </div>
 
-        {/* Typed Status Indicator so user immediately knows what they typed */}
+        {/* Typed Status Indicator */}
         {query.trim() && (
           <div
             style={{
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
-              padding: '2px 6px',
-              fontSize: '12px',
+              padding: '0 4px',
+              fontSize: '11.5px',
               color: '#475569',
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#22c55e' }} />
+              <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#22c55e' }} />
               <span>
                 Searching for: <strong style={{ color: '#0f172a' }}>&ldquo;{query}&rdquo;</strong>
               </span>
             </div>
             {suggestions.length > 0 && (
-              <span style={{ color: '#ea580c', fontWeight: 600 }}>
+              <span style={{ color: '#ea580c', fontWeight: 700 }}>
                 {suggestions.length} items found
               </span>
             )}
@@ -264,21 +283,21 @@ export function MobileSearchModal({ searchState }: MobileSearchModalProps) {
           flex: 1,
           overflowY: 'auto',
           WebkitOverflowScrolling: 'touch',
-          padding: '16px',
+          padding: '12px 14px',
           background: '#f8fafc',
         }}
       >
-        {/* State A: EMPTY QUERY — Show Popular Suggestions & Warehouse Help Banner */}
+        {/* State A: EMPTY QUERY — Popular Searches & Help */}
         {!query.trim() && (
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '12px' }}>
-              <i className="fas fa-fire" style={{ color: '#ea580c', fontSize: '14px' }} />
-              <span style={{ fontSize: '13px', fontWeight: 700, color: '#334155', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '10px' }}>
+              <i className="fas fa-fire" style={{ color: '#ea580c', fontSize: '13px' }} />
+              <span style={{ fontSize: '12px', fontWeight: 700, color: '#334155', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                 Popular Searches in Pakistan
               </span>
             </div>
 
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '20px' }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '7px', marginBottom: '18px' }}>
               {POPULAR_SUGGESTIONS.map((item, idx) => (
                 <button
                   key={idx}
@@ -287,66 +306,51 @@ export function MobileSearchModal({ searchState }: MobileSearchModalProps) {
                   style={{
                     display: 'inline-flex',
                     alignItems: 'center',
-                    gap: '6px',
-                    padding: '8px 16px',
+                    gap: '5px',
+                    padding: '7px 14px',
                     borderRadius: '9999px',
                     background: '#ffffff',
                     border: '1px solid #e2e8f0',
                     color: '#334155',
-                    fontSize: '13px',
+                    fontSize: '12.5px',
                     fontWeight: 600,
                     boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
                     cursor: 'pointer',
                   }}
                 >
-                  <i className="fas fa-search" style={{ color: '#94a3b8', fontSize: '11px' }} />
+                  <i className="fas fa-search" style={{ color: '#94a3b8', fontSize: '10px' }} />
                   <span>{item}</span>
                 </button>
               ))}
             </div>
 
-            {/* Warehouse Stock Assistance Banner */}
+            {/* Warehouse Assistance Card */}
             <div
               style={{
                 background: '#ffffff',
                 border: '1px solid #e2e8f0',
-                borderRadius: '16px',
-                padding: '16px',
-                boxShadow: '0 2px 10px rgba(0,0,0,0.03)',
+                borderRadius: '14px',
+                padding: '14px',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
                 display: 'flex',
                 flexDirection: 'column',
-                gap: '12px',
+                gap: '10px',
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <div
-                  style={{
-                    width: '42px',
-                    height: '42px',
-                    borderRadius: '12px',
-                    background: 'rgba(37, 99, 235, 0.1)',
-                    color: '#2563eb',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '20px',
-                    flexShrink: 0,
-                  }}
-                >
-                  <i className="fas fa-warehouse" />
-                </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '20px' }}>🏢</span>
                 <div>
-                  <h6 style={{ margin: 0, fontSize: '14px', fontWeight: 700, color: '#0f172a' }}>
+                  <h6 style={{ margin: 0, fontSize: '13.5px', fontWeight: 700, color: '#0f172a' }}>
                     15,000+ Items in Central Warehouse
                   </h6>
-                  <p style={{ margin: 0, fontSize: '12px', color: '#64748b' }}>
-                    Rozana hazaron naye parts aur gadgets update hotay hain.
+                  <p style={{ margin: 0, fontSize: '11.5px', color: '#64748b' }}>
+                    Rozana hazaron naye spare parts aur gadgets update hotay hain.
                   </p>
                 </div>
               </div>
 
-              <p style={{ margin: 0, fontSize: '13px', color: '#334155', lineHeight: 1.5 }}>
-                Agar aapko specific auto part ya accessory chahiye, aap direct hamaray Live Support Agent se chat mein pooch saktay hain!
+              <p style={{ margin: 0, fontSize: '12.5px', color: '#334155', lineHeight: 1.4 }}>
+                Agar aapko koi specific product chahiye jo website par na mil rahi ho, aap direct hamaray Live Support Agent se chat mein pooch saktay hain!
               </p>
 
               <button
@@ -354,7 +358,7 @@ export function MobileSearchModal({ searchState }: MobileSearchModalProps) {
                 onClick={handleOpenLiveAgentChat}
                 style={{
                   width: '100%',
-                  padding: '10px 16px',
+                  padding: '9px 14px',
                   borderRadius: '9999px',
                   border: 'none',
                   background: 'linear-gradient(135deg, #2563eb, #1d4ed8)',
@@ -366,7 +370,7 @@ export function MobileSearchModal({ searchState }: MobileSearchModalProps) {
                   justifyContent: 'center',
                   gap: '8px',
                   cursor: 'pointer',
-                  boxShadow: '0 4px 12px rgba(37, 99, 235, 0.25)',
+                  boxShadow: '0 3px 10px rgba(37, 99, 235, 0.25)',
                 }}
               >
                 <i className="fas fa-comments" />
@@ -381,20 +385,20 @@ export function MobileSearchModal({ searchState }: MobileSearchModalProps) {
           <div>
             {/* Category Tags */}
             {categories.length > 0 && (
-              <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '6px', marginBottom: '12px' }}>
-                <span style={{ fontSize: '12px', color: '#64748b', marginRight: '4px' }}>Categories:</span>
+              <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '6px', marginBottom: '10px' }}>
+                <span style={{ fontSize: '11.5px', color: '#64748b', marginRight: '2px' }}>Categories:</span>
                 {categories.map((cat, idx) => (
                   <button
                     key={idx}
                     type="button"
                     onClick={() => handleSelectCategory(cat)}
                     style={{
-                      padding: '5px 12px',
+                      padding: '4px 10px',
                       borderRadius: '9999px',
                       background: '#ffffff',
                       border: '1px solid #e2e8f0',
                       color: '#0f172a',
-                      fontSize: '12px',
+                      fontSize: '11.5px',
                       fontWeight: 600,
                       cursor: 'pointer',
                       display: 'inline-flex',
@@ -409,41 +413,20 @@ export function MobileSearchModal({ searchState }: MobileSearchModalProps) {
               </div>
             )}
 
-            {/* AI Smart Intent Badge */}
-            {isAiAssisted && (
-              <div
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  padding: '4px 10px',
-                  borderRadius: '9999px',
-                  background: 'rgba(37, 99, 235, 0.1)',
-                  color: '#2563eb',
-                  fontSize: '11px',
-                  fontWeight: 700,
-                  marginBottom: '12px',
-                }}
-              >
-                <i className="fas fa-magic" />
-                <span>AI Smart Intent Active</span>
-              </div>
-            )}
-
             {/* Products List */}
             <div
               style={{
                 background: '#ffffff',
-                borderRadius: '16px',
+                borderRadius: '14px',
                 border: '1px solid #e2e8f0',
                 overflow: 'hidden',
-                boxShadow: '0 2px 10px rgba(0,0,0,0.03)',
-                marginBottom: '16px',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
+                marginBottom: '14px',
               }}
             >
               <div
                 style={{
-                  padding: '10px 14px',
+                  padding: '8px 12px',
                   background: '#f8fafc',
                   borderBottom: '1px solid #e2e8f0',
                   display: 'flex',
@@ -451,7 +434,7 @@ export function MobileSearchModal({ searchState }: MobileSearchModalProps) {
                   justifyContent: 'space-between',
                 }}
               >
-                <span style={{ fontSize: '12px', fontWeight: 700, color: '#64748b' }}>
+                <span style={{ fontSize: '11.5px', fontWeight: 700, color: '#64748b' }}>
                   MATCHING PRODUCTS ({suggestions.length})
                 </span>
                 <span style={{ fontSize: '11px', color: '#94a3b8' }}>Tap to view</span>
@@ -464,10 +447,10 @@ export function MobileSearchModal({ searchState }: MobileSearchModalProps) {
                   onClick={() => handleSelectProduct(product.slug || product.id)}
                   style={{
                     width: '100%',
-                    padding: '12px 14px',
+                    padding: '10px 12px',
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '12px',
+                    gap: '10px',
                     background: '#ffffff',
                     border: 'none',
                     borderBottom: '1px solid #f1f5f9',
@@ -477,9 +460,9 @@ export function MobileSearchModal({ searchState }: MobileSearchModalProps) {
                 >
                   <div
                     style={{
-                      width: '56px',
-                      height: '56px',
-                      borderRadius: '10px',
+                      width: '50px',
+                      height: '50px',
+                      borderRadius: '8px',
                       overflow: 'hidden',
                       background: '#f1f5f9',
                       position: 'relative',
@@ -490,7 +473,7 @@ export function MobileSearchModal({ searchState }: MobileSearchModalProps) {
                       src={product.image || '/img/product-placeholder.png'}
                       alt={product.name}
                       fill
-                      sizes="56px"
+                      sizes="50px"
                       style={{ objectFit: 'contain' }}
                     />
                   </div>
@@ -499,13 +482,12 @@ export function MobileSearchModal({ searchState }: MobileSearchModalProps) {
                     <span
                       style={{
                         display: 'inline-block',
-                        padding: '2px 8px',
+                        padding: '1px 6px',
                         borderRadius: '9999px',
                         background: '#f1f5f9',
                         color: '#64748b',
-                        fontSize: '11px',
+                        fontSize: '10.5px',
                         fontWeight: 600,
-                        marginBottom: '2px',
                       }}
                     >
                       {product.category}
@@ -513,7 +495,7 @@ export function MobileSearchModal({ searchState }: MobileSearchModalProps) {
                     <h6
                       style={{
                         margin: '2px 0',
-                        fontSize: '14px',
+                        fontSize: '13px',
                         fontWeight: 700,
                         color: '#0f172a',
                         overflow: 'hidden',
@@ -523,12 +505,12 @@ export function MobileSearchModal({ searchState }: MobileSearchModalProps) {
                     >
                       {product.name}
                     </h6>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span style={{ fontSize: '14px', fontWeight: 800, color: '#c2410c' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <span style={{ fontSize: '13.5px', fontWeight: 800, color: '#c2410c' }}>
                         Rs. {product.price.toLocaleString()}
                       </span>
                       {product.originalPrice && product.originalPrice > product.price && (
-                        <span style={{ fontSize: '12px', color: '#94a3b8', textDecoration: 'line-through' }}>
+                        <span style={{ fontSize: '11.5px', color: '#94a3b8', textDecoration: 'line-through' }}>
                           Rs. {product.originalPrice.toLocaleString()}
                         </span>
                       )}
@@ -543,15 +525,15 @@ export function MobileSearchModal({ searchState }: MobileSearchModalProps) {
             {/* View all in shop */}
             <button
               type="button"
-              onClick={() => handleSubmitSearch()}
+              onClick={handleExecuteSearch}
               style={{
                 width: '100%',
-                padding: '12px',
+                padding: '11px',
                 borderRadius: '9999px',
                 border: '2px solid #0f172a',
                 background: '#ffffff',
                 color: '#0f172a',
-                fontSize: '14px',
+                fontSize: '13.5px',
                 fontWeight: 700,
                 display: 'flex',
                 alignItems: 'center',
@@ -566,175 +548,147 @@ export function MobileSearchModal({ searchState }: MobileSearchModalProps) {
           </div>
         )}
 
-        {/* State C: ZERO RESULTS FOUND — Central Warehouse Check & Live Chat Trigger */}
+        {/* State C: ZERO RESULTS FOUND — COMPACT, HIGH-CONVERTING WAREHOUSE CARD (BUTTONS 100% VISIBLE ABOVE KEYBOARD) */}
         {query.trim() && !isLoading && hasSearched && suggestions.length === 0 && (
-          <div
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              textAlign: 'center',
-              padding: '24px 12px',
-              maxWidth: '480px',
-              margin: '0 auto',
-            }}
-          >
-            {/* Warehouse Badge & Icon */}
+          <div style={{ maxWidth: '480px', margin: '0 auto' }}>
+            {/* Primary Action Card placed AT THE VERY TOP so keyboard never hides it! */}
             <div
               style={{
-                width: '72px',
-                height: '72px',
-                borderRadius: '50%',
-                background: 'rgba(37, 99, 235, 0.1)',
-                color: '#2563eb',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '30px',
-                marginBottom: '14px',
-                boxShadow: '0 4px 15px rgba(37, 99, 235, 0.15)',
-              }}
-            >
-              <i className="fas fa-warehouse" />
-            </div>
-
-            <span
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '4px 12px',
-                borderRadius: '9999px',
-                background: '#f1f5f9',
-                border: '1px solid #cbd5e1',
-                color: '#334155',
-                fontSize: '11px',
-                fontWeight: 700,
-                letterSpacing: '0.5px',
-                textTransform: 'uppercase',
-                marginBottom: '8px',
-              }}
-            >
-              🏢 Central Warehouse Inventory Check
-            </span>
-
-            {/* Product Title */}
-            <h4
-              style={{
-                fontSize: '19px',
-                fontWeight: 800,
-                color: '#0f172a',
-                marginBottom: '10px',
-                lineHeight: 1.3,
-              }}
-            >
-              &ldquo;{query}&rdquo; Website Par Abhi Listed Nahi Hai
-            </h4>
-
-            {/* Warehouse-Focused Explanation (Rule: No 'market se arrange', focus on Central Warehouse) */}
-            <p
-              style={{
-                fontSize: '13.5px',
-                color: '#475569',
-                lineHeight: 1.6,
-                marginBottom: '20px',
-              }}
-            >
-              Hamare main <b>Central Warehouse</b> mein 15,000+ unlisted auto parts, accessories aur gadgets mojood hain jo rozana system mein add hotay hain.
-              <br />
-              <br />
-              Aap abhi hamaray <b>Live Support Agent</b> se rabta karein — agent 2 minute mein warehouse system se stock check kar ke aapko foran bata dein ge!
-            </p>
-
-            {/* Action 1: Open Live Agent Chat Widget Directly */}
-            <button
-              type="button"
-              onClick={handleOpenLiveAgentChat}
-              style={{
-                width: '100%',
-                padding: '14px 20px',
-                borderRadius: '9999px',
-                border: 'none',
-                background: 'linear-gradient(135deg, #2563eb, #1d4ed8)',
-                color: '#ffffff',
-                fontSize: '15px',
-                fontWeight: 700,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '10px',
-                cursor: 'pointer',
-                boxShadow: '0 6px 20px rgba(37, 99, 235, 0.3)',
-                marginBottom: '10px',
-              }}
-            >
-              <i className="fas fa-comments" style={{ fontSize: '18px' }} />
-              <span>Live Agent Se Chat Mein Poochhein</span>
-            </button>
-
-            {/* Action 2: WhatsApp Live Agent Option */}
-            <a
-              href={getWhatsappInquiryUrl(query)}
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{
-                width: '100%',
-                padding: '12px 20px',
-                borderRadius: '9999px',
-                border: 'none',
-                background: 'linear-gradient(135deg, #25D366, #128C7E)',
-                color: '#ffffff',
-                fontSize: '14px',
-                fontWeight: 700,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '8px',
-                textDecoration: 'none',
-                boxShadow: '0 4px 14px rgba(37, 211, 102, 0.25)',
-                marginBottom: '20px',
-              }}
-            >
-              <i className="fab fa-whatsapp" style={{ fontSize: '18px' }} />
-              <span>WhatsApp Par Warehouse Stock Check Karwayein</span>
-            </a>
-
-            {/* Trust Badges Strip */}
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '12px',
-                fontSize: '11px',
-                color: '#64748b',
-                fontWeight: 600,
-                flexWrap: 'wrap',
-                marginBottom: '20px',
-              }}
-            >
-              <span>⚡ 2-Minute Reply</span>
-              <span>•</span>
-              <span>📦 Central Warehouse</span>
-              <span>•</span>
-              <span>🇵🇰 Nationwide COD</span>
-            </div>
-
-            {/* Popular items fallback */}
-            <div
-              style={{
-                width: '100%',
                 background: '#ffffff',
-                border: '1px solid #e2e8f0',
+                border: '2px solid #ea580c',
                 borderRadius: '16px',
                 padding: '14px',
-                textAlign: 'left',
+                boxShadow: '0 4px 20px rgba(234, 88, 12, 0.12)',
+                marginBottom: '14px',
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '10px' }}>
-                <i className="fas fa-fire" style={{ color: '#ea580c', fontSize: '12px' }} />
-                <span style={{ fontSize: '12px', fontWeight: 700, color: '#334155' }}>
-                  Popular Searches:
+              {/* Badge & Title */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
+                <span style={{ fontSize: '16px' }}>🏢</span>
+                <span
+                  style={{
+                    fontSize: '11px',
+                    fontWeight: 800,
+                    color: '#c2410c',
+                    letterSpacing: '0.5px',
+                    textTransform: 'uppercase',
+                  }}
+                >
+                  Central Warehouse Stock Check
+                </span>
+              </div>
+
+              <h5
+                style={{
+                  fontSize: '16px',
+                  fontWeight: 800,
+                  color: '#0f172a',
+                  margin: '0 0 6px 0',
+                  lineHeight: 1.25,
+                }}
+              >
+                &ldquo;{query}&rdquo; Website Par Abhi Listed Nahi Hai
+              </h5>
+
+              <p
+                style={{
+                  fontSize: '12.5px',
+                  color: '#475569',
+                  lineHeight: 1.45,
+                  margin: '0 0 12px 0',
+                }}
+              >
+                Hamare Central Warehouse mein <b>15,000+ unlisted</b> auto parts mojood hain. Live agent se foran inventory check karwayein:
+              </p>
+
+              {/* ── ACTION BUTTONS: PLACED PROMINENTLY RIGHT HERE (NEVER HIDDEN BY KEYBOARD!) ── */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {/* 1. Primary: Live Agent Chat Trigger (Option 4) */}
+                <button
+                  type="button"
+                  onClick={handleOpenLiveAgentChat}
+                  style={{
+                    width: '100%',
+                    padding: '12px 16px',
+                    borderRadius: '12px',
+                    border: 'none',
+                    background: 'linear-gradient(135deg, #2563eb, #1d4ed8)',
+                    color: '#ffffff',
+                    fontSize: '14px',
+                    fontWeight: 700,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px',
+                    cursor: 'pointer',
+                    boxShadow: '0 4px 14px rgba(37, 99, 235, 0.3)',
+                  }}
+                >
+                  <i className="fas fa-comments" style={{ fontSize: '16px' }} />
+                  <span>💬 Live Agent Se Chat Mein Poochhein</span>
+                </button>
+
+                {/* 2. Secondary: Direct WhatsApp Option */}
+                <a
+                  href={getWhatsappInquiryUrl(query)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    width: '100%',
+                    padding: '11px 16px',
+                    borderRadius: '12px',
+                    border: 'none',
+                    background: 'linear-gradient(135deg, #25D366, #128C7E)',
+                    color: '#ffffff',
+                    fontSize: '13.5px',
+                    fontWeight: 700,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px',
+                    textDecoration: 'none',
+                    boxShadow: '0 4px 12px rgba(37, 211, 102, 0.25)',
+                  }}
+                >
+                  <i className="fab fa-whatsapp" style={{ fontSize: '16px' }} />
+                  <span>📱 WhatsApp Par Warehouse Stock Check</span>
+                </a>
+              </div>
+
+              {/* Trust badges strip */}
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  fontSize: '11px',
+                  color: '#64748b',
+                  fontWeight: 600,
+                  marginTop: '10px',
+                }}
+              >
+                <span>⚡ 2-Min Reply</span>
+                <span>•</span>
+                <span>📦 15,000+ Warehouse Stock</span>
+                <span>•</span>
+                <span>🇵🇰 COD</span>
+              </div>
+            </div>
+
+            {/* Popular Items Fallback */}
+            <div
+              style={{
+                background: '#ffffff',
+                border: '1px solid #e2e8f0',
+                borderRadius: '14px',
+                padding: '12px',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
+                <i className="fas fa-fire" style={{ color: '#ea580c', fontSize: '11px' }} />
+                <span style={{ fontSize: '11.5px', fontWeight: 700, color: '#334155' }}>
+                  Popular Available Searches:
                 </span>
               </div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
@@ -744,12 +698,12 @@ export function MobileSearchModal({ searchState }: MobileSearchModalProps) {
                     type="button"
                     onClick={() => setQuery(item)}
                     style={{
-                      padding: '6px 12px',
+                      padding: '5px 10px',
                       borderRadius: '9999px',
                       background: '#f1f5f9',
                       border: '1px solid #e2e8f0',
                       color: '#334155',
-                      fontSize: '12px',
+                      fontSize: '11.5px',
                       fontWeight: 600,
                       cursor: 'pointer',
                     }}

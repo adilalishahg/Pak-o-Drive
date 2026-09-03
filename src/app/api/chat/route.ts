@@ -193,36 +193,54 @@ export async function POST(req: NextRequest): Promise<NextResponse<ChatMessageRe
       });
     }
 
-    // 3. HUMAN AGENT HANDOFF (Explicit Request Only)
-    const isAgentQuery = /^(4|agent|human|representative|baat karni|admin|owner|call me|live agent|mujhe human agent)/i.test(
-      message.trim()
-    );
+    // 3. HUMAN AGENT / WAREHOUSE STOCK CHECK HANDOFF (Option 4 & Warehouse Inquiries)
+    const isWarehouseInquiry = /warehouse|unlisted|nahi mili|stock check|inventory check/i.test(message);
+    const isAgentQuery =
+      isWarehouseInquiry ||
+      /^(4|agent|human|representative|baat karni|admin|owner|call me|live agent|mujhe human agent)/i.test(
+        message.trim()
+      ) ||
+      /(human agent|live agent|agent se baat|representative|warehouse inventory|direct agent)/i.test(message);
 
     if (isAgentQuery) {
       session.isAgentLive = true;
       const bot = WhatsAppBotManager.getInstance();
       const adminPhone = getAdminWhatsAppNumber();
 
-      const alertToAdmin =
-        `💬 *LIVE WEB CHAT INQUIRY!* 🟢\n` +
-        `━━━━━━━━━━━━━━━━━━━━━\n` +
-        `👤 *Visitor Session:* #${shortCode}\n` +
-        `💬 *Message:* "${message}"\n\n` +
-        `👉 *Reply karne ke liye:* Is message ka WhatsApp reply karein ya type karein:\n` +
-        `#${shortCode} Aapka reply message yahan`;
+      const alertToAdmin = isWarehouseInquiry
+        ? `🏢 *NEW WAREHOUSE INVENTORY INQUIRY!* 🟢\n` +
+          `━━━━━━━━━━━━━━━━━━━━━\n` +
+          `👤 *Visitor Session:* #${shortCode}\n` +
+          `📦 *Inquiry:* "${message}"\n\n` +
+          `👉 *Customer ko reply karne ke liye:* Is message ka WhatsApp reply karein:\n` +
+          `#${shortCode} Aapka reply yahan`
+        : `💬 *LIVE WEB CHAT INQUIRY!* 🟢\n` +
+          `━━━━━━━━━━━━━━━━━━━━━\n` +
+          `👤 *Visitor Session:* #${shortCode}\n` +
+          `💬 *Message:* "${message}"\n\n` +
+          `👉 *Reply karne ke liye:* Is message ka WhatsApp reply karein ya type karein:\n` +
+          `#${shortCode} Aapka reply message yahan`;
 
       if (bot.state.status === 'CONNECTED' && adminPhone) {
         void bot.sendTextMessage(adminPhone, alertToAdmin).catch(() => {});
       }
 
-      const agentReply =
+      let agentReply =
         `👨‍💼 *Live Support Agent Handoff*\n\n` +
         `Aapka message hamare store executive ko forward kar diya gaya hai (Session: *#${shortCode}*).\n\n` +
         `Hamara agent jald isi chat window me aapse rabta karega. Aap apna sawal yahan type kar sakte hain!`;
 
+      if (isWarehouseInquiry) {
+        agentReply =
+          `🏢 *Central Warehouse Stock Check — Live Agent Connected* 🟢\n\n` +
+          `Aapki inquiry hamare Central Warehouse executive ko live forward kar di gayi hai (Session: *#${shortCode}*).\n\n` +
+          `Hamari team internal warehouse inventory mein yeh item check kar rahi hai aur aapko foran isi chat mein rate aur stock update mil jayega! 📦✨\n\n` +
+          `👉 *Mazeed kisi auto part ya gadget ki inquiry karni ho tou direct yahan type karein.*`;
+      }
+
       session.messages.push({
         id: 'bot_' + Date.now(),
-        sender: 'bot',
+        sender: 'agent',
         text: agentReply,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         createdAt: new Date(),
