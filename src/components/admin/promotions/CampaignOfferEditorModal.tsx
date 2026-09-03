@@ -365,6 +365,111 @@ export function CampaignOfferEditorModal({ hook }: CampaignOfferEditorModalProps
                     </span>
                   </div>
                 )}
+            </div>
+
+            {/* Row 5: Card Elements & Mobile Layout Controls */}
+            <div className="card border rounded-4 p-3 bg-light mb-4">
+              <div className="d-flex align-items-center gap-2 mb-1.5">
+                <i className="fas fa-sliders-h text-primary" />
+                <h6 className="fw-bold text-dark mb-0 leading-normal py-0.5">
+                  Card Display &amp; Mobile UI Customization
+                </h6>
+              </div>
+              <p className="text-muted small mb-3" style={{ fontSize: '0.78rem' }}>
+                Manually show/hide elements on the promotion banner and product cards.
+              </p>
+
+              <div className="row g-3">
+                {/* Compact Mobile Layout */}
+                <div className="col-12 col-md-6">
+                  <div className="form-check form-switch p-2.5 bg-white rounded-3 border">
+                    <input
+                      type="checkbox"
+                      id="compactMobileSwitch"
+                      checked={form.compactMobile}
+                      onChange={(e) => setForm({ ...form, compactMobile: e.target.checked })}
+                      className="form-check-input ms-0 me-2"
+                      style={{ cursor: 'pointer' }}
+                    />
+                    <label htmlFor="compactMobileSwitch" className="form-check-label fw-bold text-dark small" style={{ cursor: 'pointer' }}>
+                      📱 Compact Mobile Card Mode (Save Vertical Space)
+                    </label>
+                    <span className="d-block text-muted small mt-0.5" style={{ fontSize: '0.72rem' }}>
+                      Puts price tag directly on top of the image and removes bulky buttons.
+                    </span>
+                  </div>
+                </div>
+
+                {/* Floating Price on Top of Image */}
+                <div className="col-12 col-md-6">
+                  <div className="form-check form-switch p-2.5 bg-white rounded-3 border">
+                    <input
+                      type="checkbox"
+                      id="floatingPriceSwitch"
+                      checked={form.showFloatingPrice}
+                      onChange={(e) => setForm({ ...form, showFloatingPrice: e.target.checked })}
+                      className="form-check-input ms-0 me-2"
+                      style={{ cursor: 'pointer' }}
+                    />
+                    <label htmlFor="floatingPriceSwitch" className="form-check-label fw-bold text-dark small" style={{ cursor: 'pointer' }}>
+                      🏷️ Price Badge On Top of Image
+                    </label>
+                    <span className="d-block text-muted small mt-0.5" style={{ fontSize: '0.72rem' }}>
+                      Displays deal price badge floating on product photo.
+                    </span>
+                  </div>
+                </div>
+
+                {/* Countdown Timer */}
+                <div className="col-12 col-md-4">
+                  <div className="form-check form-switch p-2 bg-white rounded-3 border">
+                    <input
+                      type="checkbox"
+                      id="showTimerSwitch"
+                      checked={form.showCountdownTimer}
+                      onChange={(e) => setForm({ ...form, showCountdownTimer: e.target.checked })}
+                      className="form-check-input ms-0 me-2"
+                      style={{ cursor: 'pointer' }}
+                    />
+                    <label htmlFor="showTimerSwitch" className="form-check-label fw-semibold text-dark small" style={{ cursor: 'pointer' }}>
+                      ⏳ Countdown Expiry Timer
+                    </label>
+                  </div>
+                </div>
+
+                {/* Subtitle */}
+                <div className="col-12 col-md-4">
+                  <div className="form-check form-switch p-2 bg-white rounded-3 border">
+                    <input
+                      type="checkbox"
+                      id="showSubtitleSwitch"
+                      checked={form.showSubtitle}
+                      onChange={(e) => setForm({ ...form, showSubtitle: e.target.checked })}
+                      className="form-check-input ms-0 me-2"
+                      style={{ cursor: 'pointer' }}
+                    />
+                    <label htmlFor="showSubtitleSwitch" className="form-check-label fw-semibold text-dark small" style={{ cursor: 'pointer' }}>
+                      📝 Offer Subtitle / Text
+                    </label>
+                  </div>
+                </div>
+
+                {/* Savings Badge */}
+                <div className="col-12 col-md-4">
+                  <div className="form-check form-switch p-2 bg-white rounded-3 border">
+                    <input
+                      type="checkbox"
+                      id="showSavingsSwitch"
+                      checked={form.showSavingsBadge}
+                      onChange={(e) => setForm({ ...form, showSavingsBadge: e.target.checked })}
+                      className="form-check-input ms-0 me-2"
+                      style={{ cursor: 'pointer' }}
+                    />
+                    <label htmlFor="showSavingsSwitch" className="form-check-label fw-semibold text-dark small" style={{ cursor: 'pointer' }}>
+                      💰 &ldquo;You Save Rs. X&rdquo; Badge
+                    </label>
+                  </div>
+                </div>
               </div>
             </div>
 

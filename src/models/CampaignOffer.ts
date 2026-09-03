@@ -24,6 +24,14 @@ export interface ICampaignOfferDocument extends Document {
   ctaText?: string;
   placement: 'below_slider' | 'after_first_category' | 'after_specific_category' | 'middle_promotions' | 'before_why_us';
   targetCategorySlug?: string;
+  // UI Display Controls (Admin Managed)
+  showCountdownTimer?: boolean;
+  showSubtitle?: boolean;
+  showSavingsBadge?: boolean;
+  showFloatingPrice?: boolean;
+  showProductTitle?: boolean;
+  showOriginalPrice?: boolean;
+  compactMobile?: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -76,6 +84,13 @@ const CampaignOfferSchema = new Schema<ICampaignOfferDocument>(
       default: 'below_slider',
     },
     targetCategorySlug: { type: String, default: '' },
+    showCountdownTimer: { type: Boolean, default: true },
+    showSubtitle: { type: Boolean, default: true },
+    showSavingsBadge: { type: Boolean, default: true },
+    showFloatingPrice: { type: Boolean, default: true },
+    showProductTitle: { type: Boolean, default: true },
+    showOriginalPrice: { type: Boolean, default: true },
+    compactMobile: { type: Boolean, default: true },
   },
   {
     timestamps: true,

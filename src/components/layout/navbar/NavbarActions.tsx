@@ -50,29 +50,6 @@ export const NavbarActions: React.FC<NavbarActionsProps> = ({
         </svg>
       </button>
 
-      {/* Track Order Button — Desktop */}
-      <Link
-        href="/track-order"
-        className={`hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-decoration-none transition-all theme1-track-order-btn ${pathname === '/track-order' ? 'active' : ''}`}
-        aria-label="Track Order"
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-          strokeWidth="2"
-          stroke="currentColor"
-          style={{ width: '15px', height: '15px' }}
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 014.73 4.5H19.5a1.5 1.5 0 011.5 1.5v7m-9.75 4.5H18m0 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0"
-          />
-        </svg>
-        Track Order
-      </Link>
-
       {/* Admin Panel Icon (Visible on /admin routes) */}
       {pathname.startsWith('/admin') && (
         <Link

@@ -35,6 +35,13 @@ export async function POST(request: Request) {
       ctaText,
       placement,
       targetCategorySlug,
+      showCountdownTimer,
+      showSubtitle,
+      showSavingsBadge,
+      showFloatingPrice,
+      showProductTitle,
+      showOriginalPrice,
+      compactMobile,
     } = body;
 
     if (!title || !products || !Array.isArray(products) || products.length < 2) {
@@ -63,6 +70,13 @@ export async function POST(request: Request) {
       ctaText: ctaText || 'Claim Offer Now',
       placement: placement || 'below_slider',
       targetCategorySlug: targetCategorySlug || '',
+      showCountdownTimer: showCountdownTimer ?? true,
+      showSubtitle: showSubtitle ?? true,
+      showSavingsBadge: showSavingsBadge ?? true,
+      showFloatingPrice: showFloatingPrice ?? true,
+      showProductTitle: showProductTitle ?? true,
+      showOriginalPrice: showOriginalPrice ?? true,
+      compactMobile: compactMobile ?? true,
     });
 
     return NextResponse.json({ success: true, data: newOffer }, { status: 201 });

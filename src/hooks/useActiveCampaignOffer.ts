@@ -20,6 +20,13 @@ export interface ActiveOfferData {
   ctaText?: string;
   placement?: 'below_slider' | 'after_first_category' | 'after_specific_category' | 'middle_promotions' | 'before_why_us';
   targetCategorySlug?: string;
+  showCountdownTimer?: boolean;
+  showSubtitle?: boolean;
+  showSavingsBadge?: boolean;
+  showFloatingPrice?: boolean;
+  showProductTitle?: boolean;
+  showOriginalPrice?: boolean;
+  compactMobile?: boolean;
 }
 
 export function useActiveCampaignOffer() {

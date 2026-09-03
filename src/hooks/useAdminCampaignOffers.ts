@@ -17,6 +17,13 @@ export interface CampaignOfferFormState {
   ctaText: string;
   placement: 'below_slider' | 'after_first_category' | 'after_specific_category' | 'middle_promotions' | 'before_why_us';
   targetCategorySlug: string;
+  showCountdownTimer: boolean;
+  showSubtitle: boolean;
+  showSavingsBadge: boolean;
+  showFloatingPrice: boolean;
+  showProductTitle: boolean;
+  showOriginalPrice: boolean;
+  compactMobile: boolean;
 }
 
 const DEFAULT_FORM: CampaignOfferFormState = {
@@ -32,6 +39,13 @@ const DEFAULT_FORM: CampaignOfferFormState = {
   ctaText: 'Claim Offer Now',
   placement: 'below_slider',
   targetCategorySlug: '',
+  showCountdownTimer: true,
+  showSubtitle: true,
+  showSavingsBadge: true,
+  showFloatingPrice: true,
+  showProductTitle: true,
+  showOriginalPrice: true,
+  compactMobile: true,
 };
 
 export function useAdminCampaignOffers() {
@@ -168,6 +182,13 @@ export function useAdminCampaignOffers() {
       ctaText: offer.ctaText || 'Claim Offer Now',
       placement: offer.placement || 'below_slider',
       targetCategorySlug: offer.targetCategorySlug || '',
+      showCountdownTimer: offer.showCountdownTimer ?? true,
+      showSubtitle: offer.showSubtitle ?? true,
+      showSavingsBadge: offer.showSavingsBadge ?? true,
+      showFloatingPrice: offer.showFloatingPrice ?? true,
+      showProductTitle: offer.showProductTitle ?? true,
+      showOriginalPrice: offer.showOriginalPrice ?? true,
+      compactMobile: offer.compactMobile ?? true,
     });
     setIsModalOpen(true);
   }, []);
