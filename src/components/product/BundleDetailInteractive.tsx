@@ -4,8 +4,7 @@ import React, { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useCart } from '@/context/CartContext';
-import { ICampaignOfferDocument, ICampaignProduct } from '@/models/CampaignOffer';
-import { getAdminWhatsAppNumber } from '@/lib/whatsappNotification';
+import type { ICampaignOfferDocument, ICampaignProduct } from '@/models/CampaignOffer';
 
 interface BundleDetailInteractiveProps {
   product: any;
@@ -59,7 +58,7 @@ export const BundleDetailInteractive: React.FC<BundleDetailInteractiveProps> = (
 
   // WhatsApp 1-Click Order Link (Rule #2 E.164 Deep Link)
   const getWhatsAppOrderUrl = () => {
-    const rawNumber = getAdminWhatsAppNumber() || '923185205667';
+    const rawNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '923185205667';
     const cleanNum = rawNumber.replace(/\+/g, '').trim();
     const productList = products.map((p, i) => `${i + 1}. *${p.name}* (Deal Rate: Rs. ${p.offerPrice.toLocaleString()})`).join('\n');
 
