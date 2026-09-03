@@ -322,6 +322,52 @@ export function CampaignOfferEditorModal({ hook }: CampaignOfferEditorModalProps
               </div>
             </div>
 
+            {/* Row 4: Banner Placement on Homepage */}
+            <div className="card border rounded-4 p-3 bg-light mb-4">
+              <div className="d-flex align-items-center gap-2 mb-1.5">
+                <i className="fas fa-map-marker-alt text-primary" />
+                <h6 className="fw-bold text-dark mb-0 leading-normal py-0.5">
+                  Banner Placement on Homepage
+                </h6>
+              </div>
+              <p className="text-muted small mb-3" style={{ fontSize: '0.78rem' }}>
+                Choose where on the storefront homepage this campaign banner should appear.
+              </p>
+
+              <div className="row g-3">
+                <div className="col-12 col-md-6">
+                  <label className="form-label small fw-bold text-secondary">Display Position *</label>
+                  <select
+                    value={form.placement}
+                    onChange={(e) => setForm({ ...form, placement: e.target.value as any })}
+                    className="form-select rounded-3 fw-semibold"
+                  >
+                    <option value="below_slider">🔝 Below Hero Slider (Top of Page)</option>
+                    <option value="after_first_category">📂 Inside Category Listing (After 1st Category)</option>
+                    <option value="after_specific_category">🎯 After Specific Category (Select below)</option>
+                    <option value="middle_promotions">⚡ Middle Section (Before Services &amp; Deals)</option>
+                    <option value="before_why_us">🛡️ Bottom Section (Before Why Choose Us)</option>
+                  </select>
+                </div>
+
+                {form.placement === 'after_specific_category' && (
+                  <div className="col-12 col-md-6">
+                    <label className="form-label small fw-bold text-secondary">Target Category Slug</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. car-accessories, electronics, car-care"
+                      value={form.targetCategorySlug}
+                      onChange={(e) => setForm({ ...form, targetCategorySlug: e.target.value.toLowerCase().trim() })}
+                      className="form-control rounded-3 font-monospace"
+                    />
+                    <span className="text-muted small" style={{ fontSize: '0.72rem' }}>
+                      Enter category slug (e.g. car-accessories) after which banner should appear.
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+
             {/* Active Switch */}
             <div className="form-check form-switch mb-4">
               <input

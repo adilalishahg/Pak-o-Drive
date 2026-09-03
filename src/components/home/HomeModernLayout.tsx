@@ -81,6 +81,9 @@ export const HomeModernLayout: React.FC<HomeModernLayoutProps> = ({
         </div>
       </section>
 
+      {/* ── Placement Hook: Below Hero Slider ─────────────── */}
+      <HomeCampaignOfferBanner placementFilter="below_slider" />
+
       {/* ══════════════════════════════════════════════
           CATEGORY SECTIONS — PriceOye style with Pak-o-Drive Design
           Organized by Main Parent Categories
@@ -202,14 +205,17 @@ export const HomeModernLayout: React.FC<HomeModernLayoutProps> = ({
       {/* ── Services Strip ───────────────────────────────── */}
       <HomeServicesSection />
 
-      {/* ── Multi-Product Hybrid Campaign / Bundle Banner ─ */}
-      <HomeCampaignOfferBanner />
+      {/* ── Multi-Product Hybrid Campaign (Middle Promotions Placement) ─ */}
+      <HomeCampaignOfferBanner placementFilter="middle_promotions" />
 
       {/* ── Offer Banners ────────────────────────────────── */}
       <HomeOfferBanners offers={dynamicOffers} />
 
       {/* ── Stats Counter Strip ──────────────────────────── */}
       <HomeStatsSection />
+
+      {/* ── Placement Hook: Before Why Choose Us ─────────── */}
+      <HomeCampaignOfferBanner placementFilter="before_why_us" />
 
       {/* ── Why Choose Us ────────────────────────────────── */}
       <section

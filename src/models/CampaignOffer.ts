@@ -22,6 +22,8 @@ export interface ICampaignOfferDocument extends Document {
   isActive: boolean;
   bgTheme: 'dark_slate' | 'sunset_orange' | 'emerald_gold' | 'midnight_blue';
   ctaText?: string;
+  placement: 'below_slider' | 'after_first_category' | 'after_specific_category' | 'middle_promotions' | 'before_why_us';
+  targetCategorySlug?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -68,6 +70,12 @@ const CampaignOfferSchema = new Schema<ICampaignOfferDocument>(
       default: 'dark_slate',
     },
     ctaText: { type: String, default: 'Claim Offer Now' },
+    placement: {
+      type: String,
+      enum: ['below_slider', 'after_first_category', 'after_specific_category', 'middle_promotions', 'before_why_us'],
+      default: 'below_slider',
+    },
+    targetCategorySlug: { type: String, default: '' },
   },
   {
     timestamps: true,

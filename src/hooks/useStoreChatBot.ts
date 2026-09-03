@@ -165,70 +165,94 @@ export function useStoreChatBot() {
     [whatsappNumber, shortCode]
   );
 
-  const sendMessage = async (overrideText?: string) => {
-    const textToSend = (overrideText || inputText).trim();
-    if (!textToSend || isTyping) return;
+  const sendMessage = useCallback(
+    async (overrideText?: string) => {
+      const textToSend = (overrideText || inputText).trim();
+      if (!textToSend || isTyping) return;
 
-    const userMsg: ChatMessage = {
-      id: 'usr_' + Date.now(),
-      sender: 'user',
-      text: textToSend,
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      const userMsg: ChatMessage = {
+        id: 'usr_' + Date.now(),
+        sender: 'user',
+        text: textToSend,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      };
+
+      setMessages((prev) => [...prev, userMsg]);
+      if (!overrideText) setInputText('');
+      setIsTyping(true);
+
+      try {
+        const res = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            message: textToSend,
+            sessionId: getSessionId(),
+          }),
+        });
+
+        const data = await res.json();
+
+        if (data.source === 'agent') {
+          setIsAgentLive(true);
+        }
+        if (data.shortCode) {
+          setShortCode(data.shortCode);
+        }
+
+        await new Promise((resolve) => setTimeout(resolve, 500));
+
+        const botReply: ChatMessage = {
+          id: 'bot_' + Date.now(),
+          sender: data.source === 'agent' ? 'agent' : 'bot',
+          text: data.reply || 'Jee bilkul, main aapki mazeed kia madad kar sakta hoon?',
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          source: data.source,
+          products: data.products,
+        };
+
+        setMessages((prev) => [...prev, botReply]);
+
+        if (!isOpen) {
+          setUnreadCount((c) => c + 1);
+        }
+      } catch (err) {
+        console.error('[ChatWidget] Send message error:', err);
+        const fallbackReply: ChatMessage = {
+          id: 'bot_' + Date.now(),
+          sender: 'bot',
+          text: 'Aapka message receive ho gaya hai. Mazeed fori rabtay ke liye aap WhatsApp button par click karke direct hum se rabta kar sakte hain.',
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          source: 'fallback',
+        };
+        setMessages((prev) => [...prev, fallbackReply]);
+      } finally {
+        setIsTyping(false);
+      }
+    },
+    [inputText, isTyping, getSessionId, isOpen]
+  );
+
+  // 📡 Global trigger listener to open chat with prefilled warehouse query
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const handleCustomOpenChat = (event: any) => {
+      setIsOpen(true);
+      setShowPromptBadge(false);
+      const queryItem = event.detail?.query;
+      if (queryItem) {
+        setTimeout(() => {
+          sendMessage(`Salam! Mujhe website par "${queryItem}" nahi mili. Please apne warehouse inventory se check kar ke batayein.`);
+        }, 300);
+      }
     };
 
-    setMessages((prev) => [...prev, userMsg]);
-    if (!overrideText) setInputText('');
-    setIsTyping(true);
-
-    try {
-      const res = await fetch('/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          message: textToSend,
-          sessionId: getSessionId(),
-        }),
-      });
-
-      const data = await res.json();
-
-      if (data.source === 'agent') {
-        setIsAgentLive(true);
-      }
-      if (data.shortCode) {
-        setShortCode(data.shortCode);
-      }
-
-      await new Promise((resolve) => setTimeout(resolve, 500));
-
-      const botReply: ChatMessage = {
-        id: 'bot_' + Date.now(),
-        sender: data.source === 'agent' ? 'agent' : 'bot',
-        text: data.reply || 'Jee bilkul, main aapki mazeed kia madad kar sakta hoon?',
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        source: data.source,
-        products: data.products,
-      };
-
-      setMessages((prev) => [...prev, botReply]);
-
-      if (!isOpen) {
-        setUnreadCount((c) => c + 1);
-      }
-    } catch (err) {
-      console.error('[ChatWidget] Send message error:', err);
-      const fallbackReply: ChatMessage = {
-        id: 'bot_' + Date.now(),
-        sender: 'bot',
-        text: 'Aapka message receive ho gaya hai. Mazeed fori rabtay ke liye aap WhatsApp button par click karke direct hum se rabta kar sakte hain.',
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        source: 'fallback',
-      };
-      setMessages((prev) => [...prev, fallbackReply]);
-    } finally {
-      setIsTyping(false);
-    }
-  };
+    window.addEventListener('pakodrive:open-chat', handleCustomOpenChat);
+    return () => {
+      window.removeEventListener('pakodrive:open-chat', handleCustomOpenChat);
+    };
+  }, [sendMessage]);
 
   const handleQuickAction = (queryText: string) => {
     sendMessage(queryText);

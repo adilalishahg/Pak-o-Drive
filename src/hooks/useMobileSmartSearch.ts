@@ -93,7 +93,7 @@ export function useMobileSmartSearch() {
   const getWhatsappInquiryUrl = useCallback(
     (customQuery?: string) => {
       const q = customQuery || query || 'product';
-      const text = `Assalam-o-Alaikum Pak-o-Drive! Main aapki website par "${q}" search kar raha tha magar ye item nahi mili. Kya yeh product available hai ya aap arrange karwa saktay hain?`;
+      const text = `Assalam-o-Alaikum Pak-o-Drive Support! Main website par "${q}" search kar raha tha jo listed nahi mili. Please apne central warehouse inventory se check kar ke batayein ke yeh item stock mein available hai?`;
       return `https://wa.me/${formattedWhatsapp}?text=${encodeURIComponent(text)}`;
     },
     [formattedWhatsapp, query]

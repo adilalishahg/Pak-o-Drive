@@ -33,6 +33,8 @@ export async function POST(request: Request) {
       isActive,
       bgTheme,
       ctaText,
+      placement,
+      targetCategorySlug,
     } = body;
 
     if (!title || !products || !Array.isArray(products) || products.length < 2) {
@@ -59,6 +61,8 @@ export async function POST(request: Request) {
       isActive: isActive ?? true,
       bgTheme: bgTheme || 'dark_slate',
       ctaText: ctaText || 'Claim Offer Now',
+      placement: placement || 'below_slider',
+      targetCategorySlug: targetCategorySlug || '',
     });
 
     return NextResponse.json({ success: true, data: newOffer }, { status: 201 });

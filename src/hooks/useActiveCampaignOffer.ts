@@ -18,6 +18,8 @@ export interface ActiveOfferData {
   isActive: boolean;
   bgTheme: 'dark_slate' | 'sunset_orange' | 'emerald_gold' | 'midnight_blue';
   ctaText?: string;
+  placement?: 'below_slider' | 'after_first_category' | 'after_specific_category' | 'middle_promotions' | 'before_why_us';
+  targetCategorySlug?: string;
 }
 
 export function useActiveCampaignOffer() {

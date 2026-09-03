@@ -32,7 +32,17 @@ const THEME_STYLES: Record<string, { bg: string; text: string; accent: string; b
   },
 };
 
-export function HomeCampaignOfferBanner() {
+export interface HomeCampaignOfferBannerProps {
+  placementFilter?: 'below_slider' | 'after_category' | 'middle_promotions' | 'before_why_us';
+  categorySlug?: string;
+  categoryIndex?: number;
+}
+
+export function HomeCampaignOfferBanner({
+  placementFilter,
+  categorySlug,
+  categoryIndex,
+}: HomeCampaignOfferBannerProps = {}) {
   const {
     offer,
     loading,
@@ -45,6 +55,34 @@ export function HomeCampaignOfferBanner() {
 
   if (loading || !offer || !offer.isActive || isExpired || !offer.products || offer.products.length < 2) {
     return null;
+  }
+
+  const offerPlacement = offer.placement || 'below_slider';
+
+  // Placement verification filter
+  if (placementFilter) {
+    if (placementFilter === 'below_slider' && offerPlacement !== 'below_slider') {
+      return null;
+    }
+    if (placementFilter === 'middle_promotions' && offerPlacement !== 'middle_promotions') {
+      return null;
+    }
+    if (placementFilter === 'before_why_us' && offerPlacement !== 'before_why_us') {
+      return null;
+    }
+    if (placementFilter === 'after_category') {
+      if (offerPlacement === 'after_first_category' && categoryIndex !== 0) {
+        return null;
+      }
+      if (offerPlacement === 'after_specific_category') {
+        if (!categorySlug || offer.targetCategorySlug?.toLowerCase() !== categorySlug.toLowerCase()) {
+          return null;
+        }
+      }
+      if (offerPlacement !== 'after_first_category' && offerPlacement !== 'after_specific_category') {
+        return null;
+      }
+    }
   }
 
   const theme = THEME_STYLES[offer.bgTheme] || THEME_STYLES.dark_slate;

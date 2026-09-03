@@ -6,6 +6,7 @@ import { CategorySection } from '@/hooks/useHomePage';
 import { ProductCardAuto } from '@/components/product/ProductCardAuto';
 import { CategoryIcon } from '@/components/common/ThemeIcon';
 import { SiteTheme } from '@/types/theme';
+import { HomeCampaignOfferBanner } from './HomeCampaignOfferBanner';
 
 export interface CategoryProductsBlockProps {
   sections: CategorySection[];
@@ -83,9 +84,9 @@ export function CategoryProductsBlock({
       <div className="d-flex flex-column gap-4 gap-md-5">
         {sections.map((sec, secIdx) => {
           return (
-            <section
-              key={sec.slug}
-              ref={(el) => {
+            <React.Fragment key={sec.slug}>
+              <section
+                ref={(el) => {
                 sectionRefs.current[sec.slug] = el;
               }}
               className="category-section-block"
@@ -190,6 +191,14 @@ export function CategoryProductsBlock({
                 </div>
               )}
             </section>
+
+            {/* Campaign Offer Placement Hook: After category */}
+            <HomeCampaignOfferBanner
+              placementFilter="after_category"
+              categorySlug={sec.slug}
+              categoryIndex={secIdx}
+            />
+          </React.Fragment>
           );
         })}
       </div>

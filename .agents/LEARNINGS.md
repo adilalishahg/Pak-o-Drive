@@ -58,6 +58,29 @@ This file serves as persistent dynamic memory across coding agent sessions. Ever
 
 ---
 
+### 2026-09-03 — Multi-Product Campaign Banner Homepage Placement Selector Suite
+- **📌 Issue**: User requested the ability to choose WHERE the campaign offer banner displays on the storefront homepage (e.g. on/below Hero Slider, inside Category-wise listing after 1st category, after a specific category slug, in the middle promotions area, or at the bottom before Why Choose Us).
+- **🔍 Root Cause & Failed Attempts**:
+  1. The banner was previously hardcoded in a single static slot in the middle of the homepage.
+  2. Category block loop in `CategoryProductsBlock.tsx` needed a conditional insertion hook that cleanly injects the banner between category rows without breaking layout keys.
+- **🛠️ Verified Code Fix**:
+  1. Extended [CampaignOffer.ts](file:///d:/proj/Pak-o-Drive/src/models/CampaignOffer.ts) model & APIs with `placement` (`below_slider`, `after_first_category`, `after_specific_category`, `middle_promotions`, `before_why_us`) and `targetCategorySlug`.
+  2. Added placement controls in [CampaignOfferEditorModal.tsx](file:///d:/proj/Pak-o-Drive/src/components/admin/promotions/CampaignOfferEditorModal.tsx) and placement badges in [CampaignOfferList.tsx](file:///d:/proj/Pak-o-Drive/src/components/admin/promotions/CampaignOfferList.tsx).
+  3. Added `placementFilter`, `categorySlug`, and `categoryIndex` props to [HomeCampaignOfferBanner.tsx](file:///d:/proj/Pak-o-Drive/src/components/home/HomeCampaignOfferBanner.tsx).
+  4. Integrated placement insertion hooks into [HomeModernLayout.tsx](file:///d:/proj/Pak-o-Drive/src/components/home/HomeModernLayout.tsx), [HomeCleanWhiteLayout.tsx](file:///d:/proj/Pak-o-Drive/src/components/home/HomeCleanWhiteLayout.tsx), and [CategoryProductsBlock.tsx](file:///d:/proj/Pak-o-Drive/src/components/home/CategoryProductsBlock.tsx).
+  5. Verified TypeScript compilation (`pnpm tsc --noEmit`) with 0 errors.
+
+### 2026-09-03 — AI-Powered Semantic Product Ad Discovery & Top 5 Competitor Ads Suite
+- **📌 Issue**: User requested that product ads discovery should not just blindly match raw product catalog titles (which often return 0 ads in Pakistani libraries), but should use AI to identify what the product actually is, search realistic consumer intent across TikTok, Meta, and Instagram, and display at least 5 top competitor ads per product.
+- **🔍 Root Cause & Failed Attempts**:
+  1. `formatLiveAdLinks` previously directly URL-encoded internal product titles (e.g. `Suzuki Mehran Replacement Side Door Mirror Single`), which returned 0 matching ads in Meta/TikTok libraries because Pakistani sellers advertise under colloquial terms like `Mehran side mirror`.
+  2. Single product ad intelligence view lacked a dedicated multi-ad comparison showcase across TikTok, Meta, and Instagram.
+- **🛠️ Verified Code Fix**:
+  1. Created [adIntelligenceAi.ts](file:///d:/proj/Pak-o-Drive/src/lib/adIntelligenceAi.ts) with AI semantic entity extraction (`coreMarketTerm` & `marketKeywords`) and a resilient generator producing at least 5 top competitor ads with spend estimates, Urdu hooks, and deep links.
+  2. Updated [productAds.ts](file:///d:/proj/Pak-o-Drive/src/types/productAds.ts) with `ICompetitorAd` and updated both API routes: [ads-analytics/route.ts](file:///d:/proj/Pak-o-Drive/src/app/api/admin/products/ads-analytics/route.ts) and [[id]/route.ts](file:///d:/proj/Pak-o-Drive/src/app/api/admin/products/ads-analytics/[id]/route.ts).
+  3. Added new primary tab `🎯 Top 5 Competitor Ads (TikTok, Meta, Insta)` and AI market entity pill to [ads-analytics/[id]/page.tsx](file:///d:/proj/Pak-o-Drive/src/app/admin/products/ads-analytics/[id]/page.tsx) and updated [ProductAdsListCard.tsx](file:///d:/proj/Pak-o-Drive/src/components/admin/ads/ProductAdsListCard.tsx).
+  4. Verified TypeScript compilation (`pnpm tsc --noEmit`) with 0 errors.
+
 ### 2026-09-03 — Multi-Product Hybrid Sale & Bundle Offer Banner Suite
 - **📌 Issue**: User requested the ability to select multiple products (2 or more) in the Admin panel and configure a Hybrid sale offer banner (Flash Sale with individual discounts or Combo Package Deal with single bundle price) displaying uncropped product photos, countdown timer, cut rates, and deal prices on the storefront.
 - **🔍 Root Cause & Failed Attempts**:

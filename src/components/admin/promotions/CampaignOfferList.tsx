@@ -90,12 +90,28 @@ export function CampaignOfferList({ hook }: CampaignOfferListProps) {
                         <h6 className="fw-bold text-dark mb-0 leading-normal py-0.5" style={{ fontSize: '0.92rem' }}>
                           {offer.title}
                         </h6>
-                        {offer.expiryDate && (
-                          <span className={`small ${isExpired ? 'text-danger fw-bold' : 'text-muted'}`} style={{ fontSize: '0.72rem' }}>
-                            <i className="fas fa-clock me-1" />
-                            {isExpired ? 'Expired' : `Ends: ${new Date(offer.expiryDate).toLocaleDateString()}`}
+                        <div className="d-flex align-items-center gap-1 flex-wrap mt-0.5">
+                          <span className="badge bg-light text-secondary border rounded-pill px-2 py-0.5" style={{ fontSize: '0.68rem' }}>
+                            <i className="fas fa-map-marker-alt me-1 text-primary" />
+                            {offer.placement === 'below_slider'
+                              ? 'Top (Below Slider)'
+                              : offer.placement === 'after_first_category'
+                              ? 'After 1st Category'
+                              : offer.placement === 'after_specific_category'
+                              ? `After "${offer.targetCategorySlug || 'Category'}"`
+                              : offer.placement === 'middle_promotions'
+                              ? 'Middle Section'
+                              : offer.placement === 'before_why_us'
+                              ? 'Bottom (Before Why Us)'
+                              : 'Top (Below Slider)'}
                           </span>
-                        )}
+                          {offer.expiryDate && (
+                            <span className={`small ${isExpired ? 'text-danger fw-bold' : 'text-muted'}`} style={{ fontSize: '0.72rem' }}>
+                              <i className="fas fa-clock me-1" />
+                              {isExpired ? 'Expired' : `Ends: ${new Date(offer.expiryDate).toLocaleDateString()}`}
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </td>
 

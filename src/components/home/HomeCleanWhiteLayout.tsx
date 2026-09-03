@@ -76,6 +76,9 @@ export const HomeCleanWhiteLayout: React.FC<HomeCleanWhiteLayoutProps> = ({
         </section>
       )}
 
+      {/* ── Placement Hook: Below Hero Slider ─────────────── */}
+      <HomeCampaignOfferBanner placementFilter="below_slider" />
+
       {/* ── Hero Grid Banners (Shown if no custom hero slides) ── */}
       {!hasCustomSlides && (heroBig.enabled || heroSmall.enabled) && (
         <section className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
@@ -272,8 +275,11 @@ export const HomeCleanWhiteLayout: React.FC<HomeCleanWhiteLayoutProps> = ({
         </section>
       )}
 
-      {/* ── Multi-Product Hybrid Campaign / Bundle Banner ─ */}
-      <HomeCampaignOfferBanner />
+      {/* ── Multi-Product Hybrid Campaign (Middle Promotions Placement) ─ */}
+      <HomeCampaignOfferBanner placementFilter="middle_promotions" />
+
+      {/* ── Placement Hook: Before Why Choose Us / Value Props ── */}
+      <HomeCampaignOfferBanner placementFilter="before_why_us" />
 
       {/* ── Value Propositions ── */}
       {valProps.enabled && (

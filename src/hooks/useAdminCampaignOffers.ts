@@ -15,6 +15,8 @@ export interface CampaignOfferFormState {
   isActive: boolean;
   bgTheme: 'dark_slate' | 'sunset_orange' | 'emerald_gold' | 'midnight_blue';
   ctaText: string;
+  placement: 'below_slider' | 'after_first_category' | 'after_specific_category' | 'middle_promotions' | 'before_why_us';
+  targetCategorySlug: string;
 }
 
 const DEFAULT_FORM: CampaignOfferFormState = {
@@ -28,6 +30,8 @@ const DEFAULT_FORM: CampaignOfferFormState = {
   isActive: true,
   bgTheme: 'dark_slate',
   ctaText: 'Claim Offer Now',
+  placement: 'below_slider',
+  targetCategorySlug: '',
 };
 
 export function useAdminCampaignOffers() {
@@ -162,6 +166,8 @@ export function useAdminCampaignOffers() {
       isActive: offer.isActive ?? true,
       bgTheme: offer.bgTheme || 'dark_slate',
       ctaText: offer.ctaText || 'Claim Offer Now',
+      placement: offer.placement || 'below_slider',
+      targetCategorySlug: offer.targetCategorySlug || '',
     });
     setIsModalOpen(true);
   }, []);

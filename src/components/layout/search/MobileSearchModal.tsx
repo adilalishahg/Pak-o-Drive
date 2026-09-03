@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import Image from 'next/image';
 import { useMobileSmartSearch, SmartSearchResultProduct } from '../../../hooks/useMobileSmartSearch';
 
@@ -36,13 +37,18 @@ export function MobileSearchModal({ searchState }: MobileSearchModalProps) {
   } = searchState;
 
   const inputRef = useRef<HTMLInputElement>(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Auto-focus when modal opens
   useEffect(() => {
     if (isOpen) {
       const timer = setTimeout(() => {
         inputRef.current?.focus();
-      }, 100);
+      }, 120);
       return () => clearTimeout(timer);
     }
   }, [isOpen]);
@@ -59,223 +65,500 @@ export function MobileSearchModal({ searchState }: MobileSearchModalProps) {
     };
   }, [isOpen]);
 
-  if (!isOpen) return null;
+  if (!isOpen || !mounted) return null;
 
-  return (
+  // Handle opening live chat widget with warehouse inquiry
+  const handleOpenLiveAgentChat = () => {
+    setIsOpen(false);
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(
+        new CustomEvent('pakodrive:open-chat', {
+          detail: { query: query.trim() },
+        })
+      );
+    }
+  };
+
+  const modalContent = (
     <div
-      className="position-fixed top-0 start-0 w-100 h-100 d-flex flex-column z-3"
       style={{
-        zIndex: 2050,
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        width: '100vw',
+        height: '100dvh',
+        zIndex: 99999999,
         background: '#ffffff',
-        animation: 'fadeInDown 0.2s ease-out',
+        display: 'flex',
+        flexDirection: 'column',
+        overflow: 'hidden',
+        fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
       }}
     >
-      {/* ── 1. Top Search Header Bar ──────────────────────────────── */}
-      <div
-        className="p-2.5 px-3 border-bottom d-flex align-items-center gap-2 bg-white"
-        style={{ boxShadow: '0 2px 10px rgba(0,0,0,0.04)' }}
+      {/* ── 1. Top Sticky Search Header Bar (Always 100% visible above everything) ── */}
+      <header
+        style={{
+          position: 'sticky',
+          top: 0,
+          left: 0,
+          right: 0,
+          zIndex: 10,
+          background: '#ffffff',
+          borderBottom: '2px solid #e2e8f0',
+          boxShadow: '0 4px 20px rgba(0,0,0,0.06)',
+          padding: '12px 14px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '8px',
+        }}
       >
-        {/* Back Button */}
-        <button
-          type="button"
-          onClick={() => setIsOpen(false)}
-          className="btn btn-sm btn-light rounded-circle border-0 d-flex align-items-center justify-content-center p-2"
-          style={{ width: '38px', height: '38px', color: '#475569' }}
-          aria-label="Back"
-        >
-          <i className="fas fa-arrow-left fs-6" />
-        </button>
-
-        {/* Search Input Form */}
-        <form onSubmit={handleSubmitSearch} className="flex-grow-1 position-relative">
-          <div
-            className="d-flex align-items-center rounded-pill bg-light border px-3 py-1.5"
-            style={{ borderColor: '#e2e8f0' }}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          {/* Back Button */}
+          <button
+            type="button"
+            onClick={() => setIsOpen(false)}
+            aria-label="Back to store"
+            style={{
+              width: '42px',
+              height: '42px',
+              borderRadius: '50%',
+              border: '1px solid #e2e8f0',
+              background: '#f8fafc',
+              color: '#1e293b',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '18px',
+              cursor: 'pointer',
+              flexShrink: 0,
+            }}
           >
-            <i className="fas fa-search text-muted me-2" style={{ fontSize: '0.85rem' }} />
+            <i className="fas fa-arrow-left" />
+          </button>
+
+          {/* High-Contrast Search Input Container */}
+          <form
+            onSubmit={handleSubmitSearch}
+            style={{
+              flex: 1,
+              position: 'relative',
+              display: 'flex',
+              alignItems: 'center',
+              background: '#f1f5f9',
+              border: '2px solid #ea580c',
+              borderRadius: '9999px',
+              padding: '0 14px',
+              height: '46px',
+            }}
+          >
+            <i
+              className="fas fa-search"
+              style={{ color: '#ea580c', fontSize: '16px', marginRight: '10px', flexShrink: 0 }}
+            />
             <input
               ref={inputRef}
               type="search"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search products, parts, gadgets..."
-              className="form-control border-0 bg-transparent p-0 shadow-none"
-              style={{ fontSize: '0.92rem', color: '#1e293b' }}
+              placeholder="Auto parts, accessories ya gadget likhein..."
+              style={{
+                flex: 1,
+                border: 'none',
+                background: 'transparent',
+                outline: 'none',
+                fontSize: '16px', // 16px prevents mobile iOS auto-zoom
+                color: '#0f172a',
+                fontWeight: 600,
+                width: '100%',
+              }}
             />
-            {/* Loading Spinner or Clear Button */}
+
+            {/* Spinner or Clear Button */}
             {isLoading ? (
-              <div className="spinner-border spinner-border-sm text-primary ms-2" role="status" style={{ width: '14px', height: '14px' }}>
+              <div
+                className="spinner-border spinner-border-sm text-primary"
+                role="status"
+                style={{ width: '16px', height: '16px', marginLeft: '8px', flexShrink: 0 }}
+              >
                 <span className="visually-hidden">Loading...</span>
               </div>
             ) : query ? (
               <button
                 type="button"
                 onClick={handleClear}
-                className="btn btn-link p-0 text-muted ms-2 text-decoration-none"
-                style={{ fontSize: '0.85rem' }}
                 aria-label="Clear text"
+                style={{
+                  border: 'none',
+                  background: 'none',
+                  color: '#64748b',
+                  fontSize: '18px',
+                  padding: '4px',
+                  cursor: 'pointer',
+                  marginLeft: '6px',
+                  flexShrink: 0,
+                }}
               >
                 <i className="fas fa-times-circle" />
               </button>
             ) : null}
-          </div>
-        </form>
+          </form>
 
-        {/* Submit Search Button */}
-        <button
-          type="button"
-          onClick={() => handleSubmitSearch()}
-          disabled={!query.trim()}
-          className="btn btn-sm text-white rounded-pill px-3 fw-bold"
-          style={{
-            background: query.trim() ? 'linear-gradient(135deg, #ea580c, #c2410c)' : '#94a3b8',
-            fontSize: '0.82rem',
-            height: '38px',
-          }}
-        >
-          Search
-        </button>
-      </div>
+          {/* Submit Search Button */}
+          {query.trim() && (
+            <button
+              type="button"
+              onClick={() => handleSubmitSearch()}
+              style={{
+                height: '42px',
+                padding: '0 14px',
+                borderRadius: '9999px',
+                border: 'none',
+                background: '#ea580c',
+                color: '#ffffff',
+                fontWeight: 700,
+                fontSize: '14px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                cursor: 'pointer',
+                flexShrink: 0,
+              }}
+            >
+              <span>Search</span>
+            </button>
+          )}
+        </div>
 
-      {/* ── 2. Content Body (Suggestions or Zero-Result Recovery) ── */}
-      <div className="flex-grow-1 overflow-y-auto p-3 bg-light">
-        {/* State A: Empty Query (Popular Searches) */}
-        {!query.trim() && (
-          <div className="container-fluid px-0" style={{ maxWidth: '600px' }}>
-            <div className="d-flex align-items-center justify-content-between mb-2.5">
-              <span className="text-muted small fw-bold text-uppercase" style={{ fontSize: '0.72rem', letterSpacing: '0.5px' }}>
-                🔥 Popular Searches in Pakistan
+        {/* Typed Status Indicator so user immediately knows what they typed */}
+        {query.trim() && (
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: '2px 6px',
+              fontSize: '12px',
+              color: '#475569',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#22c55e' }} />
+              <span>
+                Searching for: <strong style={{ color: '#0f172a' }}>&ldquo;{query}&rdquo;</strong>
               </span>
             </div>
-            <div className="d-flex flex-wrap gap-2 mb-4">
+            {suggestions.length > 0 && (
+              <span style={{ color: '#ea580c', fontWeight: 600 }}>
+                {suggestions.length} items found
+              </span>
+            )}
+          </div>
+        )}
+      </header>
+
+      {/* ── 2. Scrollable Body Content ────────────────────────────── */}
+      <div
+        style={{
+          flex: 1,
+          overflowY: 'auto',
+          WebkitOverflowScrolling: 'touch',
+          padding: '16px',
+          background: '#f8fafc',
+        }}
+      >
+        {/* State A: EMPTY QUERY — Show Popular Suggestions & Warehouse Help Banner */}
+        {!query.trim() && (
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '12px' }}>
+              <i className="fas fa-fire" style={{ color: '#ea580c', fontSize: '14px' }} />
+              <span style={{ fontSize: '13px', fontWeight: 700, color: '#334155', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                Popular Searches in Pakistan
+              </span>
+            </div>
+
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '20px' }}>
               {POPULAR_SUGGESTIONS.map((item, idx) => (
                 <button
                   key={idx}
                   type="button"
                   onClick={() => setQuery(item)}
-                  className="btn btn-sm btn-white bg-white border rounded-pill px-3 py-1.5 text-dark fw-semibold shadow-xs d-flex align-items-center gap-1.5"
-                  style={{ fontSize: '0.82rem' }}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    padding: '8px 16px',
+                    borderRadius: '9999px',
+                    background: '#ffffff',
+                    border: '1px solid #e2e8f0',
+                    color: '#334155',
+                    fontSize: '13px',
+                    fontWeight: 600,
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+                    cursor: 'pointer',
+                  }}
                 >
-                  <i className="fas fa-search text-muted" style={{ fontSize: '0.75rem' }} />
+                  <i className="fas fa-search" style={{ color: '#94a3b8', fontSize: '11px' }} />
                   <span>{item}</span>
                 </button>
               ))}
             </div>
 
-            <div className="card border-0 rounded-4 p-3 bg-white shadow-xs">
-              <div className="d-flex align-items-center gap-2.5">
+            {/* Warehouse Stock Assistance Banner */}
+            <div
+              style={{
+                background: '#ffffff',
+                border: '1px solid #e2e8f0',
+                borderRadius: '16px',
+                padding: '16px',
+                boxShadow: '0 2px 10px rgba(0,0,0,0.03)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '12px',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <div
-                  className="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
-                  style={{ width: '40px', height: '40px', background: 'rgba(37, 211, 102, 0.12)', color: '#25D366' }}
+                  style={{
+                    width: '42px',
+                    height: '42px',
+                    borderRadius: '12px',
+                    background: 'rgba(37, 99, 235, 0.1)',
+                    color: '#2563eb',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '20px',
+                    flexShrink: 0,
+                  }}
                 >
-                  <i className="fab fa-whatsapp fs-5" />
+                  <i className="fas fa-warehouse" />
                 </div>
                 <div>
-                  <h6 className="fw-bold text-dark mb-0 leading-normal py-0.5">Need a specific automotive part?</h6>
-                  <p className="text-muted small mb-0" style={{ fontSize: '0.78rem' }}>
-                    Type above to search or chat directly with our support team on WhatsApp!
+                  <h6 style={{ margin: 0, fontSize: '14px', fontWeight: 700, color: '#0f172a' }}>
+                    15,000+ Items in Central Warehouse
+                  </h6>
+                  <p style={{ margin: 0, fontSize: '12px', color: '#64748b' }}>
+                    Rozana hazaron naye parts aur gadgets update hotay hain.
                   </p>
                 </div>
               </div>
+
+              <p style={{ margin: 0, fontSize: '13px', color: '#334155', lineHeight: 1.5 }}>
+                Agar aapko specific auto part ya accessory chahiye, aap direct hamaray Live Support Agent se chat mein pooch saktay hain!
+              </p>
+
+              <button
+                type="button"
+                onClick={handleOpenLiveAgentChat}
+                style={{
+                  width: '100%',
+                  padding: '10px 16px',
+                  borderRadius: '9999px',
+                  border: 'none',
+                  background: 'linear-gradient(135deg, #2563eb, #1d4ed8)',
+                  color: '#ffffff',
+                  fontSize: '13px',
+                  fontWeight: 700,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  cursor: 'pointer',
+                  boxShadow: '0 4px 12px rgba(37, 99, 235, 0.25)',
+                }}
+              >
+                <i className="fas fa-comments" />
+                <span>Live Support Agent Se Poochhein</span>
+              </button>
             </div>
           </div>
         )}
 
-        {/* State B: Has Live Results */}
+        {/* State B: MATCHING SUGGESTIONS FOUND */}
         {query.trim() && suggestions.length > 0 && (
-          <div className="container-fluid px-0" style={{ maxWidth: '650px' }}>
-            {/* Category Quick Jump Chips */}
+          <div>
+            {/* Category Tags */}
             {categories.length > 0 && (
-              <div className="d-flex align-items-center gap-1.5 flex-wrap mb-3">
-                <span className="text-muted small me-1" style={{ fontSize: '0.75rem' }}>Categories:</span>
+              <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '6px', marginBottom: '12px' }}>
+                <span style={{ fontSize: '12px', color: '#64748b', marginRight: '4px' }}>Categories:</span>
                 {categories.map((cat, idx) => (
                   <button
                     key={idx}
                     type="button"
                     onClick={() => handleSelectCategory(cat)}
-                    className="btn btn-xs btn-white bg-white border rounded-pill px-2.5 py-1 text-dark small fw-semibold shadow-xs"
-                    style={{ fontSize: '0.72rem' }}
+                    style={{
+                      padding: '5px 12px',
+                      borderRadius: '9999px',
+                      background: '#ffffff',
+                      border: '1px solid #e2e8f0',
+                      color: '#0f172a',
+                      fontSize: '12px',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                    }}
                   >
-                    <i className="fas fa-tag me-1 text-primary" />
-                    {cat}
+                    <i className="fas fa-tag" style={{ color: '#ea580c', fontSize: '10px' }} />
+                    <span>{cat}</span>
                   </button>
                 ))}
               </div>
             )}
 
-            {/* AI Smart Suggestion Badge if active */}
+            {/* AI Smart Intent Badge */}
             {isAiAssisted && (
-              <div className="d-flex align-items-center gap-1.5 mb-2.5 px-2 py-1 bg-primary bg-opacity-10 text-primary rounded-pill small" style={{ width: 'fit-content', fontSize: '0.7rem' }}>
+              <div
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '4px 10px',
+                  borderRadius: '9999px',
+                  background: 'rgba(37, 99, 235, 0.1)',
+                  color: '#2563eb',
+                  fontSize: '11px',
+                  fontWeight: 700,
+                  marginBottom: '12px',
+                }}
+              >
                 <i className="fas fa-magic" />
-                <span className="fw-bold">AI Smart Intent Matching Active</span>
+                <span>AI Smart Intent Active</span>
               </div>
             )}
 
             {/* Products List */}
-            <div className="card border-0 rounded-4 shadow-sm overflow-hidden bg-white mb-3">
-              <div className="p-2 border-bottom bg-light d-flex align-items-center justify-content-between px-3">
-                <span className="small text-muted fw-bold" style={{ fontSize: '0.72rem' }}>
+            <div
+              style={{
+                background: '#ffffff',
+                borderRadius: '16px',
+                border: '1px solid #e2e8f0',
+                overflow: 'hidden',
+                boxShadow: '0 2px 10px rgba(0,0,0,0.03)',
+                marginBottom: '16px',
+              }}
+            >
+              <div
+                style={{
+                  padding: '10px 14px',
+                  background: '#f8fafc',
+                  borderBottom: '1px solid #e2e8f0',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                }}
+              >
+                <span style={{ fontSize: '12px', fontWeight: 700, color: '#64748b' }}>
                   MATCHING PRODUCTS ({suggestions.length})
                 </span>
-                <span className="small text-muted" style={{ fontSize: '0.7rem' }}>
-                  Tap to view
-                </span>
+                <span style={{ fontSize: '11px', color: '#94a3b8' }}>Tap to view</span>
               </div>
 
-              <div className="list-group list-group-flush">
-                {suggestions.map((product: SmartSearchResultProduct) => (
-                  <button
-                    key={product.id}
-                    type="button"
-                    onClick={() => handleSelectProduct(product.slug || product.id)}
-                    className="list-group-item list-group-item-action p-2.5 px-3 d-flex align-items-center gap-3 border-0 border-bottom"
+              {suggestions.map((product: SmartSearchResultProduct) => (
+                <button
+                  key={product.id}
+                  type="button"
+                  onClick={() => handleSelectProduct(product.slug || product.id)}
+                  style={{
+                    width: '100%',
+                    padding: '12px 14px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '12px',
+                    background: '#ffffff',
+                    border: 'none',
+                    borderBottom: '1px solid #f1f5f9',
+                    textAlign: 'left',
+                    cursor: 'pointer',
+                  }}
+                >
+                  <div
+                    style={{
+                      width: '56px',
+                      height: '56px',
+                      borderRadius: '10px',
+                      overflow: 'hidden',
+                      background: '#f1f5f9',
+                      position: 'relative',
+                      flexShrink: 0,
+                    }}
                   >
-                    {/* Uncropped Thumbnail with Blur (Rule #3) */}
-                    <div
-                      className="position-relative rounded-3 overflow-hidden d-flex align-items-center justify-content-center bg-light border flex-shrink-0"
-                      style={{ width: '56px', height: '56px' }}
+                    <Image
+                      src={product.image || '/img/product-placeholder.png'}
+                      alt={product.name}
+                      fill
+                      sizes="56px"
+                      style={{ objectFit: 'contain' }}
+                    />
+                  </div>
+
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <span
+                      style={{
+                        display: 'inline-block',
+                        padding: '2px 8px',
+                        borderRadius: '9999px',
+                        background: '#f1f5f9',
+                        color: '#64748b',
+                        fontSize: '11px',
+                        fontWeight: 600,
+                        marginBottom: '2px',
+                      }}
                     >
-                      <Image
-                        src={product.image || '/img/product-placeholder.png'}
-                        alt={product.name}
-                        fill
-                        sizes="56px"
-                        style={{ objectFit: 'cover' }}
-                      />
-                    </div>
-
-                    {/* Info */}
-                    <div className="min-w-0 flex-grow-1 text-start">
-                      <span className="badge bg-light text-muted border rounded-pill px-2 py-0.5 mb-0.5" style={{ fontSize: '0.65rem' }}>
-                        {product.category}
+                      {product.category}
+                    </span>
+                    <h6
+                      style={{
+                        margin: '2px 0',
+                        fontSize: '14px',
+                        fontWeight: 700,
+                        color: '#0f172a',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      {product.name}
+                    </h6>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ fontSize: '14px', fontWeight: 800, color: '#c2410c' }}>
+                        Rs. {product.price.toLocaleString()}
                       </span>
-                      <h6 className="fw-bold text-dark mb-0.5 text-truncate leading-normal py-0.5" style={{ fontSize: '0.88rem' }}>
-                        {product.name}
-                      </h6>
-                      <div className="d-flex align-items-center gap-1.5">
-                        <span className="fw-bold" style={{ color: '#c2410c', fontSize: '0.85rem' }}>
-                          Rs. {product.price.toLocaleString()}
+                      {product.originalPrice && product.originalPrice > product.price && (
+                        <span style={{ fontSize: '12px', color: '#94a3b8', textDecoration: 'line-through' }}>
+                          Rs. {product.originalPrice.toLocaleString()}
                         </span>
-                        {product.originalPrice && product.originalPrice > product.price && (
-                          <span className="text-muted text-decoration-line-through small" style={{ fontSize: '0.75rem' }}>
-                            Rs. {product.originalPrice.toLocaleString()}
-                          </span>
-                        )}
-                      </div>
+                      )}
                     </div>
+                  </div>
 
-                    <i className="fas fa-chevron-right text-muted small ms-auto" />
-                  </button>
-                ))}
-              </div>
+                  <i className="fas fa-chevron-right" style={{ color: '#cbd5e1', fontSize: '12px' }} />
+                </button>
+              ))}
             </div>
 
-            {/* View All In Shop Button */}
+            {/* View all in shop */}
             <button
               type="button"
               onClick={() => handleSubmitSearch()}
-              className="btn btn-outline-dark w-100 rounded-pill py-2.5 fw-bold d-flex align-items-center justify-content-center gap-2 shadow-xs"
-              style={{ fontSize: '0.85rem' }}
+              style={{
+                width: '100%',
+                padding: '12px',
+                borderRadius: '9999px',
+                border: '2px solid #0f172a',
+                background: '#ffffff',
+                color: '#0f172a',
+                fontSize: '14px',
+                fontWeight: 700,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+                cursor: 'pointer',
+              }}
             >
               <span>See all results for &ldquo;{query}&rdquo;</span>
               <i className="fas fa-arrow-right" />
@@ -283,61 +566,195 @@ export function MobileSearchModal({ searchState }: MobileSearchModalProps) {
           </div>
         )}
 
-        {/* State C: ZERO RESULTS FOUND (Unfulfilled Lead & WhatsApp Inquire Recovery!) */}
+        {/* State C: ZERO RESULTS FOUND — Central Warehouse Check & Live Chat Trigger */}
         {query.trim() && !isLoading && hasSearched && suggestions.length === 0 && (
-          <div className="container-fluid px-0 text-center py-4" style={{ maxWidth: '520px' }}>
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              textAlign: 'center',
+              padding: '24px 12px',
+              maxWidth: '480px',
+              margin: '0 auto',
+            }}
+          >
+            {/* Warehouse Badge & Icon */}
             <div
-              className="rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3"
               style={{
-                width: '68px',
-                height: '68px',
-                background: 'rgba(234, 88, 12, 0.1)',
-                color: '#ea580c',
+                width: '72px',
+                height: '72px',
+                borderRadius: '50%',
+                background: 'rgba(37, 99, 235, 0.1)',
+                color: '#2563eb',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '30px',
+                marginBottom: '14px',
+                boxShadow: '0 4px 15px rgba(37, 99, 235, 0.15)',
               }}
             >
-              <i className="fas fa-search-minus fs-2" />
+              <i className="fas fa-warehouse" />
             </div>
 
-            <h5 className="fw-bold text-dark mb-1 leading-normal py-0.5">
-              &ldquo;{query}&rdquo; Website Par Listed Nahi Hai
-            </h5>
+            <span
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '4px 12px',
+                borderRadius: '9999px',
+                background: '#f1f5f9',
+                border: '1px solid #cbd5e1',
+                color: '#334155',
+                fontSize: '11px',
+                fontWeight: 700,
+                letterSpacing: '0.5px',
+                textTransform: 'uppercase',
+                marginBottom: '8px',
+              }}
+            >
+              🏢 Central Warehouse Inventory Check
+            </span>
 
-            <p className="text-muted small mb-3 leading-normal py-0.5" style={{ fontSize: '0.84rem' }}>
-              Hamari website par rozana naye auto parts aur gadgets update hotay hain.
-              Aap abhi <b>WhatsApp par hamaray agent</b> se pooch saktay hain — hum direct warehouse ya market se yeh product arrange karwa dein ge!
+            {/* Product Title */}
+            <h4
+              style={{
+                fontSize: '19px',
+                fontWeight: 800,
+                color: '#0f172a',
+                marginBottom: '10px',
+                lineHeight: 1.3,
+              }}
+            >
+              &ldquo;{query}&rdquo; Website Par Abhi Listed Nahi Hai
+            </h4>
+
+            {/* Warehouse-Focused Explanation (Rule: No 'market se arrange', focus on Central Warehouse) */}
+            <p
+              style={{
+                fontSize: '13.5px',
+                color: '#475569',
+                lineHeight: 1.6,
+                marginBottom: '20px',
+              }}
+            >
+              Hamare main <b>Central Warehouse</b> mein 15,000+ unlisted auto parts, accessories aur gadgets mojood hain jo rozana system mein add hotay hain.
+              <br />
+              <br />
+              Aap abhi hamaray <b>Live Support Agent</b> se rabta karein — agent 2 minute mein warehouse system se stock check kar ke aapko foran bata dein ge!
             </p>
 
-            {/* 1-Click WhatsApp Instant Inquire Button */}
+            {/* Action 1: Open Live Agent Chat Widget Directly */}
+            <button
+              type="button"
+              onClick={handleOpenLiveAgentChat}
+              style={{
+                width: '100%',
+                padding: '14px 20px',
+                borderRadius: '9999px',
+                border: 'none',
+                background: 'linear-gradient(135deg, #2563eb, #1d4ed8)',
+                color: '#ffffff',
+                fontSize: '15px',
+                fontWeight: 700,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '10px',
+                cursor: 'pointer',
+                boxShadow: '0 6px 20px rgba(37, 99, 235, 0.3)',
+                marginBottom: '10px',
+              }}
+            >
+              <i className="fas fa-comments" style={{ fontSize: '18px' }} />
+              <span>Live Agent Se Chat Mein Poochhein</span>
+            </button>
+
+            {/* Action 2: WhatsApp Live Agent Option */}
             <a
               href={getWhatsappInquiryUrl(query)}
               target="_blank"
               rel="noopener noreferrer"
-              className="btn btn-success rounded-pill py-2.5 px-4 w-100 d-flex align-items-center justify-content-center gap-2 shadow fw-bold text-decoration-none mb-3"
               style={{
-                background: 'linear-gradient(135deg, #25D366, #128C7E)',
+                width: '100%',
+                padding: '12px 20px',
+                borderRadius: '9999px',
                 border: 'none',
-                fontSize: '0.92rem',
+                background: 'linear-gradient(135deg, #25D366, #128C7E)',
+                color: '#ffffff',
+                fontSize: '14px',
+                fontWeight: 700,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+                textDecoration: 'none',
+                boxShadow: '0 4px 14px rgba(37, 211, 102, 0.25)',
+                marginBottom: '20px',
               }}
             >
-              <i className="fab fa-whatsapp fs-5" />
-              <span>WhatsApp Par Ye Item Mangwayein</span>
+              <i className="fab fa-whatsapp" style={{ fontSize: '18px' }} />
+              <span>WhatsApp Par Warehouse Stock Check Karwayein</span>
             </a>
 
-            <div className="p-3 bg-white rounded-4 border shadow-xs text-start">
-              <div className="d-flex align-items-center gap-2 mb-2">
-                <i className="fas fa-fire text-danger" />
-                <span className="small fw-bold text-dark">Try searching popular items instead:</span>
+            {/* Trust Badges Strip */}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '12px',
+                fontSize: '11px',
+                color: '#64748b',
+                fontWeight: 600,
+                flexWrap: 'wrap',
+                marginBottom: '20px',
+              }}
+            >
+              <span>⚡ 2-Minute Reply</span>
+              <span>•</span>
+              <span>📦 Central Warehouse</span>
+              <span>•</span>
+              <span>🇵🇰 Nationwide COD</span>
+            </div>
+
+            {/* Popular items fallback */}
+            <div
+              style={{
+                width: '100%',
+                background: '#ffffff',
+                border: '1px solid #e2e8f0',
+                borderRadius: '16px',
+                padding: '14px',
+                textAlign: 'left',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '10px' }}>
+                <i className="fas fa-fire" style={{ color: '#ea580c', fontSize: '12px' }} />
+                <span style={{ fontSize: '12px', fontWeight: 700, color: '#334155' }}>
+                  Popular Searches:
+                </span>
               </div>
-              <div className="d-flex flex-wrap gap-1.5">
-                {POPULAR_SUGGESTIONS.slice(0, 4).map((pop, idx) => (
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                {POPULAR_SUGGESTIONS.slice(0, 4).map((item, idx) => (
                   <button
                     key={idx}
                     type="button"
-                    onClick={() => setQuery(pop)}
-                    className="btn btn-xs btn-light rounded-pill px-2.5 py-1 text-muted small"
-                    style={{ fontSize: '0.72rem' }}
+                    onClick={() => setQuery(item)}
+                    style={{
+                      padding: '6px 12px',
+                      borderRadius: '9999px',
+                      background: '#f1f5f9',
+                      border: '1px solid #e2e8f0',
+                      color: '#334155',
+                      fontSize: '12px',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                    }}
                   >
-                    {pop}
+                    {item}
                   </button>
                 ))}
               </div>
@@ -347,4 +764,6 @@ export function MobileSearchModal({ searchState }: MobileSearchModalProps) {
       </div>
     </div>
   );
+
+  return createPortal(modalContent, document.body);
 }
