@@ -10,6 +10,7 @@ import {
 } from '@/lib/productSeo';
 import { ProductBreadcrumb } from '@/components/product/ProductBreadcrumb';
 import { ProductDetailInteractive } from '@/components/product/ProductDetailInteractive';
+import { BundleDetailInteractive } from '@/components/product/BundleDetailInteractive';
 import {
   RelatedProductsSection,
   RelatedProductsSkeleton,
@@ -74,13 +75,19 @@ export default async function ProductDetailPage({ params }: PageProps) {
         <div style={{ maxWidth: '1100px', margin: '12px auto 0', padding: '0' }}>
           {/* Interactive Card containing gallery, options, actions, specs */}
           <div className="pd-card">
-            <ProductDetailInteractive product={product} />
+            {(product as any).isBundle ? (
+              <BundleDetailInteractive product={product} campaignOffer={(product as any).campaignOffer} />
+            ) : (
+              <ProductDetailInteractive product={product} />
+            )}
           </div>
 
           {/* Streamed Related Products Section with Skeleton fallback */}
-          <Suspense fallback={<RelatedProductsSkeleton />}>
-            <RelatedProductsSection category={product.category} excludeId={product._id} />
-          </Suspense>
+          {!(product as any).isBundle && (
+            <Suspense fallback={<RelatedProductsSkeleton />}>
+              <RelatedProductsSection category={product.category} excludeId={product._id} />
+            </Suspense>
+          )}
         </div>
       </div>
     </>

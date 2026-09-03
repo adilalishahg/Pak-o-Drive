@@ -5,6 +5,7 @@ import SiteInfo from '../models/SiteInfo';
 import SiteSettings from '../models/SiteSettings';
 import Product from '../models/Product';
 import Category from '../models/Category';
+import CampaignOffer from '../models/CampaignOffer';
 import { buildCategoryTree } from './categoryTree';
 
 /**
@@ -62,6 +63,44 @@ const productDetailFetcher = unstable_cache(
   async (target: string) => {
     try {
       await dbConnect();
+      if (target.startsWith('bundle_') || target.startsWith('offer_')) {
+        const rawOfferId = target.replace(/^(bundle_|offer_)/, '');
+        if (mongoose.Types.ObjectId.isValid(rawOfferId)) {
+          const offer = await CampaignOffer.findById(rawOfferId).lean();
+          if (offer) {
+            const dealPrice =
+              offer.offerType === 'combo_bundle' && offer.bundlePrice > 0
+                ? offer.bundlePrice
+                : offer.products.reduce((a: number, b: any) => a + (b.offerPrice || 0), 0);
+            const originalPrice =
+              offer.bundleOriginalPrice ||
+              offer.products.reduce((a: number, b: any) => a + (b.originalPrice || 0), 0);
+
+            return {
+              _id: `bundle_${offer._id}`,
+              name: offer.title,
+              slug: `bundle_${offer._id}`,
+              description:
+                offer.subtitle ||
+                `Exclusive Campaign Package Deal with ${offer.products.length} automotive essentials. Order now at special promotional rates!`,
+              price: dealPrice,
+              originalPrice,
+              image: offer.products[0]?.image || '/img/product-placeholder.png',
+              images: offer.products.map((p: any) => p.image).filter(Boolean),
+              category: 'Special Deals',
+              subcategory: offer.offerType === 'combo_bundle' ? 'Combo Package' : 'Flash Sale',
+              stock: 99,
+              rating: 4.9,
+              reviewsCount: 38,
+              isFeatured: true,
+              isTopSelling: true,
+              isBundle: true,
+              campaignOffer: JSON.parse(JSON.stringify(offer)),
+            };
+          }
+        }
+      }
+
       let p = null;
       if (mongoose.Types.ObjectId.isValid(target)) {
         p = await Product.findById(target).lean();

@@ -58,6 +58,34 @@ This file serves as persistent dynamic memory across coding agent sessions. Ever
 
 ---
 
+### 2026-09-03 — Dedicated Campaign Bundle Detail Showcase Page & 404 Resolution
+- **📌 Issue**: When clicking on a campaign bundle item in the cart or navigating to `/product/bundle_{id}`, the page returned `404 This page could not be found.` because `/product/[id]` and `getCachedProduct` only queried the standard `Product` collection and had no schema resolution for `CampaignOffer`.
+- **🔍 Root Cause & Failed Attempts**:
+  - `productDetailFetcher` in `src/lib/cache.ts` only looked for matching ObjectIds or slugs in `Product.findById` and `Product.findOne`. It did not recognize the `bundle_` or `offer_` prefixes generated when promotional package deals were saved to cart or shared.
+- **🛠️ Verified Code Fix**:
+  1. Updated `productDetailFetcher` in `src/lib/cache.ts` to recognize `bundle_` and `offer_` prefixes, dynamically query `CampaignOffer.findById`, and return a fully hydrated bundle product with deal pricing, savings, and included product items.
+  2. Created dedicated presentational component [BundleDetailInteractive.tsx](file:///d:/proj/Pak-o-Drive/src/components/product/BundleDetailInteractive.tsx) displaying:
+     - Package Hero Showcase with total discount badge (e.g. `25% OFF BUNDLE`)
+     - Deal rate vs cut-off rate with "You Save Rs. X" highlight
+     - Complete breakdown grid: **"Items Included in This Package (X Products)"** with image, title, deal price, and individual product link for every single item
+     - Quantity selector, Add Complete Package to Cart CTA, and 1-Click WhatsApp Order pre-filled with all bundled items and prices
+     - Trust badges (Nationwide COD, 7-Day Replacement, 2-4 Days Shipping)
+  3. Integrated `BundleDetailInteractive` into [src/app/product/[id]/page.tsx](file:///d:/proj/Pak-o-Drive/src/app/product/[id]/page.tsx) without altering standard single-product rendering.
+  4. Verified compilation via `pnpm tsc --noEmit` exiting with code 0.
+
+### 2026-09-03 — Content Security Policy (Facebook/TikTok Pixel) & Next.js Image 400 Bad Request Fix
+- **📌 Issue**: Browser console showed 3 blocking errors:
+  1. `GET /_next/image?url=https%3A%2F%2Fimages.unsplash.com%2F... 400 (Bad Request)`
+  2. `Loading the image 'https://www.facebook.com/tr/?id=2233157530771500&ev=PageView...' violates Content Security Policy directive: "img-src..."`
+  3. `Loading the image 'https://www.facebook.com/tr/?id=2233157530771500&ev=AddToCart...' violates Content Security Policy directive: "img-src..."`
+- **🔍 Root Cause & Failed Attempts**:
+  1. In `next.config.ts`, `deviceSizes` was missing `2048` and `3840`. When high-DPI or large viewports requested standard responsive widths (e.g. `w=3840`), Next.js rejected the request with `400 Bad Request` because the width was not in `deviceSizes`.
+  2. The `Content-Security-Policy` header in `next.config.ts` did not allow Facebook Pixel image tracking beacons (`https://www.facebook.com/tr/`, `https://*.facebook.com`, `https://*.facebook.net`) or TikTok Pixel in `img-src` and `connect-src`.
+- **🛠️ Verified Code Fix**:
+  1. Added `2048` and `3840` back to `deviceSizes` and added `plus.unsplash.com` and `*.unsplash.com` to `remotePatterns` in `next.config.ts`.
+  2. Updated `Content-Security-Policy` in `next.config.ts` to allow `https://www.facebook.com`, `https://*.facebook.com`, `https://*.facebook.net`, `https://analytics.tiktok.com`, and `https://*.tiktok.com` across `img-src`, `script-src`, and `connect-src`.
+  3. Verified compilation via `pnpm tsc --noEmit` exiting with code 0.
+
 ### 2026-09-03 — Chat Header Close Cross Button High-Visibility Red Styling
 - **📌 Issue**: User reported that the circular `✖` close button in the top header of the chat widget was dark slate / translucent gray and blended into the dark background, making it hard for users to recognize as the close button.
 - **🔍 Root Cause & Failed Attempts**:
