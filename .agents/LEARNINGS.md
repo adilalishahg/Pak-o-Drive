@@ -58,6 +58,19 @@ This file serves as persistent dynamic memory across coding agent sessions. Ever
 
 ---
 
+### 2026-09-03 — Phase 2: Google Merchant XML Feed, Dynamic Category Fitment & Free Shipping Meter
+- **📌 Issue**: Products were not indexed on Google Shopping Tab / Free Listings without a standard XML feed; car part fitment checkers were confusing when applied to general electronics, home gadgets, or daily use items; cart lacked visual urgency for free delivery qualification.
+- **🔍 Root Cause & Failed Attempts**:
+  - No Google Merchant Center compliant RSS 2.0 endpoint existed in App Router.
+  - Car fitment logic was initially monolithic without category-awareness for non-automotive items (electronics, bikes, kids, home gadgets).
+  - Cart page had no live motivational threshold meter for the Pakistani 2+ product free delivery policy.
+- **🛠️ Verified Code Fix**:
+  1. Built `src/app/api/feeds/google-merchant.xml/route.ts` delivering fully compliant RSS 2.0 XML with `<g:id>`, `<g:title>`, `<g:price>` in PKR, and shipping nodes. Tested live returning 200 OK.
+  2. Upgraded `useVehicleCompatibility.ts` into a multi-domain intelligence engine that automatically tailors assurance badges to product category: Car Specific (car picker), Electronics (device compatibility), Home & Kitchen (family safety), Bikes (70cc/125cc fitment), Kids (non-toxic certified), and Daily Use.
+  3. Integrated `VehicleCompatibilityChecker.tsx` above the product price box.
+  4. Built `useFreeShippingMeter.ts` and `FreeShippingMeter.tsx` embedded into `/cart` displaying dynamic threshold progress.
+  5. Verified with `pnpm tsc --noEmit` passing with 0 errors.
+
 ### 2026-09-03 — Phase 1 CRO & Social Proof Engine: Sticky Buy Bar, Smart Bundles & Photo Reviews
 - **📌 Issue**: E-commerce platform needed immediate high-impact conversion drivers (sticky buy CTA on mobile, AOV bundle expansion, and authentic verified photo reviews) to scale sales without breaking any existing checkout or cart systems.
 - **🔍 Root Cause & Failed Attempts**:

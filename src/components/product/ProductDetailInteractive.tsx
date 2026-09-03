@@ -13,6 +13,7 @@ import { CategoryIcon } from '../common/ThemeIcon';
 import { getBestCategoryIcon } from '@/lib/categoryIconService';
 import { FrequentlyBoughtTogether } from './FrequentlyBoughtTogether';
 import { ProductReviewsSection } from './ProductReviewsSection';
+import { VehicleCompatibilityChecker } from './VehicleCompatibilityChecker';
 
 export const ProductDetailInteractive: React.FC<ProductDetailInteractiveProps> = ({ product }) => {
   const {
@@ -192,6 +193,9 @@ export const ProductDetailInteractive: React.FC<ProductDetailInteractiveProps> =
                 </div>
               </div>
             )}
+
+            {/* Intelligent Vehicle / Device Compatibility Assurance */}
+            <VehicleCompatibilityChecker product={product} />
 
             {/* Price box */}
             <div

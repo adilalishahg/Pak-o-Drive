@@ -4,6 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { OptimizedImage } from '@/components/common/OptimizedImage';
 import { useCart } from '../../context/CartContext';
+import { FreeShippingMeter } from '@/components/cart/FreeShippingMeter';
 
 export default function CartPage() {
   const { cart, updateQuantity, removeFromCart, cartTotal, isHydrated } = useCart();
@@ -57,6 +58,9 @@ export default function CartPage() {
         <h2 style={{ fontWeight: 800, fontSize: '1.2rem', color: '#111', marginBottom: '12px', padding: '0 2px' }}>
           Cart <span style={{ color: '#6b7280', fontWeight: 400 }}>({cart.length} items)</span>
         </h2>
+
+        {/* Free Shipping Threshold Meter */}
+        <FreeShippingMeter />
 
         {/* Cart items */}
         <div style={{ background: '#fff', borderRadius: '12px', overflow: 'hidden', marginBottom: '12px' }}>
