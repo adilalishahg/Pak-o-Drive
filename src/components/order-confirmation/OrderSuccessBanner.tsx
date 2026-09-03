@@ -69,8 +69,29 @@ export function OrderSuccessBanner({ shortId, onWhatsApp, onPrint }: OrderSucces
           }}
         >
           <i className="fab fa-whatsapp" style={{ fontSize: '1.1rem' }} />
-          Confirm Order on WhatsApp
+          Confirm Order on WhatsApp (1-Click)
         </button>
+
+        <a
+          href={`/track-order?orderId=${shortId}`}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '8px',
+            background: 'rgba(255,255,255,0.18)',
+            border: '1px solid rgba(255,255,255,0.35)',
+            borderRadius: '8px',
+            padding: '11px 20px',
+            color: '#fff',
+            fontWeight: 600,
+            fontSize: '0.86rem',
+            textDecoration: 'none',
+          }}
+        >
+          <i className="fas fa-map-marker-alt" />
+          Track Order Status Live
+        </a>
 
         <button
           type="button"
@@ -80,19 +101,34 @@ export function OrderSuccessBanner({ shortId, onWhatsApp, onPrint }: OrderSucces
             alignItems: 'center',
             justifyContent: 'center',
             gap: '8px',
-            background: 'rgba(255,255,255,0.15)',
-            border: '1px solid rgba(255,255,255,0.3)',
+            background: 'transparent',
+            border: '1px solid rgba(255,255,255,0.25)',
             borderRadius: '8px',
-            padding: '12px 20px',
-            color: '#fff',
-            fontWeight: 600,
-            fontSize: '0.88rem',
+            padding: '10px 20px',
+            color: 'rgba(255,255,255,0.9)',
+            fontWeight: 500,
+            fontSize: '0.84rem',
             cursor: 'pointer',
           }}
         >
           <i className="fas fa-print" />
           Print Invoice
         </button>
+
+        {/* COD Doorstep Guarantee Notice */}
+        <div
+          style={{
+            marginTop: '8px',
+            background: 'rgba(0,0,0,0.15)',
+            borderRadius: '8px',
+            padding: '8px 12px',
+            color: '#fff',
+            fontSize: '0.72rem',
+            lineHeight: 1.4,
+          }}
+        >
+          📦 <strong>Doorstep Cash on Delivery:</strong> Pay only upon parcel arrival. 100% money back &amp; 7-day replacement guarantee.
+        </div>
       </div>
     </div>
   );

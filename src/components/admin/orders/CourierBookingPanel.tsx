@@ -3,6 +3,7 @@
 import React from 'react';
 import { OrderData } from '../../../hooks/useAdminOrders';
 import InteractiveMap from '@/components/common/InteractiveMap';
+import { ThermalShippingLabelModal } from './ThermalShippingLabelModal';
 
 interface CourierBookingPanelProps {
   selectedOrder: OrderData | null;
@@ -44,6 +45,8 @@ export function CourierBookingPanel({
   onBookCourier,
   logs,
 }: CourierBookingPanelProps) {
+  const [isLabelModalOpen, setIsLabelModalOpen] = React.useState(false);
+
   if (!selectedOrder) {
     return (
       <div className="card border-0 shadow-sm rounded-4 p-4 text-center text-muted bg-white">
@@ -117,7 +120,7 @@ export function CourierBookingPanel({
           type="button"
           onClick={onBookCourier}
           disabled={bookingLoading || selectedOrder.status === 'Cancelled'}
-          className="btn btn-primary btn-sm rounded-pill w-100 py-2 fw-bold text-white shadow-sm"
+          className="btn btn-primary btn-sm rounded-pill w-100 py-2 fw-bold text-white shadow-sm mb-2"
           style={{ background: 'linear-gradient(135deg, #ea580c, #c2410c)' }}
         >
           {bookingLoading ? (
@@ -130,7 +133,25 @@ export function CourierBookingPanel({
             </>
           )}
         </button>
+
+        {/* Print Thermal Label Button */}
+        <button
+          type="button"
+          onClick={() => setIsLabelModalOpen(true)}
+          className="btn btn-outline-dark btn-sm rounded-pill w-100 py-1.5 fw-bold d-flex align-items-center justify-content-center gap-1.5"
+          style={{ fontSize: '0.78rem' }}
+        >
+          <i className="fas fa-barcode text-primary" /> Print 4x6 Thermal Shipping Label
+        </button>
       </div>
+
+      {/* Thermal Label Modal */}
+      <ThermalShippingLabelModal
+        order={selectedOrder}
+        courier={selectedCourier}
+        isOpen={isLabelModalOpen}
+        onClose={() => setIsLabelModalOpen(false)}
+      />
 
       {/* Live Route Map Card */}
       <div className="card border-0 shadow-sm rounded-4 overflow-hidden bg-white">
