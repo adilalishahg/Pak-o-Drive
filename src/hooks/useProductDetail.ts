@@ -29,23 +29,54 @@ export function useProductDetail({ product }: UseProductDetailProps) {
     return product.specifications ? Object.entries(product.specifications) : [];
   }, [product.specifications]);
 
-  const cleanedDescription = useMemo(() => {
-    if (!currentDescription) return '';
-    return currentDescription
+  const { overviewDescription, featuresDescription, cleanedDescription } = useMemo(() => {
+    if (!currentDescription) {
+      return { overviewDescription: '', featuresDescription: '', cleanedDescription: '' };
+    }
+
+    const cleaned = currentDescription
       .split('\n')
       .filter((line) => {
         const lower = line.toLowerCase();
         return (
-          !lower.includes('pov:') &&
           !lower.includes('#tiktokmademebuyit') &&
           !lower.includes('#unboxing') &&
           !lower.includes('#viral') &&
-          !lower.includes('#trending')
+          !lower.includes('#trending') &&
+          !lower.includes('#pakodrive') &&
+          !lower.includes('#carmirrors')
         );
       })
       .join('\n')
       .replace(/#\w+/g, '')
       .trim();
+
+    const splitRegex = /(?:\n\s*|\n)(?=[*_~`\s]*(?:✅|\u2705|\u2714)?\s*[*_~`\s]*(?:Why You Need This|Key Features|Features|Highlights|What's Included)\b)/i;
+    const idx = cleaned.search(splitRegex);
+
+    if (idx > 0) {
+      return {
+        overviewDescription: cleaned.substring(0, idx).trim(),
+        featuresDescription: cleaned.substring(idx).trim(),
+        cleanedDescription: cleaned,
+      };
+    }
+
+    // If no explicit header, check if multiple paragraphs
+    const paragraphs = cleaned.split(/\n\s*\n/);
+    if (paragraphs.length > 1) {
+      return {
+        overviewDescription: paragraphs[0].trim(),
+        featuresDescription: paragraphs.slice(1).join('\n\n').trim(),
+        cleanedDescription: cleaned,
+      };
+    }
+
+    return {
+      overviewDescription: cleaned,
+      featuresDescription: '',
+      cleanedDescription: cleaned,
+    };
   }, [currentDescription]);
 
   const handleSelectVariant = useCallback((variant: IProductVariant) => {
@@ -61,6 +92,8 @@ export function useProductDetail({ product }: UseProductDetailProps) {
     currentImage,
     currentDescription,
     cleanedDescription,
+    overviewDescription,
+    featuresDescription,
     currentStock,
     discountPercent,
     specs,

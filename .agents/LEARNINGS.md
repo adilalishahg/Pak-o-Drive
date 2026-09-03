@@ -58,6 +58,31 @@ This file serves as persistent dynamic memory across coding agent sessions. Ever
 
 ---
 
+### 2026-09-03 — Subcategories Hover Dropdown & 50/50 Balanced Lower Section Layout
+- **📌 Issue**:
+  1. Only parent categories (`Car Accessories`, `Mobile Accessories`) were showing in the dropdown and shop sidebar without their subcategories; user requested subcategories to open on hover in desktop and toggle on mobile, with subcategory filtering in shop.
+  2. On product pages, after the top left gallery and right buy card were leveled, the remaining product details (`Why You Need This` bullets) were causing height imbalance; user requested splitting remaining details into a balanced 50/50 layout (Features on left, Specs on right).
+- **🔍 Root Cause & Failed Attempts**:
+  - Products had `subcategory: undefined` in MongoDB, causing all subcategories to have `productCount: 0` and get filtered out by `c.productCount > 0`.
+  - `ProductDetailInteractive.tsx` rendered the full description under the gallery and full-width technical specifications below, rather than balancing them side-by-side.
+- **🛠️ Verified Code Fix**:
+  1. Seeded active subcategories (`Car Perfumes & Fresheners`, `Car Care & Polish`, `LED Lights & Daytime`, `Exterior & Mirrors`, `Earbuds & Audio`) and updated all products with their matching subcategories and counts.
+  2. Upgraded `CategoryMenuItem` in `CategoryDropdown.tsx` with smooth hover flyout menus and touch toggle chevron buttons.
+  3. In `useProductDetail.ts`, smartly split description into an upper concise overview hook (which perfectly levels the left gallery with the right buy card) and a lower features section.
+  4. In `ProductDetailInteractive.tsx`, implemented a balanced 50% / 50% lower row: Left Half (`col-12 col-md-6`) renders `"Why You Need This & Key Features"`, and Right Half (`col-12 col-md-6`) renders `"Technical Specifications"`.
+  5. Verified with `pnpm tsc --noEmit` passing with 0 errors.
+
+### 2026-09-03 — Balanced Product Detail Layout & Left Column Gallery Space Fill
+- **📌 Issue**: On desktop product pages, a large blank whitespace existed on the left below the image gallery thumbnails, while the right column was stretched excessively tall because full markdown descriptions and bullet points were placed above the Add to Cart and Buy Now buttons, pushing critical conversion CTAs down below the fold.
+- **🔍 Root Cause & Failed Attempts**:
+  - `ProductDetailInteractive.tsx` left column (`col-12 col-md-6`) only contained `ProductImageGallery`.
+  - Right column contained title, price, meta, description (`MarkdownRenderer`), and action buttons, creating a height imbalance and pushing primary conversion buttons down.
+- **🛠️ Verified Code Fix**:
+  1. Relocated `MarkdownRenderer` with a stylized `"Product Highlights & Description"` badge into the left column below the gallery thumbnails for desktop (`d-none d-md-block`).
+  2. Moved `ProductActions` (Add to Cart, Buy Now, WhatsApp 1-Click Order) directly beneath the price and stock indicators in the right column, pulling buy CTAs above the fold.
+  3. Kept a clean mobile-responsive fallback (`d-block d-md-none`) beneath the action buttons on small viewports.
+  4. Verified with `pnpm tsc --noEmit` passing with 0 errors.
+
 ### 2026-09-03 — Saved Items (Wishlist) Visibility & Pre-Order Checkout Auto-Save
 - **📌 Issue**: User could not find where saved items (Wishlist) are displayed on mobile or desktop; also wondered how guest buyers get their saved delivery address on return visits when no account is created in the database.
 - **🔍 Root Cause & Failed Attempts**:

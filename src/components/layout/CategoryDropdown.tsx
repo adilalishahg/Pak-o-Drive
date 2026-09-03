@@ -38,61 +38,102 @@ export function CategoryMenuItem({
   onClose: () => void;
   primaryColor?: string;
 }) {
+  const [touchOpen, setTouchOpen] = React.useState(false);
   const childList = node.children || node.subcategories || [];
   const hasSubs = Array.isArray(childList) && childList.length > 0;
   const color = getCatColor(node.slug, primaryColor);
   const icon = node.icon || getCatIcon(node.slug);
 
   return (
-    <div className="position-relative category-menu-item-wrapper" style={{ display: 'block' }}>
-      <Link
-        href={`/shop?category=${node.slug}`}
-        onClick={onClose}
+    <div
+      className="position-relative category-menu-item-wrapper"
+      style={{ display: 'block' }}
+      onMouseEnter={() => setTouchOpen(true)}
+      onMouseLeave={() => setTouchOpen(false)}
+    >
+      <div
+        className="category-menu-link d-flex align-items-center justify-content-between"
         style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '10px',
-          padding: '10px 16px',
-          textDecoration: 'none',
-          color: '#374151',
-          fontSize: '0.84rem',
-          fontWeight: 500,
           borderBottom: '1px solid #f8fafc',
           transition: 'background 0.15s, color 0.15s',
         }}
-        className="category-menu-link"
       >
-        <div
+        <Link
+          href={`/shop?category=${node.slug}`}
+          onClick={onClose}
           style={{
-            width: '28px',
-            height: '28px',
-            borderRadius: '7px',
-            flexShrink: 0,
-            background: `color-mix(in srgb, ${color} 12%, #fff)`,
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'center',
-            overflow: 'hidden',
-            position: 'relative',
+            gap: '10px',
+            padding: '10px 14px',
+            textDecoration: 'none',
+            color: '#374151',
+            fontSize: '0.84rem',
+            fontWeight: 500,
+            flex: 1,
+            minWidth: 0,
           }}
         >
-          {node.image ? (
-            <OptimizedImage
-              src={node.image}
-              alt={node.name}
-              fill
-              sizes="20px"
-              style={{ objectFit: 'cover' }}
-            />
-          ) : (
-            <CategoryIcon icon={icon} style={{ fontSize: '12px', color }} />
+          <div
+            style={{
+              width: '28px',
+              height: '28px',
+              borderRadius: '7px',
+              flexShrink: 0,
+              background: `color-mix(in srgb, ${color} 12%, #fff)`,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              overflow: 'hidden',
+              position: 'relative',
+            }}
+          >
+            {node.image ? (
+              <OptimizedImage
+                src={node.image}
+                alt={node.name}
+                fill
+                sizes="20px"
+                style={{ objectFit: 'cover' }}
+              />
+            ) : (
+              <CategoryIcon icon={icon} style={{ fontSize: '12px', color }} />
+            )}
+          </div>
+          <span className="text-truncate">{node.name}</span>
+          {node.productCount > 0 && (
+            <span
+              className="badge rounded-pill bg-light text-secondary border ms-1 flex-shrink-0"
+              style={{ fontSize: '0.65rem' }}
+            >
+              {node.productCount}
+            </span>
           )}
-        </div>
-        <span className="text-truncate">{node.name}</span>
+        </Link>
+
         {hasSubs && (
-          <i className="fas fa-chevron-right ms-auto" style={{ fontSize: '9px', color: '#94a3b8' }} />
+          <button
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setTouchOpen((prev) => !prev);
+            }}
+            className="p-2 border-0 bg-transparent text-muted d-flex align-items-center justify-content-center cursor-pointer me-1"
+            aria-label={`Toggle ${node.name} subcategories`}
+          >
+            <i
+              className="fas fa-chevron-right"
+              style={{
+                fontSize: '10px',
+                color: touchOpen ? 'var(--pd-primary, #ea580c)' : '#94a3b8',
+                transition: 'transform 0.2s',
+                transform: touchOpen ? 'rotate(90deg)' : 'none',
+              }}
+            />
+          </button>
         )}
-      </Link>
+      </div>
 
       {hasSubs && (
         <div
@@ -100,16 +141,23 @@ export function CategoryMenuItem({
           style={{
             position: 'absolute',
             top: 0,
-            left: '100%',
-            width: '240px',
+            left: 'calc(100% - 4px)',
+            width: '250px',
             background: '#fff',
             borderRadius: '10px',
-            border: '1px solid #e2e8f0',
-            display: 'none',
-            zIndex: 1050,
-            padding: '4px 0',
+            border: '1.5px solid #e2e8f0',
+            display: touchOpen ? 'block' : 'none',
+            zIndex: 1055,
+            padding: '6px 0',
+            boxShadow: '0 15px 35px rgba(15,23,42,0.18)',
           }}
         >
+          <div
+            className="px-3 py-1.5 border-bottom mb-1"
+            style={{ fontSize: '0.7rem', color: '#64748b', background: '#f8fafc', fontWeight: 700 }}
+          >
+            <span>{node.name} Subcategories</span>
+          </div>
           {childList.map((subNode: any) => (
             <CategoryMenuItem
               key={subNode.slug}

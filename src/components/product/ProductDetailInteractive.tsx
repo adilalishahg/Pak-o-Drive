@@ -21,6 +21,8 @@ export const ProductDetailInteractive: React.FC<ProductDetailInteractiveProps> =
     currentImage,
     currentDescription,
     cleanedDescription,
+    overviewDescription,
+    featuresDescription,
     currentStock,
     discountPercent,
     specs,
@@ -36,8 +38,8 @@ export const ProductDetailInteractive: React.FC<ProductDetailInteractiveProps> =
       />
 
       <div className="row g-0">
-        {/* Image col */}
-        <div className="col-12 col-md-6 border-bottom border-end-md" style={{ background: '#ffffff' }}>
+        {/* Image & Overview Hook col */}
+        <div className="col-12 col-md-6 border-bottom border-end-md d-flex flex-column" style={{ background: '#ffffff' }}>
           <ProductImageGallery
             image={currentImage}
             images={product.images || []}
@@ -46,6 +48,34 @@ export const ProductDetailInteractive: React.FC<ProductDetailInteractiveProps> =
             showVideoOnFront={product.showVideoOnFront}
           />
 
+          {/* Upper Overview Hook — Perfectly levels the left gallery with the right buy card */}
+          {overviewDescription && (
+            <div className="d-none d-md-block px-3 px-lg-4 pt-3 pb-3 border-top flex-grow-1" style={{ borderColor: '#f1f5f9' }}>
+              <div className="d-flex align-items-center gap-2 mb-2">
+                <span
+                  className="badge rounded-pill border d-inline-flex align-items-center gap-1.5"
+                  style={{
+                    fontSize: '0.72rem',
+                    color: 'var(--pd-primary, #ea580c)',
+                    background: '#fff7ed',
+                    borderColor: '#ffedd5',
+                    fontWeight: 700,
+                    padding: '4px 10px',
+                  }}
+                >
+                  <i className="fas fa-sparkles" style={{ fontSize: '10px' }} />
+                  <span>Product Overview</span>
+                </span>
+              </div>
+              <MarkdownRenderer
+                content={overviewDescription}
+                style={{
+                  fontSize: '0.88rem',
+                  lineHeight: 1.6,
+                }}
+              />
+            </div>
+          )}
         </div>
 
         {/* Info col */}
@@ -226,20 +256,37 @@ export const ProductDetailInteractive: React.FC<ProductDetailInteractiveProps> =
               </div>
             </div>
 
-            {/* Description — rendered as markdown */}
-            {currentDescription && (
-              <MarkdownRenderer
-                content={cleanedDescription}
-                style={{
-                  borderTop: '1px solid #f0f0f0',
-                  paddingTop: '12px',
-                  marginBottom: '16px',
-                }}
-              />
-            )}
-
-            {/* Actions */}
+            {/* Actions (Immediately visible next to image & price) */}
             <ProductActions product={product} selectedVariant={selectedVariant} />
+
+            {/* Mobile-Only Description (Shown below buy buttons on small screens) */}
+            {currentDescription && (
+              <div className="d-block d-md-none mt-3 pt-3 border-top" style={{ borderColor: '#f1f5f9' }}>
+                <div className="d-flex align-items-center gap-2 mb-2">
+                  <span
+                    className="badge rounded-pill border d-inline-flex align-items-center gap-1.5"
+                    style={{
+                      fontSize: '0.72rem',
+                      color: 'var(--pd-primary, #ea580c)',
+                      background: '#fff7ed',
+                      borderColor: '#ffedd5',
+                      fontWeight: 700,
+                      padding: '4px 10px',
+                    }}
+                  >
+                    <i className="fas fa-sparkles" style={{ fontSize: '10px' }} />
+                    <span>Product Highlights</span>
+                  </span>
+                </div>
+                <MarkdownRenderer
+                  content={cleanedDescription}
+                  style={{
+                    fontSize: '0.88rem',
+                    lineHeight: 1.6,
+                  }}
+                />
+              </div>
+            )}
 
             {/* Localized Pakistan Trust & Assurance Box */}
             <div
@@ -315,46 +362,136 @@ export const ProductDetailInteractive: React.FC<ProductDetailInteractiveProps> =
         </div>
       </div>
 
-      {/* Specs */}
-      {specs.length > 0 && (
-        <div className="pd-card" style={{ marginTop: '8px' }}>
-          <div style={{ padding: '16px 16px 20px' }}>
-            <h4
+      {/* ── Balanced Lower Section: Why You Need This (Left 50%) & Technical Specifications (Right 50%) ── */}
+      {(featuresDescription || specs.length > 0) && (
+        <div className="row g-3 mt-2">
+          {/* Left Half: Features & Why You Need This (Circled Area in User's Screenshot) */}
+          <div className="col-12 col-md-6">
+            <div
+              className="pd-card h-100 p-3 p-lg-4"
               style={{
-                fontSize: '0.95rem',
-                fontWeight: 800,
-                color: '#111',
-                marginBottom: '12px',
-                paddingBottom: '8px',
-                borderBottom: '2px solid var(--pd-primary)',
-                display: 'inline-block',
+                background: '#ffffff',
+                borderRadius: '12px',
+                border: '1px solid #e2e8f0',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
               }}
             >
-              Technical Specifications
-            </h4>
-            <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem' }}>
-                <tbody>
-                  {specs.map(([key, val], i) => (
-                    <tr key={key} style={{ background: i % 2 === 0 ? '#fafafa' : '#fff' }}>
-                      <td
-                        style={{
-                          padding: '9px 12px',
-                          fontWeight: 700,
-                          color: '#374151',
-                          width: '45%',
-                          borderBottom: '1px solid #f0f0f0',
-                        }}
-                      >
-                        {key}
-                      </td>
-                      <td style={{ padding: '9px 12px', color: '#6b7280', borderBottom: '1px solid #f0f0f0' }}>
-                        {String(val)}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+              <div className="d-flex align-items-center gap-2 mb-3 pb-2 border-bottom">
+                <span
+                  style={{
+                    width: '32px',
+                    height: '32px',
+                    borderRadius: '8px',
+                    background: 'rgba(234, 88, 12, 0.1)',
+                    color: 'var(--pd-primary, #ea580c)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '14px',
+                    flexShrink: 0,
+                  }}
+                >
+                  <i className="fas fa-check-circle" />
+                </span>
+                <div>
+                  <h3 className="mb-0 fw-bold text-dark" style={{ fontSize: '1rem', lineHeight: 1.2 }}>
+                    Why You Need This & Key Features
+                  </h3>
+                  <span style={{ fontSize: '0.72rem', color: '#64748b' }}>
+                    Highlights & Benefits of this product
+                  </span>
+                </div>
+              </div>
+              <MarkdownRenderer
+                content={featuresDescription || cleanedDescription}
+                style={{
+                  fontSize: '0.88rem',
+                  lineHeight: 1.65,
+                }}
+              />
+            </div>
+          </div>
+
+          {/* Right Half: Technical Specifications & Fitment */}
+          <div className="col-12 col-md-6">
+            <div
+              className="pd-card h-100 p-3 p-lg-4"
+              style={{
+                background: '#ffffff',
+                borderRadius: '12px',
+                border: '1px solid #e2e8f0',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+              }}
+            >
+              <div className="d-flex align-items-center gap-2 mb-3 pb-2 border-bottom">
+                <span
+                  style={{
+                    width: '32px',
+                    height: '32px',
+                    borderRadius: '8px',
+                    background: 'rgba(37, 99, 235, 0.1)',
+                    color: '#2563eb',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '14px',
+                    flexShrink: 0,
+                  }}
+                >
+                  <i className="fas fa-sliders-h" />
+                </span>
+                <div>
+                  <h3 className="mb-0 fw-bold text-dark" style={{ fontSize: '1rem', lineHeight: 1.2 }}>
+                    Technical Specifications
+                  </h3>
+                  <span style={{ fontSize: '0.72rem', color: '#64748b' }}>
+                    Compatibility, Dimensions & Quality Details
+                  </span>
+                </div>
+              </div>
+
+              {specs.length > 0 ? (
+                <div style={{ overflowX: 'auto' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem' }}>
+                    <tbody>
+                      {specs.map(([key, val], i) => (
+                        <tr key={key} style={{ background: i % 2 === 0 ? '#f8fafc' : '#ffffff' }}>
+                          <td
+                            style={{
+                              padding: '10px 12px',
+                              fontWeight: 700,
+                              color: '#334155',
+                              width: '45%',
+                              borderBottom: '1px solid #f1f5f9',
+                            }}
+                          >
+                            {key}
+                          </td>
+                          <td
+                            style={{
+                              padding: '10px 12px',
+                              color: '#64748b',
+                              borderBottom: '1px solid #f1f5f9',
+                            }}
+                          >
+                            {String(val)}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div className="p-3 bg-light rounded-3 text-secondary" style={{ fontSize: '0.82rem', lineHeight: 1.6 }}>
+                  <div className="fw-bold text-dark mb-2">
+                    <i className="fas fa-shield-alt text-primary me-1.5" /> Package & Quality Guarantee:
+                  </div>
+                  <div className="mb-1">• 100% Brand New & Quality Verified</div>
+                  <div className="mb-1">• Secure Bubble Wrap Fragile Packaging</div>
+                  <div className="mb-1">• Easy Direct Fitment & Installation</div>
+                  <div>• 7-Day Easy Return & Cash on Delivery Across Pakistan</div>
+                </div>
+              )}
             </div>
           </div>
         </div>
