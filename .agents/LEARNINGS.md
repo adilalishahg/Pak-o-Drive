@@ -58,6 +58,18 @@ This file serves as persistent dynamic memory across coding agent sessions. Ever
 
 ---
 
+### 2026-09-03 — Pakistan Product Ads & Sales Analytics Dashboard Architecture
+- **📌 Issue**: User requested a dedicated admin route showing products, their order sales, active ads running in Pakistan sorted descending by ads volume (`desc`), filters for "Meri Products" (store catalog) vs. "All Over" (market trends across store categories), and a "View Ads" button routing to a dedicated ad creative blueprint page (`/admin/products/ads-analytics/[id]`).
+- **🔍 Root Cause & Failed Attempts**:
+  1. Product sales were stored across `Order` collection documents without a consolidated product-level sales & ad intelligence aggregator.
+  2. Ad intelligence needed fast Pakistan ad tracking links (Meta Ad Library PK, TikTok PK search) and viral creative blueprints without blocking serverless execution on slow external AI calls.
+- **🛠️ Verified Code Fix**:
+  1. **Contract & Routes**: Created [productAds.ts](file:///d:/proj/Pak-o-Drive/src/types/productAds.ts) types, [ads-analytics/route.ts](file:///d:/proj/Pak-o-Drive/src/app/api/admin/products/ads-analytics/route.ts) aggregating live sales from MongoDB `Order` and computing PK active ad volume with strict `desc` sorting, and [ads-analytics/[id]/route.ts](file:///d:/proj/Pak-o-Drive/src/app/api/admin/products/ads-analytics/[id]/route.ts) for single product deep ad dossiers.
+  2. **Rule #8 Hooks**: Built [useProductAdsAnalytics.ts](file:///d:/proj/Pak-o-Drive/src/hooks/useProductAdsAnalytics.ts) and [useSingleProductAds.ts](file:///d:/proj/Pak-o-Drive/src/hooks/useSingleProductAds.ts) keeping all state and API fetching out of presentation views.
+  3. **Presentational Components & Dual-Layer Media**: Built [ProductAdsStatsHeader.tsx](file:///d:/proj/Pak-o-Drive/src/components/admin/ads/ProductAdsStatsHeader.tsx), [ProductAdsFilters.tsx](file:///d:/proj/Pak-o-Drive/src/components/admin/ads/ProductAdsFilters.tsx), and [ProductAdsListCard.tsx](file:///d:/proj/Pak-o-Drive/src/components/admin/ads/ProductAdsListCard.tsx) implementing Rule #3 dual-layer ambient blur presentation and Rule #4 typography safeguards.
+  4. **Pages & Navigation**: Created [ads-analytics/page.tsx](file:///d:/proj/Pak-o-Drive/src/app/admin/products/ads-analytics/page.tsx) and [ads-analytics/[id]/page.tsx](file:///d:/proj/Pak-o-Drive/src/app/admin/products/ads-analytics/[id]/page.tsx) with tabbed creative blueprints (Urdu hooks, 9:16 UGC video scene breakdown, unit economics, Meta/TikTok targeting), and integrated "Product Ads & Sales" in [AdminLayout](file:///d:/proj/Pak-o-Drive/src/app/admin/layout.tsx).
+  5. Verified compilation via `pnpm tsc --noEmit` passing with 0 errors and verified end-to-end API execution.
+
 ### 2026-09-03 — Global Admin Console Error & Warning Handler System (Rule #7 & Rule #8)
 - **📌 Issue**: User requested that whenever any error or warning is logged or received in the console inside the Admin Panel, a global handler should capture it and present it directly on the UI (via a top alert banner, custom alert box, or toast inspector) with full diagnostics.
 - **🔍 Root Cause & Failed Attempts**:

@@ -7,7 +7,7 @@ export async function optimizeImageBeforeUpload(
   file: File,
   maxWidth = 1200,
   maxHeight = 1200,
-  quality = 0.8
+  quality = 0.82
 ): Promise<File> {
   const ext = (file.name.split('.').pop() || '').toLowerCase();
   const isImage = 
@@ -74,6 +74,8 @@ export async function optimizeImageBeforeUpload(
       return file;
     }
 
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
     ctx.drawImage(drawable, 0, 0, width, height);
     cleanup?.();
 

@@ -75,7 +75,7 @@ export async function POST(request: Request) {
               resource_type: 'auto',
               format: 'webp',
               transformation: [
-                { width: 1200, height: 1200, crop: 'limit' }
+                { width: 1200, height: 1200, crop: 'limit', quality: 'auto:good', fetch_format: 'auto' }
               ]
             },
             (error, result) => {
