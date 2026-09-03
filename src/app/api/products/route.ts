@@ -5,6 +5,7 @@ import dbConnect from '../../../lib/mongodb';
 import Product from '../../../models/Product';
 import Category from '../../../models/Category';
 import { getAllDescendantSlugs } from '@/lib/categoryTree';
+import { expandSearchQuery } from '@/lib/searchDictionary';
 
 
 
@@ -38,8 +39,21 @@ export async function GET(request: Request) {
 
     if (search && search.trim()) {
       const cleanSearch = search.trim();
-      if (cleanSearch.length > 2) {
-        query.$text = { $search: cleanSearch };
+      const tokens = expandSearchQuery(cleanSearch);
+      if (tokens.length > 0) {
+        const regexList = tokens.map((t) => new RegExp(t, 'i'));
+        const searchConditions = [
+          { name: { $in: regexList } },
+          { description: { $in: regexList } },
+          { category: { $in: regexList } },
+          { subcategory: { $in: regexList } },
+        ];
+        if (query.$or) {
+          query.$and = [{ $or: query.$or }, { $or: searchConditions }];
+          delete query.$or;
+        } else {
+          query.$or = searchConditions;
+        }
       } else {
         query.name = { $regex: cleanSearch, $options: 'i' };
       }

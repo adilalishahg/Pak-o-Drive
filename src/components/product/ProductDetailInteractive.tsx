@@ -14,6 +14,7 @@ import { getBestCategoryIcon } from '@/lib/categoryIconService';
 import { FrequentlyBoughtTogether } from './FrequentlyBoughtTogether';
 import { ProductReviewsSection } from './ProductReviewsSection';
 import { VehicleCompatibilityChecker } from './VehicleCompatibilityChecker';
+import { StockUrgencyBanner } from './StockUrgencyBanner';
 
 export const ProductDetailInteractive: React.FC<ProductDetailInteractiveProps> = ({ product }) => {
   const {
@@ -241,6 +242,9 @@ export const ProductDetailInteractive: React.FC<ProductDetailInteractiveProps> =
                 </span>
               </div>
             </div>
+
+            {/* Real-time Inventory Urgency Trigger */}
+            <StockUrgencyBanner stock={currentStock} />
 
             {/* Meta */}
             <div style={{ fontSize: '0.78rem', marginBottom: '14px', display: 'flex', flexDirection: 'column', gap: '5px' }}>
