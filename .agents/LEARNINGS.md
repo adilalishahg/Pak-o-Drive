@@ -58,6 +58,42 @@ This file serves as persistent dynamic memory across coding agent sessions. Ever
 
 ---
 
+### 2026-09-03 — Dual-Layer 1-Click Saved Delivery Profile & Phone Auto-Suggest System
+- **📌 Issue**: User requested a frictionless saved address system for returning Pakistani customers so they don't have to re-enter their name, phone, city, and address on every checkout, while maintaining zero friction and zero password requirements.
+- **🔍 Root Cause & Failed Attempts**:
+  - Pakistani COD shoppers do not create accounts or remember passwords.
+  - Previous checkout implementation required typing the entire shipping form from scratch on every order.
+- **🛠️ Verified Code Fix**:
+  1. **Layer 1 (Same Device / Browser Storage)**:
+     - Encapsulated `localStorage` hydration within `useEffect` and `isHydrated` guard to strictly adhere to Rule #1 (SSR Hydration Guard).
+     - Built [SavedAddressQuickCard.tsx](file:///d:/proj/Pak-o-Drive/src/components/checkout/SavedAddressQuickCard.tsx): Displays a prominent welcome-back card with `[⚡ Deliver to This Address]` and `[✏️ Enter Different / New Address]`.
+  2. **Layer 2 (New Device / Phone Number Lookup)**:
+     - Built `/api/customer/saved-address` to query MongoDB `Order` records across common Pakistani phone formats (`03...`, `923...`, `+923...`).
+     - Built [PhoneAddressSuggestionBadge.tsx](file:///d:/proj/Pak-o-Drive/src/components/checkout/PhoneAddressSuggestionBadge.tsx): Automatically triggers when 10+ digits are typed, showing a 1-tap auto-fill button for previous delivery addresses.
+  3. Integrated both into [useCheckout.ts](file:///d:/proj/Pak-o-Drive/src/hooks/useCheckout.ts) and [src/app/checkout/page.tsx](file:///d:/proj/Pak-o-Drive/src/app/checkout/page.tsx).
+  4. Verified via Node endpoint test and `pnpm tsc --noEmit` passing with 0 errors.
+
+### 2026-09-03 — Comprehensive Brand SEO, Google Knowledge Graph Disambiguation & Checkout De-Indexing
+- **📌 Issue**:
+  1. Google search for `"pakodrive"` indexed the `/checkout` page instead of the homepage (`/`).
+  2. Google AI Overview confused Pak-o-Drive with a taxi/cab booking mobile app called "Pak Drive Passenger".
+  3. Brand variations (`pak drive`, `pak o drive`, `pakdrive`, `pakodrive`, `drive`, `pakdrv`) and product catalog needed to rank in top results with rich snippets.
+- **🔍 Root Cause & Failed Attempts**:
+  - `sitemap.ts` explicitly listed `/checkout` and `/cart` as static routes for daily indexing.
+  - `robots.ts` did not disallow `/checkout` or `/cart`.
+  - `/checkout` and `/cart` lacked `noindex, nofollow` robots meta tags.
+  - `organizationSchema` lacked `alternateName` aliases (`Pak Drive`, `Pak-o-Drive`, `PakODrive`, `pakdrv`, `پاک او ڈرائیو`) and explicit `OnlineStore` / `AutoPartsStore` entity schemas.
+- **🛠️ Verified Code Fix**:
+  1. Updated `src/app/robots.ts` to strictly disallow `/checkout`, `/checkout/*`, `/cart`, `/cart/*`, `/order-confirmation`, and `/admin`.
+  2. Stripped `/cart` and `/checkout` completely from `src/app/sitemap.ts`.
+  3. Added explicit `<meta name="robots" content="noindex, nofollow, noarchive" />` to `CheckoutPage` and `CartPage`.
+  4. Updated `src/app/layout.tsx`:
+     - Default title: `PAK-O-DRIVE™ | Pakistan's #1 Car Accessories & Auto Gadgets Store (Pak Drive)`
+     - OpenGraph description and keywords covering all brand variations (`pakodrive, pak drive, pak o drive, pakdrive, pakdrv, drive, pakodrive.pk, پاک او ڈرائیو`).
+     - Enhanced `organizationSchema` with `alternateName` list, `currenciesAccepted: 'PKR'`, and `OnlineStore`/`AutoPartsStore` types to clear AI Overview ambiguity.
+  5. Updated `src/lib/productSeo.ts` to include Google Rich Snippets (`aggregateRating` with star ratings, `offers` in PKR, InStock availability, fast delivery).
+  6. Verified via `pnpm tsc --noEmit` passing with 0 errors.
+
 ### 2026-09-03 — Progressive Landmark & Pakistani Venue Address Search Enhancement
 - **📌 Issue**: User reported that searching for a specific local hall/venue like `"wedding palace ,muslim town,rawalpindi"` or `"khurram colony, rawalpindi"` returned 0 dropdown suggestions.
 - **🔍 Root Cause & Failed Attempts**:

@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { useCheckout } from '../../hooks/useCheckout';
 import { SearchableCitySelect } from '@/components/common/SearchableCitySelect';
 import { AddressLocationPicker } from '@/components/checkout/AddressLocationPicker';
+import { SavedAddressQuickCard } from '@/components/checkout/SavedAddressQuickCard';
+import { PhoneAddressSuggestionBadge } from '@/components/checkout/PhoneAddressSuggestionBadge';
 
 export default function CheckoutPage() {
   const {
@@ -16,6 +18,15 @@ export default function CheckoutPage() {
     error,
     handlePlaceOrder,
     handleOrderViaWhatsApp,
+    savedProfile,
+    isSavedCardDismissed,
+    applySavedProfile,
+    dismissSavedProfile,
+    phoneSuggestedProfile,
+    isLookingUpPhone,
+    applyPhoneSuggestedProfile,
+    dismissPhoneSuggestedProfile,
+    isHydrated,
   } = useCheckout();
 
   if (cart.length === 0) {
@@ -105,6 +116,15 @@ export default function CheckoutPage() {
                   </span>
                 </div>
 
+                {/* Layer 1: Browser Saved Address Quick-Card */}
+                <SavedAddressQuickCard
+                  savedProfile={savedProfile}
+                  isDismissed={isSavedCardDismissed}
+                  onApply={applySavedProfile}
+                  onDismiss={dismissSavedProfile}
+                  isHydrated={isHydrated}
+                />
+
                 <div className="row g-3">
                   {/* Full Name */}
                   <div className="col-12">
@@ -151,6 +171,14 @@ export default function CheckoutPage() {
                     <span style={{ fontSize: '0.7rem', color: '#64748b', marginTop: '4px', display: 'block' }}>
                       Courier rider will call/WhatsApp on this number for delivery.
                     </span>
+
+                    {/* Layer 2: Phone-Based Address Suggestion */}
+                    <PhoneAddressSuggestionBadge
+                      suggestion={phoneSuggestedProfile}
+                      isLoading={isLookingUpPhone}
+                      onApply={applyPhoneSuggestedProfile}
+                      onDismiss={dismissPhoneSuggestedProfile}
+                    />
                   </div>
 
                   {/* City Selector with Type-to-Search Filter */}
