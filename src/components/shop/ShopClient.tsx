@@ -100,7 +100,21 @@ function ShopContent({ initialProducts }: ShopClientProps) {
           }}>
             {/* Row 1: Search Form */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '100%' }}>
-              <form onSubmit={e => { e.preventDefault(); setSearchQuery(keywords.trim() || null); }}
+              <form onSubmit={e => {
+                  e.preventDefault();
+                  const q = keywords.trim() || null;
+                  setSearchQuery(q);
+                  if (typeof window !== 'undefined') {
+                    const url = new URL(window.location.href);
+                    if (q) {
+                      url.searchParams.set('search', q);
+                    } else {
+                      url.searchParams.delete('search');
+                      url.searchParams.delete('q');
+                    }
+                    window.history.replaceState({}, '', url.toString());
+                  }
+                }}
                 style={{
                   flex: 1, minWidth: 0, display: 'flex', alignItems: 'center',
                   border: '1.5px solid #e2e8f0', borderRadius: '8px', overflow: 'hidden',
@@ -123,8 +137,18 @@ function ShopContent({ initialProducts }: ShopClientProps) {
                 {keywords && (
                   <button
                     type="button"
-                    onClick={() => { setKeywords(''); setSearchQuery(null); }}
+                    onClick={() => {
+                      setKeywords('');
+                      setSearchQuery(null);
+                      if (typeof window !== 'undefined') {
+                        const url = new URL(window.location.href);
+                        url.searchParams.delete('search');
+                        url.searchParams.delete('q');
+                        window.history.replaceState({}, '', url.toString());
+                      }
+                    }}
                     style={{ background: 'none', border: 'none', padding: '0 8px', cursor: 'pointer', color: '#94a3b8', fontSize: '12px' }}
+                    title="Clear search"
                   >
                     <i className="fas fa-times" />
                   </button>
@@ -173,6 +197,11 @@ function ShopContent({ initialProducts }: ShopClientProps) {
 
                 <span style={{ fontSize: '0.76rem', color: '#64748b', fontWeight: 600 }}>
                   {loading ? 'Loading...' : `${sorted.length} ${sorted.length === 1 ? 'Item' : 'Items'}`}
+                  {searchQuery && (
+                    <span className="ms-1 fw-bold text-dark">
+                      for &ldquo;<span style={{ color: 'var(--pd-primary, #ea580c)' }}>{searchQuery}</span>&rdquo;
+                    </span>
+                  )}
                 </span>
               </div>
 
@@ -274,11 +303,26 @@ function ShopContent({ initialProducts }: ShopClientProps) {
               {searchQuery && (
                 <span style={{
                   display: 'inline-flex', alignItems: 'center', gap: '5px',
-                  background: 'rgba(var(--pd-primary-rgb,234,88,12),0.1)', color: 'var(--pd-primary)',
-                  borderRadius: '20px', padding: '3px 10px', fontSize: '0.72rem', fontWeight: 700
+                  background: 'rgba(var(--pd-primary-rgb,234,88,12),0.12)', color: 'var(--pd-primary)',
+                  borderRadius: '20px', padding: '3px 10px', fontSize: '0.72rem', fontWeight: 700,
+                  border: '1px solid rgba(var(--pd-primary-rgb,234,88,12),0.25)'
                 }}>
-                  &ldquo;{searchQuery}&rdquo;
-                  <i className="fas fa-times" style={{ cursor: 'pointer', fontSize: '9px' }} onClick={() => setSearchQuery(null)} />
+                  <i className="fas fa-search" style={{ fontSize: '9px', opacity: 0.8 }} />
+                  <span>&ldquo;{searchQuery}&rdquo;</span>
+                  <i
+                    className="fas fa-times"
+                    style={{ cursor: 'pointer', fontSize: '9px', padding: '1px' }}
+                    onClick={() => {
+                      setSearchQuery(null);
+                      setKeywords('');
+                      if (typeof window !== 'undefined') {
+                        const url = new URL(window.location.href);
+                        url.searchParams.delete('search');
+                        url.searchParams.delete('q');
+                        window.history.replaceState({}, '', url.toString());
+                      }
+                    }}
+                  />
                 </span>
               )}
               {priceRange.max < 150000 && (
@@ -291,10 +335,25 @@ function ShopContent({ initialProducts }: ShopClientProps) {
                   <i className="fas fa-times" style={{ cursor: 'pointer', fontSize: '9px' }} onClick={() => setPriceRange({ min: 0, max: 150000 })} />
                 </span>
               )}
-              <button onClick={handleReset} style={{
-                background: 'none', border: 'none', cursor: 'pointer',
-                fontSize: '0.72rem', color: '#94a3b8', fontWeight: 600, padding: '0 4px'
-              }}>
+              <button
+                onClick={() => {
+                  handleReset();
+                  if (typeof window !== 'undefined') {
+                    const url = new URL(window.location.href);
+                    url.searchParams.delete('search');
+                    url.searchParams.delete('q');
+                    url.searchParams.delete('category');
+                    url.searchParams.delete('minPrice');
+                    url.searchParams.delete('maxPrice');
+                    url.searchParams.delete('rating');
+                    window.history.replaceState({}, '', url.pathname);
+                  }
+                }}
+                style={{
+                  background: 'none', border: 'none', cursor: 'pointer',
+                  fontSize: '0.72rem', color: '#94a3b8', fontWeight: 600, padding: '0 4px'
+                }}
+              >
                 Clear all
               </button>
             </div>

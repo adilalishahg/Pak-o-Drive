@@ -58,6 +58,41 @@ This file serves as persistent dynamic memory across coding agent sessions. Ever
 
 ---
 
+### 2026-09-03 — Storefront Shop Search Query Visual Retention & Active Filter Badge
+- **📌 Issue**: User requested that whatever product search query is searched on the Shop page, it should remain typed inside the search box, and also appear prominently in the active filters / results summary (`jo search kro product wo idr likhi b aye`).
+- **🔍 Root Cause & Failed Attempts**:
+  1. `useShopFilters.ts` initialized `keywords` state to `''` instead of reading `searchParams.get('search')`, causing the search input to reset to empty placeholder on page load/navigation.
+  2. Search form submission did not synchronize browser history URL parameters, and active search filter chips lacked an icon and clear sync.
+- **🛠️ Verified Code Fix**:
+  1. Updated [useShopFilters.ts](file:///d:/proj/Pak-o-Drive/src/hooks/useShopFilters.ts) to initialize and bi-directionally sync `keywords` and `searchQuery` with URL search parameters.
+  2. Updated [ShopClient.tsx](file:///d:/proj/Pak-o-Drive/src/components/shop/ShopClient.tsx) to:
+     - Keep the searched keyword typed inside `<input value={keywords} />` with 1-click `✕` clear button.
+     - Display `11 Items for "keyword"` in the results count header.
+     - Display a prominent search filter chip: `Active: [ 🔍 "keyword" ✕ ]`.
+  3. Verified TypeScript compilation (`pnpm tsc --noEmit`) with 0 errors.
+
+### 2026-09-03 — Top Announcement Bar WhatsApp Helpline Pulse & Wiggle Animation
+- **📌 Issue**: User requested an eye-catching animation on the WhatsApp helpline number at the top of the storefront page so customers immediately notice the number and support channel.
+- **🔍 Root Cause & Failed Attempts**:
+  1. The WhatsApp number in `AnnouncementBar.tsx` was static with low contrast and lacked micro-animations to attract user attention.
+- **🛠️ Verified Code Fix**:
+  1. Updated [AnnouncementBar.tsx](file:///d:/proj/Pak-o-Drive/src/components/layout/AnnouncementBar.tsx) with a multi-layer animation suite:
+     - `whatsappPulseGlow`: Glowing breathing border aura (`rgba(37, 211, 102, 0.65)`).
+     - `whatsappIconWiggle`: Playful tilt/shake on the WhatsApp brand icon every 3.2 seconds.
+     - `liveRadarDot`: A bright green pulsating dot indicating live online customer support.
+  2. Increased text contrast and font weight for Pakistani phone numbers with touch elevation on hover.
+  3. Verified TypeScript compilation (`pnpm tsc --noEmit`) with 0 errors.
+
+### 2026-09-03 — Storefront Product Card Edge-to-Edge Image Presentation
+- **📌 Issue**: User reported that in the mobile storefront product grid cards, images appeared small with wide blank white margins/spacing on the left and right sides.
+- **🔍 Root Cause & Failed Attempts**:
+  1. `ProductCardModern.tsx` applied `objectFit: 'contain'` combined with internal `padding: '8px'` within a 1:1 square wrapper.
+  2. Vertical/portrait product photos shrank horizontally, creating empty vertical side pillars and reducing product visibility on mobile screens.
+- **🛠️ Verified Code Fix**:
+  1. Updated [ProductCardModern.tsx](file:///d:/proj/Pak-o-Drive/src/components/product/ProductCardModern.tsx) and [ProductCardCleanWhite.tsx](file:///d:/proj/Pak-o-Drive/src/components/product/ProductCardCleanWhite.tsx) to use `objectFit: 'cover'`, `objectPosition: 'center'`, and removed the `padding: '8px'`.
+  2. Images now dynamically fill 100% of the card header area without side spacing, making products large, sharp, and eye-catching on mobile screens.
+  3. Verified TypeScript compilation (`pnpm tsc --noEmit`) with 0 errors.
+
 ### 2026-09-03 — Pakistan Product Ads & Sales Analytics Dashboard Architecture
 - **📌 Issue**: User requested a dedicated admin route showing products, their order sales, active ads running in Pakistan sorted descending by ads volume (`desc`), filters for "Meri Products" (store catalog) vs. "All Over" (market trends across store categories), and a "View Ads" button routing to a dedicated ad creative blueprint page (`/admin/products/ads-analytics/[id]`).
 - **🔍 Root Cause & Failed Attempts**:

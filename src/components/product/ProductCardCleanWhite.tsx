@@ -101,7 +101,7 @@ export const ProductCardCleanWhite: React.FC<ProductCardCleanWhiteProps> = ({
             alt={product.name}
             fill
             sizes="(max-width: 575px) 50vw, (max-width: 991px) 33vw, 25vw"
-            className="max-h-full object-contain mix-blend-multiply group-hover:scale-105 transition-all duration-300"
+            className="w-full h-full object-cover group-hover:scale-105 transition-all duration-300"
             onError={handleImageError}
             itemProp="image"
             priority={priority}

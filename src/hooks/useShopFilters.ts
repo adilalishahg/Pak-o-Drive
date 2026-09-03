@@ -35,21 +35,27 @@ export interface ShopFiltersHookReturn {
 export function useShopFilters({ initialProducts }: ShopFiltersHookOptions): ShopFiltersHookReturn {
   const searchParams = useSearchParams();
 
+  const initialCat = searchParams.get('category');
+  const initialSearch = searchParams.get('search') || searchParams.get('q') || null;
+
   const [products, setProducts] = useState<IProduct[]>(initialProducts);
   const [loading, setLoading] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(searchParams.get('category'));
-  const [searchQuery, setSearchQuery] = useState<string | null>(searchParams.get('search'));
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(initialCat);
+  const [searchQuery, setSearchQuery] = useState<string | null>(initialSearch);
   const [priceRange, setPriceRange] = useState({ min: 0, max: 150000 });
   const [selectedRating, setSelectedRating] = useState<number | null>(null);
   const [sortBy, setSortBy] = useState('default');
-  const [keywords, setKeywords] = useState('');
+  const [keywords, setKeywords] = useState(initialSearch || '');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
 
   /* Sync URL params */
   useEffect(() => {
-    setSelectedCategory(searchParams.get('category'));
-    setSearchQuery(searchParams.get('search'));
+    const cat = searchParams.get('category');
+    const s = searchParams.get('search') || searchParams.get('q') || null;
+    setSelectedCategory(cat);
+    setSearchQuery(s);
+    setKeywords(s || '');
   }, [searchParams]);
 
   /* Fetch filtered products when user changes filters */

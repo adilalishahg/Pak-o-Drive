@@ -65,31 +65,92 @@ export const AnnouncementBar: React.FC = () => {
           </div>
         </div>
 
-        {/* Right: Dynamic WhatsApp Helpline */}
+        {/* Right: Dynamic WhatsApp Helpline with Live Animation */}
         <div style={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}>
+          <style dangerouslySetInnerHTML={{ __html: `
+            @keyframes whatsappPulseGlow {
+              0% {
+                box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.65);
+                border-color: rgba(37, 211, 102, 0.4);
+              }
+              50% {
+                box-shadow: 0 0 10px 2px rgba(37, 211, 102, 0.35);
+                border-color: rgba(37, 211, 102, 0.85);
+              }
+              100% {
+                box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.65);
+                border-color: rgba(37, 211, 102, 0.4);
+              }
+            }
+            @keyframes whatsappIconWiggle {
+              0%, 70%, 100% { transform: rotate(0deg) scale(1); }
+              75% { transform: rotate(-14deg) scale(1.2); }
+              80% { transform: rotate(14deg) scale(1.2); }
+              85% { transform: rotate(-8deg) scale(1.15); }
+              90% { transform: rotate(8deg) scale(1.1); }
+              95% { transform: rotate(0deg) scale(1); }
+            }
+            @keyframes liveRadarDot {
+              0% { transform: scale(0.9); opacity: 0.7; }
+              50% { transform: scale(1.4); opacity: 1; box-shadow: 0 0 8px #25D366; }
+              100% { transform: scale(0.9); opacity: 0.7; }
+            }
+            .whatsapp-announcement-pill:hover {
+              background: rgba(37, 211, 102, 0.28) !important;
+              transform: translateY(-1px) scale(1.02);
+            }
+          `}} />
           <a
             href={`https://wa.me/${digitsOnly}?text=${encodeURIComponent('Hi Pakodrive, I need support with an order.')}`}
             target="_blank"
             rel="noopener noreferrer"
+            className="whatsapp-announcement-pill"
             style={{
               color: '#25D366',
               textDecoration: 'none',
               display: 'inline-flex',
               alignItems: 'center',
-              gap: '4px',
-              fontSize: 'clamp(0.64rem, 1.7vw, 0.72rem)',
+              gap: '6px',
+              fontSize: 'clamp(0.68rem, 1.8vw, 0.76rem)',
               fontWeight: 700,
-              background: 'rgba(37, 211, 102, 0.12)',
-              padding: '2px 7px',
+              background: 'rgba(37, 211, 102, 0.16)',
+              padding: '3px 9px',
               borderRadius: '20px',
-              border: '1px solid rgba(37, 211, 102, 0.3)',
-              transition: 'background 0.15s ease',
+              border: '1px solid rgba(37, 211, 102, 0.5)',
+              animation: 'whatsappPulseGlow 2.4s infinite ease-in-out',
+              transition: 'all 0.2s ease',
+              lineHeight: 1.3,
             }}
             title="Chat on WhatsApp Helpline"
           >
-            <i className="fab fa-whatsapp" style={{ fontSize: '11px' }} />
-            <span className="d-none d-xs-inline">Helpline: </span>
-            <span>{cleanPhone}</span>
+            {/* Live Indicator Dot */}
+            <span
+              style={{
+                width: '6px',
+                height: '6px',
+                borderRadius: '50%',
+                background: '#25D366',
+                display: 'inline-block',
+                flexShrink: 0,
+                animation: 'liveRadarDot 1.8s infinite ease-in-out',
+              }}
+            />
+            {/* Wiggling WhatsApp Icon */}
+            <i
+              className="fab fa-whatsapp"
+              style={{
+                fontSize: '13px',
+                display: 'inline-block',
+                animation: 'whatsappIconWiggle 3.2s infinite ease-in-out',
+                color: '#25D366',
+              }}
+            />
+            <span className="d-none d-xs-inline" style={{ color: '#ffffff', opacity: 0.9 }}>
+              Helpline:
+            </span>
+            <span style={{ color: '#25D366', letterSpacing: '0.3px', fontWeight: 800 }}>
+              {cleanPhone}
+            </span>
           </a>
         </div>
       </div>

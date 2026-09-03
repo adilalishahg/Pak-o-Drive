@@ -124,7 +124,7 @@ export const ProductCardModern: React.FC<ProductCardModernProps> = ({
             alt={product.name}
             fill
             sizes="(max-width: 575px) 50vw, (max-width: 991px) 33vw, 25vw"
-            style={{ objectFit: 'contain', padding: '8px', transition: 'all 0.35s ease' }}
+            style={{ objectFit: 'cover', objectPosition: 'center', transition: 'all 0.35s ease' }}
             onError={handleImageError}
             itemProp="image"
             priority={priority}
