@@ -58,6 +58,18 @@ This file serves as persistent dynamic memory across coding agent sessions. Ever
 
 ---
 
+### 2026-09-03 — Saved Items (Wishlist) Visibility & Pre-Order Checkout Auto-Save
+- **📌 Issue**: User could not find where saved items (Wishlist) are displayed on mobile or desktop; also wondered how guest buyers get their saved delivery address on return visits when no account is created in the database.
+- **🔍 Root Cause & Failed Attempts**:
+  - `NavbarActions.tsx` received `wishlistCount` but never rendered a Wishlist / Heart button in the header.
+  - `MobileNavDrawer.tsx` had no "Saved Items (Wishlist)" link in the navigation menu.
+  - Checkout delivery address was only stored in `localStorage` AFTER the customer finalized and placed an order (`handlePlaceOrder`); typing details without placing the order did not save them.
+- **🛠️ Verified Code Fix**:
+  1. Added an interactive Heart icon button with a dynamic count badge in `src/components/layout/navbar/NavbarActions.tsx` (guarded with `isMounted` SSR check per Rule #1).
+  2. Added "Saved Items" link with a heart icon in `src/components/layout/Navbar.tsx` (`NAV_LINKS`) and `src/components/layout/MobileNavDrawer.tsx`.
+  3. Added debounced auto-persist in `src/hooks/useCheckout.ts`: whenever a customer fills Name, Phone, City, and Address, it auto-saves to `localStorage` (`pakodrive_saved_profile`) so returning users are greeted with the 1-Click Quick Card even if they hadn't completed an order yet.
+  4. Verified with `pnpm tsc --noEmit` passing with 0 errors.
+
 ### 2026-09-03 — Address Autocomplete Suggestions Dropdown Scrolling & Touch Pan
 - **📌 Issue**: On mobile and desktop checkout, when typing a location like `falcon complex, rawalp`, the address suggestions list could not be scrolled down to view all results; suggestions beyond the 4th item were inaccessible.
 - **🔍 Root Cause & Failed Attempts**:

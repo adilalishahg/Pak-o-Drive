@@ -59,6 +59,28 @@ export function useCheckout() {
     }
   }, []);
 
+  // Auto-persist profile locally as customer fills the fields (so they don't lose it if they refresh or return later)
+  useEffect(() => {
+    if (!isHydrated) return;
+    const { fullName, phone, city, address, email } = formData;
+    if (fullName.trim().length >= 3 && phone.trim().length >= 10 && city.trim() && address.trim().length >= 5) {
+      const timer = setTimeout(() => {
+        try {
+          const profile: SavedDeliveryProfile = {
+            fullName: fullName.trim(),
+            phone: phone.trim(),
+            city: city.trim(),
+            address: address.trim(),
+            email: email.trim(),
+            savedAt: Date.now(),
+          };
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(profile));
+        } catch {}
+      }, 600);
+      return () => clearTimeout(timer);
+    }
+  }, [formData, isHydrated]);
+
   const updateField = (field: keyof CheckoutFormData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
     if (error) setError(null);

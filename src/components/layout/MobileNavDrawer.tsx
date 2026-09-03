@@ -317,6 +317,8 @@ export function MobileNavDrawer({
                         ? 'fas fa-home'
                         : link.href.includes('shop')
                         ? 'fas fa-th-large'
+                        : link.href.includes('wishlist')
+                        ? 'fas fa-heart'
                         : link.href.includes('track')
                         ? 'fas fa-truck'
                         : 'fas fa-envelope'
