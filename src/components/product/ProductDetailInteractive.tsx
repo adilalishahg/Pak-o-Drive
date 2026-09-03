@@ -222,7 +222,7 @@ export const ProductDetailInteractive: React.FC<ProductDetailInteractiveProps> =
               </div>
               <div>
                 <span style={{ color: '#64748b' }}>Shipping: </span>
-                <span style={{ fontWeight: 600, color: '#15803d' }}>Free above PKR 5,000</span>
+                <span style={{ fontWeight: 600, color: '#15803d' }}>Free on 2 or more products</span>
               </div>
             </div>
 
@@ -261,7 +261,7 @@ export const ProductDetailInteractive: React.FC<ProductDetailInteractiveProps> =
               >
                 {[
                   { icon: 'fas fa-truck-moving', title: 'Cash on Delivery', desc: 'Pay upon parcel arrival' },
-                  { icon: 'fas fa-undo-alt', title: '7 Days Return', desc: 'Easy replacement warranty' },
+                  { icon: 'fas fa-truck', title: 'Free Delivery', desc: 'On 2+ products' },
                   { icon: 'fas fa-shield-check', title: '100% Original', desc: 'Quality checked product' },
                   { icon: 'fas fa-headset', title: 'WhatsApp Help', desc: '24/7 active customer support' },
                 ].map((b, i) => (

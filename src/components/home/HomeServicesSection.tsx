@@ -5,12 +5,12 @@ import { ThemeIcon } from '../common/ThemeIcon';
 import { useSiteTheme } from '../common/DynamicThemeProvider';
 
 const SERVICES = [
-  { icon: 'sync', title: 'Free Return', desc: '30-day money back guarantee', color: 'var(--pd-primary)' },
-  { icon: 'shipping', title: 'Fast Shipping', desc: 'Free on all orders', color: 'var(--pd-accent)' },
-  { icon: 'headset', title: 'Support 24/7', desc: 'Online help around the clock', color: '#8b5cf6' },
-  { icon: 'gift', title: 'Gift Cards', desc: 'For orders above PKR 5,000', color: '#ec4899' },
-  { icon: 'shield', title: 'Secure Payment', desc: 'Your data is always safe', color: 'var(--pd-success)' },
-  { icon: 'star', title: 'Top Rated', desc: '4.9★ average customer rating', color: '#eab308' },
+  { icon: 'shipping', title: 'Free Delivery', desc: 'On 2+ products', color: 'var(--pd-primary)' },
+  { icon: 'truck', title: 'Fast Shipping', desc: 'Nationwide delivery', color: 'var(--pd-accent)' },
+  { icon: 'headset', title: 'Support 24/7', desc: 'Online WhatsApp help', color: '#8b5cf6' },
+  { icon: 'gift', title: 'Bundle Deals', desc: 'Special package discounts', color: '#ec4899' },
+  { icon: 'shield', title: 'Secure Payment', desc: 'Cash On Delivery (COD)', color: 'var(--pd-success)' },
+  { icon: 'star', title: 'Top Rated', desc: '4.9★ verified quality', color: '#eab308' },
 ];
 
 export function HomeServicesSection() {
@@ -37,8 +37,8 @@ export function HomeServicesSection() {
                 <i className="fas fa-undo text-lg" style={{ color: theme.primaryColor }} />
               </div>
               <div>
-                <h4 className="text-sm font-bold text-slate-900">7-Day Returns</h4>
-                <p className="text-xs text-slate-500 mt-0.5">Money back guarantee</p>
+                <h4 className="text-sm font-bold text-slate-900">Free Delivery</h4>
+                <p className="text-xs text-slate-500 mt-0.5">On 2 or more products</p>
               </div>
             </div>
             <div className="flex items-center gap-4">

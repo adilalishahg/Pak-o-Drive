@@ -45,16 +45,18 @@ export const AnnouncementBar: React.FC = () => {
         {/* Left: Main Trust Message */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0, flexShrink: 1 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '5px', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-            <i className="fas fa-truck-moving" style={{ color: '#38bdf8', fontSize: '11px', flexShrink: 0 }} />
-            <span style={{ color: '#38bdf8', fontWeight: 700 }}>Cash On Delivery</span>
-            <span style={{ opacity: 0.75 }} className="d-none d-sm-inline">Available Nationwide</span>
+            <div className="d-flex align-items-center gap-1" style={{ color: '#fed7aa' }}>
+              <i className="fas fa-truck" style={{ fontSize: '11px' }} />
+              <span className="fw-semibold">Free Delivery on 2+ Products</span>
+              <span style={{ opacity: 0.75 }} className="d-none d-sm-inline">| Cash On Delivery</span>
+            </div>
           </div>
 
           <span style={{ opacity: 0.3 }} className="d-none d-md-inline">|</span>
 
           <div className="d-none d-md-flex align-items-center gap-1" style={{ color: '#a7f3d0' }}>
-            <i className="fas fa-undo-alt" style={{ fontSize: '11px' }} />
-            <span>7-Day Replacement Guarantee</span>
+            <i className="fas fa-box" style={{ fontSize: '11px' }} />
+            <span>100% Genuine Auto Parts</span>
           </div>
 
           <span style={{ opacity: 0.3 }} className="d-none d-lg-inline">|</span>

@@ -129,9 +129,9 @@ export const TRUST_BADGES = [
     subtitle: 'Pay cash when your parcel arrives at your doorstep',
   },
   {
-    icon: 'RotateCcw',
-    title: '7-Day Easy Replacement',
-    subtitle: 'Hassle-free exchange policy for any issues',
+    icon: 'Truck',
+    title: 'Free Delivery on 2+ Products',
+    subtitle: 'Order 2 or more products and get free delivery across Pakistan',
   },
   {
     icon: 'Truck',
