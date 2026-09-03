@@ -58,6 +58,17 @@ This file serves as persistent dynamic memory across coding agent sessions. Ever
 
 ---
 
+### 2026-09-03 — Mobile Smart Search with Token-Safe AI & Zero-Loss WhatsApp Lead Capture
+- **📌 Issue**: User requested a mobile header search button opening an interactive search overlay with live product/category suggestions as you type, high-efficiency AI intent suggestions that do not exhaust tokens on 1,000s of requests, and a fallback conversion card when an item is missing from the store inviting the user to inquire via WhatsApp while notifying the store owner.
+- **🔍 Root Cause & Failed Attempts**:
+  1. Relying exclusively on external LLM calls for every keystroke would rapidly exhaust token quotas and introduce 1000ms+ network latencies.
+  2. Mobile header had no dedicated search trigger, forcing users to scroll into the shop body or open the side drawer.
+- **🛠️ Verified Code Fix**:
+  1. **Token-Safe 3-Tier Search Engine**: Built [suggestions/route.ts](file:///d:/proj/Pak-o-Drive/src/app/api/search/suggestions/route.ts) featuring Tier 1 In-Memory Substring/Fuzzy catalog matching (0 AI tokens, 0ms), Tier 2 LRU Query Cache (0 AI tokens), and Tier 3 lightweight Gemini fallback capped at 50 tokens with automatic synonym dictionary failover.
+  2. **Zero-Result Recovery & Lead Logging**: Built [unfulfilled/route.ts](file:///d:/proj/Pak-o-Drive/src/app/api/search/unfulfilled/route.ts) logging unfulfilled searches, and [useMobileSmartSearch.ts](file:///d:/proj/Pak-o-Drive/src/hooks/useMobileSmartSearch.ts) generating pre-filled WhatsApp inquiry URLs (`wa.me/923XXXXXXXXX?text=...`).
+  3. **Presentational Modal & Header Search**: Built [MobileSearchModal.tsx](file:///d:/proj/Pak-o-Drive/src/components/layout/search/MobileSearchModal.tsx) with auto-focus, live suggestions list, and 0-result Pakistani conversion card. Mounted search trigger button in [NavbarActions.tsx](file:///d:/proj/Pak-o-Drive/src/components/layout/navbar/NavbarActions.tsx) and [Navbar.tsx](file:///d:/proj/Pak-o-Drive/src/components/layout/Navbar.tsx).
+  4. Verified TypeScript compilation (`pnpm tsc --noEmit`) with 0 errors.
+
 ### 2026-09-03 — Storefront Shop Search Query Visual Retention & Active Filter Badge
 - **📌 Issue**: User requested that whatever product search query is searched on the Shop page, it should remain typed inside the search box, and also appear prominently in the active filters / results summary (`jo search kro product wo idr likhi b aye`).
 - **🔍 Root Cause & Failed Attempts**:

@@ -11,6 +11,7 @@ interface NavbarActionsProps {
   mobileOpen: boolean;
   setMobileOpen: React.Dispatch<React.SetStateAction<boolean>>;
   primaryColor?: string;
+  onOpenSearch?: () => void;
 }
 
 export const NavbarActions: React.FC<NavbarActionsProps> = ({
@@ -21,9 +22,34 @@ export const NavbarActions: React.FC<NavbarActionsProps> = ({
   mobileOpen,
   setMobileOpen,
   primaryColor = '#2563eb',
+  onOpenSearch,
 }) => {
   return (
     <div className="flex items-center gap-1.5 sm:gap-2">
+      {/* Search Button (Mobile & Desktop) */}
+      <button
+        type="button"
+        onClick={onOpenSearch}
+        className="p-2 text-slate-700 hover:text-slate-900 rounded-full hover:bg-slate-100 transition-all border-0 bg-transparent flex items-center justify-center cursor-pointer"
+        aria-label="Search Products"
+        title="Search Products"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          strokeWidth="2"
+          stroke="currentColor"
+          className="w-5 h-5 sm:w-6 sm:h-6"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.604 10.604z"
+          />
+        </svg>
+      </button>
+
       {/* Track Order Button — Desktop */}
       <Link
         href="/track-order"

@@ -13,6 +13,8 @@ import { NavbarBrand } from './navbar/NavbarBrand';
 import { NavbarNavLinks } from './navbar/NavbarNavLinks';
 import { NavbarSearch } from './navbar/NavbarSearch';
 import { NavbarActions } from './navbar/NavbarActions';
+import { useMobileSmartSearch } from '@/hooks/useMobileSmartSearch';
+import { MobileSearchModal } from './search/MobileSearchModal';
 
 const NAV_LINKS = [
   { href: '/', label: 'Home' },
@@ -43,6 +45,8 @@ export const Navbar: React.FC = () => {
     mounted,
     handleSearch,
   } = useNavbar();
+
+  const smartSearch = useMobileSmartSearch();
 
   const safeCartCount = mounted ? cartCount : 0;
   const safeCartTotal = mounted ? cartTotal : 0;
@@ -109,6 +113,7 @@ export const Navbar: React.FC = () => {
                   mobileOpen={mobileOpen}
                   setMobileOpen={setMobileOpen}
                   primaryColor={pc}
+                  onOpenSearch={() => smartSearch.setIsOpen(true)}
                 />
               </div>
             </div>
@@ -127,6 +132,9 @@ export const Navbar: React.FC = () => {
           cartCount={safeCartCount}
           categoryTree={categoryTree}
         />
+
+        {/* Smart Search Modal with AI & WhatsApp Lead Recovery */}
+        <MobileSearchModal searchState={smartSearch} />
       </>
     );
   }
@@ -171,6 +179,7 @@ export const Navbar: React.FC = () => {
               mobileOpen={mobileOpen}
               setMobileOpen={setMobileOpen}
               primaryColor={pc}
+              onOpenSearch={() => smartSearch.setIsOpen(true)}
             />
           </div>
         </div>
@@ -187,6 +196,9 @@ export const Navbar: React.FC = () => {
         cartCount={safeCartCount}
         categoryTree={categoryTree}
       />
+
+      {/* Smart Search Modal with AI & WhatsApp Lead Recovery */}
+      <MobileSearchModal searchState={smartSearch} />
     </>
   );
 };
