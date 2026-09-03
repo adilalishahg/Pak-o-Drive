@@ -4,6 +4,7 @@ import dbConnect from '../../../../../../lib/mongodb';
 import Product from '../../../../../../models/Product';
 import Order from '../../../../../../models/Order';
 import { formatLiveAdLinks } from '../../../../../../lib/intelligenceEngine';
+import { resolveProductAdIntelligence } from '../../../../../../lib/adIntelligenceAi';
 import { ISingleProductAdDetails } from '../../../../../../types/productAds';
 
 export async function GET(
@@ -104,7 +105,8 @@ export async function GET(
     const estimatedSourcingCostPKR = Math.round(productPrice * 0.45);
     const estimatedProfitMarginPKR = productPrice - estimatedSourcingCostPKR - 350; // deducting estimated shipping
 
-    const liveLinks = formatLiveAdLinks(productName);
+    const aiAdData = await resolveProductAdIntelligence(productName, category, productPrice);
+    const liveLinks = formatLiveAdLinks(aiAdData.coreMarketTerm);
 
     const verbalHooks = [
       `Agar aap bhi roz is maslay se tang hain, tou yeh video aapke lye hai!`,
@@ -123,8 +125,8 @@ export async function GET(
     ];
 
     const voiceoverScripts = [
-      `Kia aap bhi standard accessories se tang aa chukay hain? Paish hai ${productName}! Iski build quality aur performance unmatchable hai. Abhi order karein pure Pakistan mein Cash on Delivery ke sath. Stock limited hai!`,
-      `Internet par viral yeh ${productName} ab official Pak-o-Drive par available hai. Wholesale price aur 7 days return guarantee ke sath apne ghar mangwayein. Click order now button!`,
+      `Kia aap bhi standard accessories se tang aa chukay hain? Paish hai ${aiAdData.coreMarketTerm}! Iski build quality aur performance unmatchable hai. Abhi order karein pure Pakistan mein Cash on Delivery ke sath. Stock limited hai!`,
+      `Internet par viral yeh ${aiAdData.coreMarketTerm} ab official Pak-o-Drive par available hai. Wholesale price aur 7 days return guarantee ke sath apne ghar mangwayein. Click order now button!`,
       `Yeh gadget aapki rozmarrah ki zindagi ko 10 gunna aasan bana dega! Check karein iski unboxing aur features. Cash on Delivery available nationwide.`,
     ];
 
@@ -137,6 +139,8 @@ export async function GET(
       originalPrice,
       stock,
       isStoreProduct,
+      coreMarketTerm: aiAdData.coreMarketTerm,
+      marketKeywords: aiAdData.marketKeywords,
       totalSold,
       totalRevenuePKR,
       ordersCount,
@@ -149,6 +153,7 @@ export async function GET(
       metaAdLibraryPkUrl: liveLinks.metaAdLibraryPk,
       tiktokSearchPkUrl: liveLinks.tiktokSearchPk,
       youtubeReviewPkUrl: liveLinks.youtubeSearchPk,
+      topCompetitorAds: aiAdData.topCompetitorAds,
 
       viralHook: {
         textOnScreen: screenTexts[absHash % screenTexts.length],

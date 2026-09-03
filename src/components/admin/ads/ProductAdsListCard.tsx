@@ -91,6 +91,13 @@ export function ProductAdsListCard({ product, rank }: ProductAdsListCardProps) {
               {product.name}
             </h5>
 
+            {product.coreMarketTerm && (
+              <div className="small text-muted mb-1.5 d-flex align-items-center gap-1" style={{ fontSize: '0.78rem' }}>
+                <i className="fas fa-robot text-primary" style={{ fontSize: '0.75rem' }} />
+                <span>AI Market Key: <strong className="text-dark">&ldquo;{product.coreMarketTerm}&rdquo;</strong></span>
+              </div>
+            )}
+
             {/* Price & Competitor Comparison */}
             <div className="d-flex align-items-baseline gap-2 mb-2.5 flex-wrap">
               <span className="fw-bold text-dark" style={{ fontSize: '1.15rem', color: '#c2410c' }}>

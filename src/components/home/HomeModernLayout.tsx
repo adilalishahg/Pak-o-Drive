@@ -9,6 +9,7 @@ import { HeroSlider } from '@/components/common/HeroSlider';
 import { ProductCardAuto } from '@/components/product/ProductCardAuto';
 import { HomeServicesSection } from './HomeServicesSection';
 import { HomeOfferBanners } from './HomeOfferBanners';
+import { HomeCampaignOfferBanner } from './HomeCampaignOfferBanner';
 import { HomeStatsSection } from './HomeStatsSection';
 import { ThemeIcon } from '@/components/common/ThemeIcon';
 import { ProductTabKey, CategorySection } from '@/hooks/useHomePage';
@@ -200,6 +201,9 @@ export const HomeModernLayout: React.FC<HomeModernLayoutProps> = ({
 
       {/* ── Services Strip ───────────────────────────────── */}
       <HomeServicesSection />
+
+      {/* ── Multi-Product Hybrid Campaign / Bundle Banner ─ */}
+      <HomeCampaignOfferBanner />
 
       {/* ── Offer Banners ────────────────────────────────── */}
       <HomeOfferBanners offers={dynamicOffers} />

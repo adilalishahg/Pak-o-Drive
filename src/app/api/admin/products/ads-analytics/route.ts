@@ -3,8 +3,9 @@ import dbConnect from '../../../../../lib/mongodb';
 import Product from '../../../../../models/Product';
 import Order from '../../../../../models/Order';
 import Category from '../../../../../models/Category';
-import { formatLiveAdLinks, generateTrendingIntelligence, getFallbackIntelligence } from '../../../../../lib/intelligenceEngine';
-import { IProductAdAnalytics, ProductAdsAnalyticsResponse, ProductAdsScope } from '../../../../../types/productAds';
+import { formatLiveAdLinks, generateTrendingIntelligence, getFallbackIntelligence } from '@/lib/intelligenceEngine';
+import { extractFallbackMarketTerm, generate5CompetitorAds } from '@/lib/adIntelligenceAi';
+import { IProductAdAnalytics, ProductAdsScope, ProductAdsSortBy, ProductAdsAnalyticsResponse } from '@/types/productAds';
 
 // Deterministic seed helper to generate realistic, stable ad intelligence metrics per product
 function generateAdMetrics(name: string, category: string, price: number, totalSold: number) {
@@ -40,7 +41,9 @@ function generateAdMetrics(name: string, category: string, price: number, totalS
   ];
   const topAdAngle = angles[absHash % angles.length];
 
-  const liveLinks = formatLiveAdLinks(name);
+  const fallback = extractFallbackMarketTerm(name);
+  const liveLinks = formatLiveAdLinks(fallback.coreTerm);
+  const topAds = generate5CompetitorAds(name, fallback.coreTerm, price);
 
   return {
     activeAdsCountPK,
@@ -48,10 +51,13 @@ function generateAdMetrics(name: string, category: string, price: number, totalS
     estimatedDailySpendPKR,
     competitorPricePKR,
     topAdAngle,
+    coreMarketTerm: fallback.coreTerm,
+    marketKeywords: fallback.keywords,
     platforms: ['Meta', 'TikTok', 'Instagram'] as ('Meta' | 'TikTok' | 'Instagram')[],
     metaAdLibraryPkUrl: liveLinks.metaAdLibraryPk,
     tiktokSearchPkUrl: liveLinks.tiktokSearchPk,
     youtubeReviewPkUrl: liveLinks.youtubeSearchPk,
+    topCompetitorAds: topAds,
   };
 }
 
@@ -177,7 +183,7 @@ export async function GET(request: Request) {
         ]).catch(() => getFallbackIntelligence(storeProductsDocs, 15));
 
         if (intelligencePayload && intelligencePayload.topTrends) {
-          intelligencePayload.topTrends.forEach((trend) => {
+          intelligencePayload.topTrends.forEach((trend: any) => {
             // Check if product already exists in store
             const exists = finalProducts.some(
               (p) => p.name.toLowerCase().trim() === trend.productName.toLowerCase().trim()

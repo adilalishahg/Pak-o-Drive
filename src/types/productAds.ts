@@ -1,6 +1,20 @@
 export type ProductAdsScope = 'my_products' | 'all';
 export type ProductAdsSortBy = 'ads_desc' | 'sales_desc' | 'demand_desc' | 'price_asc' | 'price_desc';
 
+export interface ICompetitorAd {
+  id: string;
+  platform: 'TikTok' | 'Meta' | 'Instagram' | 'Facebook' | 'YouTube';
+  adTitle: string;
+  adAngle: string;
+  format: string;
+  adSearchQuery: string;
+  directAdUrl: string;
+  estimatedSpendPKR: number;
+  activeDays: number;
+  hookUrdu: string;
+  performanceRating: '🔥 Scaling Campaign' | '⭐ Top Performer' | '⚡ High CTR Creative';
+}
+
 export interface IProductAdAnalytics {
   id: string;
   name: string;
@@ -12,6 +26,10 @@ export interface IProductAdAnalytics {
   stock: number;
   isStoreProduct: boolean;
   
+  // AI Derived Market Entity
+  coreMarketTerm?: string;
+  marketKeywords?: string[];
+
   // Sales Metrics
   totalSold: number;
   totalRevenuePKR: number;
@@ -29,6 +47,9 @@ export interface IProductAdAnalytics {
   metaAdLibraryPkUrl: string;
   tiktokSearchPkUrl: string;
   youtubeReviewPkUrl: string;
+
+  // Top 5 Competitor Ads
+  topCompetitorAds?: ICompetitorAd[];
 }
 
 export interface ISingleProductAdDetails extends IProductAdAnalytics {

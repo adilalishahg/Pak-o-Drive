@@ -58,6 +58,19 @@ This file serves as persistent dynamic memory across coding agent sessions. Ever
 
 ---
 
+### 2026-09-03 — Multi-Product Hybrid Sale & Bundle Offer Banner Suite
+- **📌 Issue**: User requested the ability to select multiple products (2 or more) in the Admin panel and configure a Hybrid sale offer banner (Flash Sale with individual discounts or Combo Package Deal with single bundle price) displaying uncropped product photos, countdown timer, cut rates, and deal prices on the storefront.
+- **🔍 Root Cause & Failed Attempts**:
+  1. Storefront only had static 2-card offer banners in `SiteSettings` with no dynamic multi-product aggregation, live countdown timers, or multi-select campaign editor.
+  2. Mongoose schema required `slug` on sub-documents when some catalog products had missing slugs; resolved with resilient default fallback values.
+- **🛠️ Verified Code Fix**:
+  1. Created [CampaignOffer.ts](file:///d:/proj/Pak-o-Drive/src/models/CampaignOffer.ts) model supporting `flash_sale` and `combo_bundle` modes, multi-product arrays, countdown expiry, and theme gradients.
+  2. Built API endpoints: [campaign-offers/route.ts](file:///d:/proj/Pak-o-Drive/src/app/api/admin/campaign-offers/route.ts), [[id]/route.ts](file:///d:/proj/Pak-o-Drive/src/app/api/admin/campaign-offers/[id]/route.ts), and public cached [active/route.ts](file:///d:/proj/Pak-o-Drive/src/app/api/campaign-offers/active/route.ts).
+  3. Built custom hooks [useAdminCampaignOffers.ts](file:///d:/proj/Pak-o-Drive/src/hooks/useAdminCampaignOffers.ts) and [useActiveCampaignOffer.ts](file:///d:/proj/Pak-o-Drive/src/hooks/useActiveCampaignOffer.ts) (Rule #8).
+  4. Built Admin UI [CampaignOfferEditorModal.tsx](file:///d:/proj/Pak-o-Drive/src/components/admin/promotions/CampaignOfferEditorModal.tsx) & [CampaignOfferList.tsx](file:///d:/proj/Pak-o-Drive/src/components/admin/promotions/CampaignOfferList.tsx) integrated into tabbed [promotions/page.tsx](file:///d:/proj/Pak-o-Drive/src/app/admin/promotions/page.tsx).
+  5. Built storefront [HomeCampaignOfferBanner.tsx](file:///d:/proj/Pak-o-Drive/src/components/home/HomeCampaignOfferBanner.tsx) with countdown timer, Dual-Layer Blur uncropped cards (Rule #3), 1-click WhatsApp bundle order, and integrated into [HomeModernLayout.tsx](file:///d:/proj/Pak-o-Drive/src/components/home/HomeModernLayout.tsx) & [HomeCleanWhiteLayout.tsx](file:///d:/proj/Pak-o-Drive/src/components/home/HomeCleanWhiteLayout.tsx).
+  6. Verified compilation via `pnpm tsc --noEmit` exiting with code 0.
+
 ### 2026-09-03 — Mobile Smart Search with Token-Safe AI & Zero-Loss WhatsApp Lead Capture
 - **📌 Issue**: User requested a mobile header search button opening an interactive search overlay with live product/category suggestions as you type, high-efficiency AI intent suggestions that do not exhaust tokens on 1,000s of requests, and a fallback conversion card when an item is missing from the store inviting the user to inquire via WhatsApp while notifying the store owner.
 - **🔍 Root Cause & Failed Attempts**:

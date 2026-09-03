@@ -11,6 +11,7 @@ import { HeroSlider } from '@/components/common/HeroSlider';
 import { HeroSlide } from '@/types/common';
 import { CategorySection } from '@/hooks/useHomePage';
 import { CategoryProductsBlock } from './CategoryProductsBlock';
+import { HomeCampaignOfferBanner } from './HomeCampaignOfferBanner';
 
 export interface HomeCleanWhiteLayoutProps {
   theme: SiteTheme;
@@ -270,6 +271,9 @@ export const HomeCleanWhiteLayout: React.FC<HomeCleanWhiteLayoutProps> = ({
           )}
         </section>
       )}
+
+      {/* ── Multi-Product Hybrid Campaign / Bundle Banner ─ */}
+      <HomeCampaignOfferBanner />
 
       {/* ── Value Propositions ── */}
       {valProps.enabled && (

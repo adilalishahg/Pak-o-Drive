@@ -7,7 +7,7 @@ export function useSingleProductAds(productId: string) {
   const [details, setDetails] = useState<ISingleProductAdDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'hooks' | 'blueprint' | 'competitor' | 'targeting'>('hooks');
+  const [activeTab, setActiveTab] = useState<'top_ads' | 'hooks' | 'blueprint' | 'competitor' | 'targeting'>('top_ads');
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
 
   const fetchDetails = useCallback(async () => {

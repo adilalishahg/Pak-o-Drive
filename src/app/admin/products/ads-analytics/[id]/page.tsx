@@ -144,6 +144,15 @@ export default function SingleProductAdIntelligencePage() {
               </span>
             </div>
 
+            {details.coreMarketTerm && (
+              <div className="d-flex align-items-center gap-2 mb-2 p-1.5 px-3 rounded-pill bg-primary bg-opacity-10 border border-primary border-opacity-20" style={{ width: 'fit-content' }}>
+                <i className="fas fa-robot text-primary" />
+                <span className="small text-dark fw-semibold" style={{ fontSize: '0.78rem' }}>
+                  AI Market Entity: <strong className="text-primary">&ldquo;{details.coreMarketTerm}&rdquo;</strong> (Ads searched by actual product entity)
+                </span>
+              </div>
+            )}
+
             <h4 className="fw-bold text-dark mb-1 leading-normal py-0.5">
               {details.name}
             </h4>
@@ -175,6 +184,20 @@ export default function SingleProductAdIntelligencePage() {
 
       {/* Tabbed Ad Intelligence Navigator */}
       <div className="d-flex align-items-center gap-1.5 p-1 bg-light rounded-pill border mb-4 flex-wrap" style={{ width: 'fit-content' }}>
+        <button
+          type="button"
+          onClick={() => setActiveTab('top_ads')}
+          className={`btn btn-sm rounded-pill px-3.5 py-1.5 fw-bold transition-all d-flex align-items-center gap-1.5 ${
+            activeTab === 'top_ads' ? 'btn-primary text-white shadow-sm' : 'text-muted border-0 bg-transparent'
+          }`}
+          style={{ fontSize: '0.82rem' }}
+        >
+          <i className="fas fa-bullhorn" />
+          <span>Top 5 Competitor Ads (TikTok, Meta, Insta)</span>
+          <span className="badge bg-warning text-dark rounded-pill px-1.5" style={{ fontSize: '0.65rem' }}>
+            {details.topCompetitorAds?.length || 5}
+          </span>
+        </button>
         <button
           type="button"
           onClick={() => setActiveTab('hooks')}
@@ -216,6 +239,143 @@ export default function SingleProductAdIntelligencePage() {
           🎯 Pakistan Ads Targeting
         </button>
       </div>
+
+      {/* Tab 0: Top 5 Competitor Ads (AI Resolved across TikTok, Meta, Instagram) */}
+      {activeTab === 'top_ads' && (
+        <div className="mb-4">
+          <div className="card border-0 shadow-sm rounded-4 p-3 p-md-4 bg-white mb-4">
+            <div className="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+              <div>
+                <h5 className="fw-bold text-dark mb-1 leading-normal py-0.5">
+                  🎯 Top Competitor Ads Running in Pakistan ({details.topCompetitorAds?.length || 5} Verified Creatives)
+                </h5>
+                <p className="text-muted small mb-0" style={{ fontSize: '0.8rem' }}>
+                  AI has analyzed market search intent for <strong>&ldquo;{details.coreMarketTerm || details.name}&rdquo;</strong> and found top scaling creatives across TikTok, Meta, and Instagram.
+                </p>
+              </div>
+
+              <div className="d-flex align-items-center gap-1.5 flex-wrap">
+                <span className="badge bg-dark rounded-pill px-2.5 py-1">TikTok</span>
+                <span className="badge bg-primary rounded-pill px-2.5 py-1">Meta</span>
+                <span className="badge bg-danger rounded-pill px-2.5 py-1">Instagram</span>
+              </div>
+            </div>
+
+            <div className="row g-3">
+              {(details.topCompetitorAds || []).map((ad, idx) => {
+                const isTikTok = ad.platform === 'TikTok';
+                const isMeta = ad.platform === 'Meta' || ad.platform === 'Facebook';
+                const isInsta = ad.platform === 'Instagram';
+
+                return (
+                  <div key={ad.id || idx} className="col-12 col-lg-6">
+                    <div
+                      className="card h-100 border rounded-4 p-3 p-md-4 transition-all"
+                      style={{
+                        background: '#ffffff',
+                        borderColor: '#e2e8f0',
+                        boxShadow: '0 2px 10px rgba(0,0,0,0.03)',
+                      }}
+                    >
+                      {/* Platform & Status Header */}
+                      <div className="d-flex align-items-center justify-content-between mb-2.5">
+                        <div className="d-flex align-items-center gap-2">
+                          <span
+                            className="badge rounded-pill px-2.5 py-1 fw-bold text-white d-flex align-items-center gap-1"
+                            style={{
+                              background: isTikTok
+                                ? '#000000'
+                                : isMeta
+                                ? '#1877F2'
+                                : isInsta
+                                ? 'linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888)'
+                                : '#475569',
+                              fontSize: '0.72rem',
+                            }}
+                          >
+                            <i className={isTikTok ? 'fab fa-tiktok' : isMeta ? 'fab fa-facebook' : 'fab fa-instagram'} />
+                            <span>{ad.platform} Ad</span>
+                          </span>
+
+                          <span className="badge bg-light text-muted border rounded-pill px-2 py-0.5" style={{ fontSize: '0.68rem' }}>
+                            {ad.format}
+                          </span>
+                        </div>
+
+                        <span className="badge bg-warning bg-opacity-20 text-dark rounded-pill px-2 py-1 fw-bold" style={{ fontSize: '0.68rem' }}>
+                          {ad.performanceRating}
+                        </span>
+                      </div>
+
+                      {/* Title & Angle */}
+                      <h6 className="fw-bold text-dark mb-1.5 leading-normal py-0.5" style={{ fontSize: '0.94rem' }}>
+                        {ad.adTitle}
+                      </h6>
+
+                      <div className="text-muted small mb-2.5" style={{ fontSize: '0.78rem' }}>
+                        <i className="fas fa-bullseye me-1 text-primary" />
+                        <b>Angle:</b> {ad.adAngle}
+                      </div>
+
+                      {/* Hook in Urdu Quote Box */}
+                      <blockquote
+                        className="p-2.5 px-3 rounded-3 mb-3 border-start border-3"
+                        style={{
+                          background: '#f8fafc',
+                          borderColor: isTikTok ? '#000' : isMeta ? '#1877f2' : '#e1306c',
+                        }}
+                      >
+                        <div className="small text-muted mb-0.5 fw-bold" style={{ fontSize: '0.68rem' }}>
+                          🎙️ SPOKEN VIRAL HOOK (URDU):
+                        </div>
+                        <p className="fw-semibold text-dark mb-0 leading-normal" style={{ fontSize: '0.84rem' }}>
+                          &ldquo;{ad.hookUrdu}&rdquo;
+                        </p>
+                      </blockquote>
+
+                      {/* Metrics Strip */}
+                      <div className="d-flex align-items-center justify-content-between p-2 bg-light rounded-3 mb-3 small">
+                        <div>
+                          <span className="text-muted d-block" style={{ fontSize: '0.68rem' }}>Est. Daily Spend</span>
+                          <span className="fw-bold text-danger" style={{ fontSize: '0.82rem' }}>
+                            ~Rs. {ad.estimatedSpendPKR.toLocaleString()} / day
+                          </span>
+                        </div>
+                        <div className="vr text-muted" />
+                        <div>
+                          <span className="text-muted d-block" style={{ fontSize: '0.68rem' }}>Active Campaign</span>
+                          <span className="fw-bold text-success" style={{ fontSize: '0.82rem' }}>
+                            {ad.activeDays} Days Running
+                          </span>
+                        </div>
+                        <div className="vr text-muted" />
+                        <div>
+                          <span className="text-muted d-block" style={{ fontSize: '0.68rem' }}>Market Search Key</span>
+                          <span className="fw-bold text-primary font-monospace" style={{ fontSize: '0.75rem' }}>
+                            {ad.adSearchQuery}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* 1-Click Direct Ad URL */}
+                      <a
+                        href={ad.directAdUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="btn btn-sm btn-outline-dark rounded-pill py-2 w-100 d-flex align-items-center justify-content-center gap-1.5 fw-bold mt-auto"
+                        style={{ fontSize: '0.82rem' }}
+                      >
+                        <span>Open Live {ad.platform} Ad in Pakistan</span>
+                        <i className="fas fa-external-link-alt" style={{ fontSize: '0.72rem' }} />
+                      </a>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Tab 1: Viral Hooks & Headlines */}
       {activeTab === 'hooks' && (
