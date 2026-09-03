@@ -58,6 +58,22 @@ This file serves as persistent dynamic memory across coding agent sessions. Ever
 
 ---
 
+### 2026-09-03 — Mobile Bundle Page Interactive Gallery, Quick-Inspect Modal & Free Delivery (2+ Items) Policy
+- **📌 Issue**: 
+  1. Production build failed on Vercel with `Module not found: Can't resolve 'tls'` because server-side `whatsappNotification.ts` was imported in client component `BundleDetailInteractive.tsx`.
+  2. Mobile bundle page hero image was static — tapping thumbnails did not switch the active main image to inspect other items.
+  3. Included products list could not be tapped to inspect individual product details.
+  4. User requested removing "7-Day Warranty" and updating delivery policy to "Free Delivery on 2 or more products".
+- **🔍 Root Cause & Failed Attempts**:
+  - `whatsappNotification.ts` initialized backend Baileys bot and Mongoose, which Webpack attempted to package into the client bundle, causing the `tls` module resolution crash.
+  - `BundleDetailInteractive.tsx` lacked active product index state and touch handlers on thumbnails/list rows.
+- **🛠️ Verified Code Fix**:
+  1. Removed `whatsappNotification.ts` from client components and used `process.env.NEXT_PUBLIC_WHATSAPP_NUMBER` with type-only Mongoose imports.
+  2. Built interactive Hero Gallery with `[ < ]` and `[ > ]` overlay buttons, active product item counter (`Item X of Y`), and tap-to-switch thumbnails with active orange border highlight.
+  3. Built tap-to-inspect Quick View Modal for included items, displaying full product photo, deal rate, bundle benefit tag, and standalone product link (`/product/${slug}`).
+  4. Updated policy across `BundleDetailInteractive.tsx`, `AnnouncementBar.tsx`, `HomeServicesSection.tsx`, `ProductDetailInteractive.tsx`, and `constants.ts`: removed all 7-day warranty references and replaced with **"Free Delivery on 2+ Products"** and **"Cash on Delivery"**.
+  5. Verified `next build` passing with code 0 and pushed commit `faa8124` to `origin/main`.
+
 ### 2026-09-03 — Dedicated Campaign Bundle Detail Showcase Page & 404 Resolution
 - **📌 Issue**: When clicking on a campaign bundle item in the cart or navigating to `/product/bundle_{id}`, the page returned `404 This page could not be found.` because `/product/[id]` and `getCachedProduct` only queried the standard `Product` collection and had no schema resolution for `CampaignOffer`.
 - **🔍 Root Cause & Failed Attempts**:
