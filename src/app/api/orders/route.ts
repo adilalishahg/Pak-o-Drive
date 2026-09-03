@@ -1,7 +1,9 @@
 import { NextResponse } from 'next/server';
+import mongoose from 'mongoose';
 import dbConnect from '../../../lib/mongodb';
 import Order from '../../../models/Order';
 import Product from '../../../models/Product';
+import CampaignOffer from '../../../models/CampaignOffer';
 import { fireConversionEvent } from '../../../utils/conversionApi';
 import { sendAdminOrderNotification } from '../../../lib/whatsappNotification';
 import { checkRateLimit } from '@/lib/rateLimiter';
@@ -125,11 +127,51 @@ export async function POST(request: Request) {
     const stockDecrementsToRollback: { productId: string; variantId?: string; quantity: number }[] = [];
 
     for (const cartItem of items) {
-      const dbProduct = await Product.findById(cartItem.productId);
+      // Check if item is a promotional Campaign Offer / Bundle
+      const isBundle =
+        typeof cartItem.productId === 'string' &&
+        (cartItem.productId.startsWith('bundle_') || cartItem.productId.startsWith('offer_'));
+
+      if (isBundle) {
+        const rawOfferId = cartItem.productId.replace(/^(bundle_|offer_)/, '');
+        let offer = null;
+        if (mongoose.Types.ObjectId.isValid(rawOfferId)) {
+          offer = await CampaignOffer.findById(rawOfferId);
+        }
+
+        if (offer) {
+          const dealPrice =
+            offer.offerType === 'combo_bundle' && offer.bundlePrice > 0
+              ? offer.bundlePrice
+              : offer.products.reduce((a: number, b: any) => a + (b.offerPrice || 0), 0);
+          const includedNames = offer.products.map((p: any) => p.name).join(' + ');
+
+          resolvedItems.push({
+            productId: cartItem.productId,
+            name: `${offer.title} (${offer.products.length} Items Package)`,
+            price: dealPrice,
+            quantity: cartItem.quantity,
+            image: offer.products[0]?.image || '/img/product-placeholder.png',
+            variantName: cartItem.variantName || `Package Deal: ${includedNames}`,
+            variantId: cartItem.variantId || `var_${offer._id}`,
+          });
+
+          calculatedTotal += dealPrice * cartItem.quantity;
+          continue; // Bundle items bypass individual single-product stock decrements
+        }
+      }
+
+      let dbProduct = null;
+      if (mongoose.Types.ObjectId.isValid(cartItem.productId)) {
+        dbProduct = await Product.findById(cartItem.productId);
+      }
+      if (!dbProduct) {
+        dbProduct = await Product.findOne({ slug: cartItem.productId });
+      }
 
       if (!dbProduct) {
         return NextResponse.json(
-          { success: false, error: `Product with ID ${cartItem.productId} not found.` },
+          { success: false, error: `Product with ID or Slug "${cartItem.productId}" not found.` },
           { status: 404 }
         );
       }
