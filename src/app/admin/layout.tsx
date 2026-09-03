@@ -4,6 +4,8 @@ import React, { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { AdminUploadProvider } from '../../context/AdminUploadContext';
+import { AdminErrorProvider } from '../../context/AdminErrorContext';
+import { AdminGlobalErrorBar } from '../../components/admin/common/AdminGlobalErrorBar';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -34,6 +36,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       router.push('/admin/login');
     } else {
       setAuthorized(true);
+      // Keep admin cookie refreshed for mobile and API upload sessions (30 days)
+      document.cookie = "admin_token=pakodrive_admin_secret_token; path=/; max-age=2592000; SameSite=Lax";
     }
   }, [router, pathname]);
 
@@ -50,6 +54,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const menuItems = [
     { name: 'Dashboard', path: '/admin', icon: 'fas fa-chart-line' },
     { name: 'Products', path: '/admin/products', icon: 'fas fa-box' },
+    { name: 'Product Ads & Sales', path: '/admin/products/ads-analytics', icon: 'fas fa-bullhorn' },
     { name: 'Categories', path: '/admin/categories', icon: 'fas fa-tags' },
     { name: 'Orders & Sales', path: '/admin/orders', icon: 'fas fa-shopping-cart' },
     { name: 'Promotions', path: '/admin/promotions', icon: 'fas fa-percentage' },
@@ -64,9 +69,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
 
   return (
-    <AdminUploadProvider>
-      <div
-        className="d-flex min-vh-100"
+    <AdminErrorProvider>
+      <AdminUploadProvider>
+        <div
+          className="d-flex min-vh-100"
         style={{
           background: '#f8fafc',
           fontFamily: "'Inter', sans-serif",
@@ -117,6 +123,18 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               overflow: hidden !important;
               text-overflow: ellipsis !important;
             }
+          }
+          @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-12px); }
+            to { opacity: 1; transform: translateY(0); }
+          }
+          @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+          }
+          @keyframes slideInRight {
+            from { transform: translateX(100%); }
+            to { transform: translateX(0); }
           }
         `}} />
 
@@ -170,7 +188,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <div className="flex-grow-1 p-3 overflow-y-auto admin-sidebar-nav-container">
             <ul className="nav flex-column gap-2 admin-sidebar-nav">
               {menuItems.map((item) => {
-                const isActive = pathname === item.path;
+                const isActive =
+                  pathname === item.path ||
+                  (item.path === '/admin/products/ads-analytics' && pathname?.startsWith('/admin/products/ads-analytics')) ||
+                  (item.path === '/admin/products' && pathname?.startsWith('/admin/products') && !pathname?.startsWith('/admin/products/ads-analytics'));
                 return (
                   <li key={item.path} className="nav-item">
                     <Link
@@ -263,6 +284,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
           {/* Content Body */}
           <main className="p-2 p-sm-3 p-md-4 flex-grow-1 w-100 min-w-0 overflow-x-hidden" style={{ maxWidth: '1600px', margin: '0 auto' }}>
+            <AdminGlobalErrorBar />
             {authorized ? children : (
               <div className="d-flex align-items-center justify-content-center" style={{ minHeight: '300px' }}>
                 <div className="spinner-border text-primary" role="status">
@@ -274,5 +296,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </div>
       </div>
     </AdminUploadProvider>
+  </AdminErrorProvider>
   );
 }

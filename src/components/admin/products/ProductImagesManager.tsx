@@ -15,6 +15,7 @@ interface ProductImagesManagerProps {
   setMainImageError: (v: boolean) => void;
   galleryImageErrors: Record<number, boolean>;
   setGalleryImageErrors: React.Dispatch<React.SetStateAction<Record<number, boolean>>>;
+  mediaFeedback?: { type: 'success' | 'error'; message: string } | null;
   video: string;
   setVideo: (v: string) => void;
   showVideoOnFront?: boolean;
@@ -40,6 +41,7 @@ export function ProductImagesManager({
   setMainImageError,
   galleryImageErrors,
   setGalleryImageErrors,
+  mediaFeedback,
   video,
   setVideo,
   showVideoOnFront,
@@ -96,14 +98,20 @@ export function ProductImagesManager({
                 <input
                   type="file"
                   id="image"
-                  accept="image/*"
+                  accept="image/*,image/heic,image/heif,.jpg,.jpeg,.png,.webp,.avif,.gif,.heic,.heif"
                   className={`form-control ${validationErrors.image ? 'is-invalid' : ''}`}
                   onChange={onFileChange}
                   disabled={uploading}
                 />
                 {uploading && (
-                  <div className="small text-primary mt-1">
-                    <span className="spinner-border spinner-border-sm me-1" /> Optimizing & Uploading to Cloudinary...
+                  <div className="small text-primary mt-1 fw-semibold">
+                    <span className="spinner-border spinner-border-sm me-1" /> Processing &amp; Uploading Image...
+                  </div>
+                )}
+                {mediaFeedback && (
+                  <div className={`alert ${mediaFeedback.type === 'success' ? 'alert-success' : 'alert-danger'} py-1 px-2 mt-2 mb-1 rounded-2 d-flex align-items-center gap-2`} style={{ fontSize: '0.8rem' }}>
+                    <i className={`fas ${mediaFeedback.type === 'success' ? 'fa-check-circle' : 'fa-exclamation-triangle'}`} />
+                    <span>{mediaFeedback.message}</span>
                   </div>
                 )}
                 {validationErrors.image && <div className="invalid-feedback">{validationErrors.image}</div>}
@@ -183,13 +191,13 @@ export function ProductImagesManager({
               <input
                 type="file"
                 multiple
-                accept="image/*"
+                accept="image/*,image/heic,image/heif,.jpg,.jpeg,.png,.webp,.avif,.gif,.heic,.heif"
                 className="form-control form-control-sm"
                 onChange={onGalleryFileChange}
                 disabled={galleryUploading}
               />
               {galleryUploading && (
-                <div className="small text-primary mt-1">
+                <div className="small text-primary mt-1 fw-semibold">
                   <span className="spinner-border spinner-border-sm me-1" /> Uploading gallery images...
                 </div>
               )}

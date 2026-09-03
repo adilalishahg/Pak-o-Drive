@@ -59,6 +59,7 @@ export function ProductForm({ productId, pageTitle }: ProductFormProps) {
     setMainImageError,
     galleryImageErrors,
     setGalleryImageErrors,
+    mediaFeedback,
     variants,
     variantUploading,
     specs,
@@ -247,6 +248,7 @@ export function ProductForm({ productId, pageTitle }: ProductFormProps) {
               setMainImageError={setMainImageError}
               galleryImageErrors={galleryImageErrors}
               setGalleryImageErrors={setGalleryImageErrors}
+              mediaFeedback={mediaFeedback}
               video={video}
               setVideo={setVideo}
               showVideoOnFront={showVideoOnFront}
@@ -281,6 +283,36 @@ export function ProductForm({ productId, pageTitle }: ProductFormProps) {
               setSeoKeywords={setSeoKeywords}
             />
           </div>
+        </div>
+
+        {/* Mobile & Desktop Bottom Submit Bar */}
+        <div className="card border-0 shadow-sm rounded-4 mt-4 p-3 bg-white d-flex flex-row justify-content-between align-items-center">
+          <span className="small text-muted d-none d-sm-inline">
+            Review all product details and photos before saving.
+          </span>
+          <button
+            type="submit"
+            disabled={loading || uploading || galleryUploading}
+            className="btn btn-sm rounded-pill px-4 text-white w-100 w-sm-auto ms-auto"
+            style={{
+              background: 'linear-gradient(135deg, #ea580c, #c2410c)',
+              fontWeight: 600,
+              boxShadow: '0 4px 14px rgba(234,88,12,0.35)',
+              opacity: loading ? 0.7 : 1,
+            }}
+          >
+            {loading ? (
+              <>
+                <span className="spinner-border spinner-border-sm me-2" />
+                Saving...
+              </>
+            ) : (
+              <>
+                <i className="fas fa-save me-2" />
+                {isEditMode ? 'Update Product' : 'Publish Product'}
+              </>
+            )}
+          </button>
         </div>
       </form>
     </div>

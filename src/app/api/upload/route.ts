@@ -40,49 +40,64 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, error: 'No file uploaded.' }, { status: 400 });
     }
 
-    // Verify file type is an image or video
-    if (!file.type.startsWith('image/') && !file.type.startsWith('video/')) {
+    // Extract extensions and sanitize base name
+    const rawExt = (path.extname(file.name) || '').toLowerCase();
+    const isImage = file.type.startsWith('image/') || ['.jpg', '.jpeg', '.png', '.webp', '.avif', '.gif', '.heic', '.heif', '.bmp'].includes(rawExt);
+    const isVideo = file.type.startsWith('video/') || ['.mp4', '.mov', '.webm', '.mkv', '.avi'].includes(rawExt);
+
+    // Verify file is an image or video (with fallback for mobile camera uploads with empty/generic MIME types)
+    if (!isImage && !isVideo) {
       return NextResponse.json({ success: false, error: 'Only image and video files are allowed.' }, { status: 400 });
     }
 
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    // Extract extensions and sanitize base name
-    const fileExtension = path.extname(file.name) || '.png';
-    const sanitizedBase = path.basename(file.name, fileExtension).replace(/[^a-zA-Z0-9]/g, '_');
+    const fileExtension = rawExt || (isVideo ? '.mp4' : '.webp');
+    const sanitizedBase = path.basename(file.name, rawExt).replace(/[^a-zA-Z0-9]/g, '_') || 'product_img';
     const uniqueId = `${Date.now()}_${sanitizedBase}`;
     const filename = `${uniqueId}${fileExtension}`;
 
-    // If Cloudinary is configured, upload to Cloudinary (Recommended for Live Site)
+    // If Cloudinary is configured, attempt upload to Cloudinary (with automatic fallback to local disk)
     if (isCloudinaryConfigured) {
-      console.log('☁ Uploading file to Cloudinary with unique ID:', uniqueId);
-      
-      const uploadResult = await new Promise<any>((resolve, reject) => {
-        cloudinary.uploader.upload_stream(
-          { 
-            folder: 'electro_store',
-            public_id: uniqueId,
-            overwrite: true,
-            resource_type: 'auto',
-            format: 'webp',
-            transformation: [
-              { width: 1200, height: 1200, crop: 'limit' }
-            ]
-          },
-          (error, result) => {
-            if (error) reject(error);
-            else resolve(result);
-          }
-        ).end(buffer);
-      });
+      try {
+        // Use a 5-second timeout so mobile uploads never hang if Cloudinary is slow or unreachable
+        const uploadTimeout = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Cloudinary upload timed out')), 5000)
+        );
 
-      console.log('✓ Successfully uploaded to Cloudinary:', uploadResult.secure_url);
-      return NextResponse.json({ success: true, url: uploadResult.secure_url });
+        const uploadStreamPromise = new Promise<any>((resolve, reject) => {
+          cloudinary.uploader.upload_stream(
+            { 
+              folder: 'electro_store',
+              public_id: uniqueId,
+              overwrite: true,
+              resource_type: 'auto',
+              format: 'webp',
+              transformation: [
+                { width: 1200, height: 1200, crop: 'limit' }
+              ]
+            },
+            (error, result) => {
+              if (error) reject(error);
+              else resolve(result);
+            }
+          ).end(buffer);
+        });
+
+        const uploadResult = await Promise.race([uploadStreamPromise, uploadTimeout]) as any;
+
+        if (uploadResult?.secure_url) {
+          console.log('✓ Successfully uploaded to Cloudinary:', uploadResult.secure_url);
+          return NextResponse.json({ success: true, url: uploadResult.secure_url });
+        }
+      } catch (cloudErr: any) {
+        console.warn('⚠️ Cloudinary upload failed (e.g. invalid keys or offline), seamlessly falling back to local file storage:', cloudErr?.message || cloudErr);
+      }
     }
 
-    // FALLBACK: Local file storage (For offline local development)
-    console.log('📁 Cloudinary not configured. Falling back to local storage...');
+    // FALLBACK: Local file storage (For local dev / offline / fallback)
+    console.log('📁 Saving file to local storage...');
     const uploadDir = path.join(process.cwd(), 'public', 'uploads');
     await mkdir(uploadDir, { recursive: true });
 

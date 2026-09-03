@@ -179,7 +179,7 @@ Return ONLY a valid JSON object matching this structure:
 /**
  * High-quality curated default intelligence for Pakistani market
  */
-function getFallbackIntelligence(storeProducts: any[], limit: number = 10): IntelligenceReportPayload {
+export function getFallbackIntelligence(storeProducts: any[], limit: number = 10): IntelligenceReportPayload {
 
   const ambientProd = storeProducts.find((p) => /ambient|light|led/i.test(p.name));
   const chargerProd = storeProducts.find((p) => /charger|fast|cable/i.test(p.name));

@@ -43,6 +43,7 @@ export function useProductForm({ productId }: ProductFormHookOptions = {}) {
   const [galleryUrlInput, setGalleryUrlInput] = useState('');
   const [mainImageError, setMainImageError] = useState(false);
   const [galleryImageErrors, setGalleryImageErrors] = useState<Record<number, boolean>>({});
+  const [mediaFeedback, setMediaFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
 
   // Background Video Upload
@@ -178,23 +179,37 @@ export function useProductForm({ productId }: ProductFormHookOptions = {}) {
 
     setUploading(true);
     setError('');
+    setMediaFeedback(null);
 
     try {
       const optimizedFile = await optimizeImageBeforeUpload(file);
       const formData = new FormData();
       formData.append('file', optimizedFile);
-      const res = await fetch('/api/upload', { method: 'POST', body: formData });
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        headers: {
+          authorization: 'Bearer pakodrive_admin_secret_token',
+        },
+        body: formData,
+      });
       const json = await res.json();
       if (json.success) {
         setImage(json.url);
+        setMainImageError(false);
+        setMediaFeedback({ type: 'success', message: 'Main image updated successfully!' });
       } else {
         throw new Error(json.error || 'Failed to upload image file.');
       }
     } catch (err: any) {
       console.error(err);
-      setError(err.message || 'Error uploading file.');
+      const msg = err.message || 'Error uploading file.';
+      setError(msg);
+      setMediaFeedback({ type: 'error', message: msg });
     } finally {
       setUploading(false);
+      if (e?.target) {
+        e.target.value = '';
+      }
     }
   }, []);
 
@@ -204,13 +219,20 @@ export function useProductForm({ productId }: ProductFormHookOptions = {}) {
 
     setGalleryUploading(true);
     setError('');
+    setMediaFeedback(null);
 
     try {
       const uploadPromises = Array.from(files).map(async (file) => {
         const optimizedFile = await optimizeImageBeforeUpload(file);
         const formData = new FormData();
         formData.append('file', optimizedFile);
-        const res = await fetch('/api/upload', { method: 'POST', body: formData });
+        const res = await fetch('/api/upload', {
+          method: 'POST',
+          headers: {
+            authorization: 'Bearer pakodrive_admin_secret_token',
+          },
+          body: formData,
+        });
         const json = await res.json();
         if (json.success) {
           return json.url;
@@ -221,12 +243,17 @@ export function useProductForm({ productId }: ProductFormHookOptions = {}) {
 
       const urls = await Promise.all(uploadPromises);
       setImages((prev) => [...prev, ...urls]);
+      setMediaFeedback({ type: 'success', message: `${urls.length} gallery image(s) uploaded successfully!` });
     } catch (err: any) {
       console.error(err);
-      setError(err.message || 'Error uploading gallery files.');
+      const msg = err.message || 'Error uploading gallery files.';
+      setError(msg);
+      setMediaFeedback({ type: 'error', message: msg });
     } finally {
       setGalleryUploading(false);
-      e.target.value = '';
+      if (e?.target) {
+        e.target.value = '';
+      }
     }
   }, []);
 
@@ -301,7 +328,13 @@ export function useProductForm({ productId }: ProductFormHookOptions = {}) {
       const optimizedFile = await optimizeImageBeforeUpload(file);
       const formData = new FormData();
       formData.append('file', optimizedFile);
-      const res = await fetch('/api/upload', { method: 'POST', body: formData });
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        headers: {
+          authorization: 'Bearer pakodrive_admin_secret_token',
+        },
+        body: formData,
+      });
       const json = await res.json();
       if (json.success) {
         handleVariantChange(index, 'image', json.url);
@@ -313,6 +346,9 @@ export function useProductForm({ productId }: ProductFormHookOptions = {}) {
       setError(err.message || 'Error uploading variant file.');
     } finally {
       setVariantUploading((prev) => ({ ...prev, [index]: false }));
+      if (e?.target) {
+        e.target.value = '';
+      }
     }
   }, [handleVariantChange]);
 
@@ -554,6 +590,8 @@ export function useProductForm({ productId }: ProductFormHookOptions = {}) {
     setMainImageError,
     galleryImageErrors,
     setGalleryImageErrors,
+    mediaFeedback,
+    setMediaFeedback,
     variants,
     variantUploading,
     specs,
