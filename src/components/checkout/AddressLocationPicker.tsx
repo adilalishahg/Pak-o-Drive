@@ -264,24 +264,30 @@ export const AddressLocationPicker: React.FC<AddressLocationPickerProps> = ({
         {/* Predictive Suggestions Dropdown */}
         {isOpen && suggestions.length > 0 && (
           <div
-            className="position-absolute start-0 end-0 bg-white border rounded-3 shadow-lg overflow-hidden"
+            className="position-absolute start-0 end-0 bg-white border rounded-3 shadow-lg"
             style={{
               top: 'calc(100% + 4px)',
               zIndex: 1000,
-              maxHeight: '260px',
+              maxHeight: '280px',
               overflowY: 'auto',
+              overflowX: 'hidden',
+              WebkitOverflowScrolling: 'touch',
+              overscrollBehavior: 'contain',
+              touchAction: 'pan-y',
               borderColor: '#e2e8f0',
+              scrollbarWidth: 'thin',
+              scrollbarColor: '#cbd5e1 #f8fafc',
             }}
           >
             <div
-              className="px-3 py-1.5 bg-light border-bottom d-flex align-items-center justify-content-between"
-              style={{ fontSize: '0.7rem', color: '#64748b' }}
+              className="px-3 py-1.5 bg-light border-bottom d-flex align-items-center justify-content-between position-sticky top-0"
+              style={{ fontSize: '0.7rem', color: '#64748b', zIndex: 10, background: '#f8fafc' }}
             >
-              <span className="fw-semibold">💡 Select Exact Pakistani Location:</span>
-              <span>Google Maps / OSM Accuracy</span>
+              <span className="fw-semibold">💡 Select Exact Location ({suggestions.length}):</span>
+              <span className="text-muted">↕ Scroll for more</span>
             </div>
 
-            <div className="list-group list-group-flush">
+            <div className="list-group list-group-flush" style={{ touchAction: 'pan-y' }}>
               {suggestions.map((item) => (
                 <button
                   type="button"

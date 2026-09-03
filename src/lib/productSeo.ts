@@ -3,8 +3,9 @@ import { IProduct } from '@/types';
 import { getCachedProduct, getCachedSiteInfo } from './cache';
 
 export function getStaticSiteUrl(): string {
-  if (process.env.NEXT_PUBLIC_SITE_URL) {
-    return process.env.NEXT_PUBLIC_SITE_URL.replace(/\/$/, '');
+  const envUrl = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '');
+  if (envUrl && !envUrl.includes('localhost') && !envUrl.includes('127.0.0.1')) {
+    return envUrl;
   }
   if (process.env.VERCEL_PROJECT_PRODUCTION_URL) {
     return `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`;
@@ -16,7 +17,7 @@ export async function generateProductMetadata(id: string): Promise<Metadata> {
   const p = await getCachedProduct(id);
   const siteUrl = getStaticSiteUrl();
 
-  let siteLogoText = 'PAKODRIVE';
+  let siteLogoText = 'Pak-o-Drive';
   const siteInfo = await getCachedSiteInfo();
 
   if (siteInfo && siteInfo.logoText) {
@@ -108,6 +109,9 @@ export async function generateProductMetadata(id: string): Promise<Metadata> {
       title: metaTitle,
       description: metaDesc,
       images: [imageUrl],
+    },
+    other: {
+      'image_src': imageUrl,
     },
   };
 }

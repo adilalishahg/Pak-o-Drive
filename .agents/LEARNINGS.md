@@ -58,6 +58,17 @@ This file serves as persistent dynamic memory across coding agent sessions. Ever
 
 ---
 
+### 2026-09-03 — Address Autocomplete Suggestions Dropdown Scrolling & Touch Pan
+- **📌 Issue**: On mobile and desktop checkout, when typing a location like `falcon complex, rawalp`, the address suggestions list could not be scrolled down to view all results; suggestions beyond the 4th item were inaccessible.
+- **🔍 Root Cause & Failed Attempts**:
+  - The dropdown container had Bootstrap class `overflow-hidden` which injected `overflow: hidden !important;`, overriding the inline `overflowY: 'auto'` style and disabling scrolling.
+  - Container lacked `WebkitOverflowScrolling: 'touch'`, `overscrollBehavior: 'contain'`, and `touchAction: 'pan-y'`.
+- **🛠️ Verified Code Fix**:
+  1. Removed `overflow-hidden` class from the dropdown container in `src/components/checkout/AddressLocationPicker.tsx`.
+  2. Made the dropdown header sticky (`position-sticky top-0`) with visible item counter (`Select Exact Location (${suggestions.length})` and `↕ Scroll for more`).
+  3. Added `WebkitOverflowScrolling: 'touch'`, `overscrollBehavior: 'contain'`, and `touchAction: 'pan-y'` for frictionless mobile touch scrolling and swipe gesture handling.
+  4. Verified with `pnpm tsc --noEmit` passing with 0 errors.
+
 ### 2026-09-03 — High-Precision Zoom=18 Commercial Hub (Civic Center) & Fresh GPS Hardware Geocoding
 - **📌 Issue**: "Detect My Location" button resolved broad `"Bahria Town Phase 4"` on desktop and incorrectly returned `"Bahria Town Phase 3"` on mobile phone instead of the user's exact location in `"Civic Center, Bahria Town Phase 4"`.
 - **🔍 Root Cause & Failed Attempts**:
