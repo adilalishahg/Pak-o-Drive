@@ -1,11 +1,12 @@
-import { getCachedAllProducts, getCachedAllCategories, getCachedSiteSettings } from '../lib/cache';
+import { getCachedAllProducts, getCachedAllCategories, getCachedSiteSettings, getCachedSiteInfo } from '../lib/cache';
 import { HomePageClient } from '../components/home/HomePageClient';
 
 export default async function Home() {
-  const [products, categories, settings] = await Promise.all([
+  const [products, categories, settings, siteInfo] = await Promise.all([
     getCachedAllProducts(),
     getCachedAllCategories(),
     getCachedSiteSettings(),
+    getCachedSiteInfo(),
   ]);
 
   const preloadUrls: string[] = [];
@@ -53,6 +54,9 @@ export default async function Home() {
       {preloadUrls.map((url, i) => (
         <link key={i} rel="preload" as="image" href={url} fetchPriority="high" />
       ))}
+      <h1 className="visually-hidden">
+        {siteInfo?.h1Heading || "Pak-o-Drive (Pak Drive / PakDrive) — Pakistan's #1 Car Accessories, Viral Auto Gadgets & LED Lights Store"}
+      </h1>
       <HomePageClient
         initialProducts={products}
         initialCategories={categories}

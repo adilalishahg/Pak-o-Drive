@@ -47,9 +47,12 @@ const SYNONYM_MAP: Record<string, string[]> = {
   // Electronics & Audio
   handsfree: ['earbuds', 'wireless', 'audio', 'headphone'],
   earbuds: ['handsfree', 'wireless', 'audio', 'bluetooth'],
+  earbud: ['earbuds', 'handsfree', 'wireless', 'audio', 'bluetooth'],
   headphone: ['earbuds', 'wireless', 'audio'],
   airpods: ['earbuds', 'wireless'],
   bluetooth: ['earbuds', 'wireless'],
+  wireless: ['earbuds', 'bluetooth', 'handsfree', 'charger'],
+  battery: ['heavy battery', 'battery backup', 'mah', 'power bank'],
   kaano: ['earbuds', 'audio'],
 
   // Mounts & Holders

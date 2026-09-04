@@ -1,0 +1,12 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/auto-blog",
+      "schedule": "0 4,13 * * *"
+    },
+    {
+      "path": "/api/cron/sync-category-icons",
+      "schedule": "0 2 * * *"
+    }
+  ]
+}

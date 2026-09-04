@@ -56,6 +56,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { name: 'Products', path: '/admin/products', icon: 'fas fa-box' },
     { name: 'Product Ads & Sales', path: '/admin/products/ads-analytics', icon: 'fas fa-bullhorn' },
     { name: 'Categories', path: '/admin/categories', icon: 'fas fa-tags' },
+    { name: 'Auto Blogs & SEO', path: '/admin/blogs', icon: 'fas fa-newspaper' },
     { name: 'Orders & Sales', path: '/admin/orders', icon: 'fas fa-shopping-cart' },
     { name: 'Promotions', path: '/admin/promotions', icon: 'fas fa-percentage' },
     { name: 'Inbox Messages', path: '/admin/contacts', icon: 'fas fa-envelope' },

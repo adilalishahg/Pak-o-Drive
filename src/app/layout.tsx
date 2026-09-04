@@ -53,22 +53,26 @@ export async function generateMetadata(): Promise<Metadata> {
       : SITE_URL);
 
   let siteName = SITE_NAME;
-  let defaultTitle = `PAK-O-DRIVE™ | Pakistan's #1 Car Accessories & Auto Gadgets Store (Pak Drive)`;
-  let description = SITE_DESC;
+  let defaultTitle = `Pak-o-Drive™ (PakDrive) | Pakistan's #1 Car Accessories & Auto Gadgets Store`;
+  let description =
+    'Pak-o-Drive (Pak Drive / PakDrive) is Pakistan\'s #1 online store for car accessories, viral automotive gadgets, LED headlights, ambient lighting, solar car perfumes & car care. Fast Cash on Delivery nationwide.';
   let keywords = [
-    'pakodrive',
-    'pak drive',
-    'pak o drive',
     'pakdrive',
+    'pak drive',
+    'pakodrive',
+    'pak o drive',
+    'pakdrives',
+    'pakdriv',
     'pakdrv',
-    'drive',
     'pakodrive.pk',
+    'pak drive car accessories',
     'car accessories Pakistan',
-    'automotive accessories',
+    'viral car gadgets Pakistan',
     'car gadgets Pakistan',
+    'car LED lights Pakistan',
     'car perfume Pakistan',
-    'car LED lights',
-    'car wax polish',
+    'auto accessories Pakistan',
+    'automotive accessories Rawalpindi Islamabad',
     'online shopping Pakistan',
     'پاک او ڈرائیو',
   ];
@@ -91,6 +95,9 @@ export async function generateMetadata(): Promise<Metadata> {
       }
       if (info.seoKeywords) {
         keywords = info.seoKeywords.split(',').map((k: string) => k.trim()).filter(Boolean);
+      }
+      if (Array.isArray(info.brandAliases) && info.brandAliases.length > 0) {
+        keywords = Array.from(new Set([...info.brandAliases, ...keywords]));
       }
       if (info.logoImage && !info.logoImage.toLowerCase().endsWith('.svg')) {
         ogImageUrl = info.logoImage.startsWith('http') ? info.logoImage : `${activeSiteUrl}${info.logoImage}`;
@@ -170,6 +177,9 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     other: {
       'image_src': ogImageUrl,
+      'geo.region': 'PK',
+      'geo.placename': 'Pakistan',
+      'target-country': 'PK',
     },
   };
 }
@@ -211,7 +221,10 @@ export default async function RootLayout({
       initialSiteInfo = info;
       if (info.siteName) siteName = info.siteName as string;
       if (info.website) {
-        const ws = info.website as string;
+        let ws = (info.website as string).trim();
+        if (ws.includes('pakodrive.com') && !ws.includes('pakodrive.pk')) {
+          ws = 'https://www.pakodrive.pk';
+        }
         siteUrl = ws.startsWith('http') ? ws : `https://${ws}`;
       }
       if (info.phone) sitePhone = info.phone as string;
@@ -232,23 +245,32 @@ export default async function RootLayout({
     console.error('Failed to prefetch site settings or info during RootLayout SSR:', err);
   }
 
-  const organizationSchema = {
-    '@context': 'https://schema.org',
-    '@type': ['Organization', 'OnlineStore', 'AutoPartsStore'],
-    name: 'Pak-o-Drive',
-    alternateName: [
+  const dynamicAliases = (Array.isArray(initialSiteInfo?.brandAliases) && initialSiteInfo.brandAliases.length > 0)
+    ? initialSiteInfo.brandAliases
+    : [
       'Pak Drive',
       'Pak-o-Drive',
       'PakODrive',
       'PakDrive',
+      'Pak Drives',
+      'pakdriv',
       'pakdrv',
       'Pak Drive Store',
+      'Pak-o-Drive Pakistan',
       'پاک او ڈرائیو',
-    ],
+    ];
+
+  const organizationSchema = {
+    '@context': 'https://schema.org',
+    '@type': ['Organization', 'OnlineStore', 'AutoPartsStore'],
+    name: siteName,
+    alternateName: dynamicAliases,
     url: siteUrl,
-    logo: `${siteUrl}/img/carousel-1.png`,
+    logo: `${siteUrl}/icon.png`,
+    slogan: initialSiteInfo?.siteTagline || "Pakistan's #1 Car Accessories, Auto Gadgets & LED Lights Store",
     description:
-      "Pakistan's #1 trusted online store for car accessories, viral automotive gadgets, solar perfumes, ambient lights & car care with nationwide Cash On Delivery.",
+      initialSiteInfo?.seoDescription ||
+      "Pakistan's #1 trusted online store for car accessories, viral automotive gadgets, LED headlights, solar perfumes, ambient lights & car care with nationwide Cash On Delivery.",
     currenciesAccepted: 'PKR',
     paymentAccepted: 'Cash on Delivery',
     priceRange: 'PKR',
@@ -264,6 +286,15 @@ export default async function RootLayout({
       addressLocality: siteCity,
       addressCountry: siteCountry,
     },
+    knowsAbout: [
+      'Car Accessories',
+      'Auto Gadgets',
+      'Automotive Electronics',
+      'Car LED Lights',
+      'Car Perfumes',
+      'Car Care Pakistan',
+      'Cash on Delivery Pakistan',
+    ],
     sameAs: [
       siteWhatsapp,
       'https://www.facebook.com/pakodrive',
@@ -274,14 +305,65 @@ export default async function RootLayout({
   const webSiteSchema = {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
-    name: 'Pak-o-Drive',
-    alternateName: ['Pak Drive', 'PakODrive', 'PakDrive', 'pakdrv'],
+    name: siteName,
+    alternateName: dynamicAliases,
     url: siteUrl,
+    inLanguage: ['en-PK', 'ur-PK'],
     potentialAction: {
       '@type': 'SearchAction',
       target: { '@type': 'EntryPoint', urlTemplate: `${siteUrl}/shop?search={search_term_string}` },
       'query-input': 'required name=search_term_string',
     },
+  };
+
+  const dynamicFaqEntities = (Array.isArray(initialSiteInfo?.faqItems) && initialSiteInfo.faqItems.length > 0)
+    ? initialSiteInfo.faqItems.map((item: any) => ({
+        '@type': 'Question',
+        name: item.question,
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: item.answer,
+        },
+      }))
+    : [
+        {
+          '@type': 'Question',
+          name: 'What is Pak-o-Drive (Pak Drive)?',
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: "Pak-o-Drive (also known as Pak Drive / PakDrive / PakODrive) is Pakistan's premier online automotive accessories & viral car gadgets store, offering premium car accessories, LED lights, ambient lighting, solar perfumes, and car care with fast Cash on Delivery (COD) nationwide.",
+          },
+        },
+        {
+          '@type': 'Question',
+          name: 'Does Pak-o-Drive offer Cash on Delivery across Pakistan?',
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: 'Yes, Pak-o-Drive offers Cash on Delivery (COD) nationwide across all Pakistani cities including Karachi, Lahore, Islamabad, Rawalpindi, Faisalabad, Multan, and Peshawar.',
+          },
+        },
+        {
+          '@type': 'Question',
+          name: 'What products does Pak-o-Drive sell?',
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: 'Pak-o-Drive sells viral car gadgets, LED headlights and fog lights, interior ambient RGB lighting, solar rotating car perfumes, wireless car chargers, high-power car vacuums, and car detailing accessories.',
+          },
+        },
+        {
+          '@type': 'Question',
+          name: 'How can I contact Pak-o-Drive or order via WhatsApp?',
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: `You can order online directly or contact customer support on WhatsApp at ${sitePhone} for fast 1-click ordering.`,
+          },
+        },
+      ];
+
+  const faqSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: dynamicFaqEntities,
   };
   return (
     <html lang="en" prefix="og: https://ogp.me/ns#" className={`${inter.variable} ${roboto.variable}`}>
@@ -289,10 +371,21 @@ export default async function RootLayout({
         {/* Preconnect to external image & font domains */}
         <link rel="preconnect" href="https://images.unsplash.com" crossOrigin="anonymous" />
         <link rel="preconnect" href="https://res.cloudinary.com" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://pagead2.googlesyndication.com" crossOrigin="anonymous" />
         <link rel="preconnect" href="https://cdn.jsdelivr.net" crossOrigin="anonymous" />
         <link rel="preconnect" href="https://unpkg.com" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://images.unsplash.com" />
         <link rel="dns-prefetch" href="https://res.cloudinary.com" />
+        <link rel="dns-prefetch" href="https://pagead2.googlesyndication.com" />
+
+        {/* Google AdSense Auto Ads & Verification Script */}
+        {process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID && (
+          <script
+            async
+            src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID}`}
+            crossOrigin="anonymous"
+          />
+        )}
 
         {/* Dynamic Icon Library Support (Material, Remix, Phosphor) */}
         <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" />
@@ -307,6 +400,10 @@ export default async function RootLayout({
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(webSiteSchema) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
         />
       </head>
       <body suppressHydrationWarning>

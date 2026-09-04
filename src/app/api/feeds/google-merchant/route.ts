@@ -3,14 +3,14 @@ import { getCachedAllProducts, getCachedSiteInfo } from '../../../../lib/cache';
 
 export async function GET() {
   try {
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '') || 'https://pakodrive.com';
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '') || 'https://www.pakodrive.pk';
     const [products, siteInfo] = await Promise.all([
       getCachedAllProducts(),
       getCachedSiteInfo(),
     ]);
 
-    const storeName = siteInfo?.siteName || 'PAKODRIVE';
-    const storeDesc = siteInfo?.seoDescription || "Pakistan's Trusted Electronics & Gadgets Store";
+    const storeName = siteInfo?.siteName || 'Pak-o-Drive';
+    const storeDesc = siteInfo?.seoDescription || "Pakistan's #1 Car Accessories, Viral Auto Gadgets & LED Lights Store";
 
     const escapeXml = (unsafe: string) => {
       return (unsafe || '')

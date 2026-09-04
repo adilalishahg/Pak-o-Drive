@@ -134,6 +134,18 @@ export const NavbarNavLinks: React.FC<NavbarNavLinksProps> = ({
       </div>
 
       <Link
+        href="/auto"
+        className={`theme1-nav-link px-3 py-2 text-decoration-none ${pathname === '/auto' ? 'active' : ''}`}
+      >
+        Auto Guides
+      </Link>
+      <Link
+        href="/blog"
+        className={`theme1-nav-link px-3 py-2 text-decoration-none ${pathname === '/blog' || pathname === '/general' ? 'active' : ''}`}
+      >
+        Blog & Trends
+      </Link>
+      <Link
         href="/about"
         className={`theme1-nav-link px-3 py-2 text-decoration-none ${pathname === '/about' ? 'active' : ''}`}
       >

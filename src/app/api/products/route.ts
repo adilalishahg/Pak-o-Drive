@@ -6,6 +6,7 @@ import Product from '../../../models/Product';
 import Category from '../../../models/Category';
 import { getAllDescendantSlugs } from '@/lib/categoryTree';
 import { expandSearchQuery } from '@/lib/searchDictionary';
+import { generateAutoProductSeo, generateAiProductSeo } from '@/lib/productSeoGenerator';
 
 
 
@@ -216,9 +217,19 @@ export async function POST(request: Request) {
         finalSubcategorySlug = existingSub.slug;
       }
 
+      // Auto-generate high-intent slug and SEO keywords via AI
+      const autoSeo = await generateAiProductSeo({
+        name: name.trim(),
+        price: Number(price),
+        category: existingCategory.slug,
+        subcategory: finalSubcategorySlug,
+        description: description.trim(),
+      });
+
       // Create new product
       const newProduct = new Product({
         name: name.trim(),
+        slug: (body.slug && body.slug.trim()) ? body.slug.trim() : autoSeo.slug,
         description: description.trim(),
         price: Number(price),
         originalPrice: originalPrice !== undefined ? Number(originalPrice) : Number(price),
@@ -227,9 +238,9 @@ export async function POST(request: Request) {
         image,
         images: images || [],
         video: video || '',
-        seoTitle: seoTitle || '',
-        seoDescription: seoDescription || '',
-        seoKeywords: seoKeywords || '',
+        seoTitle: (seoTitle && seoTitle.trim().length > 10) ? seoTitle.trim() : autoSeo.seoTitle,
+        seoDescription: (seoDescription && seoDescription.trim().length > 20) ? seoDescription.trim() : autoSeo.seoDescription,
+        seoKeywords: (seoKeywords && seoKeywords.trim().length > 10) ? seoKeywords.trim() : autoSeo.seoKeywords,
         rating: rating !== undefined ? Number(rating) : 5,
         reviewsCount: reviewsCount !== undefined ? Number(reviewsCount) : 0,
         isNewArrival: !!isNewArrival,

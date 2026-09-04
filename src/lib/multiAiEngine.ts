@@ -53,7 +53,9 @@ async function callGemini(systemPrompt: string, userMessage: string): Promise<st
     'gemini-pro-latest',
     'gemini-2.5-pro',
   ];
-  const prompt = `${systemPrompt}\n\nCustomer: "${userMessage}"\n\nReply as Ali (Pak-o-Drive):`;
+  const prompt = systemPrompt
+    ? `${systemPrompt}\n\nInput / User Request:\n${userMessage}`
+    : userMessage;
 
   for (const ver of versions) {
     for (const model of models) {

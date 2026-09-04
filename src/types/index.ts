@@ -13,6 +13,7 @@ export * from './whatsapp';
 export * from './theme';
 export * from './common';
 export * from './marketIntelligence';
+export * from './blog';
 
 // Core E-Commerce entity interfaces
 export interface ICategory {

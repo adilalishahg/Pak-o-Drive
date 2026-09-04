@@ -28,6 +28,8 @@ export async function GET(
   }
 }
 
+import { generateAutoProductSeo, generateAiProductSeo } from '@/lib/productSeoGenerator';
+
 export async function PUT(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -36,6 +38,29 @@ export async function PUT(
     await dbConnect();
     const { id } = await params;
     const body = await request.json();
+
+    if (body.name) {
+      const autoSeo = await generateAiProductSeo({
+        name: body.name,
+        price: body.price,
+        category: body.category,
+        subcategory: body.subcategory,
+        description: body.description,
+      });
+
+      if (!body.slug) {
+        body.slug = autoSeo.slug;
+      }
+      if (!body.seoTitle || body.seoTitle.trim().length < 10) {
+        body.seoTitle = autoSeo.seoTitle;
+      }
+      if (!body.seoDescription || body.seoDescription.trim().length < 20) {
+        body.seoDescription = autoSeo.seoDescription;
+      }
+      if (!body.seoKeywords || body.seoKeywords.trim().length < 10) {
+        body.seoKeywords = autoSeo.seoKeywords;
+      }
+    }
 
     const updatedProduct = await Product.findByIdAndUpdate(
       id,

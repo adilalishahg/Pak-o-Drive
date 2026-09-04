@@ -42,6 +42,18 @@ export interface ISiteInfo {
   trendingProductLimit: number;
   adminPhones: string;
   copyrightText: string;
+  // Dynamic Route & Knowledge Graph SEO
+  brandAliases?: string[];
+  h1Heading?: string;
+  shopSeoTitle?: string;
+  shopSeoDescription?: string;
+  aboutSeoTitle?: string;
+  aboutSeoDescription?: string;
+  contactSeoTitle?: string;
+  contactSeoDescription?: string;
+  trackOrderSeoTitle?: string;
+  trackOrderSeoDescription?: string;
+  faqItems?: Array<{ question: string; answer: string }>;
   updatedAt?: Date;
 }
 
@@ -51,24 +63,101 @@ export interface ISiteInfoDocument extends ISiteInfo, Document { }
 
 const SiteInfoSchema = new Schema<ISiteInfoDocument>(
   {
-    siteName: { type: String, default: 'PAKODRIVE' },
-    siteTagline: { type: String, default: "Pakistan's Trusted Electronics & Automotive Store" },
-    logoText: { type: String, default: 'PAKODRIVE' },
-    logoIcon: { type: String, default: 'shopping-bag' },
+    siteName: { type: String, default: 'Pak-o-Drive (Pak Drive)' },
+    siteTagline: { type: String, default: "Pakistan's #1 Car Accessories, Auto Gadgets & LED Lights Store" },
+    logoText: { type: String, default: 'Pak-o-Drive' },
+    logoIcon: { type: String, default: 'car' },
     logoImage: { type: String, default: '' },
     showLogoImage: { type: Boolean, default: false },
     favicon: { type: String, default: '/favicon.ico' },
-    seoTitle: { type: String, default: 'PAKODRIVE Electronics — Best Electronics Store in Pakistan' },
-    seoDescription: { type: String, default: "PAKODRIVE — Pakistan's trusted electronics store. Shop headphones, chargers, smartwatches, automotive electronics & more with free shipping and 30-day returns." },
-    seoKeywords: { type: String, default: 'electronics Pakistan, buy headphones Pakistan, smartwatches online, chargers cables Pakistan, automotive electronics, PAKODRIVE, online shopping Pakistan' },
+    seoTitle: { type: String, default: "Pak-o-Drive™ (PakDrive) | Pakistan's #1 Car Accessories & Auto Gadgets Store" },
+    seoDescription: { type: String, default: "Pak-o-Drive (Pak Drive / PakDrive) is Pakistan's premier online store for car accessories, viral automotive gadgets, LED headlights, ambient lights, solar car perfumes & car care. Fast Cash on Delivery nationwide." },
+    seoKeywords: { type: String, default: 'pakdrive, pak drive, pakodrive, pak o drive, pakdrives, pakdrv, car accessories pakistan, car gadgets pakistan, auto accessories pakistan, car lights, car perfume pakistan, automotive store pakistan, پاک او ڈرائیو' },
+    brandAliases: {
+      type: [String],
+      default: [
+        'Pak Drive',
+        'Pak-o-Drive',
+        'PakODrive',
+        'PakDrive',
+        'Pak Drives',
+        'pakdriv',
+        'pakdrv',
+        'Pak Drive Store',
+        'Pak-o-Drive Pakistan',
+        'پاک او ڈرائیو',
+      ],
+    },
+    h1Heading: {
+      type: String,
+      default: "Pak-o-Drive (Pak Drive / PakDrive) — Pakistan's #1 Car Accessories, Viral Auto Gadgets & LED Lights Store",
+    },
+    shopSeoTitle: {
+      type: String,
+      default: "Shop All Car Accessories & Auto Gadgets in Pakistan | Pak-o-Drive (Pak Drive)",
+    },
+    shopSeoDescription: {
+      type: String,
+      default: "Browse viral automotive accessories, car LED headlights, interior ambient lighting, solar perfumes, vacuum cleaners & car care on Pak-o-Drive. Cash on Delivery nationwide.",
+    },
+    aboutSeoTitle: {
+      type: String,
+      default: "About Pak-o-Drive (Pak Drive) | Pakistan's #1 Car Accessories Brand",
+    },
+    aboutSeoDescription: {
+      type: String,
+      default: "Learn about Pak-o-Drive (Pak Drive) — Pakistan's leading automotive accessories and viral car gadgets store. 100% verified quality with nationwide Cash on Delivery.",
+    },
+    contactSeoTitle: {
+      type: String,
+      default: "Contact Customer Support | Pak-o-Drive (Pak Drive)",
+    },
+    contactSeoDescription: {
+      type: String,
+      default: "Need help with your car accessories order? Contact Pak-o-Drive customer support via WhatsApp or phone 24/7.",
+    },
+    trackOrderSeoTitle: {
+      type: String,
+      default: "Track Your Order Status | Pak-o-Drive (Pak Drive)",
+    },
+    trackOrderSeoDescription: {
+      type: String,
+      default: "Track your Pak-o-Drive parcel live with real-time courier updates across Pakistan.",
+    },
+    faqItems: {
+      type: [
+        {
+          question: { type: String, default: '' },
+          answer: { type: String, default: '' },
+        },
+      ],
+      default: [
+        {
+          question: 'What is Pak-o-Drive (Pak Drive)?',
+          answer: "Pak-o-Drive (also known as Pak Drive / PakDrive / PakODrive) is Pakistan's premier online automotive accessories & viral car gadgets store, offering premium car accessories, LED lights, ambient lighting, solar perfumes, and car care with fast Cash on Delivery (COD) nationwide.",
+        },
+        {
+          question: 'Does Pak-o-Drive offer Cash on Delivery across Pakistan?',
+          answer: 'Yes, Pak-o-Drive offers Cash on Delivery (COD) nationwide across all Pakistani cities including Karachi, Lahore, Islamabad, Rawalpindi, Faisalabad, Multan, and Peshawar.',
+        },
+        {
+          question: 'What products does Pak-o-Drive sell?',
+          answer: 'Pak-o-Drive sells viral car gadgets, LED headlights and fog lights, interior ambient RGB lighting, solar rotating car perfumes, wireless car chargers, high-power car vacuums, and car detailing accessories.',
+        },
+        {
+          question: 'How can I contact Pak-o-Drive or order via WhatsApp?',
+          answer: 'You can order online directly or contact customer support on WhatsApp at +92 318 5205667 for fast 1-click ordering.',
+        },
+      ],
+    },
     address: { type: String, default: 'Main Muslim Town, Sadiqabad, Rawalpindi, Punjab, Pakistan' },
     city: { type: String, default: 'Rawalpindi' },
     country: { type: String, default: 'Pakistan' },
     phone: { type: String, default: '03185205667' },
     phone2: { type: String, default: '03218827748' },
-    email: { type: String, default: 'support@pakodrive.com' },
-    supportEmail: { type: String, default: 'support@pakodrive.com' },
-    website: { type: String, default: 'pakodrive.com' },
+    email: { type: String, default: 'support@pakodrive.pk' },
+    supportEmail: { type: String, default: 'support@pakodrive.pk' },
+    website: { type: String, default: 'https://www.pakodrive.pk' },
     whatsapp: { type: String, default: '03185205667' },
     facebook: { type: String, default: '#' },
     instagram: { type: String, default: '#' },
@@ -99,11 +188,11 @@ const SiteInfoSchema = new Schema<ISiteInfoDocument>(
     },
     aboutUs: {
       type: String,
-      default: `## About PAKODRIVE\n\nPAKODRIVE is Pakistan's trusted electronics store, offering premium quality headphones, chargers, smartwatches, automotive electronics, and mobile accessories at competitive prices.\n\n### Our Mission\nTo make quality electronics accessible to every Pakistani household with honest pricing and excellent after-sales support.\n\n### Why Choose Us\n- 100% genuine products with warranty\n- Nationwide delivery\n- 30-day easy returns\n- 24/7 WhatsApp support\n- 15,000+ happy customers`,
+      default: `## About Pak-o-Drive (Pak Drive)\n\nPak-o-Drive (Pak Drive / PakODrive) is Pakistan's premier destination for viral automotive accessories, car gadgets, LED headlights, ambient lighting, solar car perfumes, and car care essentials.\n\n### Our Mission\nTo bring the world's most innovative, practical, and viral car gadgets directly to Pakistani car enthusiasts at unbeatable direct-to-consumer prices.\n\n### Why Pakistani Drivers Trust Pak-o-Drive\n- 100% Inspected, premium automotive accessories\n- Reliable Cash on Delivery (COD) across Pakistan\n- Fast Dispatch from Rawalpindi / Twin Cities Hub\n- 24/7 Dedicated WhatsApp Support\n- 25,000+ Satisfied Drivers Nationwide`,
     },
     newsletterText: {
       type: String,
-      default: 'Subscribe to get notifications on headphones, chargers, and automotive electronic updates.',
+      default: 'Subscribe to get VIP alerts on viral car gadgets, LED lighting deals, and exclusive automotive discounts.',
     },
     trendingProductLimit: {
       type: Number,

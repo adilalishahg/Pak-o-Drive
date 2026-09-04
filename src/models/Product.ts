@@ -46,6 +46,36 @@ const ProductSchema = new Schema<IProductDocument>(
   }
 );
 
+// Automatic SEO & Slug generation hook for new or modified products
+ProductSchema.pre('save', function (this: any) {
+  try {
+    const { generateAutoProductSeo } = require('../lib/productSeoGenerator');
+    if (!this.slug || this.isModified('name')) {
+      const autoSeo = generateAutoProductSeo({
+        name: this.name,
+        price: this.price,
+        category: this.category,
+        subcategory: this.subcategory,
+        description: this.description,
+      });
+      if (!this.slug) {
+        this.slug = autoSeo.slug;
+      }
+      if (!this.seoTitle || this.seoTitle.length < 10) {
+        this.seoTitle = autoSeo.seoTitle;
+      }
+      if (!this.seoDescription || this.seoDescription.length < 20) {
+        this.seoDescription = autoSeo.seoDescription;
+      }
+      if (!this.seoKeywords || this.seoKeywords.length < 10) {
+        this.seoKeywords = autoSeo.seoKeywords;
+      }
+    }
+  } catch (err) {
+    console.warn('Auto SEO generation pre-save warning:', err);
+  }
+});
+
 // High-speed compound and text indexes for sub-10ms query execution across 10,000+ products
 ProductSchema.index({ name: 'text', description: 'text' });
 ProductSchema.index({ category: 1, subcategory: 1, createdAt: -1 });

@@ -305,7 +305,7 @@ export default function AdminSiteInfoPage() {
                       value={info.seoTitle}
                       onChange={handleChange}
                       className="form-control rounded-3"
-                      placeholder="e.g. PAKODRIVE Electronics — Best Electronics Store in Pakistan"
+                      placeholder="e.g. Pak-o-Drive™ (PakDrive) | Pakistan's #1 Car Accessories & Auto Gadgets Store"
                     />
                     <div className="form-text small">This is the title search engines show. Recommended: 50-60 characters.</div>
                   </div>
@@ -318,7 +318,7 @@ export default function AdminSiteInfoPage() {
                       onChange={handleChange}
                       className="form-control rounded-3"
                       rows={3}
-                      placeholder="Enter a brief summary of your online electronics store..."
+                      placeholder="e.g. Pak-o-Drive (Pak Drive / PakDrive) is Pakistan's premier online automotive accessories & viral car gadgets store. LED lights, ambient lighting, car perfumes & car care. Fast Cash on Delivery across Pakistan."
                     />
                     <div className="form-text small">Summarize your shop details for search engine listing snippets. Recommended: 150-160 characters.</div>
                   </div>
@@ -331,9 +331,131 @@ export default function AdminSiteInfoPage() {
                       value={info.seoKeywords}
                       onChange={handleChange}
                       className="form-control rounded-3"
-                      placeholder="e.g. electronics, headphones, online shopping pakistan"
+                      placeholder="e.g. pakdrive, pak drive, pakodrive, pak o drive, pakdrives, car accessories pakistan, viral car gadgets"
                     />
                     <div className="form-text small">Provide search phrases separated by commas.</div>
+                  </div>
+
+                  <h6 className="fw-bold text-dark border-bottom pb-2 mb-3 mt-4">Homepage H1 Heading &amp; Search Engine Brand Aliases</h6>
+                  <div className="col-12">
+                    <label className="form-label text-muted small fw-semibold">Homepage Primary &lt;H1&gt; Heading</label>
+                    <input
+                      type="text"
+                      name="h1Heading"
+                      value={info.h1Heading || ''}
+                      onChange={handleChange}
+                      className="form-control rounded-3"
+                      placeholder="e.g. Pak-o-Drive (Pak Drive / PakDrive) — Pakistan's #1 Car Accessories, Viral Auto Gadgets & LED Lights Store"
+                    />
+                    <div className="form-text small">This is the critical top-level H1 heading indexed by Google for broad search intent.</div>
+                  </div>
+
+                  <div className="col-12">
+                    <label className="form-label text-muted small fw-semibold">Brand Aliases &amp; Alternate Names (Comma separated)</label>
+                    <input
+                      type="text"
+                      value={Array.isArray(info.brandAliases) ? info.brandAliases.join(', ') : (info.brandAliases || '')}
+                      onChange={e => {
+                        const arr = e.target.value.split(',').map(s => s.trim()).filter(Boolean);
+                        setInfo(prev => ({ ...prev, brandAliases: arr }));
+                      }}
+                      className="form-control rounded-3"
+                      placeholder="e.g. Pak Drive, Pak-o-Drive, PakODrive, PakDrive, Pak Drives, pakdriv, pakdrv, پاک او ڈرائیو"
+                    />
+                    <div className="form-text small">Used in Schema.org Organization, WebSite alternateName, and knowledge graph queries.</div>
+                  </div>
+
+                  <h6 className="fw-bold text-dark border-bottom pb-2 mb-3 mt-4">Dedicated Sub-Pages Dynamic SEO Metadata</h6>
+                  <div className="col-12 col-md-6">
+                    <label className="form-label text-muted small fw-semibold">Shop / All Products Page SEO Title</label>
+                    <input
+                      type="text"
+                      name="shopSeoTitle"
+                      value={info.shopSeoTitle || ''}
+                      onChange={handleChange}
+                      className="form-control rounded-3"
+                      placeholder="e.g. Shop Car Accessories & Auto Gadgets in Pakistan | Pak-o-Drive (Pak Drive)"
+                    />
+                  </div>
+                  <div className="col-12 col-md-6">
+                    <label className="form-label text-muted small fw-semibold">Shop / All Products Page SEO Description</label>
+                    <textarea
+                      name="shopSeoDescription"
+                      value={info.shopSeoDescription || ''}
+                      onChange={handleChange}
+                      className="form-control rounded-3"
+                      rows={2}
+                      placeholder="Browse all viral car accessories, LED headlights, ambient lighting, car perfumes..."
+                    />
+                  </div>
+
+                  <div className="col-12 col-md-6">
+                    <label className="form-label text-muted small fw-semibold">About Us Page SEO Title</label>
+                    <input
+                      type="text"
+                      name="aboutSeoTitle"
+                      value={info.aboutSeoTitle || ''}
+                      onChange={handleChange}
+                      className="form-control rounded-3"
+                      placeholder="e.g. About Pak-o-Drive (Pak Drive) | Pakistan's #1 Car Accessories Brand"
+                    />
+                  </div>
+                  <div className="col-12 col-md-6">
+                    <label className="form-label text-muted small fw-semibold">About Us Page SEO Description</label>
+                    <textarea
+                      name="aboutSeoDescription"
+                      value={info.aboutSeoDescription || ''}
+                      onChange={handleChange}
+                      className="form-control rounded-3"
+                      rows={2}
+                      placeholder="Learn about Pak-o-Drive (Pak Drive / PakDrive) — Pakistan's leading automotive accessories..."
+                    />
+                  </div>
+
+                  <div className="col-12 col-md-6">
+                    <label className="form-label text-muted small fw-semibold">Contact Page SEO Title</label>
+                    <input
+                      type="text"
+                      name="contactSeoTitle"
+                      value={info.contactSeoTitle || ''}
+                      onChange={handleChange}
+                      className="form-control rounded-3"
+                      placeholder="e.g. Contact Customer Support | Pak-o-Drive (Pak Drive)"
+                    />
+                  </div>
+                  <div className="col-12 col-md-6">
+                    <label className="form-label text-muted small fw-semibold">Contact Page SEO Description</label>
+                    <textarea
+                      name="contactSeoDescription"
+                      value={info.contactSeoDescription || ''}
+                      onChange={handleChange}
+                      className="form-control rounded-3"
+                      rows={2}
+                      placeholder="Need help with your car accessories order? Contact Pak-o-Drive customer support..."
+                    />
+                  </div>
+
+                  <div className="col-12 col-md-6">
+                    <label className="form-label text-muted small fw-semibold">Track Order Page SEO Title</label>
+                    <input
+                      type="text"
+                      name="trackOrderSeoTitle"
+                      value={info.trackOrderSeoTitle || ''}
+                      onChange={handleChange}
+                      className="form-control rounded-3"
+                      placeholder="e.g. Track Your Order Status | Pak-o-Drive (Pak Drive)"
+                    />
+                  </div>
+                  <div className="col-12 col-md-6">
+                    <label className="form-label text-muted small fw-semibold">Track Order Page SEO Description</label>
+                    <textarea
+                      name="trackOrderSeoDescription"
+                      value={info.trackOrderSeoDescription || ''}
+                      onChange={handleChange}
+                      className="form-control rounded-3"
+                      rows={2}
+                      placeholder="Track your Pak-o-Drive parcel in real time. Enter your Order ID and phone number..."
+                    />
                   </div>
                 </div>
               </div>

@@ -1,5 +1,5 @@
 import React, { Suspense } from 'react';
-import { notFound } from 'next/navigation';
+import { notFound, permanentRedirect } from 'next/navigation';
 import type { Metadata } from 'next';
 import { getCachedProduct, getCachedSiteInfo } from '@/lib/cache';
 import {
@@ -30,9 +30,14 @@ export default async function ProductDetailPage({ params }: PageProps) {
   const product = await getCachedProduct(id);
   if (!product) return notFound();
 
+  // If requested by raw Mongo ID but product has a clean keyword slug, 308 redirect to the canonical slug
+  if (product.slug && id !== product.slug && !product.isBundle) {
+    permanentRedirect(`/product/${product.slug}`);
+  }
+
   const siteInfo = await getCachedSiteInfo();
   let siteUrl = getStaticSiteUrl();
-  let siteLogoText = 'PAKODRIVE';
+  let siteLogoText = 'Pak-o-Drive';
 
   if (siteInfo) {
     if (siteInfo.website) {
