@@ -2,7 +2,7 @@
   "crons": [
     {
       "path": "/api/cron/auto-blog",
-      "schedule": "0 4,13 * * *"
+      "schedule": "0 4 * * *"
     },
     {
       "path": "/api/cron/sync-category-icons",
