@@ -154,7 +154,17 @@ export const DEFAULT_WHATSAPP_RULES: Omit<IWhatsAppRule, '_id'>[] = [
   {
     name: 'Human Agent Handoff',
     triggerType: 'contains',
-    keywords: ['agent', 'human', 'admin', 'call', 'talk', 'baat', 'banda', 'representative', '4'],
+    keywords: [
+      'agent',
+      'human agent',
+      'live agent',
+      'support agent',
+      'admin rabta',
+      'representative',
+      'customer support',
+      '!agent',
+      '4',
+    ],
     replyMessage:
       '👨‍💼 *Live Support Agent Handoff*\n\n' +
       'Aapka message hamare customer support agent ko forward kar diya gaya hai.\n\n' +

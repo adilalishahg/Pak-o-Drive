@@ -367,7 +367,7 @@ const FALLBACK_RULES = [
   {
     name: 'Human Agent Handoff',
     triggerType: 'contains',
-    keywords: ['agent', 'human', 'admin', 'call', 'talk', 'baat', '4'],
+    keywords: ['agent', 'human agent', 'live agent', 'support agent', 'admin rabta', 'representative', 'customer support', '!agent', '4'],
     replyMessage:
       '👨‍💼 *Live Support Agent*\n\n' +
       'Aapka message hamare support agent ko forward kar diya gaya hai. Thori der intezar karein, hum aapse rabta karenge.\n\n' +
@@ -927,7 +927,7 @@ async function start() {
         const words = clean.split(/[\s,?.!#@_+\-:]+/).filter(Boolean);
 
         // 🔄 WAKE UP: If customer explicitly asks for Menu or Greeting, cancel human pause
-        const wakeUpKeywords = ['hi', 'hello', 'salam', 'assalam', 'aoa', 'menu', 'start', '0', '#menu'];
+        const wakeUpKeywords = ['menu', '#menu', 'start', '0'];
         const isWakeUp = wakeUpKeywords.some((k) => clean === k || words.includes(k));
 
         if (isWakeUp) {
@@ -935,6 +935,35 @@ async function start() {
         } else if (humanTakeover[senderPhone] && Date.now() < humanTakeover[senderPhone]) {
           console.log(`[Bot] In Human Agent Mode for ${senderPhone}. Staying silent so admin can chat.`);
           continue;
+        }
+
+        // 🛑 STEP 0: PERSONAL vs STORE ISOLATION GUARD
+        // Verify if this message is store-related before triggering ANY automated rule or greeting!
+        const hasStoreSignal =
+          STORE_KEYWORDS.some((k) => clean.includes(k)) ||
+          /^(1|2|3|4|0|#menu|menu|start)$/i.test(clean) ||
+          /(pakodrive|pak-o-drive|order|parcel|delivery|dispatch|tracking|cod|jazzcash|easypaisa|wapsi|return|guarantee|warranty|rs\.|pkr|price|kitne|chahiye|lena hai|buy karna|check warranty)/i.test(clean) ||
+          clean.includes('http://') ||
+          clean.includes('https://') ||
+          conversationHistories.has(senderPhone);
+
+        let isStoreCustomer = false;
+        if (!hasStoreSignal) {
+          try {
+            const cleanPhoneDigits = senderPhone.replace(/^92/, '0');
+            const existingOrder = await Order.findOne({ 'customerDetails.phone': { $regex: cleanPhoneDigits.slice(-9) } }).lean();
+            if (existingOrder) isStoreCustomer = true;
+          } catch {}
+        }
+
+        if (!hasStoreSignal && !isStoreCustomer) {
+          // Message does not have store keywords; consult AI intent classifier
+          console.log(`[Bot Filter] Checking personal vs store intent for ${senderPhone}: "${messageText}"`);
+          const classification = await classifyMessageIntent(messageText);
+          if (!classification.is_store_related) {
+            console.log(`[Bot Filter] Message classified as PERSONAL / CASUAL from ${senderPhone} ("${messageText}"). Staying 100% silent.`);
+            continue; // 🛑 STAY 100% SILENT for personal contacts, friends & family!
+          }
         }
 
         // 1. Fetch dynamic rules from DB, fallback to built-in rules

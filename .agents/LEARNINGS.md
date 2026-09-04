@@ -6,6 +6,19 @@ This file serves as persistent dynamic memory across coding agent sessions. Ever
 
 ## 🏛️ PART 1: The 8 Core Pakistani E-Commerce Engineering Rules
 
+### 2026-09-04 — WhatsApp Bot Dual-Use Isolation: Personal Chat Shield & Loose Keyword Sanitization
+- **📌 Issue**: WhatsApp auto-responder bot erroneously fired a "👨‍💼 Live Support Agent Handoff" message into a personal one-on-one conversation when a friend (Arish) sent a routine casual text ("Bejh di ha agy call aye gi thory Dino ma tujy"). The user needs to use their primary WhatsApp number (+923185205667) for daily personal life and Pak-o-Drive business concurrently without bot interference.
+- **🔍 Root Cause & Failed Attempts**:
+  - The `Human Agent Handoff` rule in MongoDB Atlas and `src/models/WhatsAppRule.ts` contained loose generic conversational keywords: `['agent', 'human', 'admin', 'call', 'talk', 'baat', 'banda', 'representative', '4']` with `triggerType: 'contains'`. The word `"call"` in Arish's message triggered an immediate auto-reply.
+  - In `src/worker/bot.mjs`, `classifyMessageIntent` (AI intent check) was located AFTER the rule iteration loop; when any pre-set rule matched, the bot replied immediately without checking if the chat was personal.
+  - `src/lib/whatsappBot/engine.ts` and `src/worker/whatsapp-worker.ts` lacked `@g.us` group chat exclusion, `WHATSAPP_EXCLUDED_NUMBERS` whitelist filtering, and store intent gating.
+- **🛠️ Verified Code Fix**:
+  1. Ran MongoDB Atlas migration (`scripts/migrate-whatsapp-rules.cjs`) updating the `Human Agent Handoff` rule to remove loose conversational words (`call`, `talk`, `baat`, `banda`) and preserve strictly agent-specific intent keywords (`agent`, `human agent`, `live agent`, `support agent`, `admin rabta`, `representative`, `customer support`, `!agent`, `4`).
+  2. Updated `DEFAULT_WHATSAPP_RULES` in `src/models/WhatsAppRule.ts` and fallback rules in `src/worker/bot.mjs`.
+  3. Built Step-0 **Store Intent Guard** in `src/worker/bot.mjs`, `src/lib/whatsappBot/engine.ts`, and `src/worker/whatsapp-worker.ts`: verifies store signals (`STORE_KEYWORDS`, product URLs, menu commands `1-4`, order identifiers, or existing customer orders in MongoDB) and executes AI personal/casual intent classification BEFORE any rule matching. Casual/personal texts now keep the bot 100% silent (`continue;`).
+  4. Added WhatsApp group exclusion (`@g.us`) and `WHATSAPP_EXCLUDED_NUMBERS` environment check across all engine and worker entry points.
+  5. Verified compilation with `.\node_modules\.bin\tsc --noEmit` (0 errors).
+
 ### 2026-09-04 — Dual-Hub Blog Architecture (pakodrive.pk/auto vs pakodrive.pk/general) & In-Blog WhatsApp 1-Click COD Orders
 - **📌 Issue**: Generic high-CPC topics (AI, tech breakthroughs, global infrastructure, wellness) were mixed into the single `/blog` route, threatening to dilute Pak-o-Drive's automotive topical authority on Google; additionally, blog readers had high friction converting to buyers without direct 1-click WhatsApp Cash on Delivery purchasing inside automotive guides.
 - **🔍 Root Cause & Failed Attempts**:

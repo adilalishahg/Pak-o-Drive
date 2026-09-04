@@ -81,26 +81,36 @@ async function connectDatabase() {
 
 function matchRule(text: string, rules: any[]) {
   const clean = text.toLowerCase().trim();
+  const words = clean.split(/[\s,?.!#@_+\-:]+/).filter(Boolean);
 
   for (const rule of rules) {
     if (!rule.keywords || rule.keywords.length === 0) continue;
 
-    if (rule.triggerType === 'exact') {
-      if (rule.keywords.some((k: string) => clean === k.toLowerCase().trim())) {
-        return rule;
+    const hasMatch = rule.keywords.some((rawK: string) => {
+      if (!rawK) return false;
+      const k = rawK.toLowerCase().trim();
+      if (!k) return false;
+
+      if (k.length <= 2) {
+        return clean === k || words.includes(k);
       }
-    } else if (rule.triggerType === 'contains') {
-      if (rule.keywords.some((k: string) => clean.includes(k.toLowerCase().trim()))) {
-        return rule;
+      if (rule.triggerType === 'exact') {
+        return clean === k;
       }
-    } else if (rule.triggerType === 'regex') {
-      for (const pattern of rule.keywords) {
+      if (rule.triggerType === 'contains') {
+        return clean === k || words.includes(k) || (k.length >= 4 && clean.includes(k));
+      }
+      if (rule.triggerType === 'regex') {
         try {
-          const re = new RegExp(pattern, 'i');
-          if (re.test(clean)) return rule;
-        } catch {}
+          return new RegExp(k, 'i').test(clean);
+        } catch {
+          return false;
+        }
       }
-    }
+      return false;
+    });
+
+    if (hasMatch) return rule;
   }
 
   return rules.find((r) => r.triggerType === 'default');
@@ -201,13 +211,23 @@ async function startWhatsAppWorker() {
     if (m.type !== 'notify') return;
 
     for (const msg of m.messages) {
-      if (msg.key.fromMe || msg.key.remoteJid === 'status@broadcast') continue;
+      if (msg.key.fromMe || msg.key.remoteJid === 'status@broadcast' || msg.key.remoteJid?.endsWith('@g.us')) continue;
 
       try {
         const senderJid = msg.key.remoteJid;
         if (!senderJid) continue;
 
         const senderPhone = senderJid.split('@')[0];
+
+        // 🛑 Whitelist check: Ignore personal / family excluded numbers
+        const excludedNumbers = (process.env.WHATSAPP_EXCLUDED_NUMBERS || '')
+          .split(',')
+          .map((s) => s.trim().replace(/[^0-9]/g, ''))
+          .filter(Boolean);
+        if (excludedNumbers.some((n) => senderPhone.includes(n))) {
+          continue;
+        }
+
         const messageText =
           msg.message?.conversation ||
           msg.message?.extendedTextMessage?.text ||
@@ -215,6 +235,36 @@ async function startWhatsAppWorker() {
           '';
 
         if (!messageText.trim()) continue;
+
+        // 🛑 Store intent guard: protect personal / family chats
+        const clean = messageText.toLowerCase().trim();
+        const storeKeywords = [
+          'pakodrive', 'pak-o-drive', 'order', 'parcel', 'delivery', 'dispatch', 'tracking',
+          'cod', 'jazzcash', 'easypaisa', 'wapsi', 'return', 'guarantee', 'warranty', 'rs.', 'pkr',
+          'price', 'kitne', 'chahiye', 'lena hai', 'buy karna', 'mehran', 'civic', 'corolla', 'alto',
+          'cultus', 'yaris', 'city', 'car', 'gari', 'mirror', 'sheesha', 'light', 'speaker', 'panel',
+          'android', 'cover', 'seat', 'mat', 'microfiber', 'spray', 'perfume', 'charger', 'led'
+        ];
+
+        const hasStoreSignal =
+          storeKeywords.some((k) => clean.includes(k)) ||
+          /^(1|2|3|4|0|#menu|menu|start)$/i.test(clean) ||
+          clean.includes('http://') ||
+          clean.includes('https://');
+
+        let isStoreCustomer = false;
+        if (!hasStoreSignal) {
+          try {
+            const cleanDigits = senderPhone.replace(/^92/, '0');
+            const existingOrder = await Order.findOne({ 'customerDetails.phone': { $regex: cleanDigits.slice(-9) } }).lean();
+            if (existingOrder) isStoreCustomer = true;
+          } catch {}
+        }
+
+        if (!hasStoreSignal && !isStoreCustomer) {
+          // Purely personal / casual conversation -> Stay 100% silent!
+          continue;
+        }
 
         console.log(`[Incoming Message] From: ${senderPhone} | Text: "${messageText}"`);
 
