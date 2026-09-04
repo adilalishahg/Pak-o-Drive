@@ -100,7 +100,24 @@ export async function getBlogPostBySlug(slug: string): Promise<IBlogPost | null>
     }
   );
 
-  return fetcher(normalizedSlug);
+  const cached = await fetcher(normalizedSlug);
+  if (cached) return cached;
+
+  // Direct DB lookup fallback (prevents stale null cache for newly generated articles)
+  try {
+    await dbConnect();
+    const freshPost = await BlogPost.findOne({ slug: normalizedSlug, isPublished: true })
+      .populate({
+        path: 'featuredProducts',
+        select: 'name slug price originalPrice images image stock rating reviewsCount category',
+      })
+      .lean();
+    if (freshPost) return JSON.parse(JSON.stringify(freshPost)) as IBlogPost;
+  } catch (err) {
+    console.error(`Direct DB fallback error for "${normalizedSlug}":`, err);
+  }
+
+  return null;
 }
 
 /**

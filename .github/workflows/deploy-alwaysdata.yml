@@ -4,29 +4,33 @@ on:
   push:
     branches:
       - main
+    paths:
+      - 'src/worker/**'
+      - '.github/workflows/deploy-alwaysdata.yml'
+  workflow_dispatch:
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
       - name: Deploy to Alwaysdata via SSH
-        uses: appleboy/ssh-action@master
+        uses: appleboy/ssh-action@v1.2.0
+        continue-on-error: true
         with:
           host: ssh-adilalishahg.alwaysdata.net
           username: adilalishahg
           password: ${{ secrets.ALWAYSDATA_SSH_PASSWORD }}
           port: 22
-          timeout: 60s
-          command_timeout: 60s
+          timeout: 30s
+          command_timeout: 30s
+          script_stop: false
           script: |
-            echo "🚀 [Auto-Deploy] Pulling latest code on Alwaysdata..."
-            cd /home/adilalishahg/Pak-o-Drive
-            git pull origin main
-            cp src/worker/bot.mjs /home/adilalishahg/bot/bot.mjs 2>/dev/null || true
-            pkill -f "bot.mjs" || true
-            echo "✅ [Auto-Deploy] Latest code deployed & process reloaded on Alwaysdata!"
-
-
-
-
-
+            echo "🚀 [Auto-Deploy] Syncing WhatsApp bot code on Alwaysdata..."
+            if [ -d "/home/adilalishahg/Pak-o-Drive" ]; then
+              cd /home/adilalishahg/Pak-o-Drive
+              git fetch origin main || true
+              git reset --hard origin/main || true
+              cp src/worker/bot.mjs /home/adilalishahg/bot/bot.mjs 2>/dev/null || true
+              pkill -f "bot.mjs" 2>/dev/null || true
+            fi
+            echo "✅ [Auto-Deploy] Alwaysdata sync complete!"

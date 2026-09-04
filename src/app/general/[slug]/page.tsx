@@ -26,6 +26,7 @@ interface PageProps {
 }
 
 export const revalidate = 600;
+export const dynamicParams = true;
 
 export async function generateStaticParams() {
   const slugs = await getAllPublishedSlugs('general');
