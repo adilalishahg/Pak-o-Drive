@@ -19,7 +19,7 @@ const AUTO_IMAGE_RULES: ImageMatchRule[] = [
   },
   {
     keywords: ['gas', 'compressor', 'radiator', 'coolant', 'engine', 'heat up', 'overheating', 'mehran'],
-    imageUrl: 'https://images.unsplash.com/photo-1486006920555-c77dce18193b?auto=format&fit=crop&w=1600&q=80',
+    imageUrl: 'https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?auto=format&fit=crop&w=1600&q=80',
     alt: 'Car Engine Bay Maintenance and Inspection',
   },
   {
@@ -78,7 +78,7 @@ const AUTO_IMAGE_RULES: ImageMatchRule[] = [
 const GENERAL_IMAGE_RULES: ImageMatchRule[] = [
   {
     keywords: ['ai', 'generative', 'automation', 'chatgpt', 'agent', 'model', 'neural', 'machine learning'],
-    imageUrl: 'https://images.unsplash.com/photo-1677442136019-21780efad99a?auto=format&fit=crop&w=1600&q=80',
+    imageUrl: 'https://images.unsplash.com/photo-1620712943543-bcc4688e7485?auto=format&fit=crop&w=1600&q=80',
     alt: 'Artificial Intelligence and Neural Network Concept',
   },
   {
@@ -108,7 +108,7 @@ const GENERAL_IMAGE_RULES: ImageMatchRule[] = [
   },
   {
     keywords: ['solar', 'clean', 'energy', 'green', 'hydrogen', 'renewable', 'climate'],
-    imageUrl: 'https://images.unsplash.com/photo-1509391365360-2e959784a276?auto=format&fit=crop&w=1600&q=80',
+    imageUrl: 'https://images.unsplash.com/photo-1508873535684-277a3cbcc4e8?auto=format&fit=crop&w=1600&q=80',
     alt: 'Solar Panels Array and Renewable Clean Energy',
   },
   {

@@ -32,7 +32,7 @@ export function LayoutWrapper({ children }: { children: React.ReactNode }) {
 
   if (isBlog) {
     return (
-      <div className="blog-publication-wrapper min-h-screen flex flex-col bg-slate-950">
+      <div className="blog-publication-wrapper min-h-screen flex flex-col bg-slate-50">
         <BlogNavbar />
         <main className="flex-1 w-full">{children}</main>
         <BlogFooter />

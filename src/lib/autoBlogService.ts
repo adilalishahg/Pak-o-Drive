@@ -10,6 +10,8 @@ import {
   AutoTopic,
 } from './autoBlogTopics';
 import { resolveBlogCoverImage } from './blogImageResolver';
+import { uploadBlogCoverToCloudinary } from './blogCloudinary';
+import { sanitizeBlogMarkdown } from './blogMarkdownSanitizer';
 
 export interface AutoBlogPublishResult {
   success: boolean;
@@ -142,19 +144,25 @@ export async function executeAutoBlogPost(
   const wordCount = draft.content.split(/\s+/).length;
   const readTime = Math.max(3, Math.round(wordCount / 200));
   const categoryName = draft.category || selectedTopic.category || (targetHub === 'auto' ? 'Car Maintenance' : 'Technology & AI');
-  const coverImage = resolveBlogCoverImage(
+  const rawCoverImage = resolveBlogCoverImage(
     draft.title,
     categoryName,
     targetHub,
     [...(draft.tags || []), ...(draft.seoKeywords || []), ...selectedTopic.keywords]
   );
+
+  // Upload to Cloudinary (WebP format, 16:9 crop, safe against Unsplash 404s)
+  const coverImage = await uploadBlogCoverToCloudinary(rawCoverImage, finalSlug);
   const authorName = targetHub === 'auto' ? 'Pak-o-Drive Automotive Specialist' : 'Pak-o-Drive Global Trends';
+
+  // Sanitize markdown to ensure 100% AdSense-compliant HTML table rendering
+  const sanitizedContent = sanitizeBlogMarkdown(draft.content);
 
   const newPost = await BlogPost.create({
     title: draft.title.trim(),
     slug: finalSlug,
     excerpt: draft.excerpt?.trim() || draft.title.trim(),
-    content: draft.content,
+    content: sanitizedContent,
     coverImage,
     author: authorName,
     category: categoryName,

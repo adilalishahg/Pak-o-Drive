@@ -6,6 +6,59 @@ This file serves as persistent dynamic memory across coding agent sessions. Ever
 
 ## 🏛️ PART 1: The 8 Core Pakistani E-Commerce Engineering Rules
 
+### 2026-09-04 — Trending Automotive Magazine Header & Footer Redesign
+- **📌 Issue**: The initial blog layout separation utilized a heavy pitch-black navbar (`bg-slate-950`) that clashed harshly with the white editorial article body. The footer also lacked modern publication polish, reading newsletter incentives, and high-end automotive media aesthetics. The user requested a trending, magazine-grade layout inspired by leading automotive blogs (e.g. PakWheels, MotorTrend, The Verge, Gear Patrol).
+- **🔍 Root Cause & Failed Attempts**:
+  - The first iteration used full-bleed dark theme containers without light editorial canvas contrast, creating an uninviting, blocky aesthetic.
+  - The header lacked pre-header trending tickers, category pills with icons, and a dedicated light glassmorphism masthead.
+  - The footer lacked an interactive community/newsletter capture card, trust highlights, and clear categorical hierarchy.
+- **🛠️ Verified Code Fix**:
+  1. Rebuilt `src/components/blog/BlogNavbar.tsx` with a top dark trending ticker (`⚡ Trending Now in Pakistan:` Summer AC hacks, Alto tuning, M-2 fog protocols) + crisp white glassmorphic masthead (`bg-white/95 backdrop-blur-xl border-b border-slate-200 shadow-sm`), pill category navigation with custom icons, search pill, and vibrant orange gradient `Shop Auto Parts ↗` CTA.
+  2. Rebuilt `src/components/blog/BlogFooter.tsx` with high-end luxury dark styling: embedded "The Motorist Weekly Dispatch" newsletter hero card with interactive subscription, 4-column directory (Masthead & verified credentials, Editorial Pillars, Trending Guides, and Cash on Delivery Accessories store), 4-pillar trust badge bar, and clean copyright row.
+  3. Updated `LayoutWrapper.tsx` blog wrapper background from `bg-slate-950` to `bg-slate-50` for seamless canvas continuity.
+  4. Verified compilation with `pnpm tsc --noEmit` (exited with code 0).
+
+### 2026-09-04 — AdSense Developer Placeholder Elimination & Seamless Zero-Ad Collapsing
+- **📌 Issue**: On blog post pages (`/blog/[slug]`, `/auto/[slug]`, `/general/[slug]`), visitors saw an intrusive dashed placeholder box reading *"GOOGLE ADSENSE SLOT - Set NEXT_PUBLIC_ADSENSE_CLIENT_ID=ca-pub-xxx to activate live ads"* whenever AdSense credentials were unset or live ads were not served. The user requested that this error/placeholder never be displayed, and that the slot only appear when real ads are actually delivered.
+- **🔍 Root Cause & Failed Attempts**:
+  - `src/components/blog/AdSenseSlot.tsx` had an explicit pre-approval placeholder branch returning a bordered box with developer setup instructions when `!clientId`.
+  - Unfilled Google AdSense units (`data-ad-status="unfilled"`) lacked CSS collapse rules, creating empty blank boxes on reader viewports.
+- **🛠️ Verified Code Fix**:
+  1. Updated `AdSenseSlot.tsx` to immediately return `null` if `NEXT_PUBLIC_ADSENSE_CLIENT_ID` is not present, completely eliminating the developer placeholder box.
+  2. Added CSS collapse rule in `src/app/globals.css`: `ins.adsbygoogle[data-ad-status="unfilled"], ins.adsbygoogle:empty { display: none !important; }` so that unfilled or pending ad slots collapse silently without showing empty gaps or error states.
+  3. Verified `/blog/[slug]` layout flows seamlessly from cover image directly into Table of Contents and article markdown.
+  4. Verified compilation with `pnpm tsc --noEmit` (exited with code 0).
+
+### 2026-09-04 — Blog Cover Image 404 Root Cause, Unsplash URL Validation & Next.js Image Optimization
+- **📌 Issue**: In the admin blog management table (`/admin/blogs`), the article *"Autonomous Agents and Generative AI..."* showed a broken image icon. Additionally, Next.js console threw a warning: `Image with src ... has "fill" but is missing "sizes" prop`.
+- **🔍 Root Cause & Failed Attempts**:
+  - The topic-aware image resolver `src/lib/blogImageResolver.ts` contained an invalid/deleted Unsplash photo URL (`photo-1677442136019-21780efad99a`) for AI & technology articles. Testing with `fetch(url, { method: 'HEAD' })` confirmed it returned HTTP 404 from Unsplash CDN.
+  - When Next.js `<Image>` attempted to optimize the 404 URL through `/_next/image`, the server failed to fetch the source asset, rendering a broken image box in the admin table.
+  - Two other URLs in `blogImageResolver.ts` (`photo-1486006920555-c77dce18193b` for engine bays and `photo-1509391365360-2e959784a276` for solar panels) also returned 404.
+  - The `<Image>` component in `src/app/admin/blogs/page.tsx` was missing the `sizes="48px"` attribute.
+- **🛠️ Verified Code Fix**:
+  1. Ran an automated HTTP HEAD health check on all library URLs and replaced all 404 entries with verified 200 OK Unsplash photos in `src/lib/blogImageResolver.ts` (AI photo updated to `photo-1620712943543-bcc4688e7485`).
+  2. Updated the database record in MongoDB Atlas for the affected post (`generative-ai-autonomous-agents-remote-work-2026`) with the verified working image URL.
+  3. Added `export const dynamic = 'force-dynamic'` to `/api/admin/blogs` and `/api/admin/blogs/[id]` so admin updates reflect in real-time.
+  4. Added `sizes="48px"` to the admin table `<Image>` component, eliminating the console warning.
+  5. Verified `/_next/image` optimization returns `HTTP 200 OK` and `pnpm tsc --noEmit` passes with 0 errors.
+
+### 2026-09-04 — Dedicated Editorial Blog Layout & Complete E-Commerce Chrome Isolation
+- **📌 Issue**: Navigating to automotive guides and blog posts (`/auto`, `/auto/[slug]`, `/blog`, `/blog/[slug]`) displayed the full e-commerce store chrome: store announcement bar, e-commerce navbar (with category dropdown, accessory search bar, wishlist, and cart badge), store e-commerce footer, floating checkout cart button (`PKR 10,567 Go to Cart ->`), live/recent sales notification popups, and the AI store sales chatbot widget. The user requested that the blog look and feel completely separate as a dedicated media publication, while preserving all in-article monetization, AdSense, fitment consultation banners, and featured recommended products at the bottom of the article.
+- **🔍 Root Cause & Failed Attempts**:
+  - `LayoutWrapper.tsx` in `src/components/layout/` unconditionally wrapped all non-admin pages with `<AnnouncementBar />`, `<Navbar />`, `<Footer />`, `<WhatsAppSupport />`, `<FloatingCartButton />`, and `<RecentSalesNotification />`.
+  - `FLOATING_CART_EXCLUDED_PREFIXES` in `src/lib/constants.ts` only excluded `/cart`, `/checkout`, `/order-confirmation`, `/product/`, letting the floating cart pill render on all blog and auto guide routes.
+  - `useStoreChatBot.ts` and `LiveSalesNotification.tsx` did not check for blog path prefixes (`/auto`, `/blog`, `/general`), causing intrusive store chat prompts and sales popups to obscure article text.
+- **🛠️ Verified Code Fix**:
+  1. Added `isBlogPath(pathname?: string | null): boolean` in `src/lib/constants.ts` covering `/auto`, `/blog`, `/general` and sub-paths, and added these paths to `FLOATING_CART_EXCLUDED_PREFIXES`.
+  2. Built `src/hooks/useBlogNavbar.ts` (Rule 8 compliant) handling mobile drawer state, category navigation, guide keyword search, and dynamic scroll reading progress percentage for single article pages.
+  3. Built `src/components/blog/BlogNavbar.tsx` (pure presentation): sleek editorial header with "Pak-o-Drive Auto Journal" badge, dedicated guide categories, guide search, reading progress bar, and high-contrast "Shop Parts ↗" CTA linking back to `/shop`.
+  4. Built `src/components/blog/BlogFooter.tsx`: authoritative publication footer with editorial mission, categories, featured guides, store links, and copyright without e-commerce clutter.
+  5. Updated `LayoutWrapper.tsx` to detect `isBlogPath(pathname)`: mounts `<BlogNavbar />` + `<main>{children}</main>` + `<BlogFooter />` on blog routes, while omitting AnnouncementBar, store Navbar, store Footer, WhatsAppSupport, FloatingCartButton, and RecentSalesNotification.
+  6. Updated `useStoreChatBot.ts`, `LiveSalesNotification.tsx`, and `RecentSalesNotification.tsx` to unconditionally suppress when `isBlogPath(pathname)` is true.
+  7. Verified all existing in-article monetization elements (AdSense slots, WhatsApp fitment consultation, and recommended product cards with 1-click WhatsApp and COD order buttons) remain 100% active.
+  8. Verified compilation with `pnpm tsc --noEmit` (exited with code 0).
+
 ### 2026-09-04 — WhatsApp Bot Dual-Use Isolation: Personal Chat Shield & Loose Keyword Sanitization
 - **📌 Issue**: WhatsApp auto-responder bot erroneously fired a "👨‍💼 Live Support Agent Handoff" message into a personal one-on-one conversation when a friend (Arish) sent a routine casual text ("Bejh di ha agy call aye gi thory Dino ma tujy"). The user needs to use their primary WhatsApp number (+923185205667) for daily personal life and Pak-o-Drive business concurrently without bot interference.
 - **🔍 Root Cause & Failed Attempts**:

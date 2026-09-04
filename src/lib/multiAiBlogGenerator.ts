@@ -1,4 +1,5 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { sanitizeBlogMarkdown } from './blogMarkdownSanitizer';
 
 export interface GeneratedBlogResponse {
   title: string;
@@ -131,7 +132,7 @@ ${focusGuidelines}
    - Catchy, high-CTR H1 Title (compelling, no generic clickbait).
    - Strong narrative hook in the introduction that immediately captivates the reader.
    - Structured H2 (##) and H3 (###) subheadings delivering practical, step-by-step value.
-   - At least ONE rich Markdown comparison table (e.g., Pros vs Cons, Specifications, Symptoms vs Solutions, or Routine Checklist).
+   - At least ONE rich Markdown comparison table (e.g., Pros vs Cons, Specifications, Symptoms vs Solutions, or Routine Checklist). Table formatting MUST be standard Markdown (| Col 1 | Col 2 | \n |---|---|). NEVER place trailing arrows, '>' or stray symbols at the end of table divider lines.
    - Bulleted takeaway checklists or actionable frameworks.
    - ZERO robotic fluff or repetitive phrases (avoid starting paragraphs with "In today's fast-paced world..."). Write with authentic journalistic flair.
 
@@ -379,17 +380,22 @@ export async function generateMultiAiBlogDraft(
 ): Promise<GeneratedBlogResponse> {
   const prompt = buildBlogPrompt(topic, keywords, categoryHint);
 
+  const finalize = (res: GeneratedBlogResponse): GeneratedBlogResponse => ({
+    ...res,
+    content: sanitizeBlogMarkdown(res.content),
+  });
+
   // 1. First Priority: Gemini (Google ecosystem & localized expertise)
   const geminiResult = await generateWithGemini(prompt);
-  if (geminiResult) return geminiResult;
+  if (geminiResult) return finalize(geminiResult);
 
   // 2. Second Priority: Groq (Ultra-fast Llama-3.3-70B)
   const groqResult = await generateWithGroq(prompt);
-  if (groqResult) return groqResult;
+  if (groqResult) return finalize(groqResult);
 
   // 3. Third Priority: Hugging Face
   const hfResult = await generateWithHuggingFace(prompt);
-  if (hfResult) return hfResult;
+  if (hfResult) return finalize(hfResult);
 
   throw new Error('All AI providers (Gemini, Groq, Hugging Face) failed or their API keys are missing/exhausted.');
 }

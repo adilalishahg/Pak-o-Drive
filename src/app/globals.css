@@ -1400,3 +1400,9 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
 .toast-slide-exit {
   animation: toastSlideOutLeft 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
+
+/* ---------- Google AdSense Clean Collapse ------------------- */
+ins.adsbygoogle[data-ad-status="unfilled"],
+ins.adsbygoogle:empty {
+  display: none !important;
+}

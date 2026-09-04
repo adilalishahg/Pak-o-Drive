@@ -649,6 +649,7 @@ export default function AdminBlogsPage() {
                               src={post.coverImage}
                               alt={post.title}
                               fill
+                              sizes="48px"
                               className="object-cover"
                             />
                           ) : (
