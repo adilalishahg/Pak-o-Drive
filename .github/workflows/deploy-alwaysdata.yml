@@ -31,6 +31,7 @@ jobs:
               git fetch origin main || true
               git reset --hard origin/main || true
               cp src/worker/bot.mjs /home/adilalishahg/bot/bot.mjs 2>/dev/null || true
-              pkill -f "bot.mjs" 2>/dev/null || true
+              pkill -f "[n]ode.*bot.mjs" 2>/dev/null || true
             fi
             echo "✅ [Auto-Deploy] Alwaysdata sync complete!"
+            exit 0
