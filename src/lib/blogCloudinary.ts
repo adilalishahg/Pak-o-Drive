@@ -1,19 +1,25 @@
 import { v2 as cloudinary, UploadApiResponse } from 'cloudinary';
 
-// Configure Cloudinary from environment
-const isConfigured = Boolean(
-  process.env.CLOUDINARY_CLOUD_NAME &&
-  process.env.CLOUDINARY_API_KEY &&
-  process.env.CLOUDINARY_API_SECRET
-);
+function getCloudinaryClient() {
+  const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
+  const apiKey = process.env.CLOUDINARY_API_KEY;
+  const apiSecret = process.env.CLOUDINARY_API_SECRET;
 
-if (isConfigured) {
+  // Ignore dummy/placeholder keys
+  const isDummy = !cloudName || cloudName.includes('dvasdadxzc') || !apiKey || apiKey.length < 5;
+
+  if (isDummy) {
+    return null;
+  }
+
   cloudinary.config({
-    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-    api_key: process.env.CLOUDINARY_API_KEY,
-    api_secret: process.env.CLOUDINARY_API_SECRET,
+    cloud_name: cloudName,
+    api_key: apiKey,
+    api_secret: apiSecret,
     secure: true,
   });
+
+  return cloudinary;
 }
 
 /**
@@ -27,9 +33,9 @@ export async function uploadBlogCoverToCloudinary(
   sourceUrl: string,
   slug: string
 ): Promise<string> {
-  // If not configured or already a Cloudinary image or local asset, return as-is
-  if (!isConfigured) {
-    console.log('[BlogCloudinary] Cloudinary not configured in env, using source URL:', sourceUrl);
+  const client = getCloudinaryClient();
+  if (!client) {
+    console.log('[BlogCloudinary] Cloudinary not configured or using placeholder credentials. Using verified source URL:', sourceUrl);
     return sourceUrl;
   }
 
@@ -44,7 +50,7 @@ export async function uploadBlogCoverToCloudinary(
       // 8-second timeout so publishing never hangs indefinitely
       const timer = setTimeout(() => reject(new Error('Cloudinary blog upload timed out')), 8000);
 
-      cloudinary.uploader.upload(
+      client.uploader.upload(
         sourceUrl,
         {
           folder: 'pakodrive_blog',
