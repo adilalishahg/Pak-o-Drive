@@ -4,15 +4,17 @@ import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useRecentSales } from '@/hooks/useRecentSales';
+import { isBlogPath } from '@/lib/constants';
 
 export default function LiveSalesNotification() {
   const pathname = usePathname();
   const { currentSale, visible, dismiss } = useRecentSales();
 
-  // Hide completely on checkout, admin, or tracking pages to prevent distraction
+  // Hide completely on blog, checkout, admin, or tracking pages to prevent distraction
   if (
     !currentSale ||
     !visible ||
+    isBlogPath(pathname) ||
     pathname.startsWith('/admin') ||
     pathname === '/checkout' ||
     pathname === '/order-confirmation'

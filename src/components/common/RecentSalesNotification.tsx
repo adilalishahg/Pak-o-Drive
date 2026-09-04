@@ -1,12 +1,15 @@
 'use client';
 
 import React from 'react';
+import { usePathname } from 'next/navigation';
 import { useRecentSales } from '../../hooks/useRecentSales';
+import { isBlogPath } from '@/lib/constants';
 
 export const RecentSalesNotification: React.FC = () => {
+  const pathname = usePathname();
   const { currentSale, visible, dismiss } = useRecentSales();
 
-  if (!currentSale || !visible) return null;
+  if (!currentSale || !visible || isBlogPath(pathname) || pathname?.startsWith('/admin')) return null;
 
   return (
     <div

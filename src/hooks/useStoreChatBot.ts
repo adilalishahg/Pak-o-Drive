@@ -28,6 +28,8 @@ export const QUICK_ACTIONS = [
   { id: 'agent', label: '👨‍💼 Human Agent', query: 'Mujhe human agent se live baat karni hai' },
 ];
 
+import { isBlogPath } from '@/lib/constants';
+
 export function useStoreChatBot() {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
@@ -43,6 +45,7 @@ export function useStoreChatBot() {
 
   const whatsappNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '+923185205667';
   const isProductPage = pathname?.startsWith('/product/');
+  const isBlogPage = isBlogPath(pathname);
 
   // Session ID generator
   const getSessionId = useCallback(() => {
@@ -57,6 +60,7 @@ export function useStoreChatBot() {
 
   // Hydration safe mount
   useEffect(() => {
+    if (isBlogPage) return;
     setIsMounted(true);
 
     try {

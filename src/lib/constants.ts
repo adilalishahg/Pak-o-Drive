@@ -226,7 +226,22 @@ export const FLOATING_CART_EXCLUDED_PREFIXES = [
   '/checkout',
   '/order-confirmation',
   '/product/',
+  '/auto',
+  '/blog',
+  '/general',
 ] as const;
+
+export function isBlogPath(pathname?: string | null): boolean {
+  if (!pathname) return false;
+  return (
+    pathname === '/auto' ||
+    pathname.startsWith('/auto/') ||
+    pathname === '/blog' ||
+    pathname.startsWith('/blog/') ||
+    pathname === '/general' ||
+    pathname.startsWith('/general/')
+  );
+}
 
 
 
