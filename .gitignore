@@ -72,3 +72,9 @@ next-env.d.ts
 graft/
 .agents/scratch/
 scratch/
+
+# Local Generated Test Outputs
+public/*.pdf
+public/active-post-graphic.jpg
+public/test-image.jpg
+public/verified-tech-graphic.jpg

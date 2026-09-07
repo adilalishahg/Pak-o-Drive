@@ -92,6 +92,7 @@ export function useBlogNavbar() {
         router.push(`/auto?search=${encodeURIComponent(searchQuery.trim())}`);
       });
       setSearchOpen(false);
+      setMobileMenuOpen(false);
     },
     [searchQuery, router]
   );
@@ -101,12 +102,24 @@ export function useBlogNavbar() {
     categories: BLOG_NAV_CATEGORIES,
     mobileMenuOpen,
     setMobileMenuOpen,
-    toggleMobileMenu: () => setMobileMenuOpen((prev) => !prev),
+    toggleMobileMenu: () => {
+      setMobileMenuOpen((prev) => {
+        const next = !prev;
+        if (next) setSearchOpen(false);
+        return next;
+      });
+    },
     readingProgress,
     isArticlePage,
     searchOpen,
     setSearchOpen,
-    toggleSearch: () => setSearchOpen((prev) => !prev),
+    toggleSearch: () => {
+      setSearchOpen((prev) => {
+        const next = !prev;
+        if (next) setMobileMenuOpen(false);
+        return next;
+      });
+    },
     searchQuery,
     setSearchQuery,
     handleSearchSubmit,

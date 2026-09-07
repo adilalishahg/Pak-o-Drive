@@ -207,3 +207,77 @@ export async function getAllPublishedSlugs(hub?: 'auto' | 'general'): Promise<{ 
 
   return fetcher(hub || '');
 }
+
+/**
+ * Fetch featured products for in-article showcase.
+ * If post does not have manually attached products, fetches top selling store products as fallback.
+ */
+export async function getArticleFeaturedProducts(
+  postFeaturedProducts: any[] = [],
+  limit: number = 4
+): Promise<any[]> {
+  try {
+    const validExisting = (postFeaturedProducts || []).filter(
+      (p) => p && typeof p === 'object' && p.name && p.price
+    );
+    if (validExisting.length >= limit) {
+      return validExisting.slice(0, limit);
+    }
+
+    await dbConnect();
+    const Product = (await import('@/models/Product')).default;
+    const excludeIds = validExisting.map((p) => p._id);
+
+    const storeProducts = await Product.find({
+      _id: { $nin: excludeIds },
+      stock: { $gt: 0 },
+    })
+      .sort({ isTopSelling: -1, isFeatured: -1, rating: -1, createdAt: -1 })
+      .limit(limit - validExisting.length)
+      .select('name slug price originalPrice images image stock rating reviewsCount category')
+      .lean();
+
+    return [...validExisting, ...JSON.parse(JSON.stringify(storeProducts))];
+  } catch (error) {
+    console.error('Error in getArticleFeaturedProducts:', error);
+    return postFeaturedProducts || [];
+  }
+}
+
+/**
+ * Fetch top viral products performing on Meta/TikTok in Rawalpindi & Islamabad (Twin Cities).
+ */
+export async function getViralTwinCitiesProducts(limit: number = 8): Promise<any[]> {
+  try {
+    await dbConnect();
+    const Product = (await import('@/models/Product')).default;
+
+    const products = await Product.find({
+      stock: { $gt: 0 },
+      $or: [
+        { isTopSelling: true },
+        { isFeatured: true },
+        { rating: { $gte: 4.5 } },
+      ],
+    })
+      .sort({ isTopSelling: -1, isFeatured: -1, rating: -1, createdAt: -1 })
+      .limit(limit)
+      .select('name slug price originalPrice images image stock rating reviewsCount category heroText')
+      .lean();
+
+    if (!products || products.length === 0) {
+      const fallback = await Product.find({ stock: { $gt: 0 } })
+        .sort({ createdAt: -1 })
+        .limit(limit)
+        .select('name slug price originalPrice images image stock rating reviewsCount category heroText')
+        .lean();
+      return JSON.parse(JSON.stringify(fallback || []));
+    }
+
+    return JSON.parse(JSON.stringify(products));
+  } catch (error) {
+    console.error('Error in getViralTwinCitiesProducts:', error);
+    return [];
+  }
+}
+

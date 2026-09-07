@@ -1,337 +1,358 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { PakODriveLogo } from '@/components/common/PakODriveLogo';
+import { useSiteInfo } from '@/components/common/SiteInfoProvider';
 import {
-  Send,
-  CheckCircle2,
-  ExternalLink,
-  MessageCircle,
   Truck,
   ShieldCheck,
+  MessageCircle,
+  Clock,
+  ExternalLink,
   ShoppingBag,
+  BookOpen,
 } from 'lucide-react';
 import { FacebookIcon, InstagramIcon, TwitterIcon } from '@/components/blog/SocialIcons';
 
-interface FooterProduct {
-  _id: string;
-  name: string;
-  slug: string;
-  price: number;
-  image?: string;
-  images?: string[];
-}
-
 export const BlogFooter: React.FC = () => {
-  const [newsletterEmail, setNewsletterEmail] = useState('');
-  const [privacyAccepted, setPrivacyAccepted] = useState(true);
-  const [subscribed, setSubscribed] = useState(false);
-  const [products, setProducts] = useState<FooterProduct[]>([]);
-  const [loadingProducts, setLoadingProducts] = useState(false);
+  const { info } = useSiteInfo();
 
-  const rawPhone = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '+923185205667';
-  const cleanPhone = rawPhone.replace(/\D/g, '') || '923185205667';
-
-  useEffect(() => {
-    let isMounted = true;
-    async function loadProducts() {
-      try {
-        setLoadingProducts(true);
-        const res = await fetch('/api/products?limit=4');
-        if (!res.ok) return;
-        const data = await res.json();
-        if (isMounted && data?.products && Array.isArray(data.products)) {
-          setProducts(data.products.slice(0, 4));
-        }
-      } catch {
-        // Fallback silently if offline
-      } finally {
-        if (isMounted) setLoadingProducts(false);
-      }
+  // Robust validator: strictly render only connected social accounts with real profiles/handles
+  const isConnectedSocial = (url?: string | null): boolean => {
+    if (!url) return false;
+    const trimmed = url.trim();
+    if (
+      !trimmed ||
+      trimmed === '#' ||
+      trimmed === '/' ||
+      trimmed.startsWith('javascript:') ||
+      trimmed.includes('example.com')
+    ) {
+      return false;
     }
-    loadProducts();
-    return () => {
-      isMounted = false;
-    };
-  }, []);
-
-  const handleSubscribe = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newsletterEmail.trim() || !privacyAccepted) return;
-    setSubscribed(true);
-    setNewsletterEmail('');
+    const cleaned = trimmed.replace(/\/+$/, '').toLowerCase();
+    const bareDomains = [
+      'https://facebook.com',
+      'http://facebook.com',
+      'https://www.facebook.com',
+      'http://www.facebook.com',
+      'https://instagram.com',
+      'http://instagram.com',
+      'https://www.instagram.com',
+      'http://www.instagram.com',
+      'https://twitter.com',
+      'http://twitter.com',
+      'https://www.twitter.com',
+      'http://www.twitter.com',
+      'https://x.com',
+      'http://x.com',
+      'https://youtube.com',
+      'http://youtube.com',
+      'https://www.youtube.com',
+      'http://www.youtube.com',
+      'https://tiktok.com',
+      'http://tiktok.com',
+      'https://www.tiktok.com',
+    ];
+    return !bareDomains.includes(cleaned);
   };
 
+  // WhatsApp is connected ONLY if configured in Site Info with valid digits
+  const rawWhatsapp = info?.whatsapp?.trim();
+  const cleanDigits = rawWhatsapp ? rawWhatsapp.replace(/\D/g, '') : '';
+  const hasValidWhatsapp = cleanDigits.length >= 10 && rawWhatsapp !== '#';
+  const formattedWhatsapp = hasValidWhatsapp
+    ? cleanDigits.startsWith('92')
+      ? cleanDigits
+      : `92${cleanDigits.replace(/^0/, '')}`
+    : null;
+
+  // Dynamic Social Links: strictly render only connected accounts
+  const socialItems = [
+    {
+      id: 'facebook',
+      label: 'Facebook',
+      href: info?.facebook,
+      icon: <FacebookIcon className="w-3.5 h-3.5" />,
+      hoverClass: 'hover:bg-[#1877F2] hover:border-[#1877F2] hover:text-white',
+    },
+    {
+      id: 'instagram',
+      label: 'Instagram',
+      href: info?.instagram,
+      icon: <InstagramIcon className="w-3.5 h-3.5" />,
+      hoverClass: 'hover:bg-gradient-to-tr hover:from-amber-500 hover:to-rose-600 hover:border-rose-500 hover:text-white',
+    },
+    {
+      id: 'twitter',
+      label: 'Twitter',
+      href: info?.twitter,
+      icon: <TwitterIcon className="w-3.5 h-3.5" />,
+      hoverClass: 'hover:bg-slate-700 hover:border-slate-600 hover:text-white',
+    },
+    {
+      id: 'youtube',
+      label: 'YouTube',
+      href: info?.youtube,
+      icon: (
+        <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M22.54 6.42a2.78 2.78 0 0 0-1.95-1.97C18.88 4 12 4 12 4s-6.88 0-8.59.45A2.78 2.78 0 0 0 1.46 6.42 29 29 0 0 0 1 12a29 29 0 0 0 .46 5.58A2.78 2.78 0 0 0 3.41 19.6C5.12 20 12 20 12 20s6.88 0 8.59-.44a2.78 2.78 0 0 0 1.95-1.98A29 29 0 0 0 23 12a29 29 0 0 0-.46-5.58z" />
+          <polygon points="9.75 15.02 15.5 12 9.75 8.98 9.75 15.02" fill="white" />
+        </svg>
+      ),
+      hoverClass: 'hover:bg-[#FF0000] hover:border-[#FF0000] hover:text-white',
+    },
+    {
+      id: 'tiktok',
+      label: 'TikTok',
+      href: (info as any)?.tiktok,
+      icon: (
+        <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64c.298 0 .59.043.87.127V9.41a6.33 6.33 0 0 0-.87-.06A6.34 6.34 0 0 0 3.15 15.7 6.34 6.34 0 0 0 9.49 22a6.34 6.34 0 0 0 6.34-6.33V9.22a8.16 8.16 0 0 0 4.76 1.52v-3.4a4.85 4.85 0 0 1-1-.65z" />
+        </svg>
+      ),
+      hoverClass: 'hover:bg-slate-800 hover:border-slate-700 hover:text-white',
+    },
+    {
+      id: 'whatsapp',
+      label: 'WhatsApp',
+      href: formattedWhatsapp ? `https://wa.me/${formattedWhatsapp}` : '',
+      icon: <MessageCircle className="w-3.5 h-3.5" />,
+      hoverClass: 'hover:bg-[#25D366] hover:border-[#25D366] hover:text-slate-950 text-[#25D366]',
+    },
+  ].filter((item) => {
+    if (item.id === 'whatsapp') return Boolean(formattedWhatsapp);
+    return isConnectedSocial(item.href);
+  });
+
   return (
-    <footer className="w-full bg-white text-slate-700 border-t border-slate-200 select-none">
-      {/* ── 1. Subscribe Our Newsletter Box (Matching User's Reference) ── */}
-      <div className="py-14 sm:py-16 px-4 sm:px-6 lg:px-8 border-b border-slate-100 bg-[#fafafa]">
-        <div className="max-w-2xl mx-auto text-center">
-          <h3 className="text-2xl sm:text-3xl font-serif font-bold text-slate-900 tracking-tight mb-2">
-            Subscribe Our Newsletter
-          </h3>
-          <div className="w-12 h-0.5 bg-rose-500 mx-auto mb-6" />
-
-          {subscribed ? (
-            <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 flex items-center justify-center gap-2 max-w-md mx-auto">
-              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-              <p className="text-xs font-semibold m-0">Thank you for subscribing to Pak-o-Drive Journal!</p>
-            </div>
-          ) : (
-            <form onSubmit={handleSubscribe} className="space-y-3 max-w-md mx-auto">
-              <div className="flex items-center bg-white border border-slate-300 rounded-lg p-1 focus-within:border-rose-500 transition-colors shadow-xs">
-                <input
-                  type="email"
-                  required
-                  placeholder="Enter Your Email..."
-                  value={newsletterEmail}
-                  onChange={(e) => setNewsletterEmail(e.target.value)}
-                  className="w-full bg-transparent px-3 py-2 text-xs text-slate-800 placeholder-slate-400 border-none outline-none"
-                />
-                <button
-                  type="submit"
-                  className="px-5 py-2 rounded-md bg-rose-500 hover:bg-rose-600 text-white font-semibold text-xs transition-colors shrink-0 cursor-pointer"
-                >
-                  Submit
-                </button>
+    <footer className="w-full bg-[#0a0f1d] text-slate-300 border-t border-slate-800/80 relative z-20 select-none overflow-hidden">
+      {/* ── 1. Top Pakistani E-Commerce Reassurance Strip ─────── */}
+      <div className="border-b border-slate-800/70 bg-[#070b16]/70 backdrop-blur-xs">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
+            {/* Trust Item 1 */}
+            <div className="flex items-center gap-2 sm:gap-3 p-2 sm:p-2.5 rounded-xl bg-slate-900/60 border border-slate-800/80 hover:border-emerald-500/30 transition-colors">
+              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
+                <Truck className="w-3.5 h-3.5" />
               </div>
+              <div className="min-w-0">
+                <h6 className="text-[11px] sm:text-xs font-bold text-white leading-tight truncate">Cash on Delivery</h6>
+                <p className="text-[10px] text-slate-400 mt-0.5 leading-snug truncate">250+ Pak Cities</p>
+              </div>
+            </div>
 
-              <label className="flex items-center justify-center gap-2 text-[11px] text-slate-500 cursor-pointer select-none">
-                <input
-                  type="checkbox"
-                  checked={privacyAccepted}
-                  onChange={(e) => setPrivacyAccepted(e.target.checked)}
-                  className="rounded border-slate-300 text-rose-500 focus:ring-rose-400 w-3.5 h-3.5"
-                />
-                <span>I&apos;ve read and accept the <Link href="/privacy-policy" className="text-rose-500 hover:underline">Privacy Policy</Link></span>
-              </label>
-            </form>
-          )}
+            {/* Trust Item 2 */}
+            <div className="flex items-center gap-2 sm:gap-3 p-2 sm:p-2.5 rounded-xl bg-slate-900/60 border border-slate-800/80 hover:border-blue-500/30 transition-colors">
+              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-400 flex items-center justify-center shrink-0">
+                <Clock className="w-3.5 h-3.5" />
+              </div>
+              <div className="min-w-0">
+                <h6 className="text-[11px] sm:text-xs font-bold text-white leading-tight truncate">24-48h Dispatch</h6>
+                <p className="text-[10px] text-slate-400 mt-0.5 leading-snug truncate">TCS &amp; Trax Tracking</p>
+              </div>
+            </div>
+
+            {/* Trust Item 3 */}
+            <div className="flex items-center gap-2 sm:gap-3 p-2 sm:p-2.5 rounded-xl bg-slate-900/60 border border-slate-800/80 hover:border-amber-500/30 transition-colors">
+              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center shrink-0">
+                <ShieldCheck className="w-3.5 h-3.5" />
+              </div>
+              <div className="min-w-0">
+                <h6 className="text-[11px] sm:text-xs font-bold text-white leading-tight truncate">7-Day Warranty</h6>
+                <p className="text-[10px] text-slate-400 mt-0.5 leading-snug truncate">Easy Replacement</p>
+              </div>
+            </div>
+
+            {/* Trust Item 4 */}
+            <div className="flex items-center gap-2 sm:gap-3 p-2 sm:p-2.5 rounded-xl bg-slate-900/60 border border-slate-800/80 hover:border-[#25D366]/30 transition-colors">
+              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-[#25D366]/10 border border-[#25D366]/20 text-[#25D366] flex items-center justify-center shrink-0">
+                <MessageCircle className="w-3.5 h-3.5" />
+              </div>
+              <div className="min-w-0">
+                <h6 className="text-[11px] sm:text-xs font-bold text-white leading-tight truncate">WhatsApp Fitment</h6>
+                <p className="text-[10px] text-slate-400 mt-0.5 leading-snug truncate">Vehicle Verification</p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* ── 2. Pak-o-Drive Official Store & Products Section ──── */}
-      <section className="py-14 sm:py-16 px-4 sm:px-6 lg:px-8 border-b border-slate-200/80 bg-white">
-        <div className="max-w-7xl mx-auto">
-          {/* Section Masthead */}
-          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
-            <div>
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-50 border border-rose-200/80 text-rose-600 text-xs font-bold uppercase tracking-wider mb-2.5 shadow-xs">
-                <ShoppingBag className="w-3.5 h-3.5 text-rose-500" />
-                <span>Pak-o-Drive Official Store</span>
-              </div>
-              <h4 className="text-xl sm:text-2xl lg:text-3xl font-serif font-extrabold !text-slate-900 tracking-tight leading-snug" style={{ color: '#0f172a' }}>
-                Featured Automotive Accessories & Viral Gadgets
-              </h4>
-              <p className="text-xs sm:text-sm text-slate-600 mt-1.5 flex items-center flex-wrap gap-2">
-                <span className="inline-flex items-center gap-1 text-emerald-700 font-semibold">
-                  <ShieldCheck className="w-4 h-4 text-emerald-600" /> 100% Cash On Delivery Nationwide
-                </span>
-                <span className="text-slate-300">•</span>
-                <span className="inline-flex items-center gap-1 text-slate-600">
-                  <Truck className="w-4 h-4 text-slate-400" /> 7-Day Checking Warranty
-                </span>
-              </p>
-            </div>
-
-            <Link
-              href="/shop"
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-slate-50 hover:bg-rose-50 text-slate-700 hover:text-rose-600 border border-slate-200/80 hover:border-rose-200 text-xs font-bold transition-all text-decoration-none group self-start sm:self-auto shadow-xs"
-              style={{ color: undefined }}
-            >
-              <span>Explore All Auto Parts</span>
-              <ExternalLink className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+      {/* ── 2. Main Brand & 3-Column Navigation Grid (Symmetrical & Clean) ── */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-10 items-start">
+          {/* Brand & Direct Assistance (Col 4 on desktop, compact on mobile) */}
+          <div className="lg:col-span-4 space-y-3">
+            <Link href="/" className="inline-block text-decoration-none">
+              <PakODriveLogo height={28} />
             </Link>
-          </div>
 
-          {/* Product Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {products.length > 0 ? (
-              products.map((prod) => {
-                const prodImage =
-                  prod.image ||
-                  (prod.images && prod.images[0]) ||
-                  '/img/placeholder-product.png';
+            <p className="text-xs text-slate-400 leading-relaxed max-w-sm">
+              Pakistan&apos;s leading automotive publication &amp; curated accessories marketplace. Real-world vehicle teardowns and COD electronics nationwide.
+            </p>
 
-                return (
-                  <div
-                    key={prod._id}
-                    className="group border border-slate-200/90 hover:border-rose-300 rounded-2xl p-4 flex flex-col justify-between hover:shadow-xl hover:-translate-y-1 transition-all duration-300 bg-white relative"
-                  >
-                    <div>
-                      {/* Dual-Layer Uncropped Media Presentation (Rule 3) */}
-                      <Link
-                        href={`/product/${prod.slug || prod._id}`}
-                        className="relative block aspect-square w-full rounded-xl overflow-hidden bg-slate-100/70 mb-3.5 group-hover:shadow-inner"
-                      >
-                        {/* Layer 1: Ambient Blur Backdrop */}
-                        <Image
-                          src={prodImage}
-                          alt={prod.name}
-                          fill
-                          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                          className="object-cover blur-2xl opacity-35 scale-125 pointer-events-none"
-                        />
-                        {/* Layer 2: 100% Unclipped Product Media */}
-                        <Image
-                          src={prodImage}
-                          alt={prod.name}
-                          fill
-                          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                          className="object-contain p-3 relative z-10 group-hover:scale-105 transition-transform duration-300"
-                        />
-                        {/* Badges */}
-                        <div className="absolute top-2.5 left-2.5 z-20 flex flex-col gap-1">
-                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-600 text-white shadow-xs">
-                            COD
-                          </span>
-                        </div>
-                      </Link>
-
-                      {/* Product Title (Rule 4: Typography Clipping Prevention & Forced High Contrast) */}
-                      <h5 className="font-bold text-sm leading-normal py-0.5 line-clamp-2">
-                        <Link
-                          href={`/product/${prod.slug || prod._id}`}
-                          className="!text-slate-900 group-hover:!text-rose-600 transition-colors text-decoration-none block"
-                          style={{ color: '#0f172a' }}
-                        >
-                          {prod.name}
-                        </Link>
-                      </h5>
-                    </div>
-
-                    <div className="mt-3.5 pt-3 border-t border-slate-100">
-                      <div className="flex items-baseline justify-between mb-3">
-                        <span className="text-[11px] font-medium text-slate-500 uppercase tracking-wider">
-                          Cash On Delivery
-                        </span>
-                        <span className="text-base font-extrabold text-rose-600 tracking-tight">
-                          Rs. {Number(prod.price || 0).toLocaleString()}
-                        </span>
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-2">
-                        {/* WhatsApp 1-Click Order (Rule 2) */}
-                        <a
-                          href={`https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodeURIComponent(
-                            `Salam Pak-o-Drive, I would like to order "${prod.name}" (Rs. ${Number(prod.price || 0).toLocaleString()}) via Cash On Delivery. Please confirm my order.`
-                          )}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs hover:shadow-sm transition-all text-decoration-none"
-                        >
-                          <MessageCircle className="w-3.5 h-3.5" />
-                          <span>WhatsApp</span>
-                        </a>
-
-                        {/* Order COD Button */}
-                        <Link
-                          href={`/product/${prod.slug || prod._id}`}
-                          className="inline-flex items-center justify-center py-2.5 px-2 rounded-xl bg-slate-900 hover:bg-rose-600 text-white text-xs font-bold shadow-xs hover:shadow-sm transition-all text-decoration-none"
-                        >
-                          Order COD
-                        </Link>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })
-            ) : (
-              // Static Fallback Showcase
-              [
-                { title: 'Solar Dual Ring Rotating Fragrance', price: 1899, href: '/shop' },
-                { title: 'Ultra-Power 120W Portable Car Vacuum', price: 2999, href: '/shop' },
-                { title: 'Anti-Glare High-Definition Rear Mirror', price: 899, href: '/shop' },
-                { title: 'Ceramic Nano UV Windshield Tint Film', price: 2499, href: '/shop' },
-              ].map((item, i) => (
-                <div
-                  key={i}
-                  className="border border-slate-200/90 rounded-2xl p-4 flex flex-col justify-between hover:border-rose-300 hover:shadow-lg transition-all bg-white"
+            {formattedWhatsapp && (
+              <div className="pt-0.5">
+                <a
+                  href={`https://wa.me/${formattedWhatsapp}?text=Salam%20Pak-o-Drive,%20I%20have%20an%20inquiry%20regarding%20products%20and%20guides.`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 text-[11px] sm:text-xs font-bold transition-all text-decoration-none group"
                 >
-                  <div className="aspect-square w-full rounded-xl bg-slate-100 flex items-center justify-center text-slate-400 mb-3.5">
-                    <ShoppingBag className="w-8 h-8 text-slate-400" />
-                  </div>
-                  <h5 className="font-bold text-sm leading-normal py-0.5 line-clamp-2">
-                    <Link href={item.href} className="!text-slate-900 hover:!text-rose-600 text-decoration-none block" style={{ color: '#0f172a' }}>
-                      {item.title}
-                    </Link>
-                  </h5>
-                  <div className="mt-3.5 pt-3 border-t border-slate-100 flex items-center justify-between">
-                    <span className="text-base font-extrabold text-rose-600">Rs. {item.price.toLocaleString()}</span>
-                    <Link
-                      href={item.href}
-                      className="text-xs font-bold text-slate-800 hover:text-rose-600 py-1 px-3 rounded-lg bg-slate-100 hover:bg-rose-50 text-decoration-none transition-colors"
-                      style={{ color: '#0f172a' }}
-                    >
-                      View ↗
-                    </Link>
-                  </div>
-                </div>
-              ))
+                  <span className="w-2 h-2 rounded-full bg-[#25D366] animate-pulse" />
+                  <span>Live Helpline: {rawWhatsapp}</span>
+                  <ExternalLink className="w-3 h-3 text-emerald-400 group-hover:translate-x-0.5 transition-transform" />
+                </a>
+              </div>
             )}
           </div>
+
+          {/* Symmetrical 3-Column Navigation Grid (Clean vertical stacks, zero awkward wrapping) */}
+          <div className="lg:col-span-8 grid grid-cols-3 gap-3 sm:gap-6 pt-1 sm:pt-0">
+            {/* Column 1: Auto Guides */}
+            <div className="space-y-2">
+              <div className="flex items-center gap-1.5 text-rose-400 text-[11px] sm:text-xs font-bold uppercase tracking-wider mb-2">
+                <BookOpen className="w-3.5 h-3.5 shrink-0" />
+                <span className="truncate">Auto Guides</span>
+              </div>
+              <ul className="space-y-2 text-[11px] sm:text-xs text-slate-400 list-none p-0 m-0">
+                <li>
+                  <Link href="/auto" className="hover:text-rose-400 transition-colors text-decoration-none block truncate">
+                    Research Desk
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/blog" className="hover:text-rose-400 transition-colors text-decoration-none block truncate">
+                    Tech &amp; AI
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/auto?tag=Motorway%20Fog" className="hover:text-rose-400 transition-colors text-decoration-none block truncate">
+                    M2 Fog Safety
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/auto?tag=Engine%20Oils" className="hover:text-rose-400 transition-colors text-decoration-none block truncate">
+                    Engine Oils
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/auto?tag=AC%20Cooling" className="hover:text-rose-400 transition-colors text-decoration-none block truncate">
+                    AC Solutions
+                  </Link>
+                </li>
+              </ul>
+            </div>
+
+            {/* Column 2: Official Store */}
+            <div className="space-y-2">
+              <div className="flex items-center gap-1.5 text-rose-400 text-[11px] sm:text-xs font-bold uppercase tracking-wider mb-2">
+                <ShoppingBag className="w-3.5 h-3.5 shrink-0" />
+                <span className="truncate">Store Catalog</span>
+              </div>
+              <ul className="space-y-2 text-[11px] sm:text-xs text-slate-400 list-none p-0 m-0">
+                <li>
+                  <Link href="/shop" className="hover:text-white transition-colors text-decoration-none block truncate">
+                    Browse Store
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/shop?category=led-lights" className="hover:text-white transition-colors text-decoration-none block truncate">
+                    LED Headlights
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/shop?category=interior-accessories" className="hover:text-white transition-colors text-decoration-none block truncate">
+                    Solar Perfumes
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/shop?category=car-care" className="hover:text-white transition-colors text-decoration-none block truncate">
+                    Car Vacuums
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/track-order" className="hover:text-emerald-400 text-emerald-400/90 font-medium transition-colors text-decoration-none block truncate">
+                    Track Order ↗
+                  </Link>
+                </li>
+              </ul>
+            </div>
+
+            {/* Column 3: Help & Legal */}
+            <div className="space-y-2">
+              <div className="flex items-center gap-1.5 text-rose-400 text-[11px] sm:text-xs font-bold uppercase tracking-wider mb-2">
+                <ShieldCheck className="w-3.5 h-3.5 shrink-0" />
+                <span className="truncate">Help &amp; Legal</span>
+              </div>
+              <ul className="space-y-2 text-[11px] sm:text-xs text-slate-400 list-none p-0 m-0">
+                <li>
+                  <Link href="/shipping-policy" className="hover:text-white transition-colors text-decoration-none block truncate">
+                    Shipping Rates
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/return-policy" className="hover:text-white transition-colors text-decoration-none block truncate">
+                    7-Day Return
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/privacy-policy" className="hover:text-white transition-colors text-decoration-none block truncate">
+                    Privacy Policy
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/terms" className="hover:text-white transition-colors text-decoration-none block truncate">
+                    Terms of Use
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/contact" className="hover:text-white transition-colors text-decoration-none block truncate">
+                    Contact Us
+                  </Link>
+                </li>
+              </ul>
+            </div>
+          </div>
         </div>
-      </section>
+      </div>
 
-      {/* ── 3. Bottom Minimal Magazine Footer (Matching Reference) ── */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
-          {/* Social Icons on Left */}
-          <div className="flex items-center gap-3">
-            <a
-              href="https://facebook.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-8 h-8 rounded-full border border-slate-200 flex items-center justify-center text-slate-500 hover:text-rose-500 hover:border-rose-500 transition-colors"
-              aria-label="Facebook"
-            >
-              <FacebookIcon className="w-3.5 h-3.5" />
-            </a>
-            <a
-              href="https://instagram.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-8 h-8 rounded-full border border-slate-200 flex items-center justify-center text-slate-500 hover:text-rose-500 hover:border-rose-500 transition-colors"
-              aria-label="Instagram"
-            >
-              <InstagramIcon className="w-3.5 h-3.5" />
-            </a>
-            <a
-              href="https://twitter.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-8 h-8 rounded-full border border-slate-200 flex items-center justify-center text-slate-500 hover:text-rose-500 hover:border-rose-500 transition-colors"
-              aria-label="Twitter"
-            >
-              <TwitterIcon className="w-3.5 h-3.5" />
-            </a>
-            <a
-              href={`https://wa.me/${cleanPhone}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-8 h-8 rounded-full border border-slate-200 flex items-center justify-center text-slate-500 hover:text-emerald-600 hover:border-emerald-500 transition-colors"
-              aria-label="WhatsApp Support"
-            >
-              <MessageCircle className="w-3.5 h-3.5" />
-            </a>
+      {/* ── 3. Bottom Legal, Logo & Strictly Connected Social Bar ── */}
+      <div className="border-t border-slate-800/80 bg-[#060913] py-4 sm:py-5">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] sm:text-xs text-slate-500">
+            {/* Logo + Copyright & Location */}
+            <div className="flex items-center gap-2.5 text-center sm:text-left flex-wrap justify-center sm:justify-start">
+              <Link href="/" className="inline-flex items-center text-decoration-none">
+                <PakODriveLogo height={20} />
+              </Link>
+              <span className="text-slate-700 hidden sm:inline">&bull;</span>
+              <span>&copy; {new Date().getFullYear()} Pak-o-Drive&trade;. All rights reserved.</span>
+              <span className="text-slate-700">&bull;</span>
+              <span className="inline-flex items-center gap-1 font-medium text-slate-400">
+                Pakistan <span className="text-[10px] text-emerald-400 font-bold">PK</span>
+              </span>
+            </div>
+
+            {/* Connected Socials Only (Renders strictly if URL is connected and valid) */}
+            {socialItems.length > 0 && (
+              <div className="flex items-center gap-2">
+                {socialItems.map((s) => (
+                  <a
+                    key={s.id}
+                    href={s.href!}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={s.label}
+                    className={`w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-slate-900 border border-slate-800 text-slate-400 flex items-center justify-center transition-all shadow-xs ${s.hoverClass}`}
+                  >
+                    {s.icon}
+                  </a>
+                ))}
+              </div>
+            )}
           </div>
-
-          {/* Quick Links */}
-          <div className="flex flex-wrap items-center gap-4 text-xs">
-            <Link href="/" className="hover:text-rose-500 text-decoration-none">Home</Link>
-            <Link href="/auto" className="hover:text-rose-500 text-decoration-none">Auto Guides</Link>
-            <Link href="/blog" className="hover:text-rose-500 text-decoration-none">Tech & AI</Link>
-            <Link href="/shop" className="hover:text-rose-500 text-decoration-none">Store</Link>
-            <Link href="/privacy-policy" className="hover:text-rose-500 text-decoration-none">Privacy</Link>
-            <Link href="/terms" className="hover:text-rose-500 text-decoration-none">Terms</Link>
-          </div>
-
-          {/* Copyright on Right */}
-          <p className="text-[11px] text-slate-400 m-0">
-            © {new Date().getFullYear()} Pak-o-Drive Journal. All rights reserved.
-          </p>
         </div>
       </div>
     </footer>

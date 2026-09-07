@@ -6,10 +6,18 @@ import Image from 'next/image';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeSlug from 'rehype-slug';
-import { getBlogPostBySlug, getAllPublishedSlugs, getRelatedPosts } from '@/lib/blog';
+import {
+  getBlogPostBySlug,
+  getAllPublishedSlugs,
+  getRelatedPosts,
+  getArticleFeaturedProducts,
+  getViralTwinCitiesProducts,
+} from '@/lib/blog';
 import { getStaticSiteUrl } from '@/lib/productSeo';
 import { AdSenseSlot } from '@/components/blog/AdSenseSlot';
 import { ArticleShareBar } from '@/components/blog/ArticleShareBar';
+import { ArticleFeaturedProducts } from '@/components/blog/ArticleFeaturedProducts';
+import { ViralProductSpotlight } from '@/components/blog/ViralProductSpotlight';
 import { sanitizeBlogMarkdown, extractKeyTakeaways } from '@/lib/blogMarkdownSanitizer';
 import { BlogNewsletterBox } from '@/components/blog/BlogNewsletterBox';
 import {
@@ -25,12 +33,14 @@ import {
   MessageCircle,
   CheckCircle2,
   ChevronRight,
+  ChevronDown,
   Flame,
   Sparkles,
   Truck,
   Quote,
   MessageSquare,
   Wrench,
+  Send,
 } from 'lucide-react';
 import { FacebookIcon, TwitterIcon, InstagramIcon } from '@/components/blog/SocialIcons';
 
@@ -140,7 +150,8 @@ export default async function AutoGuideDetailPage({ params }: PageProps) {
     return { title: rawText, id };
   });
 
-  const featuredProducts = (post.featuredProducts as any[]) || [];
+  const articleProducts = await getArticleFeaturedProducts(post.featuredProducts as any[], 4);
+  const viralProducts = await getViralTwinCitiesProducts(8);
   const rawPhone = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '+923185205667';
   const cleanPhone = rawPhone.replace(/\D/g, '') || '923185205667';
 
@@ -224,6 +235,12 @@ export default async function AutoGuideDetailPage({ params }: PageProps) {
               whatsappShareUrl={whatsappShareUrl}
             />
           </div>
+
+          {/* Viral Social Media Spotlight (Meta, TikTok & RWP/ISLB) */}
+          <ViralProductSpotlight
+            products={viralProducts}
+            cleanPhone={cleanPhone}
+          />
         </div>
       </header>
 
@@ -330,50 +347,73 @@ export default async function AutoGuideDetailPage({ params }: PageProps) {
             )}
 
             {/* Author Profile Card (Modern Trending Editorial Design) */}
-            <div className="p-6 sm:p-7 rounded-2xl border border-slate-200/90 bg-gradient-to-br from-slate-50/80 via-white to-rose-50/20 shadow-xs flex flex-col sm:flex-row items-center sm:items-start gap-5">
-              <div className="w-16 h-16 rounded-full p-0.5 bg-gradient-to-tr from-rose-500 to-amber-500 shadow-sm shrink-0">
-                <div className="w-full h-full rounded-full bg-slate-900 text-white flex items-center justify-center font-bold text-lg">
-                  {post.author ? post.author.slice(0, 2).toUpperCase() : 'PO'}
-                </div>
-              </div>
-              <div className="text-center sm:text-left flex-1">
-                <div className="flex items-center justify-center sm:justify-start gap-2 flex-wrap">
-                  <h4 className="font-serif font-bold text-base sm:text-lg text-slate-900">{post.author || 'Pak-o-Drive Specialist'}</h4>
-                  <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-full">
-                    <CheckCircle2 className="w-3 h-3 text-emerald-600" /> Verified Specialist
+            <div className="rounded-2xl border border-slate-200/90 bg-white shadow-xs overflow-hidden transition-all hover:shadow-md">
+              <div className="h-20 bg-gradient-to-r from-slate-950 via-slate-900 to-rose-950 relative">
+                <div className="absolute inset-0 bg-[radial-gradient(#ffffff1a_1px,transparent_1px)] [background-size:10px_10px] opacity-40" />
+                <div className="absolute top-3.5 right-4">
+                  <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-amber-300 bg-amber-400/10 border border-amber-400/20 px-3 py-1 rounded-full backdrop-blur-xs">
+                    <Sparkles className="w-3 h-3 text-amber-300" />
+                    Verified Automotive Specialist
                   </span>
                 </div>
-                <p className="text-xs sm:text-sm text-slate-600 mt-1.5 leading-relaxed">
-                  Pakistani automotive technician and specialist reviewer. Covering summer cooling solutions, engine oils, suspension setups, and verified accessories.
-                </p>
-                <div className="flex items-center justify-center sm:justify-start gap-2 mt-3.5 text-slate-400">
-                  <a
-                    href="https://facebook.com"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-7 h-7 rounded-full bg-white border border-slate-200 flex items-center justify-center hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200 transition-colors shadow-xs"
-                    aria-label="Facebook"
-                  >
-                    <FacebookIcon className="w-3 h-3" />
-                  </a>
-                  <a
-                    href="https://twitter.com"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-7 h-7 rounded-full bg-white border border-slate-200 flex items-center justify-center hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200 transition-colors shadow-xs"
-                    aria-label="Twitter"
-                  >
-                    <TwitterIcon className="w-3 h-3" />
-                  </a>
-                  <a
-                    href="https://instagram.com"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-7 h-7 rounded-full bg-white border border-slate-200 flex items-center justify-center hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200 transition-colors shadow-xs"
-                    aria-label="Instagram"
-                  >
-                    <InstagramIcon className="w-3 h-3" />
-                  </a>
+              </div>
+
+              <div className="px-6 pb-6 pt-0 sm:px-7 sm:pb-7 relative">
+                <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 -mt-10 sm:-mt-9">
+                  <div className="w-20 h-20 rounded-2xl p-1 bg-white shadow-md shrink-0 border border-slate-100">
+                    <div className="w-full h-full rounded-xl bg-gradient-to-tr from-rose-500 via-orange-500 to-amber-500 flex items-center justify-center font-bold text-white text-xl shadow-inner">
+                      {post.author ? post.author.slice(0, 2).toUpperCase() : 'PO'}
+                    </div>
+                  </div>
+                  <div className="text-center sm:text-left flex-1 pt-1">
+                    <div className="flex items-center justify-center sm:justify-start gap-2 flex-wrap">
+                      <h4 className="font-serif font-extrabold text-lg sm:text-xl text-slate-900 tracking-tight">
+                        {post.author || 'Pak-o-Drive Specialist'}
+                      </h4>
+                      <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-full">
+                        <CheckCircle2 className="w-3 h-3 text-emerald-600" /> Verified Editorial Lead
+                      </span>
+                    </div>
+                    <p className="text-xs sm:text-sm text-slate-600 mt-2 leading-relaxed">
+                      Pakistani automotive technician and specialist reviewer. Covering summer cooling solutions, engine oils, suspension setups, and verified accessories tested across Pakistani highways and urban climate.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mt-5 pt-4 border-t border-slate-100">
+                  <div className="flex items-center justify-center sm:justify-start gap-2 flex-wrap text-[11px] font-semibold text-slate-500">
+                    <span className="bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200/60">🚗 Diagnostic Teardowns</span>
+                    <span className="bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200/60">🇵🇰 Pakistan Roads & Heat Certified</span>
+                  </div>
+                  <div className="flex items-center justify-center gap-3 text-slate-400">
+                    <a
+                      href="https://facebook.com"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-8 h-8 rounded-xl bg-slate-50 hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200 border border-slate-200 flex items-center justify-center transition-all shadow-2xs hover:scale-105"
+                      aria-label="Facebook"
+                    >
+                      <FacebookIcon className="w-3.5 h-3.5" />
+                    </a>
+                    <a
+                      href="https://twitter.com"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-8 h-8 rounded-xl bg-slate-50 hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200 border border-slate-200 flex items-center justify-center transition-all shadow-2xs hover:scale-105"
+                      aria-label="Twitter"
+                    >
+                      <TwitterIcon className="w-3.5 h-3.5" />
+                    </a>
+                    <a
+                      href="https://instagram.com"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-8 h-8 rounded-xl bg-slate-50 hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200 border border-slate-200 flex items-center justify-center transition-all shadow-2xs hover:scale-105"
+                      aria-label="Instagram"
+                    >
+                      <InstagramIcon className="w-3.5 h-3.5" />
+                    </a>
+                  </div>
                 </div>
               </div>
             </div>
@@ -387,30 +427,48 @@ export default async function AutoGuideDetailPage({ params }: PageProps) {
 
             {/* Interactive FAQs Accordion */}
             {post.faqs && post.faqs.length > 0 && (
-              <section className="p-6 rounded-xl border border-slate-200 bg-white">
-                <div className="flex items-center gap-2 mb-3">
-                  <HelpCircle className="w-5 h-5 text-rose-500" />
-                  <h3 className="font-serif font-bold text-lg text-slate-900">
-                    Frequently Asked Questions
-                  </h3>
+              <section className="p-6 sm:p-7 rounded-2xl border border-slate-200/90 bg-white shadow-xs">
+                <div className="flex items-center justify-between gap-3 flex-wrap mb-5 pb-4 border-b border-slate-100">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-rose-50 border border-rose-100 text-rose-500 flex items-center justify-center shadow-2xs shrink-0">
+                      <HelpCircle className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h3 className="font-serif font-bold text-lg sm:text-xl text-slate-900">
+                        Frequently Asked Questions
+                      </h3>
+                      <p className="text-xs text-slate-500 mt-0.5">
+                        Direct answers to Pakistani driver queries, car fitments & verified solutions.
+                      </p>
+                    </div>
+                  </div>
+                  <span className="text-xs font-semibold px-3 py-1 rounded-full bg-slate-100 text-slate-600 border border-slate-200/80">
+                    {post.faqs.length} Answers
+                  </span>
                 </div>
-                <div className="space-y-3 mt-4">
+
+                <div className="space-y-3.5">
                   {post.faqs.map((faq: any, idx: number) => (
                     <details
                       key={idx}
-                      className="group border border-slate-200 rounded-lg p-4 open:border-rose-300 open:bg-rose-50/20 transition-all"
+                      className="group rounded-xl border border-slate-200/90 bg-slate-50/40 hover:bg-white open:border-rose-300 open:bg-gradient-to-b open:from-rose-50/20 open:to-white open:shadow-sm transition-all duration-200 overflow-hidden"
                     >
-                      <summary className="font-semibold text-xs sm:text-sm text-slate-800 cursor-pointer list-none flex items-center justify-between gap-3">
-                        <span className="group-hover:text-rose-600 transition-colors">
-                          {faq.question}
-                        </span>
-                        <span className="text-rose-500 font-bold group-open:rotate-180 transition-transform text-xs">
-                          ▼
+                      <summary className="p-4 sm:p-4.5 font-semibold text-xs sm:text-sm text-slate-800 cursor-pointer list-none flex items-center justify-between gap-3 select-none hover:text-rose-600 transition-colors">
+                        <div className="flex items-start sm:items-center gap-3">
+                          <span className="w-6 h-6 rounded-lg bg-white border border-slate-200/80 group-hover:border-rose-200 group-hover:bg-rose-50 group-open:bg-rose-500 group-open:border-rose-500 text-slate-600 group-hover:text-rose-600 group-open:text-white flex items-center justify-center text-[11px] font-bold shrink-0 transition-colors mt-0.5 sm:mt-0 shadow-2xs">
+                            {idx + 1}
+                          </span>
+                          <span className="leading-snug text-slate-800 group-hover:text-rose-600 group-open:text-rose-600 transition-colors font-medium">
+                            {faq.question}
+                          </span>
+                        </div>
+                        <span className="w-7 h-7 rounded-full bg-white border border-slate-200/80 group-open:border-rose-200 group-open:bg-rose-100 text-slate-400 group-open:text-rose-600 flex items-center justify-center shrink-0 transition-all duration-200 group-open:rotate-180 shadow-2xs">
+                          <ChevronDown className="w-4 h-4" />
                         </span>
                       </summary>
-                      <p className="mt-3 text-xs text-slate-600 leading-relaxed pt-2 border-t border-slate-100">
-                        {faq.answer}
-                      </p>
+                      <div className="px-4 sm:px-5 pb-4 sm:pb-5 pt-2 text-xs sm:text-sm text-slate-600 leading-relaxed border-t border-slate-100 bg-white">
+                        <p className="pl-9">{faq.answer}</p>
+                      </div>
                     </details>
                   ))}
                 </div>
@@ -418,33 +476,48 @@ export default async function AutoGuideDetailPage({ params }: PageProps) {
             )}
 
             {/* WhatsApp Consultation Banner */}
-            <div className="p-6 rounded-xl bg-gradient-to-r from-emerald-950 via-slate-900 to-emerald-900 text-white shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0 border border-emerald-500/30">
-                  <MessageCircle className="w-6 h-6" />
-                </div>
-                <div>
-                  <h4 className="text-sm sm:text-base font-bold text-white">Confused about vehicle fitment?</h4>
-                  <p className="text-xs text-emerald-200/80 mt-0.5">
-                    Consult directly with our specialist on WhatsApp. 100% Cash on Delivery nationwide.
+            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#064e3b] via-[#022c22] to-[#091522] border border-emerald-500/30 p-6 sm:p-7 shadow-xl shadow-emerald-950/40 text-white">
+              {/* Radial Ambient Highlights */}
+              <div className="absolute -top-16 -right-16 w-52 h-52 bg-[#25D366]/20 rounded-full blur-3xl pointer-events-none" />
+              <div className="absolute -bottom-16 -left-16 w-52 h-52 bg-emerald-600/15 rounded-full blur-3xl pointer-events-none" />
+
+              <div className="relative z-10 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
+                <div className="space-y-2 max-w-xl">
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/15 border border-emerald-400/30 text-emerald-300 text-[11px] font-bold tracking-wide">
+                    <span className="w-2 h-2 rounded-full bg-[#25D366] animate-pulse" />
+                    <span>Live WhatsApp Support • Instant Fitment Check</span>
+                  </div>
+                  <h4 className="text-base sm:text-lg lg:text-xl font-bold text-white tracking-tight leading-snug">
+                    Confused about vehicle fitment or part compatibility?
+                  </h4>
+                  <p className="text-xs sm:text-sm text-emerald-100/85 leading-relaxed">
+                    Consult directly with our automotive specialist on WhatsApp. Get instant sizing confirmation &amp; 100% Cash on Delivery across Pakistan.
                   </p>
                 </div>
+
+                <div className="w-full sm:w-auto shrink-0 pt-1 sm:pt-0">
+                  <a
+                    href={`https://wa.me/${cleanPhone}?text=Salam%20Pak-o-Drive,%20I%20have%20questions%20regarding%20guide:%20${encodeURIComponent(canonicalUrl)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-7 py-3.5 rounded-xl bg-[#25D366] hover:bg-[#20bd5a] active:scale-[0.98] shadow-lg shadow-emerald-950/50 hover:shadow-emerald-500/30 transition-all font-black text-xs sm:text-sm tracking-wide text-decoration-none border border-emerald-300/40"
+                    style={{ color: '#022c22' }}
+                  >
+                    <MessageCircle className="w-5 h-5 shrink-0" style={{ color: '#022c22', fill: '#022c22' }} />
+                    <span className="font-black tracking-wide" style={{ color: '#022c22' }}>
+                      Chat on WhatsApp
+                    </span>
+                  </a>
+                </div>
               </div>
-              <a
-                href={`https://wa.me/${cleanPhone}?text=Salam%20Pak-o-Drive,%20I%20have%20questions%20regarding%20guide:%20${encodeURIComponent(canonicalUrl)}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs shadow-md transition-all shrink-0"
-              >
-                <MessageCircle className="w-4 h-4" />
-                Chat on WhatsApp
-              </a>
             </div>
 
             {/* Write Your Comment Form */}
-            <section className="p-6 sm:p-8 rounded-xl border border-slate-200 bg-[#fbfbfb]">
-              <div className="flex items-center gap-2 mb-2">
-                <MessageSquare className="w-4 h-4 text-rose-500" />
+            <section className="p-6 sm:p-8 rounded-2xl border border-slate-200/90 bg-[#fafafa] shadow-xs">
+              <div className="flex items-center gap-2.5 mb-2">
+                <div className="w-8 h-8 rounded-lg bg-rose-50 border border-rose-100 text-rose-500 flex items-center justify-center">
+                  <MessageSquare className="w-4 h-4" />
+                </div>
                 <h4 className="font-serif font-bold text-lg text-slate-900">Leave a Reply</h4>
               </div>
               <p className="text-xs text-slate-500 mb-6">
@@ -457,27 +530,30 @@ export default async function AutoGuideDetailPage({ params }: PageProps) {
                     type="text"
                     required
                     placeholder="Your Name *"
-                    className="w-full bg-white border border-slate-300 rounded-lg px-4 py-2.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-rose-500"
+                    className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-rose-500 focus:ring-2 focus:ring-rose-500/10 transition-all shadow-2xs"
                   />
                   <input
                     type="email"
                     required
                     placeholder="Your Email *"
-                    className="w-full bg-white border border-slate-300 rounded-lg px-4 py-2.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-rose-500"
+                    className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-rose-500 focus:ring-2 focus:ring-rose-500/10 transition-all shadow-2xs"
                   />
                 </div>
                 <textarea
                   rows={4}
                   required
                   placeholder="Write your comment here..."
-                  className="w-full bg-white border border-slate-300 rounded-lg p-4 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-rose-500"
+                  className="w-full bg-white border border-slate-200 rounded-xl p-4 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-rose-500 focus:ring-2 focus:ring-rose-500/10 transition-all shadow-2xs"
                 />
-                <button
-                  type="button"
-                  className="px-6 py-2.5 rounded-lg bg-rose-500 hover:bg-rose-600 text-white font-semibold text-xs transition-colors cursor-pointer shadow-xs"
-                >
-                  Submit Comment
-                </button>
+                <div className="pt-2">
+                  <button
+                    type="button"
+                    className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl bg-rose-500 hover:bg-rose-600 active:scale-[0.98] text-white font-bold text-xs sm:text-sm tracking-wide shadow-md shadow-rose-500/25 transition-all cursor-pointer"
+                  >
+                    <Send className="w-4 h-4" />
+                    <span>Submit Comment</span>
+                  </button>
+                </div>
               </form>
             </section>
           </div>
@@ -505,33 +581,33 @@ export default async function AutoGuideDetailPage({ params }: PageProps) {
                 <p className="text-xs text-slate-600 leading-relaxed mt-2.5">
                   Tested and verified according to Pakistani road, climate, and mechanical specifications.
                 </p>
-                <div className="flex items-center justify-center gap-2 text-slate-400 pt-3 mt-3 border-t border-slate-100">
+                <div className="flex items-center justify-center gap-3 text-slate-400 pt-4 mt-4 border-t border-slate-100">
                   <a
                     href="https://facebook.com"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-7 h-7 rounded-full bg-slate-50 hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200 border border-slate-200 flex items-center justify-center transition-colors shadow-xs"
+                    className="w-8 h-8 rounded-xl bg-slate-50 hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200 border border-slate-200 flex items-center justify-center transition-all shadow-2xs hover:scale-105"
                     aria-label="Facebook"
                   >
-                    <FacebookIcon className="w-3 h-3" />
+                    <FacebookIcon className="w-3.5 h-3.5" />
                   </a>
                   <a
                     href="https://twitter.com"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-7 h-7 rounded-full bg-slate-50 hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200 border border-slate-200 flex items-center justify-center transition-colors shadow-xs"
+                    className="w-8 h-8 rounded-xl bg-slate-50 hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200 border border-slate-200 flex items-center justify-center transition-all shadow-2xs hover:scale-105"
                     aria-label="Twitter"
                   >
-                    <TwitterIcon className="w-3 h-3" />
+                    <TwitterIcon className="w-3.5 h-3.5" />
                   </a>
                   <a
                     href="https://instagram.com"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-7 h-7 rounded-full bg-slate-50 hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200 border border-slate-200 flex items-center justify-center transition-colors shadow-xs"
+                    className="w-8 h-8 rounded-xl bg-slate-50 hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200 border border-slate-200 flex items-center justify-center transition-all shadow-2xs hover:scale-105"
                     aria-label="Instagram"
                   >
-                    <InstagramIcon className="w-3 h-3" />
+                    <InstagramIcon className="w-3.5 h-3.5" />
                   </a>
                 </div>
               </div>
@@ -564,27 +640,48 @@ export default async function AutoGuideDetailPage({ params }: PageProps) {
               description="Signup and receive car maintenance tips and exclusive COD deals every week."
             />
 
-            {/* Recent Posts Widget */}
+            {/* Recent Guides Widget */}
             {relatedPosts.length > 0 && (
-              <div className="p-6 rounded-xl border border-slate-200 bg-white shadow-xs">
-                <h5 className="font-serif font-bold text-sm text-slate-900 pb-2 border-b border-slate-100 mb-4">
-                  Recent Guides
-                </h5>
+              <div className="p-5 sm:p-6 rounded-2xl border border-slate-200/90 bg-white shadow-xs">
+                <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
+                  <h5 className="font-serif font-extrabold text-sm sm:text-base text-slate-900 m-0">
+                    Recent Guides
+                  </h5>
+                  <span className="w-2 h-2 rounded-full bg-rose-500" />
+                </div>
                 <div className="space-y-3.5">
-                  {relatedPosts.map((rel) => (
-                    <Link
-                      key={rel.slug}
-                      href={`/auto/${rel.slug}`}
-                      className="group block text-decoration-none"
-                    >
-                      <h6 className="text-xs font-semibold text-slate-800 group-hover:text-rose-500 transition-colors line-clamp-2 leading-snug">
-                        {rel.title}
-                      </h6>
-                      <span className="text-[10px] text-slate-400 mt-1 block">
-                        {rel.readTimeMinutes || 4} min read • {rel.category}
-                      </span>
-                    </Link>
-                  ))}
+                  {relatedPosts.map((rel) => {
+                    const postImg = rel.coverImage || '/img/carousel-1.jpg';
+                    return (
+                      <Link
+                        key={rel.slug}
+                        href={`/auto/${rel.slug}`}
+                        className="group flex items-center gap-3 p-2 -mx-2 rounded-xl hover:bg-slate-50 transition-all text-decoration-none"
+                      >
+                        <div className="relative w-16 h-16 rounded-xl overflow-hidden bg-slate-100 shrink-0 border border-slate-200/80 shadow-xs">
+                          <Image
+                            src={postImg}
+                            alt={rel.title}
+                            fill
+                            sizes="64px"
+                            className="object-cover group-hover:scale-105 transition-transform duration-300"
+                          />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <span className="text-[9.5px] font-bold uppercase tracking-wider text-rose-600 line-clamp-1">
+                            {rel.category || 'Auto Guide'}
+                          </span>
+                          <h6 className="text-xs font-bold text-slate-900 group-hover:text-rose-600 transition-colors line-clamp-2 leading-snug mt-0.5">
+                            {rel.title}
+                          </h6>
+                          <div className="flex items-center gap-1.5 text-[10px] text-slate-400 mt-1">
+                            <Clock className="w-3 h-3 text-slate-400 shrink-0" />
+                            <span>{rel.readTimeMinutes || 4} min read</span>
+                          </div>
+                        </div>
+                      </Link>
+                    );
+                  })}
                 </div>
               </div>
             )}

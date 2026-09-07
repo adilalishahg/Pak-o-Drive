@@ -36,13 +36,53 @@ const SocialIconMap: Record<string, React.FC<{ size?: number; color?: string }>>
   ),
 };
 
+const isConnectedSocial = (url?: string | null): boolean => {
+  if (!url) return false;
+  const trimmed = url.trim();
+  if (
+    !trimmed ||
+    trimmed === '#' ||
+    trimmed === '/' ||
+    trimmed.startsWith('javascript:') ||
+    trimmed.includes('example.com')
+  ) {
+    return false;
+  }
+  const cleaned = trimmed.replace(/\/+$/, '').toLowerCase();
+  const bareDomains = [
+    'https://facebook.com',
+    'http://facebook.com',
+    'https://www.facebook.com',
+    'http://www.facebook.com',
+    'https://instagram.com',
+    'http://instagram.com',
+    'https://www.instagram.com',
+    'http://www.instagram.com',
+    'https://twitter.com',
+    'http://twitter.com',
+    'https://www.twitter.com',
+    'http://www.twitter.com',
+    'https://x.com',
+    'http://x.com',
+    'https://youtube.com',
+    'http://youtube.com',
+    'https://www.youtube.com',
+    'http://www.youtube.com',
+    'https://tiktok.com',
+    'http://tiktok.com',
+    'https://www.tiktok.com',
+  ];
+  return !bareDomains.includes(cleaned);
+};
+
 interface FooterSocialLinksProps {
   info: SiteInfo;
 }
 
 export const FooterSocialLinks: React.FC<FooterSocialLinksProps> = ({ info }) => {
   const rawWhatsapp = info.whatsapp ? info.whatsapp.replace(/\D/g, '') : '';
-  const formattedWhatsapp = rawWhatsapp
+  const hasWhatsapp = rawWhatsapp.length >= 10 && info.whatsapp !== '#';
+  const formattedWhatsapp = hasWhatsapp
     ? rawWhatsapp.startsWith('92')
       ? rawWhatsapp
       : `92${rawWhatsapp.replace(/^0/, '')}`
@@ -59,12 +99,15 @@ export const FooterSocialLinks: React.FC<FooterSocialLinksProps> = ({ info }) =>
       href: formattedWhatsapp ? `https://wa.me/${formattedWhatsapp}` : '',
       label: 'WhatsApp',
     },
-  ].filter((s) => Boolean(s.href && s.href !== '#' && s.href.trim() !== ''));
+  ].filter((s) => {
+    if (s.label === 'WhatsApp') return Boolean(formattedWhatsapp);
+    return isConnectedSocial(s.href);
+  });
 
   if (socials.length === 0) return null;
 
   return (
-    <div className="d-flex align-items-center gap-2 flex-wrap mt-3">
+    <div className="d-flex align-items-center gap-1.5 flex-wrap mt-1.5 mb-1">
       {socials.map(({ Icon, href, label }) => (
         <a
           key={label}
@@ -74,15 +117,15 @@ export const FooterSocialLinks: React.FC<FooterSocialLinksProps> = ({ info }) =>
           aria-label={label}
           className="btn btn-sm-square btn-light rounded-circle text-primary"
           style={{
-            width: '36px',
-            height: '36px',
+            width: '30px',
+            height: '30px',
             display: 'inline-flex',
             alignItems: 'center',
             justifyContent: 'center',
             textDecoration: 'none',
           }}
         >
-          <Icon size={15} />
+          <Icon size={13} />
         </a>
       ))}
     </div>

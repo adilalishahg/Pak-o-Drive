@@ -197,30 +197,30 @@ ${theme.navbarStyle === 'gradient' ? `
 
 /* ── Footer dark/light ──────────────────────────────────── */
 ${theme.footerStyle === 'light' ? `
-footer, .footer {
+footer:not(.blog-footer), .footer:not(.blog-footer) {
   background: #f8fafc !important;
   color: #475569 !important;
   border-top: 1px solid #e2e8f0 !important;
 }
-footer h5, footer h4, .footer h4, .footer h5 { color: ${theme.secondaryColor} !important; }
-footer a, .footer a { color: #64748b !important; }
-footer a:hover, .footer a:hover { color: ${theme.primaryColor} !important; }
+footer:not(.blog-footer) h5, footer:not(.blog-footer) h4, .footer:not(.blog-footer) h4, .footer:not(.blog-footer) h5 { color: ${theme.secondaryColor} !important; }
+footer:not(.blog-footer) a, .footer:not(.blog-footer) a { color: #64748b !important; }
+footer:not(.blog-footer) a:hover, .footer:not(.blog-footer) a:hover { color: ${theme.primaryColor} !important; }
 .copyright { background: #e2e8f0 !important; border-top: 1px solid #cbd5e1 !important; }
 ` : `
-footer, .footer {
+footer:not(.blog-footer), .footer:not(.blog-footer) {
   background: ${theme.secondaryColor} !important;
   color: #f1f5f9 !important;
 }
-.footer p, .footer span {
+.footer:not(.blog-footer) p, .footer:not(.blog-footer) span {
   color: #f1f5f9 !important;
 }
-footer h3, footer h4, footer h5, .footer h3, .footer h4, .footer h5 {
+footer:not(.blog-footer) h3, footer:not(.blog-footer) h4, footer:not(.blog-footer) h5, .footer:not(.blog-footer) h3, .footer:not(.blog-footer) h4, .footer:not(.blog-footer) h5 {
   color: #ffffff !important;
 }
-footer a, .footer a {
+footer:not(.blog-footer) a, .footer:not(.blog-footer) a {
   color: #f1f5f9 !important;
 }
-footer a:hover, .footer a:hover {
+footer:not(.blog-footer) a:hover, .footer:not(.blog-footer) a:hover {
   color: #ffffff !important;
   text-decoration: underline !important;
 }
@@ -419,15 +419,15 @@ header div[style*="background"] {
 }
 
 /* Footer styling */
-footer, .footer {
+footer:not(.blog-footer), .footer:not(.blog-footer) {
   background: #0d231d !important;
   color: #eae7db !important;
   border-top: 1px solid #14352c !important;
 }
-footer h5, footer h4, footer a, .footer a {
+footer:not(.blog-footer) h5, footer:not(.blog-footer) h4, footer:not(.blog-footer) a, .footer:not(.blog-footer) a {
   color: #f7f5ed !important;
 }
-footer a:hover, .footer a:hover {
+footer:not(.blog-footer) a:hover, .footer:not(.blog-footer) a:hover {
   color: #d4af37 !important;
 }
 .copyright {
@@ -567,15 +567,15 @@ header span {
 }
 
 /* Footer styling */
-footer, .footer {
+footer:not(.blog-footer), .footer:not(.blog-footer) {
   background: #f8fafc !important;
   color: #475569 !important;
   border-top: 1px solid #e2e8f0 !important;
 }
-footer h5, footer h4, footer a, .footer a {
+footer:not(.blog-footer) h5, footer:not(.blog-footer) h4, footer:not(.blog-footer) a, .footer:not(.blog-footer) a {
   color: ${theme.secondaryColor} !important;
 }
-footer a:hover, .footer a:hover {
+footer:not(.blog-footer) a:hover, .footer:not(.blog-footer) a:hover {
   color: ${theme.primaryColor} !important;
 }
 .copyright {

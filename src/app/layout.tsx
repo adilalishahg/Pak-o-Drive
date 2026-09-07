@@ -77,7 +77,7 @@ export async function generateMetadata(): Promise<Metadata> {
     'پاک او ڈرائیو',
   ];
   let favicon = '/favicon.ico';
-  let ogImageUrl = `${activeSiteUrl}/img/carousel-1.jpg`;
+  let ogImageUrl = `${activeSiteUrl}/api/og/card?type=home`;
 
   try {
     const info = await getCachedSiteInfo();
@@ -99,14 +99,10 @@ export async function generateMetadata(): Promise<Metadata> {
       if (Array.isArray(info.brandAliases) && info.brandAliases.length > 0) {
         keywords = Array.from(new Set([...info.brandAliases, ...keywords]));
       }
-      if (info.logoImage && !info.logoImage.toLowerCase().endsWith('.svg')) {
-        ogImageUrl = info.logoImage.startsWith('http') ? info.logoImage : `${activeSiteUrl}${info.logoImage}`;
+      if (info.logoImage && !info.logoImage.toLowerCase().endsWith('.svg') && !info.logoImage.includes('carousel')) {
+        ogImageUrl = `${activeSiteUrl}/api/og/card?type=home&image=${encodeURIComponent(info.logoImage)}`;
       } else {
-        ogImageUrl = `${activeSiteUrl}/img/carousel-1.jpg`;
-      }
-      if (ogImageUrl.includes('res.cloudinary.com') && ogImageUrl.includes('/upload/')) {
-        ogImageUrl = ogImageUrl.replace('/upload/', '/upload/f_jpg,q_80,w_1200,h_630,c_pad,b_white/');
-        ogImageUrl = ogImageUrl.replace(/\.(webp|png|jpeg)$/i, '.jpg');
+        ogImageUrl = `${activeSiteUrl}/api/og/card?type=home`;
       }
 
       if (info.favicon) {
@@ -147,7 +143,7 @@ export async function generateMetadata(): Promise<Metadata> {
           secureUrl: ogImageUrl,
           width: 1200,
           height: 630,
-          type: ogImageUrl.toLowerCase().endsWith('.png') ? 'image/png' : 'image/jpeg',
+          type: 'image/png',
           alt: siteName,
         },
       ],
@@ -163,9 +159,10 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     icons: {
       icon: [
-        { url: '/icon.png', sizes: '192x192', type: 'image/png' },
-        { url: '/favicon.svg', type: 'image/svg+xml' },
         { url: '/favicon.ico', sizes: '48x48' },
+        { url: '/icon-48x48.png', sizes: '48x48', type: 'image/png' },
+        { url: '/icon-96x96.png', sizes: '96x96', type: 'image/png' },
+        { url: '/icon-192x192.png', sizes: '192x192', type: 'image/png' },
       ],
       shortcut: '/favicon.ico',
       apple: [
@@ -366,7 +363,7 @@ export default async function RootLayout({
     mainEntity: dynamicFaqEntities,
   };
   return (
-    <html lang="en" prefix="og: https://ogp.me/ns#" className={`${inter.variable} ${roboto.variable}`}>
+    <html lang="en" prefix="og: https://ogp.me/ns#" className={`${inter.variable} ${roboto.variable}`} data-scroll-behavior="smooth">
       <head>
         {/* Preconnect to external image & font domains */}
         <link rel="preconnect" href="https://images.unsplash.com" crossOrigin="anonymous" />

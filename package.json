@@ -16,6 +16,7 @@
   "dependencies": {
     "@fortawesome/fontawesome-free": "^7.2.0",
     "@google/generative-ai": "^0.24.1",
+    "@pdf-lib/fontkit": "^1.1.1",
     "@vercel/analytics": "^2.0.1",
     "@vercel/speed-insights": "^2.0.0",
     "@whiskeysockets/baileys": "7.0.0-rc14",
@@ -29,6 +30,7 @@
     "mammoth": "^1.12.0",
     "mongoose": "^9.7.1",
     "next": "16.3.0-preview.5",
+    "pdf-lib": "^1.17.1",
     "pino": "^10.3.1",
     "posthog-js": "^1.391.2",
     "qrcode": "^1.5.4",

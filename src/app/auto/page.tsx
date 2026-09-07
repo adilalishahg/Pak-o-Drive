@@ -14,6 +14,7 @@ import {
   Truck,
   Wrench,
   ChevronRight,
+  X,
 } from 'lucide-react';
 import { FacebookIcon, TwitterIcon, InstagramIcon } from '@/components/blog/SocialIcons';
 import { BlogNewsletterBox } from '@/components/blog/BlogNewsletterBox';
@@ -52,23 +53,72 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 interface AutoPageProps {
-  searchParams?: Promise<{ category?: string; tag?: string }>;
+  searchParams?: Promise<{ category?: string; tag?: string; search?: string }>;
 }
 
 export default async function AutoArchivePage({ searchParams }: AutoPageProps) {
   const resolvedParams = searchParams ? await searchParams : {};
   const category = resolvedParams?.category;
   const tag = resolvedParams?.tag;
+  const search = resolvedParams?.search?.trim();
 
-  const { posts } = await getPublishedPosts(30, 1, 'auto');
+  const { posts } = await getPublishedPosts(50, 1, 'auto');
 
-  const heroPost = posts[0] || null;
-  const trendingPosts = posts.slice(1, 4);
-  const popularPosts = posts.slice(4, 10);
-  const mostViewedPosts = posts.slice(10, 18);
+  const isFiltered = Boolean(category || tag || search);
+  const filteredPosts = isFiltered
+    ? posts.filter((post) => {
+        if (category && post.category?.toLowerCase() !== category.toLowerCase()) {
+          return false;
+        }
+        if (tag && !post.tags?.some((t: string) => t.toLowerCase() === tag.toLowerCase())) {
+          return false;
+        }
+        if (search) {
+          const q = search.toLowerCase();
+          const matchTitle = post.title?.toLowerCase().includes(q);
+          const matchExcerpt = post.excerpt?.toLowerCase().includes(q);
+          const matchCategory = post.category?.toLowerCase().includes(q);
+          const matchTags = post.tags?.some((t: string) => t.toLowerCase().includes(q));
+          if (!matchTitle && !matchExcerpt && !matchCategory && !matchTags) {
+            return false;
+          }
+        }
+        return true;
+      })
+    : posts;
+
+  const heroPost = !isFiltered ? posts[0] || null : null;
+  const trendingPosts = !isFiltered ? posts.slice(1, 4) : [];
+  const popularPosts = isFiltered ? filteredPosts : (posts.slice(4, 10).length > 0 ? posts.slice(4, 10) : posts);
+  const mostViewedPosts = !isFiltered ? posts.slice(10, 18) : [];
 
   return (
     <div className="min-h-screen bg-white text-slate-800 pb-20">
+      {/* ── Filter / Search Result Header Banner ───────────────── */}
+      {isFiltered && (
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8">
+          <div className="bg-rose-50/70 border border-rose-200/80 rounded-2xl p-4 sm:p-6 flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <span className="text-[11px] font-bold uppercase tracking-wider text-rose-600">
+                {search ? 'Search Results' : 'Filtered Guides'}
+              </span>
+              <h1 className="text-xl sm:text-2xl font-serif font-bold text-slate-900 mt-0.5">
+                {search ? `Guides matching "${search}"` : (category || tag)}
+              </h1>
+              <p className="text-xs text-slate-500 mt-1">
+                Showing {filteredPosts.length} automotive guide{filteredPosts.length === 1 ? '' : 's'}
+              </p>
+            </div>
+            <Link
+              href="/auto"
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-bold bg-white text-slate-700 hover:text-rose-600 border border-slate-200 shadow-xs text-decoration-none transition-colors"
+            >
+              <X className="w-3.5 h-3.5" />
+              <span>Clear Filter</span>
+            </Link>
+          </div>
+        </section>
+      )}
       {/* ── 1. Top Featured Auto Story ────────────────────────── */}
       {heroPost && (
         <section className="border-b border-slate-100 bg-[#fafafa] py-12 sm:py-16 px-4 sm:px-6 lg:px-8">
@@ -220,13 +270,14 @@ export default async function AutoArchivePage({ searchParams }: AutoPageProps) {
           <div className="lg:col-span-8 space-y-8">
             <div>
               <h2 className="text-2xl sm:text-3xl font-serif font-bold text-slate-900 inline-block">
-                Popular Auto Guides
+                {isFiltered ? (search ? `Results for "${search}"` : `${category || tag} Guides`) : 'Popular Auto Guides'}
               </h2>
               <div className="w-14 h-0.5 bg-rose-500 mt-2" />
             </div>
 
             <div className="space-y-6">
-              {(popularPosts.length > 0 ? popularPosts : posts).map((post) => (
+              {popularPosts.length > 0 ? (
+                popularPosts.map((post) => (
                 <article
                   key={post.slug}
                   className="flex flex-col sm:flex-row gap-5 p-5 rounded-xl border border-slate-200/80 hover:border-rose-300 hover:shadow-md transition-all bg-white group"
@@ -276,7 +327,19 @@ export default async function AutoArchivePage({ searchParams }: AutoPageProps) {
                     </Link>
                   )}
                 </article>
-              ))}
+              ))
+            ) : (
+              <div className="p-10 text-center rounded-2xl border border-dashed border-slate-300 bg-slate-50/70">
+                <p className="text-slate-800 font-bold text-base">No auto guides found</p>
+                <p className="text-slate-500 text-xs mt-1">Try another keyword or browse all available articles.</p>
+                <Link
+                  href="/auto"
+                  className="inline-block mt-4 px-5 py-2 rounded-full text-xs font-bold bg-rose-500 hover:bg-rose-600 text-white shadow-xs text-decoration-none transition-colors"
+                >
+                  View All Guides
+                </Link>
+              </div>
+            )}
             </div>
           </div>
 

@@ -786,31 +786,31 @@ form button[type="submit"].btn-gradient {
   background: #fff !important;
 }
 
-/* Footer redesign for premium dark theme */
-footer,
-.footer {
+/* Footer redesign for premium dark theme (excludes .blog-footer) */
+footer:not(.blog-footer),
+.footer:not(.blog-footer) {
   background: #0f172a !important;
   color: #94a3b8 !important;
   border-top: 1px solid #1e293b;
 }
 
-footer h5,
-footer h4,
-.footer h4,
-.footer h5 {
+footer:not(.blog-footer) h5,
+footer:not(.blog-footer) h4,
+.footer:not(.blog-footer) h4,
+.footer:not(.blog-footer) h5 {
   color: #fff !important;
   font-weight: 700;
   letter-spacing: -0.3px;
 }
 
-footer a,
-.footer a {
+footer:not(.blog-footer) a,
+.footer:not(.blog-footer) a {
   color: #94a3b8 !important;
   transition: var(--pd-transition);
 }
 
-footer a:hover,
-.footer a:hover {
+footer:not(.blog-footer) a:hover,
+.footer:not(.blog-footer) a:hover {
   color: #fb923c !important;
 }
 

@@ -47,33 +47,33 @@ export const FooterNewsletter: React.FC<FooterNewsletterProps> = ({ isCleanWhite
 
   return (
     <div className="footer-item d-flex flex-column">
-      <h4 className="text-white mb-4" style={{ fontWeight: 700, fontSize: '1.05rem' }}>
+      <h5 className="text-white mb-2" style={{ fontWeight: 700, fontSize: '0.88rem', letterSpacing: '0.3px' }}>
         Newsletter
-      </h4>
-      <p className="text-slate-300 mb-3" style={{ fontSize: '0.85rem', lineHeight: 1.6 }}>
-        Subscribe to receive flash discounts, weekly top sales, and warranty perks directly to your inbox.
+      </h5>
+      <p className="text-slate-300 mb-2" style={{ fontSize: '0.78rem', lineHeight: 1.45 }}>
+        Subscribe to receive flash discounts, weekly top sales, and warranty perks.
       </p>
       <form onSubmit={handleSubscribe} className="position-relative">
         <input
-          className="form-control rounded-pill w-100 py-3 ps-4 pe-5 border-0"
+          className="form-control rounded-pill w-100 py-2 ps-3.5 pe-5 border-0"
           type="email"
           placeholder="Enter your email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           disabled={submitting}
-          style={{ fontSize: '0.85rem' }}
+          style={{ fontSize: '0.8rem' }}
         />
         <button
           type="submit"
           disabled={submitting}
-          className="btn btn-primary rounded-pill position-absolute top-0 end-0 py-2 px-4 mt-2 me-2"
-          style={{ fontSize: '0.8rem', fontWeight: 700 }}
+          className="btn btn-primary rounded-pill position-absolute top-0 end-0 py-1.5 px-3.5 mt-1 me-1"
+          style={{ fontSize: '0.75rem', fontWeight: 700 }}
         >
           {submitting ? '...' : 'SignUp'}
         </button>
       </form>
       {statusMessage && (
-        <div className={`mt-2 small text-${statusType === 'success' ? 'success' : 'danger'}`}>
+        <div className={`mt-1.5 small text-${statusType === 'success' ? 'success' : 'danger'}`} style={{ fontSize: '0.75rem' }}>
           {statusMessage}
         </div>
       )}

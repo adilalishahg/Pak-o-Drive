@@ -10,6 +10,9 @@ Full-stack E-Commerce application optimized for the Pakistani retail ecosystem.
 - **Storage:** Cloudinary
 - **Emails:** Resend API
 - **State Management:** React Context (`CartContext`, `WishlistContext`, `ThemeContext`)
+- **Deployment & Infrastructure:**
+  - **Web Frontend & APIs:** Vercel (Next.js 16 App Router)
+  - **WhatsApp Bot & Worker:** European Server at `alwaysdata.com` (running Baileys bot + background daemons)
 
 ## Directory Structure
 - `src/app/` — Next.js pages and API route handlers

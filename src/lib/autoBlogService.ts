@@ -71,10 +71,25 @@ export async function executeAutoBlogPost(
 
   const availableTopics = pool.filter((item) => {
     const candidateSlug = generateSlug(item.topic);
-    return (
-      !existingSlugs.has(candidateSlug) &&
-      !existingTitles.some((t) => t.toLowerCase() === item.topic.toLowerCase())
-    );
+    if (existingSlugs.has(candidateSlug)) return false;
+
+    const topicWords = item.topic
+      .toLowerCase()
+      .replace(/[^a-z0-9\s]/g, '')
+      .split(/\s+/)
+      .filter((w) => w.length > 3);
+
+    for (const title of existingTitles) {
+      const titleLower = title.toLowerCase();
+      if (titleLower === item.topic.toLowerCase()) return false;
+
+      // Check if distinctive words overlap with an existing title (e.g. smog, m2, motorway)
+      const overlapCount = topicWords.filter((w) => titleLower.includes(w)).length;
+      if (overlapCount >= Math.min(3, Math.ceil(topicWords.length * 0.45))) {
+        return false;
+      }
+    }
+    return true;
   });
 
   if (availableTopics.length > 0) {

@@ -32,57 +32,117 @@ interface FooterContactGridProps {
 }
 
 export const FooterContactGrid: React.FC<FooterContactGridProps> = ({ info, isCleanWhite }) => {
+  const address = info.address || 'Muslim Town, Khana Road, Rawalpindi';
+  const email = info.email || 'support@pakodrive.pk';
+  const phone = info.phone || '+92 318 5205667';
+  const rawPhone = phone.replace(/\D/g, '');
+  const telLink = `tel:${rawPhone.startsWith('92') ? '+' + rawPhone : '+92' + rawPhone.replace(/^0/, '')}`;
+  const website = info.website || 'https://www.pakodrive.pk';
+  const webLink = website.startsWith('http') ? website : `https://${website}`;
+  const mapLink = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${address}, ${info.city || 'Rawalpindi'}, Pakistan`)}`;
+
   const contactCards = [
-    { Icon: FooterIconMap.location, label: 'Address', value: `${info.address || 'Rawalpindi, Punjab, Pakistan'}` },
-    { Icon: FooterIconMap.mail, label: 'Mail Us', value: info.email || 'support@pakodrive.pk' },
-    { Icon: FooterIconMap.phone, label: 'Telephone', value: info.phone || '03185205667' },
-    { Icon: FooterIconMap.globe, label: 'Website', value: info.website || 'pakodrive.pk' },
+    {
+      Icon: FooterIconMap.location,
+      label: 'Address',
+      value: address,
+      href: mapLink,
+      isExternal: true,
+    },
+    {
+      Icon: FooterIconMap.mail,
+      label: 'Mail Us',
+      value: email,
+      href: `mailto:${email}`,
+      isExternal: false,
+    },
+    {
+      Icon: FooterIconMap.phone,
+      label: 'Telephone',
+      value: phone,
+      href: telLink,
+      isExternal: false,
+    },
+    {
+      Icon: FooterIconMap.globe,
+      label: 'Website',
+      value: website.replace(/^https?:\/\//, ''),
+      href: webLink,
+      isExternal: true,
+    },
   ].filter((c) => Boolean(c.value && c.value.trim() !== ''));
 
   if (isCleanWhite) {
     return (
       <div className="space-y-3 text-xs sm:text-sm text-slate-400">
-        <p className="flex items-start gap-2.5">
+        <a
+          href={mapLink}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-start gap-2.5 text-slate-400 hover:text-white transition-colors text-decoration-none"
+        >
           <FooterIconMap.location size={16} className="text-blue-500 mt-0.5 flex-shrink-0" />
-          <span>{info.address || 'Rawalpindi, Punjab, Pakistan'}</span>
-        </p>
-        <p className="flex items-center gap-2.5">
+          <span>{address}</span>
+        </a>
+        <a
+          href={telLink}
+          className="flex items-center gap-2.5 text-slate-400 hover:text-white transition-colors text-decoration-none"
+        >
           <FooterIconMap.phone size={16} className="text-blue-500 flex-shrink-0" />
-          <span>{info.phone || '03185205667'}</span>
-        </p>
-        <p className="flex items-center gap-2.5">
+          <span>{phone}</span>
+        </a>
+        <a
+          href={`mailto:${email}`}
+          className="flex items-center gap-2.5 text-slate-400 hover:text-white transition-colors text-decoration-none"
+        >
           <FooterIconMap.mail size={16} className="text-blue-500 flex-shrink-0" />
-          <span>{info.email || 'support@pakodrive.pk'}</span>
-        </p>
+          <span>{email}</span>
+        </a>
       </div>
     );
   }
 
   return (
-    <div className="row g-4 rounded mb-5" style={{ background: 'rgba(255,255,255,.03)' }}>
-      {contactCards.map(({ Icon, label, value }) => (
-        <div key={label} className="col-md-6 col-lg-6 col-xl-3">
-          <div className="rounded p-4 d-flex align-items-start gap-3">
+    <div className="row g-2 g-md-3">
+      {contactCards.map(({ Icon, label, value, href, isExternal }) => (
+        <div key={label} className="col-6 col-md-6 col-lg-3">
+          <a
+            href={href}
+            target={isExternal ? '_blank' : undefined}
+            rel={isExternal ? 'noopener noreferrer' : undefined}
+            className="d-flex align-items-center gap-2.5 p-2.5 px-3 rounded-3 text-decoration-none h-100 transition-all"
+            style={{
+              background: 'rgba(255, 255, 255, 0.04)',
+              border: '1px solid rgba(255, 255, 255, 0.08)',
+            }}
+          >
             <div
               className="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
               style={{
-                width: '52px',
-                height: '52px',
+                width: '36px',
+                height: '36px',
                 background: `linear-gradient(135deg, var(--pd-primary, #ea580c), color-mix(in srgb, var(--pd-primary, #ea580c) 75%, #000))`,
-                boxShadow: `0 6px 16px rgba(var(--pd-primary-rgb, 234,88,12), 0.35)`,
+                boxShadow: `0 4px 10px rgba(var(--pd-primary-rgb, 234,88,12), 0.3)`,
               }}
             >
-              <Icon size={20} color="#fff" />
+              <Icon size={16} color="#fff" />
             </div>
-            <div>
-              <h5 className="text-white mb-1" style={{ fontWeight: 700, fontSize: '0.9rem' }}>
+            <div className="overflow-hidden" style={{ minWidth: 0, flex: 1 }}>
+              <span
+                className="d-block text-white fw-bold"
+                style={{ fontSize: '0.72rem', letterSpacing: '0.3px', lineHeight: 1.2 }}
+              >
                 {label}
-              </h5>
-              <p className="mb-0 text-slate-200" style={{ fontSize: '0.82rem', lineHeight: 1.5 }}>
+              </span>
+              <span
+                className="d-block text-slate-300 text-truncate"
+                style={{ fontSize: '0.72rem', lineHeight: 1.3, marginTop: '2px' }}
+                title={value}
+              >
                 {value}
-              </p>
+              </span>
             </div>
-          </div>
+          </a>
         </div>
       ))}
     </div>

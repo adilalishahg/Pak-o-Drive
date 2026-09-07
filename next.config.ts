@@ -49,6 +49,18 @@ const nextConfig: NextConfig = {
     ],
   },
   async headers() {
+    const isProd = process.env.NODE_ENV === 'production';
+    const cspDirectives = [
+      "default-src 'self'",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://va.vercel-scripts.com https://cdn.jsdelivr.net https://ssl.gstatic.com https://trends.google.com https://unpkg.com https://connect.facebook.net https://*.facebook.com https://*.facebook.net https://analytics.tiktok.com https://*.tiktok.com https://*.posthog.com",
+      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://unpkg.com https://ssl.gstatic.com https://trends.google.com",
+      "font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://unpkg.com data:",
+      "img-src 'self' data: https://res.cloudinary.com https://images.unsplash.com https://plus.unsplash.com https://*.unsplash.com https://ssl.gstatic.com https://trends.google.com https://unpkg.com https://a.basemaps.cartocdn.com https://b.basemaps.cartocdn.com https://c.basemaps.cartocdn.com https://d.basemaps.cartocdn.com https://www.facebook.com https://*.facebook.com https://*.facebook.net https://analytics.tiktok.com https://*.tiktok.com",
+      "connect-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://trends.google.com https://ssl.gstatic.com https://*.posthog.com https://analytics.tiktok.com https://*.tiktok.com https://connect.facebook.net https://www.facebook.com https://*.facebook.com https://*.facebook.net",
+      "frame-src 'self' https://trends.google.com",
+      ...(isProd ? ['upgrade-insecure-requests'] : []),
+    ];
+
     return [
       {
         source: "/:path*",
@@ -71,7 +83,7 @@ const nextConfig: NextConfig = {
           },
           {
             key: "Content-Security-Policy",
-            value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://va.vercel-scripts.com https://cdn.jsdelivr.net https://ssl.gstatic.com https://trends.google.com https://unpkg.com https://connect.facebook.net https://*.facebook.com https://*.facebook.net https://analytics.tiktok.com https://*.tiktok.com https://*.posthog.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://unpkg.com https://ssl.gstatic.com https://trends.google.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://unpkg.com data:; img-src 'self' data: https://res.cloudinary.com https://images.unsplash.com https://plus.unsplash.com https://*.unsplash.com https://ssl.gstatic.com https://trends.google.com https://unpkg.com https://a.basemaps.cartocdn.com https://b.basemaps.cartocdn.com https://c.basemaps.cartocdn.com https://d.basemaps.cartocdn.com https://www.facebook.com https://*.facebook.com https://*.facebook.net https://analytics.tiktok.com https://*.tiktok.com; connect-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://trends.google.com https://ssl.gstatic.com https://*.posthog.com https://analytics.tiktok.com https://*.tiktok.com https://connect.facebook.net https://www.facebook.com https://*.facebook.com https://*.facebook.net; frame-src 'self' https://trends.google.com; upgrade-insecure-requests;",
+            value: cspDirectives.join('; '),
           },
         ],
       },

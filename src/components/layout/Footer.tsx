@@ -82,47 +82,50 @@ export const Footer: React.FC = () => {
 
   // Classic / Modern Theme Layout
   return (
-    <footer className="container-fluid footer py-5 wow fadeIn" data-wow-delay="0.2s" style={{ background: '#0f172a' }}>
-      <div className="container py-4">
-        <FooterContactGrid info={info} isCleanWhite={false} />
-
-        <div className="row g-5 py-4 border-top border-secondary">
-          <div className="col-lg-3 col-md-6">
-            <Link href="/" className="d-inline-flex align-items-center mb-3 text-decoration-none">
-              <PakODriveLogo height={32} />
+    <footer className="container-fluid footer py-4 py-lg-5 wow fadeIn" data-wow-delay="0.2s" style={{ background: '#0f172a' }}>
+      <div className="container py-2 py-lg-4">
+        <div className="row g-3 g-md-4 py-2 py-lg-3">
+          <div className="col-12 col-md-6 col-lg-3">
+            <Link href="/" className="d-inline-flex align-items-center mb-2 text-decoration-none">
+              <PakODriveLogo height={28} />
             </Link>
-            <p className="text-slate-400 small mb-3">
+            <p className="text-slate-400 mb-2" style={{ fontSize: '0.78rem', lineHeight: 1.45, maxWidth: '340px' }}>
               {info.siteTagline || "Pakistan's #1 Automotive & Tech Store."}
             </p>
             <FooterSocialLinks info={info} />
           </div>
 
-          <div className="col-lg-3 col-md-6">
-            <h5 className="text-white mb-3" style={{ fontWeight: 700, fontSize: '0.95rem' }}>Explore</h5>
-            <ul className="list-unstyled space-y-2 small">
-              <li><Link href="/shop" className="text-slate-400 text-decoration-none hover:text-white">Shop All</Link></li>
-              <li><Link href="/track-order" className="text-slate-400 text-decoration-none hover:text-white">Track Order</Link></li>
-              <li><Link href="/contact" className="text-slate-400 text-decoration-none hover:text-white">Contact Us</Link></li>
-              <li><Link href="/about" className="text-slate-400 text-decoration-none hover:text-white">About Us</Link></li>
+          <div className="col-6 col-md-3 col-lg-3">
+            <h5 className="text-white mb-2" style={{ fontWeight: 700, fontSize: '0.88rem', letterSpacing: '0.3px' }}>Explore</h5>
+            <ul className="list-unstyled mb-0 space-y-1" style={{ fontSize: '0.78rem' }}>
+              <li><Link href="/shop" className="text-slate-400 text-decoration-none hover:text-white py-0.5 d-inline-block">Shop All</Link></li>
+              <li><Link href="/track-order" className="text-slate-400 text-decoration-none hover:text-white py-0.5 d-inline-block">Track Order</Link></li>
+              <li><Link href="/contact" className="text-slate-400 text-decoration-none hover:text-white py-0.5 d-inline-block">Contact Us</Link></li>
+              <li><Link href="/about" className="text-slate-400 text-decoration-none hover:text-white py-0.5 d-inline-block">About Us</Link></li>
             </ul>
           </div>
 
-          <div className="col-lg-3 col-md-6">
-            <h5 className="text-white mb-3" style={{ fontWeight: 700, fontSize: '0.95rem' }}>Policies</h5>
-            <ul className="list-unstyled space-y-2 small">
-              <li><Link href="/return-policy" className="text-slate-400 text-decoration-none hover:text-white">Return & Warranty</Link></li>
-              <li><Link href="/shipping-policy" className="text-slate-400 text-decoration-none hover:text-white">Shipping & Delivery</Link></li>
-              <li><Link href="/privacy-policy" className="text-slate-400 text-decoration-none hover:text-white">Privacy Policy</Link></li>
-              <li><Link href="/terms" className="text-slate-400 text-decoration-none hover:text-white">Terms & Conditions</Link></li>
+          <div className="col-6 col-md-3 col-lg-3">
+            <h5 className="text-white mb-2" style={{ fontWeight: 700, fontSize: '0.88rem', letterSpacing: '0.3px' }}>Policies</h5>
+            <ul className="list-unstyled mb-0 space-y-1" style={{ fontSize: '0.78rem' }}>
+              <li><Link href="/return-policy" className="text-slate-400 text-decoration-none hover:text-white py-0.5 d-inline-block">Return & Warranty</Link></li>
+              <li><Link href="/shipping-policy" className="text-slate-400 text-decoration-none hover:text-white py-0.5 d-inline-block">Shipping & Delivery</Link></li>
+              <li><Link href="/privacy-policy" className="text-slate-400 text-decoration-none hover:text-white py-0.5 d-inline-block">Privacy Policy</Link></li>
+              <li><Link href="/terms" className="text-slate-400 text-decoration-none hover:text-white py-0.5 d-inline-block">Terms & Conditions</Link></li>
             </ul>
           </div>
 
-          <div className="col-lg-3 col-md-6">
+          <div className="col-12 col-md-6 col-lg-3">
             <FooterNewsletter isCleanWhite={false} />
           </div>
         </div>
 
-        <div className="pt-4 border-top border-secondary text-center text-slate-500 small">
+        {/* Compact Horizontal Contact Bar at the Bottom */}
+        <div className="pt-3 pb-2 border-top border-secondary">
+          <FooterContactGrid info={info} isCleanWhite={false} />
+        </div>
+
+        <div className="pt-3 border-top border-secondary text-center text-slate-500 small">
           &copy; {new Date().getFullYear()} {info.siteName || 'Pak-o-Drive'}. All Rights Reserved.
         </div>
       </div>

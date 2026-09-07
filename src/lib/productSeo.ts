@@ -92,6 +92,8 @@ export async function generateProductMetadata(id: string): Promise<Metadata> {
     imageUrl = imageUrl.replace(/\.(webp|png|jpeg)$/i, '.jpg');
   }
 
+  const brandedCardUrl = `${siteUrl}/api/og/card?type=product&slug=${encodeURIComponent(canonicalSlug)}`;
+
   return {
     title: metaTitle,
     description: metaDesc,
@@ -109,6 +111,14 @@ export async function generateProductMetadata(id: string): Promise<Metadata> {
       locale: 'en_PK',
       images: [
         {
+          url: brandedCardUrl,
+          secureUrl: brandedCardUrl,
+          width: 1200,
+          height: 630,
+          type: 'image/png',
+          alt: `${p.name} - Pak-o-Drive`,
+        },
+        {
           url: imageUrl,
           secureUrl: imageUrl,
           width: 1200,
@@ -122,10 +132,10 @@ export async function generateProductMetadata(id: string): Promise<Metadata> {
       card: 'summary_large_image',
       title: metaTitle,
       description: metaDesc,
-      images: [imageUrl],
+      images: [brandedCardUrl, imageUrl],
     },
     other: {
-      'image_src': imageUrl,
+      'image_src': brandedCardUrl,
     },
   };
 }
