@@ -2,8 +2,9 @@ name: Daily LinkedIn Autonomous Post
 
 on:
   schedule:
-    # 05:00 UTC = 10:00 AM PKT (Peak professional LinkedIn activity)
-    - cron: '0 5 * * *'
+    # 05:00 UTC = 10:00 AM PKT (Morning professional rush)
+    # 14:00 UTC = 07:00 PM PKT (Evening prime engagement)
+    - cron: '0 5,14 * * *'
   workflow_dispatch:
     inputs:
       reason:
