@@ -76,6 +76,7 @@ export function getTopicImage(topic: string): Buffer | null {
   return null;
 }
 
+import { rgb } from 'pdf-lib';
 import type { PDFPage, PDFFont, RGB } from 'pdf-lib';
 import { SLIDE_WIDTH } from './constants';
 
@@ -110,7 +111,7 @@ export function drawFittedHeadline(
   const maxFontSize = options.maxFontSize ?? 48;
   const minFontSize = options.minFontSize ?? 30;
   const align = options.align ?? 'center';
-  const color = options.color ?? { red: 1, green: 1, blue: 1 };
+  const color = options.color ?? rgb(1, 1, 1);
 
   const rawClean = cleanAscii(headline);
   let bestFontSize = maxFontSize;
@@ -200,7 +201,7 @@ export function drawFittedSubheadline(
   const maxFontSize = options.maxFontSize ?? 24;
   const minFontSize = options.minFontSize ?? 18;
   const align = options.align ?? 'center';
-  const color = options.color ?? { red: 0.89, green: 0.91, blue: 0.94 };
+  const color = options.color ?? rgb(0.89, 0.91, 0.94);
 
   const rawClean = cleanAscii(subheadline);
   let bestFontSize = maxFontSize;
