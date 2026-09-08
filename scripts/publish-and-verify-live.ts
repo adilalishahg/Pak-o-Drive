@@ -34,9 +34,14 @@ async function main() {
 
   if (res.success) {
     console.log('🎉 SUCCESS: Post is live on LinkedIn! Post ID:', res.postId);
+    process.exit(0);
   } else {
     console.error('❌ FAILED:', res.error);
+    process.exit(1);
   }
 }
 
-main().catch(console.error);
+main().catch((err) => {
+  console.error(err);
+  process.exit(1);
+});

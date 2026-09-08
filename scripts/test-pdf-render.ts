@@ -1,3 +1,6 @@
+import dotenv from 'dotenv';
+dotenv.config();
+
 import fs from 'fs';
 import { CURATED_DECKS, renderSlobodanCarouselPdf } from '../src/lib/carouselGenerator';
 import { generateTechGraphic } from '../src/lib/socialAutoPostService';
