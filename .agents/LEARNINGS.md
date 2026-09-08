@@ -6,6 +6,18 @@ This file serves as persistent dynamic memory across coding agent sessions. Ever
 
 ## 🏛️ PART 1: The 8 Core Pakistani E-Commerce Engineering Rules
 
+### 2026-09-08 — LinkedIn Carousel Personal Branding Overhaul: 100% Zero-PakODrive, Exact Image 1 Outro & Feed-Visible Hashtags (`urn:li:ugcPost:7503147886260559872`)
+- **📌 Issue**: User requested eliminating all mentions of "Pak-o-Drive" or `pakodrive.pk` from the PDF slides, restoring the exact outro slide layout shown in their reference screenshot (headline: *"Found this breakdown valuable?"*, subtitle, monogram "SA" circle, *"SYED ADIL ALI | Senior Full-Stack Engineer & Systems Architect"*, bright cyan *"+ Follow @Syed Adil Ali"* button, divider line, and 3 action boxes *[ REPOST ]*, *[ SAVE ]*, *[ DISCUSS ]*), ensuring hashtags are prominently visible in the feed without being buried, and publishing a fresh post to LinkedIn.
+- **🔍 Root Cause & Failed Attempts**:
+  - The previous outro slide rendered a generic "Helping businesses grow / Pak-o-Drive Engineering" card with a `pakodrive.pk` pill instead of the developer's personal authority branding.
+  - The Cover slide bottom pill defaulted to `pakodrive.pk` when no custom footer was provided.
+  - Post captions previously placed hashtags after 14-16 lines of prose; on LinkedIn feeds, text truncated after 4 lines, causing the hashtags to disappear behind "...see more" without being visible in the preview.
+- **🛠️ Verified Code Fix**:
+  1. Re-architected `slideType === 'outro'` in [carouselGenerator.ts](file:///d:/proj/Pak-o-Drive/src/lib/carouselGenerator.ts) matching the exact Image 1 visual geometry: top-left category badge, top-right page counter (`06 / 06`), white headline, slate subtitle, glowing cyan framed card with "SA" circular monogram, full-width cyan follow button, and 3 action boxes (`[ REPOST ]`, `[ SAVE ]`, `[ DISCUSS ]`).
+  2. Filtered out all `pakodrive` and `#PakODrive` tokens across all slide footers, captions, and hashtag generators.
+  3. Formatted concise, punchy post copy (under 10 lines) with core takeaways (`⚡ CSR`, `⚡ SSR`, `⚡ SSG`, `⚡ ISR`) and hashtags (`#WebPerformance #NextJS #React19...`) immediately accessible and visible.
+  4. Executed live dispatch of Deck 1 ("Rendering Strategies Explained: CSR vs SSR vs SSG vs ISR"): compiled 6-slide vector PDF (926,369 bytes), uploaded document (`urn:li:document:D4D10AQGippuByTa2KA`), and published live with Post ID: `urn:li:ugcPost:7503147886260559872`.
+
 ### 2026-09-08 — Live LinkedIn Dispatch: 4:5 Vertical Portrait Slobodan Carousel (`urn:li:ugcPost:7503143737728925696`)
 - **📌 Issue**: User requested publishing a new style updated post on LinkedIn ("ab ek linkdin pr updated post dalna new tarha ki").
 - **🔍 Root Cause & Failed Attempts**: Previous posts had been published in older formats before the 4:5 vertical portrait Slobodan Gajić-style carousel generator was implemented. The newly engineered 8-slide portrait PDF deck (featuring 3D ambient cover, JetBrains 2026 Developer Survey stat cards, tool race bar charts, autonomy column distribution, system delegation diagram, and AI topic hashtags) was compiled locally but had not been dispatched live to the LinkedIn profile.
