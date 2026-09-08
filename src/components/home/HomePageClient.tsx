@@ -72,6 +72,8 @@ export function HomePageClient({ initialProducts, initialCategories }: HomePageC
       tabs={tabs}
       sliderConfig={sliderConfig}
       categorySections={categorySections}
+      cats={cats}
+      products={products}
     />
   );
 }

@@ -6,6 +6,32 @@ This file serves as persistent dynamic memory across coding agent sessions. Ever
 
 ## 🏛️ PART 1: The 8 Core Pakistani E-Commerce Engineering Rules
 
+### 2026-09-08 — AutoStore Category Slider Overlap Geometry, Slim Stripe & Zero Text Truncation
+- **📌 Issue**: User requested exact parity with AutoStore.pk cards and background stripe: *"jasy is k card ary hn wasy mery b krao layout and text or dekho is k back pr jo red stripe ha us ki hgith kam ha mery b kam kro k sahi lagy"*. Cards had giant orange stripe behind them, square button wrappers, and `...` truncation (`CAR ACCE...`, `SIDE...`).
+- **🔍 Root Cause & Failed Attempts**:
+  - The background stripe was previously rendered as an inner container that expanded or pushed content down, giving an oversized background band.
+  - Category titles used `<h3>` which inherited Bootstrap's `1.75rem` / `line-clamp-1` rules, dropping whole words at boundaries (`CAR...`, `SIDE...`).
+  - Cards were shrinking under flexbox constraints on narrow viewports without rigid `flex: 0 0 205px`.
+- **🛠️ Verified Code Fix**:
+  1. Updated `HomeCleanCategoryStrip.tsx` with a slim `44px` brand stripe (`style={{ background: primaryColor, height: '44px' }}`).
+  2. Overlapped cards using `-mt-[38px]`, so cards sit 6px inside the stripe and hang down naturally onto the clean white section below.
+  3. Replaced `<h3>` with a styled `<div style={{ fontSize: '12px', fontWeight: 800, lineHeight: '1.25' }}>`, completely bypassing Bootstrap interference and eliminating word truncation (`CAR ACCESSORIES`, `CAR CARE & WAX`, `CAR PERFUMES`, `SIDE MIRRORS`, `LED LIGHTS & DRL`, `MOBILE & TECH`).
+  4. Formatted clean 2-line gray subtitles (`text-[10.5px] leading-snug text-slate-500`) and uncropped product media on elevated pedestals (`bg-[#f8f9fa]`).
+  5. Implemented pure circular arrow buttons (`rounded-full`, border-2 border-white, shadow-lg) vertically centered on the cards.
+  6. Verified on desktop (1280x800) and mobile (390x844) with browser subagent screenshots confirming 0 errors and zero truncation.
+
+### 2026-09-08 — AutoStore Clean Circular Category Icons Strip (100% Dynamic MongoDB Data)
+- **📌 Issue**: User disliked the cluttered, giant stacked dark blocks from the initial redesign ("ye dekho ye kia bakwas bana dia ha") and explicitly requested: *"Clean Category Icons Strip ye apply kro"*. The homepage needed a clean, elegant, lightweight circular icon row instead of heavy cards.
+- **🔍 Root Cause & Failed Attempts**:
+  - Initially, 5 separate heavy sections (giant black deal cards, dark category grids, huge gradient banners, why-choose-us cards) were dumped simultaneously onto the page, resulting in repetitive product grids (4x duplication) and bloated vertical mobile scrolling.
+- **🛠️ Verified Code Fix**:
+  1. Completely deleted all 5 congested Frankenstein files and reverted layouts to a clean baseline.
+  2. Built **`HomeCleanCategoryStrip.tsx`**: A sleek, lightweight circular category icons strip placed directly below the hero banner.
+  3. Dynamic MongoDB resolution: Reads real DB categories (`Car Accessories`, `Perfumes`, `Car Care & Polish`, `LED Lights`, `Exterior & Mirrors`, `Mobile Accessories`) and pairs each with its real product thumbnail from Cloudinary (or themed icon), title, and item count.
+  4. Features smooth horizontal swipe on mobile (hidden scrollbars, `scroll-smooth`), clean white circular avatars with hover elevation and red border accents (`hover:border-red-500 hover:shadow-md`).
+  5. Integrated cleanly into both `HomeModernLayout.tsx` and `HomeCleanWhiteLayout.tsx`.
+  6. Verified `pnpm tsc --noEmit` exited with 0 compiler errors.
+
 ### 2026-09-07 — WhatsApp 300KB Buffer Overflow Fix, Dynamic Branded Card (`/api/og/card`), Crawler Interception (`src/proxy.ts`), and Stable Google/Browser Favicons
 - **📌 Issue**: User reported that sharing product or store links on WhatsApp showed neither the brand logo nor the product image ("WHATSAPP PR SHARE KRO TOU LOGO YA PRODUCT IMAGE NI SHOW HOTI HA"), and browser tab/Google search snippets failed to display the official logo icon ("Q NI LOGO ARA JO TAB PR YA JO LIVE SITE PR GOOGLE PR ATA HA").
 - **🔍 Root Cause & Failed Attempts**:

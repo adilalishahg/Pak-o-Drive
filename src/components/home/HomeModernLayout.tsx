@@ -14,6 +14,7 @@ import { HomeStatsSection } from './HomeStatsSection';
 import { ThemeIcon } from '@/components/common/ThemeIcon';
 import { ProductTabKey, CategorySection } from '@/hooks/useHomePage';
 import { CategoryProductsBlock } from './CategoryProductsBlock';
+import { HomeCleanCategoryStrip } from './HomeCleanCategoryStrip';
 
 export interface HomeModernLayoutProps {
   theme: SiteTheme;
@@ -34,6 +35,8 @@ export interface HomeModernLayoutProps {
     sliderEngine: 'classic' | 'smooothy' | string;
   };
   categorySections?: CategorySection[];
+  cats?: any[];
+  products?: IProduct[];
 }
 
 export const HomeModernLayout: React.FC<HomeModernLayoutProps> = ({
@@ -49,6 +52,8 @@ export const HomeModernLayout: React.FC<HomeModernLayoutProps> = ({
   tabs,
   sliderConfig,
   categorySections,
+  cats = [],
+  products = [],
 }) => {
   const autoPlayMs = sliderConfig?.autoPlayMs ?? 5000;
   const autoPlayEnabled = sliderConfig?.autoPlayEnabled ?? true;
@@ -80,6 +85,13 @@ export const HomeModernLayout: React.FC<HomeModernLayoutProps> = ({
           />
         </div>
       </section>
+
+      {/* ── AutoStore Clean Category Icons Strip ───────────── */}
+      <HomeCleanCategoryStrip
+        categories={cats}
+        products={products}
+        primaryColor={theme.primaryColor || '#ea580c'}
+      />
 
       {/* ── Placement Hook: Below Hero Slider ─────────────── */}
       <HomeCampaignOfferBanner placementFilter="below_slider" />

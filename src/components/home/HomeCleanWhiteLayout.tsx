@@ -12,6 +12,7 @@ import { HeroSlide } from '@/types/common';
 import { CategorySection } from '@/hooks/useHomePage';
 import { CategoryProductsBlock } from './CategoryProductsBlock';
 import { HomeCampaignOfferBanner } from './HomeCampaignOfferBanner';
+import { HomeCleanCategoryStrip } from './HomeCleanCategoryStrip';
 
 export interface HomeCleanWhiteLayoutProps {
   theme: SiteTheme;
@@ -75,6 +76,13 @@ export const HomeCleanWhiteLayout: React.FC<HomeCleanWhiteLayoutProps> = ({
           </div>
         </section>
       )}
+
+      {/* ── AutoStore Clean Category Icons Strip ───────────── */}
+      <HomeCleanCategoryStrip
+        categories={cats}
+        products={products}
+        primaryColor={theme.primaryColor || '#ea580c'}
+      />
 
       {/* ── Placement Hook: Below Hero Slider ─────────────── */}
       <HomeCampaignOfferBanner placementFilter="below_slider" />
