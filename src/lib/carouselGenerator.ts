@@ -85,14 +85,14 @@ The most valuable skill in 2026 is no longer fast keystrokes — it's knowing ho
 
 Swipe through the 8-slide carousel above for the complete visual breakdown! ➡️
 
-#AICoding #SoftwareEngineering #DeveloperTools #TechArchitecture #FutureOfCode #FullStack #WebDevelopment #Programming #ArtificialIntelligence #NextJS #PakODrive`,
+#AICoding #SoftwareEngineering #DeveloperTools #TechArchitecture #FutureOfCode #FullStack #WebDevelopment #Programming #ArtificialIntelligence #NextJS`,
     slides: [
       {
         isCover: true,
         slideType: 'cover',
         tag: '2026 DEV ECOSYSTEM SURVEY',
         headline: 'AI Coding Agents\nAre Becoming Standard',
-        footer: 'pakodrive.pk',
+        footer: 'SWIPE TO LEARN ->',
       },
       {
         slideType: 'intro',
@@ -205,39 +205,27 @@ Swipe through the 8-slide carousel above for the complete visual breakdown! ➡�
       {
         isSummary: true,
         slideType: 'outro',
-        tag: 'CREATOR & COMMUNITY',
-        headline: 'Helping businesses grow',
-        subheadline: 'Stand out with clean, high-performance web architecture.',
-        points: [
-          'Why is my site performance lagging?',
-          'Why isn\'t my web application converting?',
-          'How do I integrate autonomous AI agents safely?',
-        ],
-        footer: 'pakodrive.pk',
+        tag: 'DECISION MATRIX',
+        headline: 'Found this breakdown valuable?',
+        subheadline: 'Save this cheat sheet and follow for weekly production architectures.',
+        footer: 'Follow @Syed Adil Ali & Repost',
       },
     ],
   },
   {
     topic: 'Rendering Strategies Explained: CSR vs SSR vs SSG vs ISR',
-    caption: `Stop choosing rendering strategies based on guesswork. 🛑
+    caption: `Stop choosing rendering paradigms on guesswork. 🛑
 
-In modern web engineering, choosing the wrong rendering paradigm can silently sabotage your Core Web Vitals (LCP/TTFB), tank SEO rankings, or spike cloud compute bills by 10x.
+In production, picking the wrong rendering strategy can silently sabotage your Core Web Vitals (LCP/TTFB), tank SEO rankings, or spike cloud compute 10x:
 
-Swipe through this 6-slide masterclass to master the production trade-offs:
+⚡ CSR: Instant CDN delivery, but slower First Contentful Paint.
+⚡ SSR: Fresh HTML per request, with server compute overhead.
+⚡ SSG: Extreme edge speed, but requires full redeployments.
+⚡ ISR: The sweet spot — static edge speed + background revalidation.
 
-📌 CSR (Client-Side Rendering) — Fast initial CDN hit, but heavy JS bundles and slow First Contentful Paint.
-📌 SSR (Server-Side Rendering) — Fresh real-time HTML on every request, at the cost of server compute overhead.
-📌 SSG (Static Site Generation) — Instant edge caching, but requires full deployments to update dynamic content.
-📌 ISR (Incremental Static Regeneration) — The sweet spot: static edge delivery with background background revalidation.
+Swipe through this 6-slide architecture cheat sheet above! ➡️
 
-Which rendering strategy powers the core flows of your production application? Let's discuss in the comments below! 💬
-
-#SoftwareEngineering #WebDevelopment #NextJS #ReactJS #SystemDesign #FullStack #Frontend #Programming #WebPerformance #CloudArchitecture
-
----
-📌 Save this post for your next architectural review.
-🔄 Repost to help a fellow engineer build faster web apps.
-➕ Follow Syed Adil Ali for daily deep-dives on full-stack architecture & systems design.`,
+#WebPerformance #NextJS #React19 #WebDevelopment #SystemDesign #FullStack #Frontend #SoftwareArchitecture #CleanCode #CloudComputing`,
     slides: [
       {
         isCover: true,
@@ -248,7 +236,7 @@ Which rendering strategy powers the core flows of your production application? L
           'SEO vs server cost considerations',
           'Production decision matrix for 2026',
         ],
-        footer: 'Swipe to compare ->',
+        footer: 'SWIPE TO COMPARE ->',
       },
       {
         tag: '01 / CLIENT-SIDE RENDERING',
@@ -303,14 +291,10 @@ export default async function Catalog() { ... }`,
       },
       {
         isSummary: true,
+        slideType: 'outro',
         tag: 'DECISION MATRIX',
-        headline: 'Which should you choose in production?',
-        points: [
-          'Interactive Dashboards -> CSR / Client Components',
-          'Real-time & Personalized -> SSR (Dynamic Rendering)',
-          'High-traffic Content & Docs -> SSG (Static Export)',
-          'Product Catalogs & Stores -> ISR (Revalidated Static)',
-        ],
+        headline: 'Found this breakdown valuable?',
+        subheadline: 'Save this cheat sheet and follow for weekly production architectures.',
         footer: 'Follow @Syed Adil Ali & Repost',
       },
     ],
@@ -403,14 +387,10 @@ db.users.find({ email: "dev@test.com" }, { _id: 0, email: 1 });
       },
       {
         isSummary: true,
+        slideType: 'outro',
         tag: 'INDEXING CHECKLIST',
-        headline: 'Production database rules to live by',
-        points: [
-          'Never deploy new endpoints without checking explain() plan',
-          'Apply the ESR rule for multi-column queries',
-          'Remove unused indexes (they slow down write/insert throughput)',
-          'Monitor slow query logs (>100ms) with automated alerts',
-        ],
+        headline: 'Found this breakdown valuable?',
+        subheadline: 'Save this cheat sheet and follow for weekly production architectures.',
         footer: 'Follow @Syed Adil Ali & Repost',
       },
     ],
@@ -504,14 +484,10 @@ export interface IOrderModule { ... }
       },
       {
         isSummary: true,
+        slideType: 'outro',
         tag: 'DECISION MATRIX',
-        headline: 'How to choose for your next project',
-        points: [
-          'Early-stage startup / <20 devs -> Modular Monolith',
-          'High throughput localized scaling -> Extract specific worker',
-          'Multiple autonomous cross-functional teams -> Microservices',
-          'Rule: Do not distribute until business scale forces it',
-        ],
+        headline: 'Found this breakdown valuable?',
+        subheadline: 'Save this cheat sheet and follow for weekly production architectures.',
         footer: 'Follow @Syed Adil Ali & Repost',
       },
     ],
@@ -591,14 +567,10 @@ Which React 19 feature has made the biggest difference in your daily production 
       },
       {
         isSummary: true,
+        slideType: 'outro',
         tag: 'REACT 19 SUMMARY',
-        headline: 'The Senior Engineer Checklist for 2026',
-        points: [
-          'Default to Server Components; use "use client" only for events',
-          'Replace custom mutation endpoints with typed Server Actions',
-          'Use useOptimistic for buttery-smooth interactive UX',
-          'Remove boilerplate memoization and trust the compiler',
-        ],
+        headline: 'Found this breakdown valuable?',
+        subheadline: 'Save this cheat sheet and follow for weekly production architectures.',
         footer: 'Follow @Syed Adil Ali & Repost',
       },
     ],
@@ -763,14 +735,14 @@ export async function renderSlobodanCarouselPdf(
       color: bgDeep,
     });
 
-    // 1.5 Ambient 3D Graphic Blend on Cover
-    if (isFirst && embeddedCoverImage) {
+    // 1.5 Ambient 3D Graphic Blend on All Slides (like Image 1)
+    if (embeddedCoverImage) {
       page.drawImage(embeddedCoverImage, {
         x: 0,
         y: 0,
         width: SLIDE_WIDTH,
         height: SLIDE_HEIGHT,
-        opacity: 0.18,
+        opacity: isFirst ? 0.20 : 0.12,
       });
       page.drawRectangle({
         x: 0,
@@ -778,7 +750,7 @@ export async function renderSlobodanCarouselPdf(
         width: SLIDE_WIDTH,
         height: SLIDE_HEIGHT,
         color: bgDeep,
-        opacity: 0.45,
+        opacity: isFirst ? 0.45 : 0.65,
       });
     }
 
@@ -824,7 +796,10 @@ export async function renderSlobodanCarouselPdf(
         color: rgb(0.12, 0.18, 0.30),
       });
 
-      const footerLabel = rawSlide.footer || 'Subscribe for more';
+      const rawFooter = rawSlide.footer || '';
+      const footerLabel = rawFooter && !rawFooter.toLowerCase().includes('pakodrive')
+        ? rawFooter
+        : 'Swipe to continue ->';
       const fW = fontBold.widthOfTextAtSize(footerLabel, 22);
       page.drawText(footerLabel, {
         x: SLIDE_WIDTH / 2 - fW / 2,
@@ -885,8 +860,11 @@ export async function renderSlobodanCarouselPdf(
         });
       }
 
-      // Bottom Brand Pill
-      const pillText = rawSlide.footer || 'pakodrive.pk';
+      // Bottom Tech Pill
+      const rawFooter = rawSlide.footer || '';
+      const pillText = rawFooter && !rawFooter.toLowerCase().includes('pakodrive')
+        ? rawFooter
+        : 'ARCHITECTURE MASTERCLASS 2026';
       const pillW = fontBold.widthOfTextAtSize(pillText, 24) + 60;
       page.drawRectangle({
         x: SLIDE_WIDTH / 2 - pillW / 2,
@@ -1333,117 +1311,250 @@ export async function renderSlobodanCarouselPdf(
       }
 
     } else if (isLast || rawSlide.slideType === 'outro') {
-      // ──────── OUTRO / PROFILE CONVERSION SLIDE ────────
-      const hClean = cleanAscii(rawSlide.headline);
-      const hW = fontBold.widthOfTextAtSize(hClean, 52);
+      // ──────── OUTRO / PROFILE CONVERSION SLIDE (Exact Image 1 Design) ────────
+      // 1. Top Left Tag Badge (e.g. [ DECISION MATRIX ])
+      const tagText = cleanAscii(rawSlide.tag || 'DECISION MATRIX');
+      const tagW = fontBold.widthOfTextAtSize(tagText, 20) + 36;
+      page.drawRectangle({
+        x: 70,
+        y: SLIDE_HEIGHT - 95,
+        width: tagW,
+        height: 40,
+        color: rgb(0.04, 0.08, 0.16),
+        borderColor: neonCyan,
+        borderWidth: 1.5,
+      });
+      page.drawText(tagText, {
+        x: 70 + 18,
+        y: SLIDE_HEIGHT - 95 + 12,
+        size: 20,
+        font: fontBold,
+        color: neonCyan,
+      });
+
+      // 2. Top Right Slide Counter (e.g. 06 / 06 or 08 / 08)
+      const pageStr = `${String(pageNum).padStart(2, '0')} / ${String(totalSlides).padStart(2, '0')}`;
+      const pageW = fontBold.widthOfTextAtSize(pageStr, 26);
+      page.drawText(pageStr, {
+        x: SLIDE_WIDTH - 70 - pageW,
+        y: SLIDE_HEIGHT - 85,
+        size: 26,
+        font: fontBold,
+        color: textWhite,
+      });
+
+      // 3. Headline & Subheadline
+      const hClean = cleanAscii(rawSlide.headline || 'Found this breakdown valuable?');
       page.drawText(hClean, {
-        x: SLIDE_WIDTH / 2 - hW / 2,
-        y: SLIDE_HEIGHT - 170,
+        x: 70,
+        y: SLIDE_HEIGHT - 175,
         size: 52,
         font: fontBold,
         color: textWhite,
       });
 
-      const sClean = cleanAscii(rawSlide.subheadline || 'Stand out with clean, high-performance web architecture.');
-      const sW = fontRegular.widthOfTextAtSize(sClean, 24);
+      const sClean = cleanAscii(
+        rawSlide.subheadline || 'Save this cheat sheet and follow for weekly production architectures.'
+      );
       page.drawText(sClean, {
-        x: SLIDE_WIDTH / 2 - sW / 2,
-        y: SLIDE_HEIGHT - 220,
+        x: 70,
+        y: SLIDE_HEIGHT - 225,
         size: 24,
         font: fontRegular,
         color: textLight,
       });
 
-      const cardY = 240;
-      const cardH = 820;
+      // 4. Large Framed Profile Card (Cyan Border)
+      const cardY = 160;
+      const cardH = 880;
       page.drawRectangle({
         x: 70,
         y: cardY,
         width: 940,
         height: cardH,
-        color: cardBg,
-        borderColor: cardBorder,
+        color: rgb(0.04, 0.07, 0.13),
+        borderColor: neonCyan,
         borderWidth: 2,
       });
 
-      page.drawText('Pak-o-Drive Engineering', {
-        x: SLIDE_WIDTH / 2 - fontBold.widthOfTextAtSize('Pak-o-Drive Engineering', 48) / 2,
-        y: cardY + cardH - 110,
-        size: 48,
-        font: fontBold,
-        color: textWhite,
-      });
-
-      const questions = rawSlide.points && rawSlide.points.length > 0
-        ? rawSlide.points
-        : [
-            'Why is my site performance lagging?',
-            'Why isn\'t my web application converting?',
-            'How do I integrate autonomous AI agents safely?',
-          ];
-
-      let qY = cardY + cardH - 210;
-      for (const q of questions) {
-        const qClean = cleanAscii(q);
-        const qW = fontRegular.widthOfTextAtSize(qClean, 22) + 60;
-        page.drawRectangle({
-          x: SLIDE_WIDTH / 2 - qW / 2,
-          y: qY,
-          width: qW,
-          height: 50,
-          color: rgb(0.06, 0.10, 0.19),
-          borderColor: cardBorder,
-          borderWidth: 1.5,
-        });
-        page.drawText(qClean, {
-          x: SLIDE_WIDTH / 2 - fontRegular.widthOfTextAtSize(qClean, 22) / 2,
-          y: qY + 16,
-          size: 22,
-          font: fontRegular,
-          color: textLight,
-        });
-        qY -= 75;
-      }
-
-      const urlText = rawSlide.footer || 'pakodrive.pk';
-      page.drawText(urlText, {
-        x: SLIDE_WIDTH / 2 - fontBold.widthOfTextAtSize(urlText, 26) / 2,
-        y: qY - 30,
-        size: 26,
-        font: fontBold,
-        color: neonCyan,
-      });
-
-      // Creator Avatar Circle
+      // 4A. Monogram Avatar Circle (Left)
+      const avatarCenterX = 185;
+      const avatarCenterY = cardY + cardH - 125;
+      const avatarRadius = 65;
       page.drawCircle({
-        x: SLIDE_WIDTH / 2,
-        y: cardY + 180,
-        size: 65,
-        color: rgb(0.04, 0.08, 0.16),
+        x: avatarCenterX,
+        y: avatarCenterY,
+        size: avatarRadius,
+        color: rgb(0.03, 0.06, 0.12),
         borderColor: neonCyan,
         borderWidth: 3,
       });
+      const saW = fontBold.widthOfTextAtSize('SA', 44);
       page.drawText('SA', {
-        x: SLIDE_WIDTH / 2 - 28,
-        y: cardY + 165,
-        size: 42,
+        x: avatarCenterX - saW / 2,
+        y: avatarCenterY - 15,
+        size: 44,
         font: fontBold,
         color: neonCyan,
       });
 
-      page.drawText('Syed Adil Ali', {
-        x: SLIDE_WIDTH / 2 - fontBold.widthOfTextAtSize('Syed Adil Ali', 32) / 2,
-        y: cardY + 80,
-        size: 32,
+      // 4B. Author Details (Right of Avatar)
+      const bioX = 275;
+      page.drawText('SYED ADIL ALI', {
+        x: bioX,
+        y: avatarCenterY + 22,
+        size: 40,
         font: fontBold,
         color: textWhite,
       });
-      page.drawText('Senior Full-Stack & Systems Architect', {
-        x: SLIDE_WIDTH / 2 - fontRegular.widthOfTextAtSize('Senior Full-Stack & Systems Architect', 22) / 2,
-        y: cardY + 45,
-        size: 22,
+      page.drawText('Senior Full-Stack Engineer & Systems Architect', {
+        x: bioX,
+        y: avatarCenterY - 14,
+        size: 24,
+        font: fontBold,
+        color: neonCyan,
+      });
+      page.drawText('Next.js 16 - React 19 - High-Scale Node.js - Distributed Systems', {
+        x: bioX,
+        y: avatarCenterY - 48,
+        size: 20,
         font: fontRegular,
-        color: textMuted,
+        color: textLight,
+      });
+
+      // 4C. Neon Cyan Action Button: + Follow @Syed Adil Ali
+      const btnX = 110;
+      const btnW = 860;
+      const btnY = cardY + cardH - 280;
+      const btnH = 72;
+      page.drawRectangle({
+        x: btnX,
+        y: btnY,
+        width: btnW,
+        height: btnH,
+        color: neonCyan,
+      });
+      const btnStr = '+ Follow @Syed Adil Ali';
+      const btnWText = fontBold.widthOfTextAtSize(btnStr, 28);
+      page.drawText(btnStr, {
+        x: btnX + btnW / 2 - btnWText / 2,
+        y: btnY + 24,
+        size: 28,
+        font: fontBold,
+        color: rgb(0.02, 0.04, 0.08),
+      });
+
+      // 4D. Thin Horizontal Divider Line
+      const divY = cardY + cardH - 335;
+      page.drawLine({
+        start: { x: btnX, y: divY },
+        end: { x: btnX + btnW, y: divY },
+        thickness: 1.5,
+        color: rgb(0.12, 0.20, 0.35),
+      });
+
+      // 4E. Three Action Boxes ([ REPOST ], [ SAVE ], [ DISCUSS ])
+      const boxGap = 24;
+      const boxW = 270;
+      const boxH = 210;
+      const boxY = cardY + 55;
+
+      // Box 1: [ REPOST ]
+      page.drawRectangle({
+        x: btnX,
+        y: boxY,
+        width: boxW,
+        height: boxH,
+        color: rgb(0.03, 0.055, 0.11),
+        borderColor: rgb(0.15, 0.25, 0.42),
+        borderWidth: 1.5,
+      });
+      page.drawText('[ REPOST ]', {
+        x: btnX + 24,
+        y: boxY + boxH - 45,
+        size: 22,
+        font: fontBold,
+        color: neonCyan,
+      });
+      page.drawText('Share with peers &', {
+        x: btnX + 24,
+        y: boxY + boxH - 95,
+        size: 20,
+        font: fontRegular,
+        color: textLight,
+      });
+      page.drawText('devs in your feed', {
+        x: btnX + 24,
+        y: boxY + boxH - 130,
+        size: 20,
+        font: fontRegular,
+        color: textLight,
+      });
+
+      // Box 2: [ SAVE ]
+      const b2X = btnX + boxW + boxGap;
+      page.drawRectangle({
+        x: b2X,
+        y: boxY,
+        width: boxW,
+        height: boxH,
+        color: rgb(0.03, 0.055, 0.11),
+        borderColor: rgb(0.15, 0.25, 0.42),
+        borderWidth: 1.5,
+      });
+      page.drawText('[ SAVE ]', {
+        x: b2X + 24,
+        y: boxY + boxH - 45,
+        size: 22,
+        font: fontBold,
+        color: neonCyan,
+      });
+      page.drawText('Bookmark for your', {
+        x: b2X + 24,
+        y: boxY + boxH - 95,
+        size: 20,
+        font: fontRegular,
+        color: textLight,
+      });
+      page.drawText('next sprint review', {
+        x: b2X + 24,
+        y: boxY + boxH - 130,
+        size: 20,
+        font: fontRegular,
+        color: textLight,
+      });
+
+      // Box 3: [ DISCUSS ]
+      const b3X = b2X + boxW + boxGap;
+      page.drawRectangle({
+        x: b3X,
+        y: boxY,
+        width: boxW,
+        height: boxH,
+        color: rgb(0.03, 0.055, 0.11),
+        borderColor: rgb(0.15, 0.25, 0.42),
+        borderWidth: 1.5,
+      });
+      page.drawText('[ DISCUSS ]', {
+        x: b3X + 24,
+        y: boxY + boxH - 45,
+        size: 22,
+        font: fontBold,
+        color: neonCyan,
+      });
+      page.drawText('Drop your thoughts', {
+        x: b3X + 24,
+        y: boxY + boxH - 95,
+        size: 20,
+        font: fontRegular,
+        color: textLight,
+      });
+      page.drawText('& questions below', {
+        x: b3X + 24,
+        y: boxY + boxH - 130,
+        size: 20,
+        font: fontRegular,
+        color: textLight,
       });
 
     } else {

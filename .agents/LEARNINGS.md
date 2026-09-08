@@ -6,6 +6,35 @@ This file serves as persistent dynamic memory across coding agent sessions. Ever
 
 ## 🏛️ PART 1: The 8 Core Pakistani E-Commerce Engineering Rules
 
+### 2026-09-08 — Live LinkedIn Dispatch: 4:5 Vertical Portrait Slobodan Carousel (`urn:li:ugcPost:7503143737728925696`)
+- **📌 Issue**: User requested publishing a new style updated post on LinkedIn ("ab ek linkdin pr updated post dalna new tarha ki").
+- **🔍 Root Cause & Failed Attempts**: Previous posts had been published in older formats before the 4:5 vertical portrait Slobodan Gajić-style carousel generator was implemented. The newly engineered 8-slide portrait PDF deck (featuring 3D ambient cover, JetBrains 2026 Developer Survey stat cards, tool race bar charts, autonomy column distribution, system delegation diagram, and AI topic hashtags) was compiled locally but had not been dispatched live to the LinkedIn profile.
+- **🛠️ Verified Code Fix**: Executed `executeAutoLinkedInPost(0)` via `scripts/publish-and-verify-live.ts`. Successfully generated and verified the 8-slide PDF document (1,206,916 bytes), initialized and uploaded the document via LinkedIn Documents API (`urn:li:document:D4D10AQGEJLBzPPiHjw`), and published live to LinkedIn profile with Post ID: `urn:li:ugcPost:7503143737728925696`. Both `public/active-post-graphic.jpg` (1,021,241 bytes) and `public/active-carousel.pdf` (1,206,916 bytes) verified on disk with 0 errors.
+
+### 2026-09-08 — Vercel Turbopack Build Error Fix (Stray Markdown Fence in `carouselGenerator.ts`)
+- **📌 Issue**: Vercel deployment failed on `pnpm run build` / Turbopack with error: `./src/lib/carouselGenerator.ts:809:25 Error: Expected ';', '}' or <eof>`.
+- **🔍 Root Cause & Failed Attempts**: A stray markdown codeblock backtick fence (```` ``` ````) was accidentally introduced at line 721 above `if (coverImageBuffer && coverImageBuffer.length > 2000)` during the carousel generator update. Turbopack / TypeScript interpreted all code beneath it as an unclosed template literal / module string, crashing the parser at line 809.
+- **🛠️ Verified Code Fix**: Removed the stray ```` ``` ```` at line 721 in [carouselGenerator.ts](file:///d:/proj/Pak-o-Drive/src/lib/carouselGenerator.ts#L720-L725). Verified via `pnpm tsc --noEmit` and full Next.js production build (`next build`), which passed 100% with 0 errors and successfully generated all 82 static and dynamic routes.
+
+### 2026-09-08 — LinkedIn 4:5 Vertical Portrait Slobodan Carousel Engine & Dynamic AI Hashtags
+- **📌 Issue**: User requested generating professional, clean LinkedIn PDF carousels matching the Slobodan Gajić example (`1788854427653.pdf`), with neat and clean typography without word/letter clipping, and ensuring that all accompanying LinkedIn post copy includes AI-generated relevant hashtags at the bottom (*"ye example pdf ha , linkdin pr post add krny k lye esa acha sa pdf banaya kro , or us pr text b esy sahi sahi likha ho neat and clean and jo post me text hota ha us k nechy related hash tag b add kraya kro ai sy"*).
+- **🔍 Root Cause & Failed Attempts**:
+  - Previous carousel PDFs were rendered in square (1080x1080) format rather than LinkedIn's optimal **4:5 vertical portrait aspect ratio (`1080 x 1350` px / `810 x 1012.5` pt)**, missing valuable mobile feed screen real estate.
+  - Previous layouts lacked the rich visual variety of Slobodan Gajić's decks: research stat cards with takeaway quotes, horizontal ranked bar charts with highlight bars, vertical column distribution charts, and delegation workflow diagrams.
+  - The post generation previously relied on static hashtag tails that did not dynamically adapt to the specific technical topic, and lacked explicit swiping CTAs.
+- **🛠️ Verified Code Fix**:
+  1. Deep-analyzed `public/example/1788854427653.pdf` and upgraded `src/lib/carouselGenerator.ts` to exact 4:5 portrait (`1080 x 1350`) dimensions.
+  2. Implemented all 7 modular slide archetypes using `pdf-lib` + `@pdf-lib/fontkit` with embedded Inter TrueType fonts (`Inter-Bold.ttf` & `Inter-Regular.ttf`):
+     - **Cover Slide**: Bold typography, glowing accent pill, embedded 3D tech graphic.
+     - **Intro Slide**: High-contrast survey hook and punchy bullet insights.
+     - **Stat Cards**: JetBrains research cards with percentage callouts (`90%`, `68%`) and bottom takeaway quotes.
+     - **Ranked Bar Chart**: Horizontal comparison progress bars (`Claude Code 39%`, `GitHub Copilot 21%`, `Codex 16%`, `Cursor 12%`, etc.).
+     - **Column Distribution Chart**: Vertical histogram (`0%`, `1-20%`, `21-40%`, `41-60%`, `61-80%`, `81-100%`).
+     - **System Delegation Diagram**: "You" vs "AI Autonomous Agent" delegation flowchart with left task inputs and right outcome nodes.
+     - **Outro Conversion Slide**: Creator avatar ring, 3 FAQ question capsules, and brand website pill (`pakodrive.pk`).
+  3. Added `generateAIHashtags()` and `ensurePostHashtagsWithAI()` in `src/lib/socialAutoPostService.ts` leveraging Multi-Provider AI to generate 8–12 trending, topic-specific hashtags placed cleanly at the bottom of the LinkedIn post text.
+  4. Verified rendering with high visual fidelity at `public/active-carousel.pdf` (1,175,001 bytes, 8 pages).
+
 ### 2026-09-08 — AutoStore Category Slider Overlap Geometry, Slim Stripe & Zero Text Truncation
 - **📌 Issue**: User requested exact parity with AutoStore.pk cards and background stripe: *"jasy is k card ary hn wasy mery b krao layout and text or dekho is k back pr jo red stripe ha us ki hgith kam ha mery b kam kro k sahi lagy"*. Cards had giant orange stripe behind them, square button wrappers, and `...` truncation (`CAR ACCE...`, `SIDE...`).
 - **🔍 Root Cause & Failed Attempts**:

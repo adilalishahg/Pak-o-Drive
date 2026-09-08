@@ -438,12 +438,18 @@ export function ensurePostHashtags(caption: string, topic: string): string {
  * Ensures post text has clean formatting with AI-curated hashtags placed at the bottom
  */
 export async function ensurePostHashtagsWithAI(caption: string, topic: string): Promise<string> {
-  const existingTags = caption.match(/#[A-Za-z0-9_]+/g);
+  let cleaned = caption
+    .replace(/#PakODrive/gi, '')
+    .replace(/Pak-o-Drive/gi, '')
+    .replace(/pakodrive\.pk/gi, '')
+    .trim();
+
+  const existingTags = cleaned.match(/#[A-Za-z0-9_]+/g);
   if (existingTags && existingTags.length >= 5) {
-    return caption;
+    return cleaned;
   }
-  const aiTags = await generateAIHashtags(topic, caption);
-  return `${caption.trim()}\n\n${aiTags}`;
+  const aiTags = await generateAIHashtags(topic, cleaned);
+  return `${cleaned}\n\n${aiTags}`;
 }
 
 /**
