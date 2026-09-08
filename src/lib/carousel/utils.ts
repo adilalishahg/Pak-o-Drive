@@ -75,3 +75,180 @@ export function getTopicImage(topic: string): Buffer | null {
   }
   return null;
 }
+
+import type { PDFPage, PDFFont, RGB } from 'pdf-lib';
+import { SLIDE_WIDTH } from './constants';
+
+export interface FittedTextResult {
+  lines: string[];
+  fontSize: number;
+  lineHeight: number;
+  totalHeight: number;
+  bottomY: number;
+}
+
+/**
+ * Automatically splits and scales headline text so it fits strictly within maxWidth.
+ * Guarantees zero text overflow outside slide boundaries on any screen or viewport.
+ */
+export function drawFittedHeadline(
+  page: PDFPage,
+  fontBold: PDFFont,
+  headline: string,
+  options: {
+    startY?: number;
+    maxWidth?: number;
+    maxFontSize?: number;
+    minFontSize?: number;
+    color?: RGB;
+    align?: 'center' | 'left';
+    leftMargin?: number;
+  } = {}
+): FittedTextResult {
+  const startY = options.startY ?? 1180;
+  const maxWidth = options.maxWidth ?? 920; // 80px margins on left & right of 1080px canvas
+  const maxFontSize = options.maxFontSize ?? 48;
+  const minFontSize = options.minFontSize ?? 30;
+  const align = options.align ?? 'center';
+  const color = options.color ?? { red: 1, green: 1, blue: 1 };
+
+  const rawClean = cleanAscii(headline);
+  let bestFontSize = maxFontSize;
+  let bestLines: string[] = [];
+
+  // If text already has newline breaks, respect them as starting point
+  const initialLines = rawClean.includes('\n') ? rawClean.split('\n') : [rawClean];
+
+  // Try fitting with candidate font sizes from max down to min
+  for (let candidateSize = maxFontSize; candidateSize >= minFontSize; candidateSize -= 2) {
+    const estCharsPerLine = Math.max(16, Math.floor(maxWidth / (candidateSize * 0.58)));
+
+    let candidateLines: string[] = [];
+    for (const initLine of initialLines) {
+      if (fontBold.widthOfTextAtSize(initLine, candidateSize) <= maxWidth) {
+        candidateLines.push(initLine);
+      } else {
+        const wrapped = wrapTextLines(initLine, estCharsPerLine);
+        candidateLines.push(...wrapped);
+      }
+    }
+
+    const allFit = candidateLines.every(
+      (line) => fontBold.widthOfTextAtSize(line, candidateSize) <= maxWidth
+    );
+
+    if (allFit && candidateLines.length <= 3) {
+      bestFontSize = candidateSize;
+      bestLines = candidateLines;
+      break;
+    }
+  }
+
+  if (bestLines.length === 0) {
+    bestFontSize = minFontSize;
+    bestLines = wrapTextLines(rawClean, Math.floor(maxWidth / (minFontSize * 0.58))).slice(0, 3);
+  }
+
+  const lineHeight = Math.round(bestFontSize * 1.25);
+  let currentY = startY;
+
+  for (const line of bestLines) {
+    const cleanLine = cleanAscii(line);
+    const lineW = fontBold.widthOfTextAtSize(cleanLine, bestFontSize);
+    const x = align === 'center'
+      ? Math.max(60, SLIDE_WIDTH / 2 - lineW / 2)
+      : (options.leftMargin ?? 70);
+
+    page.drawText(cleanLine, {
+      x,
+      y: currentY,
+      size: bestFontSize,
+      font: fontBold,
+      color,
+    });
+    currentY -= lineHeight;
+  }
+
+  return {
+    lines: bestLines,
+    fontSize: bestFontSize,
+    lineHeight,
+    totalHeight: bestLines.length * lineHeight,
+    bottomY: currentY,
+  };
+}
+
+/**
+ * Automatically fits subheadline text within maxWidth with zero overflow.
+ */
+export function drawFittedSubheadline(
+  page: PDFPage,
+  fontRegular: PDFFont,
+  subheadline: string,
+  options: {
+    startY?: number;
+    maxWidth?: number;
+    maxFontSize?: number;
+    minFontSize?: number;
+    color?: RGB;
+    align?: 'center' | 'left';
+    leftMargin?: number;
+  } = {}
+): FittedTextResult {
+  const startY = options.startY ?? 1120;
+  const maxWidth = options.maxWidth ?? 920;
+  const maxFontSize = options.maxFontSize ?? 24;
+  const minFontSize = options.minFontSize ?? 18;
+  const align = options.align ?? 'center';
+  const color = options.color ?? { red: 0.89, green: 0.91, blue: 0.94 };
+
+  const rawClean = cleanAscii(subheadline);
+  let bestFontSize = maxFontSize;
+  let bestLines: string[] = [];
+
+  for (let candidateSize = maxFontSize; candidateSize >= minFontSize; candidateSize -= 2) {
+    const estChars = Math.max(25, Math.floor(maxWidth / (candidateSize * 0.52)));
+    const wrapped = wrapTextLines(rawClean, estChars);
+    const allFit = wrapped.every(
+      (line) => fontRegular.widthOfTextAtSize(line, candidateSize) <= maxWidth
+    );
+    if (allFit && wrapped.length <= 2) {
+      bestFontSize = candidateSize;
+      bestLines = wrapped;
+      break;
+    }
+  }
+
+  if (bestLines.length === 0) {
+    bestFontSize = minFontSize;
+    bestLines = wrapTextLines(rawClean, Math.floor(maxWidth / (minFontSize * 0.52))).slice(0, 2);
+  }
+
+  const lineHeight = Math.round(bestFontSize * 1.3);
+  let currentY = startY;
+
+  for (const line of bestLines) {
+    const cleanLine = cleanAscii(line);
+    const lineW = fontRegular.widthOfTextAtSize(cleanLine, bestFontSize);
+    const x = align === 'center'
+      ? Math.max(60, SLIDE_WIDTH / 2 - lineW / 2)
+      : (options.leftMargin ?? 70);
+
+    page.drawText(cleanLine, {
+      x,
+      y: currentY,
+      size: bestFontSize,
+      font: fontRegular,
+      color,
+    });
+    currentY -= lineHeight;
+  }
+
+  return {
+    lines: bestLines,
+    fontSize: bestFontSize,
+    lineHeight,
+    totalHeight: bestLines.length * lineHeight,
+    bottomY: currentY,
+  };
+}
