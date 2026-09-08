@@ -1,32 +1,30 @@
 import { rgb } from 'pdf-lib';
 import type { SlideRenderContext } from '../types';
 import { SLIDE_WIDTH, SLIDE_HEIGHT, cardBg, cardBorder, neonCyan, electricBlue, vibrantPurple, textWhite, textLight } from '../constants';
-import { cleanAscii } from '../utils';
+import { cleanAscii, drawFittedHeadline, drawFittedSubheadline } from '../utils';
 
 export function renderDiagramSlide(ctx: SlideRenderContext): void {
   const { page, fonts, slide } = ctx;
   const { fontBold, fontRegular } = fonts;
 
   // Headline
-  const hClean = cleanAscii(slide.headline);
-  const hW = fontBold.widthOfTextAtSize(hClean, 52);
-  page.drawText(hClean, {
-    x: SLIDE_WIDTH / 2 - hW / 2,
-    y: SLIDE_HEIGHT - 170,
-    size: 52,
-    font: fontBold,
+  const headFit = drawFittedHeadline(page, fontBold, slide.headline, {
+    startY: SLIDE_HEIGHT - 170,
+    maxWidth: 920,
+    maxFontSize: 46,
+    minFontSize: 28,
+    align: 'center',
     color: textWhite,
   });
 
   // Subheadline
   if (slide.subheadline) {
-    const sClean = cleanAscii(slide.subheadline);
-    const sW = fontRegular.widthOfTextAtSize(sClean, 24);
-    page.drawText(sClean, {
-      x: SLIDE_WIDTH / 2 - sW / 2,
-      y: SLIDE_HEIGHT - 220,
-      size: 24,
-      font: fontRegular,
+    drawFittedSubheadline(page, fontRegular, slide.subheadline, {
+      startY: headFit.bottomY - 15,
+      maxWidth: 920,
+      maxFontSize: 24,
+      minFontSize: 18,
+      align: 'center',
       color: textLight,
     });
   }

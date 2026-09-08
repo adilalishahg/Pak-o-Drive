@@ -1,33 +1,30 @@
 import { rgb } from 'pdf-lib';
 import type { SlideRenderContext } from '../types';
 import { SLIDE_WIDTH, SLIDE_HEIGHT, cardBg, cardBorder, neonCyan, textWhite } from '../constants';
-import { cleanAscii } from '../utils';
+import { cleanAscii, drawFittedHeadline } from '../utils';
 
 export function renderCoverSlide(ctx: SlideRenderContext): void {
   const { page, fonts, slide, embeddedCoverImage } = ctx;
   const { fontBold } = fonts;
 
-  const headlineLines = slide.headline.split('\n');
-  let tY = SLIDE_HEIGHT - 220;
-  for (const line of headlineLines) {
-    const clean = cleanAscii(line);
-    const lW = fontBold.widthOfTextAtSize(clean, 56);
-    page.drawText(clean, {
-      x: SLIDE_WIDTH / 2 - lW / 2,
-      y: tY,
-      size: 56,
-      font: fontBold,
-      color: textWhite,
-    });
-    tY -= 70;
-  }
+  const fit = drawFittedHeadline(page, fontBold, slide.headline, {
+    startY: SLIDE_HEIGHT - 170,
+    maxWidth: 920,
+    maxFontSize: 46,
+    minFontSize: 30,
+    align: 'center',
+    color: textWhite,
+  });
 
-  // Center Graphic Frame
+  // Center Graphic Frame positioned cleanly below the fitted headline
+  const frameY = 320;
+  const frameH = Math.min(640, Math.max(500, fit.bottomY - frameY - 40));
+
   page.drawRectangle({
     x: 70,
-    y: 360,
+    y: frameY,
     width: 940,
-    height: 620,
+    height: frameH,
     color: cardBg,
     borderColor: cardBorder,
     borderWidth: 2,
@@ -36,16 +33,16 @@ export function renderCoverSlide(ctx: SlideRenderContext): void {
   if (embeddedCoverImage) {
     page.drawImage(embeddedCoverImage, {
       x: 72,
-      y: 362,
+      y: frameY + 2,
       width: 936,
-      height: 616,
+      height: frameH - 4,
     });
   } else {
     // Fallback Blueprint Graphic
     const fallbackTitle = 'AI ARCHITECTURE MATRIX 2026';
     page.drawText(fallbackTitle, {
       x: SLIDE_WIDTH / 2 - fontBold.widthOfTextAtSize(fallbackTitle, 32) / 2,
-      y: 660,
+      y: frameY + frameH / 2,
       size: 32,
       font: fontBold,
       color: neonCyan,

@@ -1,6 +1,6 @@
 import type { SlideRenderContext } from '../types';
 import { SLIDE_WIDTH, SLIDE_HEIGHT, cardBg, cardBorder, neonCyan, electricBlue, textWhite, textLight } from '../constants';
-import { cleanAscii } from '../utils';
+import { cleanAscii, drawFittedHeadline, drawFittedSubheadline } from '../utils';
 
 export function renderIntroSlide(ctx: SlideRenderContext): void {
   const { page, fonts, slide } = ctx;
@@ -35,25 +35,23 @@ export function renderIntroSlide(ctx: SlideRenderContext): void {
   });
 
   // Headline
-  const hClean = cleanAscii(slide.headline);
-  const hW = fontBold.widthOfTextAtSize(hClean, 44);
-  page.drawText(hClean, {
-    x: SLIDE_WIDTH / 2 - hW / 2,
-    y: SLIDE_HEIGHT - 560,
-    size: 44,
-    font: fontBold,
+  const headFit = drawFittedHeadline(page, fontBold, slide.headline, {
+    startY: SLIDE_HEIGHT - 560,
+    maxWidth: 920,
+    maxFontSize: 44,
+    minFontSize: 28,
+    align: 'center',
     color: textWhite,
   });
 
   // Subheadline
   if (slide.subheadline) {
-    const sClean = cleanAscii(slide.subheadline);
-    const sW = fontRegular.widthOfTextAtSize(sClean, 26);
-    page.drawText(sClean, {
-      x: SLIDE_WIDTH / 2 - sW / 2,
-      y: SLIDE_HEIGHT - 620,
-      size: 26,
-      font: fontRegular,
+    drawFittedSubheadline(page, fontRegular, slide.subheadline, {
+      startY: headFit.bottomY - 15,
+      maxWidth: 920,
+      maxFontSize: 26,
+      minFontSize: 18,
+      align: 'center',
       color: textLight,
     });
   }

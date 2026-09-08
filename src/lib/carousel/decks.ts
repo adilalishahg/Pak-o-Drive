@@ -4,6 +4,7 @@ export const CURATED_DECKS: CarouselDeck[] = [
   {
     topic: 'AI Coding Agents Are Becoming Standard: 2026 Developer Survey Insights',
     caption: `AI coding agents are officially mainstream. 🤖⚡
+#AICoding #SoftwareEngineering #DeveloperTools #TechArchitecture #FutureOfCode #FullStack
 
 According to the latest 2026 Developer Ecosystem data, coding agents have rapidly graduated from experimental tools into everyday software engineering infrastructure.
 
@@ -85,54 +86,40 @@ Swipe through the 8-slide carousel above for the complete visual breakdown! ➡�
         chartData: [
           { name: 'Claude Code', pct: 39, isHighlight: true },
           { name: 'GitHub Copilot', pct: 21 },
-          { name: 'Codex / OpenAI', pct: 16 },
+          { name: 'OpenAI Codex', pct: 16 },
           { name: 'Cursor', pct: 12 },
-          { name: 'Gemini Code Assist', pct: 9 },
-          { name: 'Windsurf Editor', pct: 6 },
+          { name: 'Others', pct: 12 },
         ],
-        takeawayQuote: '"The standard AI coding tool hasn\'t been decided yet."',
+        takeawayQuote: '"Claude Code leads work adoption at 39%."',
         footer: 'Subscribe for more',
       },
       {
         slideType: 'column_chart',
-        tag: '04 / CODE AUTONOMY',
-        headline: 'Most aren\'t fully agentic',
-        subheadline: 'Only 22% rely on agents for over 80% of code.',
+        tag: '04 / CODE VOLUME DELEGATED',
+        headline: 'Delegation sweet spot',
+        subheadline: 'Only 22% let AI write >80% of code. Most engineers keep human-in-the-loop review.',
         columnData: [
-          { label: '0%', sub: '(none)', pct: 4, h: 40 },
-          { label: '1-20%', pct: 7, h: 70 },
-          { label: '21-40%', pct: 20, h: 200 },
-          { label: '41-60%', pct: 19, h: 190 },
-          { label: '61-80%', pct: 18, h: 180 },
-          { label: '81-100%', sub: '(almost all)', pct: 22, h: 230, isHighlight: true },
+          { label: '<20%', pct: 15, h: 150 },
+          { label: '21-40%', pct: 24, h: 240 },
+          { label: '41-60%', pct: 23, h: 230 },
+          { label: '61-80%', pct: 16, h: 160 },
+          { label: '>80%', pct: 22, h: 220, isHighlight: true },
         ],
-        takeawayQuote: '"Adoption doesn\'t mean developers have stopped writing code themselves."',
+        takeawayQuote: '"Only 22% let agents write >80% of code."',
         footer: 'Subscribe for more',
       },
       {
         slideType: 'diagram',
-        tag: '05 / FUTURE SKILLS',
-        headline: 'So what happens next?',
-        subheadline: 'The next advantage may be knowing what to delegate well.',
+        tag: '05 / AGENT ARCHITECTURE',
+        headline: 'What agents do best',
+        subheadline: 'From routine tasks to architectural scaffolding, here is where AI excels.',
         diagramData: {
-          leftTasks: [
-            'Write boilerplate code',
-            'Generate unit tests',
-            'Refactor legacy code',
-            'Explore complex APIs',
-            'Design system schemas',
-          ],
-          centerUserText: 'You\nDecide what to delegate',
-          centerAgentText: 'AI\nAutonomous Agent',
-          rightOutcomes: [
-            'Handles repetitive tasks',
-            'Runs build & lint checks',
-            'Writes documentation',
-            'Frees time for systems',
-            'Accelerates velocity 3x',
-          ],
+          leftTasks: ['Writing unit tests', 'Code refactoring', 'Boilerplate gen', 'API exploration'],
+          centerUserText: 'YOU\nDecide & Guide',
+          centerAgentText: 'AI\nExecutes & Tests',
+          rightOutcomes: ['Frees time for systems', 'Runs build & tests', 'Drafts documentation'],
         },
-        takeawayQuote: '"The valuable skill may become managing the agent, not typing."',
+        takeawayQuote: '"Humans architect. Agents implement and test."',
         footer: 'Subscribe for more',
       },
       {
@@ -148,6 +135,7 @@ Swipe through the 8-slide carousel above for the complete visual breakdown! ➡�
   {
     topic: 'Rendering Strategies Explained: CSR vs SSR vs SSG vs ISR',
     caption: `Stop choosing rendering paradigms on guesswork. 🛑
+#WebPerformance #NextJS #React19 #SystemDesign #FullStack #SoftwareArchitecture
 
 In production, picking the wrong rendering strategy can silently sabotage your Core Web Vitals (LCP/TTFB), tank SEO rankings, or spike cloud compute 10x:
 
@@ -224,6 +212,7 @@ Swipe through this 6-slide architecture cheat sheet above! ➡️
   {
     topic: 'Database Indexing: Why Your SQL and MongoDB Queries Crawl',
     caption: `90% of backend latency spikes aren't caused by slow CPU or RAM shortages. 🐢
+#Databases #MongoDB #PostgreSQL #SQL #SystemDesign #BackendEngineering #DatabaseOptimization #FullStack
 
 They are caused by unindexed database table scans and runaway query execution plans.
 
@@ -299,7 +288,7 @@ What single database optimization gave your team the highest latency ROI recentl
       {
         isSummary: true,
         slideType: 'outro',
-        tag: 'INDEXING CHECKLIST',
+        tag: 'DECISION MATRIX',
         headline: 'Found this breakdown valuable?',
         subheadline: 'Save this cheat sheet and follow for weekly production architectures.',
         footer: 'Follow @Syed Adil Ali & Repost',
@@ -309,6 +298,7 @@ What single database optimization gave your team the highest latency ROI recentl
   {
     topic: 'Microservices vs Modular Monolith: The Real Architectural Trade-Offs',
     caption: `Microservices solve team organization problems — NOT technical scaling problems. ⚠️
+#SoftwareEngineering #SystemDesign #Microservices #CloudArchitecture #Backend #SoftwareArchitecture
 
 Too many startups adopt distributed microservices prematurely, trading clean in-process code for distributed systems nightmare: network latency, cascading timeouts, distributed transaction locks, and complex Kubernetes overhead.
 
@@ -394,6 +384,7 @@ What architecture does your team currently run in production? If you could resta
   {
     topic: 'React 19 & Next.js 16: Complete Mental Model for Senior Engineers',
     caption: `React 19 isn't just an incremental update — it resets how we architect modern full-stack web applications. ⚡
+#React19 #NextJS #ReactJS #WebDevelopment #Frontend #JavaScript #TypeScript #FullStack
 
 The era of sprawling client-side state, messy useEffect chains, and manual useMemo/useCallback boilerplate is officially coming to an end.
 
@@ -467,7 +458,7 @@ Which React 19 feature has made the biggest difference in your daily production 
       {
         isSummary: true,
         slideType: 'outro',
-        tag: 'REACT 19 SUMMARY',
+        tag: 'DECISION MATRIX',
         headline: 'Found this breakdown valuable?',
         subheadline: 'Save this cheat sheet and follow for weekly production architectures.',
         footer: 'Follow @Syed Adil Ali & Repost',

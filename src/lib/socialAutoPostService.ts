@@ -444,12 +444,25 @@ export async function ensurePostHashtagsWithAI(caption: string, topic: string): 
     .replace(/pakodrive\.pk/gi, '')
     .trim();
 
-  const existingTags = cleaned.match(/#[A-Za-z0-9_]+/g);
-  if (existingTags && existingTags.length >= 5) {
+  // Check if first 3 lines already contain hashtags
+  const firstThreeLines = cleaned.split('\n').slice(0, 3).join(' ');
+  const hasTagsNearTop = /#[A-Za-z0-9_]+/.test(firstThreeLines);
+
+  if (hasTagsNearTop) {
     return cleaned;
   }
-  const aiTags = await generateAIHashtags(topic, cleaned);
-  return `${cleaned}\n\n${aiTags}`;
+
+  // Generate high-impact topic tags
+  const tags = await generateAIHashtags(topic, cleaned);
+
+  // Insert tags right after the opening hook line (line 1)
+  const lines = cleaned.split('\n');
+  if (lines.length > 1) {
+    lines.splice(1, 0, tags);
+    return lines.join('\n');
+  }
+
+  return `${cleaned}\n${tags}`;
 }
 
 /**
