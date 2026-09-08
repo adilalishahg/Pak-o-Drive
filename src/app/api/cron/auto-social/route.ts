@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server';
-import { executeAutoLinkedInPost, generateLinkedInTechPost } from '@/lib/socialAutoPostService';
+import { executeAutoLinkedInPost, generateLinkedInTechPost, ensurePostHashtagsWithAI } from '@/lib/socialAutoPostService';
+import { CURATED_DECKS, renderSlobodanCarouselPdf } from '@/lib/carouselGenerator';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60; // 60s timeout for AI generation and API dispatch
-// Cache-bust: 2026-09-07T19:32:00Z - Verified AI image & Slobodan carousel upgrade
+// Cache-bust: 2026-09-08T22:15:00Z - Verified AI hashtags & Slobodan 4:5 carousel upgrade
 
 export async function GET(request: Request) {
   return handleSocialPost(request);
@@ -17,7 +18,7 @@ async function handleSocialPost(request: Request) {
   const { searchParams } = new URL(request.url);
   const authHeader = request.headers.get('authorization');
   const secret = searchParams.get('secret') || (authHeader ? authHeader.replace('Bearer ', '').trim() : '');
-  const action = searchParams.get('action'); // 'preview' | 'publish'
+  const action = searchParams.get('action'); // 'preview' | 'preview-carousel' | 'publish'
   const cronSecret = process.env.CRON_SECRET;
 
   // Validate CRON_SECRET if configured and in production
@@ -25,7 +26,29 @@ async function handleSocialPost(request: Request) {
     return NextResponse.json({ success: false, error: 'Unauthorized. Invalid secret.' }, { status: 401 });
   }
 
-  // 1. Preview Mode: Just generate the post content without publishing
+  // 1. Preview Carousel Mode: Render 8-slide 4:5 PDF & generate post text with AI hashtags
+  if (action === 'preview-carousel' || action === 'preview-pdf') {
+    const chosenDeck = CURATED_DECKS[0];
+    const postContent = await ensurePostHashtagsWithAI(chosenDeck.caption, chosenDeck.topic);
+    const pdfBuffer = await renderSlobodanCarouselPdf(chosenDeck);
+    try {
+      const fs = await import('fs');
+      fs.writeFileSync('public/active-carousel.pdf', pdfBuffer);
+    } catch {}
+
+    return NextResponse.json({
+      success: true,
+      mode: 'preview-carousel',
+      topic: chosenDeck.topic,
+      slidesCount: chosenDeck.slides.length,
+      aspectRatio: '4:5 Vertical Portrait (1080x1350)',
+      pdfSize: pdfBuffer.length,
+      pdfUrl: '/active-carousel.pdf',
+      postContent,
+    });
+  }
+
+  // 2. Standard Preview Mode: Just generate the post content with AI hashtags
   if (action === 'preview') {
     const post = await generateLinkedInTechPost();
     return NextResponse.json({

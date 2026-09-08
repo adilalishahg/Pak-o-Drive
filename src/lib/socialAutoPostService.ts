@@ -22,20 +22,24 @@ const TECH_TOPICS = [
 export async function generateLinkedInTechPost(): Promise<{ content: string; topic: string }> {
   const randomTopic = TECH_TOPICS[Math.floor(Math.random() * TECH_TOPICS.length)];
 
-  const systemPrompt = `You are a Principal Software Architect and Tech Thought Leader writing an engaging, authentic, and high-value technical LinkedIn post.
+  const systemPrompt = `You are a Principal Software Architect and Tech Thought Leader writing an engaging, authentic, and high-value technical LinkedIn carousel post.
 Tone: Professional, authoritative yet accessible, inspiring, practical.
-Requirements:
+Formatting & Layout Requirements:
 1. Start with an irresistible 1-line hook (no generic greetings like "Hello network" or "Happy Monday").
-2. Frame a common misconception or a real-world software engineering challenge.
-3. Provide 3-4 concrete, actionable technical bullet points or architectural takeaways.
-4. End with an open-ended question that encourages engineers, tech leads, and founders to comment and discuss.
-5. Append 4-6 targeted tech hashtags (e.g. #softwareengineering #webdev #nextjs #fullstack #cloud #tech).
-Do NOT include any quotation marks around the entire post. Keep spacing clean with blank lines between paragraphs.`;
+2. Frame a common misconception or real-world software engineering challenge.
+3. Provide 3-4 concrete, actionable technical takeaways formatted cleanly with emojis (📌 or ⚡) and neat indentation.
+4. Add a clear call-to-action inviting the reader to swipe the carousel PDF document attached above for the visual breakdown (e.g. "👉 Swipe through the carousel document above for the complete visual breakdown! ➡️").
+5. End with an open-ended question that encourages engineers, tech leads, and founders to comment and discuss.
+6. AT THE VERY BOTTOM, generate and append 8-12 highly relevant, trending hashtags (e.g. #SoftwareEngineering #SystemDesign #TechTrends #WebDev).
+Do NOT include quotation marks around the entire post. Keep spacing clean with blank lines between paragraphs.`;
 
-  const userMessage = `Write a high-reach technical LinkedIn post on this topic: "${randomTopic}". Keep it punchy, insightful, and formatted for maximum readability on mobile feeds.`;
+  const userMessage = `Write a high-reach technical LinkedIn post on this topic: "${randomTopic}". Keep it punchy, insightful, formatted for maximum readability on mobile feeds, and append 8-12 relevant hashtags at the bottom.`;
 
   const aiRes = await callMultiProviderAI(systemPrompt, userMessage);
-  const content = aiRes.text || getDefaultTechPost(randomTopic);
+  let content = aiRes.text || getDefaultTechPost(randomTopic);
+
+  // Guarantee high-reach AI hashtags at the bottom
+  content = await ensurePostHashtagsWithAI(content, randomTopic);
 
   return { content, topic: randomTopic };
 }
@@ -44,19 +48,22 @@ Do NOT include any quotation marks around the entire post. Keep spacing clean wi
  * Fallback static post in case AI providers are completely unreachable
  */
 function getDefaultTechPost(topic: string): string {
-  return `Most software performance bottlenecks aren't caused by the framework you choose — they are caused by unindexed database queries and unnecessary client-side re-renders.
+  return `Most software performance bottlenecks aren't caused by the framework you choose — they are caused by unindexed database queries and unnecessary client-side re-renders. ⚡
 
-When engineering full-stack systems:
-• Treat database indexes as first-class citizens, not afterthoughts.
-• Keep client bundles lean by pushing data transformations to server components.
-• Measure before optimizing: rely on real profiler telemetry rather than guesswork.
-• Build with graceful fallbacks so third-party API downtimes don't crash your core user experience.
+When engineering high-scale production systems:
+
+📌 Treat database indexes as first-class citizens, not afterthoughts.
+📌 Keep client bundles lean by pushing heavy data transformations to server components.
+📌 Measure before optimizing: rely on real profiler telemetry rather than guesswork.
+📌 Build with graceful fallbacks so third-party API downtimes don't crash your core user experience.
 
 Architecture is always about intentional trade-offs.
 
-What performance optimization gave your team the highest ROI recently? Let's discuss in the comments!
+👉 Swipe through the 8-slide carousel document above for the full visual system breakdown! ➡️
 
-#softwareengineering #webdevelopment #systemdesign #fullstack #techtrends`;
+What performance optimization gave your team the highest ROI recently? Let's discuss in the comments below! 💬
+
+#SoftwareEngineering #SystemDesign #WebDevelopment #FullStack #BackendEngineering #PerformanceOptimization #NextJS #Databases #CleanCode #TechTrends`;
 }
 
 /**
@@ -359,6 +366,54 @@ export async function publishToLinkedIn(
 }
 
 /**
+ * Dynamically generate high-reach, contextually relevant hashtags using Multi-Provider AI
+ */
+export async function generateAIHashtags(topic: string, postSnippet?: string): Promise<string> {
+  const prompt = `Generate 8 to 12 highly relevant, trending LinkedIn hashtags for a technical post about "${topic}".
+Context: "${(postSnippet || topic).slice(0, 200)}"
+Rules:
+1. Output ONLY hashtags separated by spaces (e.g. #AICoding #SoftwareEngineering #SystemDesign #DeveloperTools #TechArchitecture #FutureOfCode #FullStack #WebDevelopment).
+2. Include both high-reach macro tags and niche topic-specific tags.
+3. No numbering, no bullets, no commentary, no markdown.`;
+
+  try {
+    const aiRes = await callMultiProviderAI(
+      'You are a B2B LinkedIn growth strategist and developer relations expert.',
+      prompt
+    );
+    if (aiRes.text) {
+      const cleaned = aiRes.text
+        .replace(/[^a-zA-Z0-9_#\s]/g, '')
+        .split(/\s+/)
+        .filter((t) => t.startsWith('#') && t.length > 2)
+        .slice(0, 12)
+        .join(' ');
+      if (cleaned.length > 15) {
+        return cleaned;
+      }
+    }
+  } catch (err) {
+    console.warn('⚠️ [AutoSocial] AI hashtag generation skipped, using curated domain tags:', err);
+  }
+
+  // Curated domain fallbacks
+  const topicLower = topic.toLowerCase();
+  if (topicLower.includes('agent') || topicLower.includes('ai') || topicLower.includes('claude') || topicLower.includes('copilot') || topicLower.includes('survey')) {
+    return '#AICoding #CodingAgents #SoftwareEngineering #FutureOfWork #ArtificialIntelligence #DeveloperTools #TechArchitecture #FullStack #WebDevelopment #Programming';
+  }
+  if (topicLower.includes('render') || topicLower.includes('ssr') || topicLower.includes('csr') || topicLower.includes('isr')) {
+    return '#WebPerformance #NextJS #React19 #WebDevelopment #SystemDesign #FullStack #FrontendEngineering #SoftwareArchitecture #CleanCode';
+  }
+  if (topicLower.includes('database') || topicLower.includes('index') || topicLower.includes('sql') || topicLower.includes('mongo')) {
+    return '#Databases #MongoDB #PostgreSQL #SystemDesign #BackendEngineering #SoftwareArchitecture #DatabaseOptimization #FullStack #Cloud';
+  }
+  if (topicLower.includes('microservice') || topicLower.includes('monolith')) {
+    return '#Microservices #ModularMonolith #SystemDesign #SoftwareArchitecture #CloudArchitecture #Backend #DevOps #Scalability';
+  }
+  return '#SoftwareEngineering #SystemDesign #FullStack #WebDevelopment #Programming #TechTrends #CloudArchitecture #DeveloperProductivity';
+}
+
+/**
  * Ensures a post has relevant, high-reach tech hashtags attached
  */
 export function ensurePostHashtags(caption: string, topic: string): string {
@@ -380,6 +435,18 @@ export function ensurePostHashtags(caption: string, topic: string): string {
 }
 
 /**
+ * Ensures post text has clean formatting with AI-curated hashtags placed at the bottom
+ */
+export async function ensurePostHashtagsWithAI(caption: string, topic: string): Promise<string> {
+  const existingTags = caption.match(/#[A-Za-z0-9_]+/g);
+  if (existingTags && existingTags.length >= 5) {
+    return caption;
+  }
+  const aiTags = await generateAIHashtags(topic, caption);
+  return `${caption.trim()}\n\n${aiTags}`;
+}
+
+/**
  * 4. Master Trigger: Generate Carousel Deck + Render Multi-Page PDF + Publish to LinkedIn
  */
 export async function executeAutoLinkedInPost(preferredDeckIndex?: number): Promise<{
@@ -397,7 +464,7 @@ export async function executeAutoLinkedInPost(preferredDeckIndex?: number): Prom
         ? preferredDeckIndex
         : Math.floor(Math.random() * CURATED_DECKS.length);
     const chosenDeck = CURATED_DECKS[deckIndex];
-    const postCaption = ensurePostHashtags(chosenDeck.caption, chosenDeck.topic);
+    const postCaption = await ensurePostHashtagsWithAI(chosenDeck.caption, chosenDeck.topic);
 
     console.log(`🚀 [AutoSocial] Preparing Slobodan Gajić-style Carousel for: "${chosenDeck.topic}"...`);
 

@@ -3,11 +3,48 @@ import fontkit from '@pdf-lib/fontkit';
 import fs from 'fs';
 import path from 'path';
 
+export interface ChartBarItem {
+  name: string;
+  pct: number;
+  isHighlight?: boolean;
+}
+
+export interface ColumnChartItem {
+  label: string;
+  sub?: string;
+  pct: number;
+  h?: number;
+  isHighlight?: boolean;
+}
+
+export interface DiagramFlow {
+  leftTasks: string[];
+  centerUserText?: string;
+  centerAgentText?: string;
+  rightOutcomes: string[];
+}
+
+export interface CardContentBlock {
+  badge?: string;
+  tagline?: string;
+  title?: string;
+  subtitle?: string;
+  highlightText?: string;
+  bodyLines?: string[];
+}
+
 export interface CarouselSlide {
   tag?: string;
   headline: string;
+  subheadline?: string;
+  slideType?: 'cover' | 'intro' | 'stat_card' | 'bar_chart' | 'column_chart' | 'diagram' | 'code_terminal' | 'outro';
+  chartData?: ChartBarItem[];
+  columnData?: ColumnChartItem[];
+  diagramData?: DiagramFlow;
+  cardContent?: CardContentBlock;
   codeSnippet?: string;
   points?: string[];
+  takeawayQuote?: string;
   footer?: string;
   isCover?: boolean;
   isSummary?: boolean;
@@ -31,6 +68,155 @@ function cleanAscii(str?: string): string {
 }
 
 export const CURATED_DECKS: CarouselDeck[] = [
+  {
+    topic: 'AI Coding Agents Are Becoming Standard: 2026 Developer Survey Insights',
+    caption: `AI coding agents are officially mainstream. 🤖⚡
+
+According to the latest 2026 Developer Ecosystem data, coding agents have rapidly graduated from experimental tools into everyday software engineering infrastructure.
+
+Here are the key takeaways from the 8-slide masterclass:
+
+📌 90% of professional developers now use AI coding agents at least weekly.
+📌 68% use them daily, making agentic workflows an essential part of daily standups and sprint cycles.
+📌 The tool race is heating up: Claude Code leads work adoption at 39%, followed by GitHub Copilot (21%), Codex (16%), and Cursor (12%).
+📌 Only 22% of engineers let agents write >80% of their code — meaning developers are acting as system architects and orchestrators, not just manual typers.
+
+The most valuable skill in 2026 is no longer fast keystrokes — it's knowing how to delegate architectural tasks effectively.
+
+Swipe through the 8-slide carousel above for the complete visual breakdown! ➡️
+
+#AICoding #SoftwareEngineering #DeveloperTools #TechArchitecture #FutureOfCode #FullStack #WebDevelopment #Programming #ArtificialIntelligence #NextJS #PakODrive`,
+    slides: [
+      {
+        isCover: true,
+        slideType: 'cover',
+        tag: '2026 DEV ECOSYSTEM SURVEY',
+        headline: 'AI Coding Agents\nAre Becoming Standard',
+        footer: 'pakodrive.pk',
+      },
+      {
+        slideType: 'intro',
+        tag: 'THE ADOPTION SHIFT',
+        headline: 'AI coding agents are no longer experimental.',
+        subheadline: 'JetBrains latest survey reveals how engineering workflows changed in 2026.',
+        points: [
+          '90% of professional developers use them weekly.',
+          '68% use them daily in production routines.',
+          'The question is no longer "if" they work, but what becomes standard.',
+        ],
+        footer: 'Subscribe for more',
+      },
+      {
+        slideType: 'stat_card',
+        tag: '01 / WEEKLY ADOPTION',
+        headline: '90% use agents weekly',
+        subheadline: '90% of professional developers now use coding agents every week.',
+        cardContent: {
+          badge: 'JETBRAINS',
+          tagline: 'Research /',
+          title: 'AI coding agent adoption in 2026',
+          subtitle: 'Key takeaways from our latest Developer Ecosystem Survey',
+          highlightText: '90% of professional developers now use AI coding agents',
+          bodyLines: [
+            'at least weekly in their work. What started as an experiment',
+            'has become part of everyday engineering practice.',
+          ],
+        },
+        takeawayQuote: '"AI agents have moved from experiments into everyday development."',
+        footer: 'Subscribe for more',
+      },
+      {
+        slideType: 'stat_card',
+        tag: '02 / DAILY WORKFLOW',
+        headline: '68% use them daily',
+        subheadline: '68% use coding agents daily, making agentic workflows increasingly routine.',
+        cardContent: {
+          badge: 'JETBRAINS',
+          title: 'AI coding agents are now mainstream',
+          highlightText: 'with 68% using them daily in production code.',
+          bodyLines: [
+            '90% of professional developers use agents weekly, with 68% using',
+            'them daily. What started as an experiment has become routine.',
+            'This marks a sharp increase from our 2024 survey, where 59% used',
+            'assistants weekly and only 24% daily.',
+          ],
+        },
+        takeawayQuote: '"Daily usage changes the question from \'if\' to \'how\'."',
+        footer: 'Subscribe for more',
+      },
+      {
+        slideType: 'bar_chart',
+        tag: '03 / TOOL RACE',
+        headline: 'The tool race is changing',
+        subheadline: 'Claude Code leads adoption, while competitors are rapidly catching up.',
+        chartData: [
+          { name: 'Claude Code', pct: 39, isHighlight: true },
+          { name: 'GitHub Copilot', pct: 21 },
+          { name: 'Codex / OpenAI', pct: 16 },
+          { name: 'Cursor', pct: 12 },
+          { name: 'Gemini Code Assist', pct: 9 },
+          { name: 'Windsurf Editor', pct: 6 },
+        ],
+        takeawayQuote: '"The standard AI coding tool hasn\'t been decided yet."',
+        footer: 'Subscribe for more',
+      },
+      {
+        slideType: 'column_chart',
+        tag: '04 / CODE AUTONOMY',
+        headline: 'Most aren\'t fully agentic',
+        subheadline: 'Only 22% rely on agents for over 80% of code.',
+        columnData: [
+          { label: '0%', sub: '(none)', pct: 4, h: 40 },
+          { label: '1-20%', pct: 7, h: 70 },
+          { label: '21-40%', pct: 20, h: 200 },
+          { label: '41-60%', pct: 19, h: 190 },
+          { label: '61-80%', pct: 18, h: 180 },
+          { label: '81-100%', sub: '(almost all)', pct: 22, h: 230, isHighlight: true },
+        ],
+        takeawayQuote: '"Adoption doesn\'t mean developers have stopped writing code themselves."',
+        footer: 'Subscribe for more',
+      },
+      {
+        slideType: 'diagram',
+        tag: '05 / FUTURE SKILLS',
+        headline: 'So what happens next?',
+        subheadline: 'The next advantage may be knowing what to delegate well.',
+        diagramData: {
+          leftTasks: [
+            'Write boilerplate code',
+            'Generate unit tests',
+            'Refactor legacy code',
+            'Explore complex APIs',
+            'Design system schemas',
+          ],
+          centerUserText: 'You\nDecide what to delegate',
+          centerAgentText: 'AI\nAutonomous Agent',
+          rightOutcomes: [
+            'Handles repetitive tasks',
+            'Runs build & lint checks',
+            'Writes documentation',
+            'Frees time for systems',
+            'Accelerates velocity 3x',
+          ],
+        },
+        takeawayQuote: '"The valuable skill may become managing the agent, not typing."',
+        footer: 'Subscribe for more',
+      },
+      {
+        isSummary: true,
+        slideType: 'outro',
+        tag: 'CREATOR & COMMUNITY',
+        headline: 'Helping businesses grow',
+        subheadline: 'Stand out with clean, high-performance web architecture.',
+        points: [
+          'Why is my site performance lagging?',
+          'Why isn\'t my web application converting?',
+          'How do I integrate autonomous AI agents safely?',
+        ],
+        footer: 'pakodrive.pk',
+      },
+    ],
+  },
   {
     topic: 'Rendering Strategies Explained: CSR vs SSR vs SSG vs ISR',
     caption: `Stop choosing rendering strategies based on guesswork. 🛑
@@ -532,6 +718,7 @@ export async function renderSlobodanCarouselPdf(
   }
 
   let embeddedCoverImage: any = null;
+```
   if (coverImageBuffer && coverImageBuffer.length > 2000) {
     try {
       embeddedCoverImage = await pdfDoc.embedJpg(coverImageBuffer);
@@ -544,611 +731,863 @@ export async function renderSlobodanCarouselPdf(
     }
   }
 
-  const SLIDE_SIZE = 1080;
+  const SLIDE_WIDTH = 1080;
+  const SLIDE_HEIGHT = 1350; // Standard 4:5 Portrait format for LinkedIn Carousels
   const totalSlides = deck.slides.length;
 
-  // Curated High-Contrast Dark Palette
-  const bgDeep = rgb(0.024, 0.035, 0.063);       // #060910
-  const cardBg = rgb(0.047, 0.078, 0.141);       // #0C1424
-  const cardBorder = rgb(0.20, 0.38, 0.65);       // #3361A6 - High-Contrast crisp border
-  const neonCyan = rgb(0.0, 0.94, 1.0);           // #00F0FF - High-Vibrancy Cyan
-  const electricBlue = rgb(0.24, 0.55, 1.0);      // #3D8CFF
-  const textWhite = rgb(1.0, 1.0, 1.0);           // Pure 100% White
-  const textLight = rgb(0.92, 0.95, 0.99);        // #EBF2FC - Ultra crisp text
-  const textMuted = rgb(0.74, 0.82, 0.92);        // #BDD1EB - Clean readable slate
+  // Curated High-Contrast Dark Palette matching 1788854427653.pdf
+  const bgDeep = rgb(0.027, 0.043, 0.082);       // #070b15 Deep Midnight
+  const cardBg = rgb(0.047, 0.075, 0.133);       // #0c1322 Glass card background
+  const cardBorder = rgb(0.18, 0.28, 0.45);       // #2e4773 Glass card border
+  const neonCyan = rgb(0.0, 0.94, 1.0);           // #00F0FF Electric Cyan
+  const electricBlue = rgb(0.23, 0.51, 0.96);      // #3b82f6 Blue Accent
+  const vibrantPurple = rgb(0.55, 0.36, 0.96);     // #8b5cf6 Purple Accent
+  const textWhite = rgb(1.0, 1.0, 1.0);           // Pure White
+  const textLight = rgb(0.89, 0.91, 0.94);        // #e2e8f0 Ice Slate
+  const textMuted = rgb(0.58, 0.64, 0.72);        // #94a3b8 Slate Muted
   const codeBg = rgb(0.035, 0.055, 0.11);         // #090E1C
-  const codeBorder = rgb(0.18, 0.45, 0.82);       // #2E73D1
 
   for (let i = 0; i < totalSlides; i++) {
     const rawSlide = deck.slides[i];
-    const slide: CarouselSlide = {
-      ...rawSlide,
-      tag: cleanAscii(rawSlide.tag),
-      headline: cleanAscii(rawSlide.headline),
-      codeSnippet: rawSlide.codeSnippet ? cleanAscii(rawSlide.codeSnippet) : undefined,
-      points: rawSlide.points?.map(p => cleanAscii(p)),
-      footer: rawSlide.footer ? cleanAscii(rawSlide.footer) : undefined,
-    };
+    const isFirst = i === 0 || rawSlide.isCover;
+    const isLast = i === totalSlides - 1 || rawSlide.isSummary;
+    const pageNum = i + 1;
 
-    const page = pdfDoc.addPage([SLIDE_SIZE, SLIDE_SIZE]);
+    const page = pdfDoc.addPage([SLIDE_WIDTH, SLIDE_HEIGHT]);
 
-    // 1. Deep Tech Background
+    // 1. Deep Midnight Background
     page.drawRectangle({
       x: 0,
       y: 0,
-      width: SLIDE_SIZE,
-      height: SLIDE_SIZE,
+      width: SLIDE_WIDTH,
+      height: SLIDE_HEIGHT,
       color: bgDeep,
     });
 
-    // 1.5 Visible Topic-Related 3D Graphic Background on EVERY Slide
-    if (embeddedCoverImage) {
+    // 1.5 Ambient 3D Graphic Blend on Cover
+    if (isFirst && embeddedCoverImage) {
       page.drawImage(embeddedCoverImage, {
         x: 0,
         y: 0,
-        width: SLIDE_SIZE,
-        height: SLIDE_SIZE,
-        opacity: i === 0 ? 0.30 : (slide.isSummary || i === totalSlides - 1 ? 0.32 : 0.28),
+        width: SLIDE_WIDTH,
+        height: SLIDE_HEIGHT,
+        opacity: 0.18,
       });
-
-      // Atmospheric Dark Translucent Veil to guarantee maximum text contrast
       page.drawRectangle({
         x: 0,
         y: 0,
-        width: SLIDE_SIZE,
-        height: SLIDE_SIZE,
+        width: SLIDE_WIDTH,
+        height: SLIDE_HEIGHT,
         color: bgDeep,
-        opacity: i === 0 ? 0.35 : 0.45,
+        opacity: 0.45,
       });
     }
 
-    // 2. Subtle Tech Blueprint Grid Dots
-    for (let gx = 60; gx < SLIDE_SIZE; gx += 80) {
-      for (let gy = 60; gy < SLIDE_SIZE; gy += 80) {
+    // 2. Subtle Blueprint Grid Dots
+    for (let gx = 60; gx < SLIDE_WIDTH; gx += 80) {
+      for (let gy = 60; gy < SLIDE_HEIGHT; gy += 80) {
         page.drawCircle({
           x: gx,
           y: gy,
-          size: 1.5,
-          color: rgb(0.12, 0.22, 0.38),
+          size: 1.2,
+          color: rgb(0.09, 0.15, 0.26),
         });
       }
     }
 
-    // 3. Top Glowing Neon Gradient Line
+    // 3. Top Glowing Accent Line
     page.drawRectangle({
       x: 0,
-      y: SLIDE_SIZE - 10,
-      width: SLIDE_SIZE,
-      height: 10,
-      color: i % 2 === 0 ? neonCyan : electricBlue,
+      y: SLIDE_HEIGHT - 8,
+      width: SLIDE_WIDTH,
+      height: 8,
+      color: i % 2 === 0 ? vibrantPurple : electricBlue,
     });
 
-    // 4. Header Bar: Tag Badge & Slide Counter
-    const pageNumText = `${String(i + 1).padStart(2, '0')} / ${String(totalSlides).padStart(2, '0')}`;
-    page.drawText(pageNumText, {
-      x: SLIDE_SIZE - 180,
-      y: SLIDE_SIZE - 72,
-      size: 26,
-      font: fontBold,
-      color: textLight,
-    });
+    // 4. Top Pagination ("2 of 8", "3 of 8", etc. - on all inner slides)
+    if (!isFirst && !isLast) {
+      const pageText = `${pageNum} of ${totalSlides}`;
+      page.drawText(pageText, {
+        x: SLIDE_WIDTH - 150,
+        y: SLIDE_HEIGHT - 65,
+        size: 22,
+        font: fontBold,
+        color: textMuted,
+      });
+    }
 
-    const tagText = (slide.tag || (slide.isCover ? 'TECH MASTERCLASS' : 'SYSTEM ARCHITECTURE')).toUpperCase();
-    const tagTextW = fontBold.widthOfTextAtSize(tagText, 19);
-    const tagBadgeWidth = Math.min(tagTextW + 36, 680);
-    page.drawRectangle({
-      x: 70,
-      y: SLIDE_SIZE - 85,
-      width: tagBadgeWidth,
-      height: 42,
-      color: cardBg,
-      borderColor: neonCyan,
-      borderWidth: 2,
-    });
-    page.drawText(tagText, {
-      x: 88,
-      y: SLIDE_SIZE - 70,
-      size: 19,
-      font: fontBold,
-      color: neonCyan,
-    });
+    // 5. Global Bottom Footer Line (on all inner slides)
+    if (!isFirst && !isLast) {
+      page.drawLine({
+        start: { x: 70, y: 90 },
+        end: { x: SLIDE_WIDTH - 70, y: 90 },
+        thickness: 1,
+        color: rgb(0.12, 0.18, 0.30),
+      });
 
-    if (slide.isCover) {
-      // ================= 1. COVER SLIDE =================
-      // Headline (Prominent 52px Bold, high contrast)
-      const headlineLines = wrapTextLines(slide.headline, 28).slice(0, 3);
-      let textY = SLIDE_SIZE - 160;
+      const footerLabel = rawSlide.footer || 'Subscribe for more';
+      const fW = fontBold.widthOfTextAtSize(footerLabel, 22);
+      page.drawText(footerLabel, {
+        x: SLIDE_WIDTH / 2 - fW / 2,
+        y: 50,
+        size: 22,
+        font: fontBold,
+        color: textMuted,
+      });
+    }
 
-      for (let lineIdx = 0; lineIdx < headlineLines.length; lineIdx++) {
-        page.drawText(headlineLines[lineIdx], {
-          x: 70,
-          y: textY,
-          size: 52,
+    // ========================================================
+    // SLIDE CONTENT DISPATCH BY ARCHETYPE
+    // ========================================================
+
+    if (isFirst || rawSlide.slideType === 'cover') {
+      // ──────── COVER SLIDE ────────
+      const headlineLines = rawSlide.headline.split('\n');
+      let tY = SLIDE_HEIGHT - 220;
+      for (const line of headlineLines) {
+        const clean = cleanAscii(line);
+        const lW = fontBold.widthOfTextAtSize(clean, 56);
+        page.drawText(clean, {
+          x: SLIDE_WIDTH / 2 - lW / 2,
+          y: tY,
+          size: 56,
           font: fontBold,
-          color: lineIdx === 1 ? neonCyan : textWhite,
+          color: textWhite,
         });
-        textY -= 64;
+        tY -= 70;
       }
 
-      // Center Visual Hero Frame: High-Res 3D Isometric Tech Graphic
-      const imgCardY = 240;
-      const imgCardHeight = 450;
+      // Center Graphic Frame
       page.drawRectangle({
-        x: 68,
-        y: imgCardY - 2,
-        width: 944,
-        height: imgCardHeight + 4,
-        color: rgb(0.02, 0.04, 0.09),
-        borderColor: neonCyan,
-        borderWidth: 2.5,
+        x: 70,
+        y: 360,
+        width: 940,
+        height: 620,
+        color: cardBg,
+        borderColor: cardBorder,
+        borderWidth: 2,
       });
 
       if (embeddedCoverImage) {
         page.drawImage(embeddedCoverImage, {
-          x: 70,
-          y: imgCardY,
-          width: 940,
-          height: imgCardHeight,
+          x: 72,
+          y: 362,
+          width: 936,
+          height: 616,
         });
       } else {
-        // Fallback Blueprint Box
-        page.drawRectangle({
-          x: 70,
-          y: imgCardY,
-          width: 940,
-          height: imgCardHeight,
-          color: codeBg,
-        });
-        page.drawText('SYSTEM ARCHITECTURE MATRIX', {
-          x: 240,
-          y: imgCardY + 220,
+        // Fallback Blueprint Graphic
+        page.drawText('AI ARCHITECTURE MATRIX 2026', {
+          x: SLIDE_WIDTH / 2 - fontBold.widthOfTextAtSize('AI ARCHITECTURE MATRIX 2026', 32) / 2,
+          y: 660,
           size: 32,
           font: fontBold,
           color: neonCyan,
         });
       }
 
-      // Swipe prompt button on Cover
+      // Bottom Brand Pill
+      const pillText = rawSlide.footer || 'pakodrive.pk';
+      const pillW = fontBold.widthOfTextAtSize(pillText, 24) + 60;
       page.drawRectangle({
-        x: 70,
-        y: 135,
-        width: 420,
-        height: 68,
-        color: neonCyan,
+        x: SLIDE_WIDTH / 2 - pillW / 2,
+        y: 180,
+        width: pillW,
+        height: 52,
+        color: rgb(0.05, 0.09, 0.17),
+        borderColor: cardBorder,
+        borderWidth: 1.5,
       });
-      page.drawText('SWIPE TO EXPLORE  ->', {
-        x: 100,
-        y: 158,
-        size: 26,
-        font: fontBold,
-        color: rgb(0.02, 0.05, 0.10),
-      });
-
-      page.drawText('6-Slide Architectural Guide', {
-        x: 520,
-        y: 160,
+      page.drawText(pillText, {
+        x: SLIDE_WIDTH / 2 - fontBold.widthOfTextAtSize(pillText, 24) / 2,
+        y: 197,
         size: 24,
         font: fontBold,
-        color: textLight,
+        color: textWhite,
       });
-    } else if (slide.isSummary || i === totalSlides - 1) {
-      // ================= 2. FINAL SLIDE: CREATOR & FOLLOW CTA =================
-      // Top Headline (Large, High Contrast)
-      page.drawText('Found this breakdown valuable?', {
-        x: 70,
-        y: SLIDE_SIZE - 145,
+
+    } else if (rawSlide.slideType === 'intro') {
+      // ──────── INTRO / CONTEXT SLIDE ────────
+      // Glowing Robot / AI Avatar Icon
+      page.drawCircle({
+        x: SLIDE_WIDTH / 2,
+        y: SLIDE_HEIGHT - 380,
+        size: 60,
+        color: cardBg,
+        borderColor: neonCyan,
+        borderWidth: 3,
+      });
+      page.drawText('AI', {
+        x: SLIDE_WIDTH / 2 - 20,
+        y: SLIDE_HEIGHT - 395,
+        size: 40,
+        font: fontBold,
+        color: neonCyan,
+      });
+
+      const introLines = rawSlide.points && rawSlide.points.length > 0
+        ? rawSlide.points
+        : [
+            rawSlide.headline,
+            rawSlide.subheadline || 'Key findings from the 2026 Developer Survey',
+          ];
+
+      let tY = SLIDE_HEIGHT - 540;
+      for (const line of introLines) {
+        const wrapped = wrapTextLines(cleanAscii(line), 42);
+        for (const wl of wrapped) {
+          const lW = fontRegular.widthOfTextAtSize(wl, 32);
+          page.drawText(wl, {
+            x: SLIDE_WIDTH / 2 - lW / 2,
+            y: tY,
+            size: 32,
+            font: fontRegular,
+            color: textWhite,
+          });
+          tY -= 52;
+        }
+        tY -= 20;
+      }
+
+    } else if (rawSlide.slideType === 'bar_chart') {
+      // ──────── HORIZONTAL BAR CHART SLIDE ────────
+      // Headline & Subheadline
+      const hClean = cleanAscii(rawSlide.headline);
+      const hW = fontBold.widthOfTextAtSize(hClean, 50);
+      page.drawText(hClean, {
+        x: SLIDE_WIDTH / 2 - hW / 2,
+        y: SLIDE_HEIGHT - 170,
         size: 50,
         font: fontBold,
         color: textWhite,
       });
 
-      page.drawText('Save this cheat sheet and follow for weekly production architectures.', {
-        x: 70,
-        y: SLIDE_SIZE - 192,
-        size: 24,
-        font: fontRegular,
-        color: textLight,
-      });
+      if (rawSlide.subheadline) {
+        const sClean = cleanAscii(rawSlide.subheadline);
+        const sW = fontRegular.widthOfTextAtSize(sClean, 24);
+        page.drawText(sClean, {
+          x: SLIDE_WIDTH / 2 - sW / 2,
+          y: SLIDE_HEIGHT - 220,
+          size: 24,
+          font: fontRegular,
+          color: textLight,
+        });
+      }
 
-      // Master Profile Card (Crystal Clear, High Legibility)
-      const profileCardY = 200;
-      const profileCardHeight = 520;
-
+      // Glass Card
+      const cardY = 360;
+      const cardH = 660;
       page.drawRectangle({
         x: 70,
-        y: profileCardY,
+        y: cardY,
         width: 940,
-        height: profileCardHeight,
+        height: cardH,
         color: cardBg,
-        borderColor: neonCyan,
-        borderWidth: 2.5,
+        borderColor: cardBorder,
+        borderWidth: 2,
       });
 
-      // Stylized Avatar Ring with glowing Cyan border
-      page.drawCircle({
-        x: 175,
-        y: profileCardY + 415,
-        size: 62,
-        color: rgb(0.03, 0.06, 0.13),
-        borderColor: neonCyan,
-        borderWidth: 3.5,
-      });
-      page.drawText('SA', {
-        x: 146,
-        y: profileCardY + 398,
-        size: 44,
+      page.drawText('AI coding tools: Use at work', {
+        x: 110,
+        y: cardY + cardH - 60,
+        size: 28,
         font: fontBold,
-        color: neonCyan,
+        color: textWhite,
+      });
+      page.drawText('% of developers using each tool at work', {
+        x: 110,
+        y: cardY + cardH - 95,
+        size: 20,
+        font: fontRegular,
+        color: textMuted,
       });
 
-      // Creator Identity
-      page.drawText('SYED ADIL ALI', {
-        x: 260,
-        y: profileCardY + 432,
-        size: 46,
+      const bars = rawSlide.chartData || [
+        { name: 'Claude Code', pct: 39, isHighlight: true },
+        { name: 'GitHub Copilot', pct: 21 },
+        { name: 'Codex / OpenAI', pct: 16 },
+        { name: 'Cursor', pct: 12 },
+        { name: 'Gemini Code Assist', pct: 9 },
+        { name: 'Windsurf Editor', pct: 6 },
+      ];
+
+      let barY = cardY + cardH - 160;
+      const maxBarW = 460;
+      const maxVal = Math.max(...bars.map(b => b.pct), 45);
+
+      for (const bar of bars) {
+        page.drawText(bar.name, {
+          x: 110,
+          y: barY + 4,
+          size: 22,
+          font: fontBold,
+          color: textWhite,
+        });
+
+        const barWidth = Math.max(15, (bar.pct / maxVal) * maxBarW);
+        page.drawRectangle({
+          x: 380,
+          y: barY,
+          width: barWidth,
+          height: 28,
+          color: bar.isHighlight ? vibrantPurple : electricBlue,
+        });
+
+        page.drawText(`${bar.pct}%`, {
+          x: 390 + barWidth + 15,
+          y: barY + 5,
+          size: 22,
+          font: fontBold,
+          color: bar.isHighlight ? vibrantPurple : textWhite,
+        });
+
+        barY -= 70;
+      }
+
+      // Takeaway quote
+      if (rawSlide.takeawayQuote) {
+        const qClean = cleanAscii(rawSlide.takeawayQuote);
+        const qW = fontRegular.widthOfTextAtSize(qClean, 24);
+        page.drawText(qClean, {
+          x: SLIDE_WIDTH / 2 - qW / 2,
+          y: 250,
+          size: 24,
+          font: fontRegular,
+          color: textLight,
+        });
+      }
+
+    } else if (rawSlide.slideType === 'column_chart') {
+      // ──────── VERTICAL COLUMN DISTRIBUTION SLIDE ────────
+      const hClean = cleanAscii(rawSlide.headline);
+      const hW = fontBold.widthOfTextAtSize(hClean, 50);
+      page.drawText(hClean, {
+        x: SLIDE_WIDTH / 2 - hW / 2,
+        y: SLIDE_HEIGHT - 170,
+        size: 50,
         font: fontBold,
         color: textWhite,
       });
 
-      page.drawText('Senior Full-Stack Engineer & Systems Architect', {
-        x: 260,
-        y: profileCardY + 394,
+      if (rawSlide.subheadline) {
+        const sClean = cleanAscii(rawSlide.subheadline);
+        const sW = fontRegular.widthOfTextAtSize(sClean, 24);
+        page.drawText(sClean, {
+          x: SLIDE_WIDTH / 2 - sW / 2,
+          y: SLIDE_HEIGHT - 220,
+          size: 24,
+          font: fontRegular,
+          color: textLight,
+        });
+      }
+
+      const cardY = 360;
+      const cardH = 660;
+      page.drawRectangle({
+        x: 70,
+        y: cardY,
+        width: 940,
+        height: cardH,
+        color: cardBg,
+        borderColor: cardBorder,
+        borderWidth: 2,
+      });
+
+      page.drawText('How much code do developers really let agents write?', {
+        x: 110,
+        y: cardY + cardH - 60,
+        size: 28,
+        font: fontBold,
+        color: textWhite,
+      });
+      page.drawText('Share of code written by AI agents, according to survey', {
+        x: 110,
+        y: cardY + cardH - 95,
+        size: 20,
+        font: fontRegular,
+        color: textMuted,
+      });
+
+      const cols = rawSlide.columnData || [
+        { label: '0%', sub: '(none)', pct: 4, h: 40 },
+        { label: '1-20%', pct: 7, h: 70 },
+        { label: '21-40%', pct: 20, h: 200 },
+        { label: '41-60%', pct: 19, h: 190 },
+        { label: '61-80%', pct: 18, h: 180 },
+        { label: '81-100%', sub: '(almost all)', pct: 22, h: 230, isHighlight: true },
+      ];
+
+      const colW = 100;
+      const startX = 130;
+      const gap = 36;
+      const baseY = cardY + 150;
+
+      for (let cIdx = 0; cIdx < cols.length; cIdx++) {
+        const col = cols[cIdx];
+        const cx = startX + cIdx * (colW + gap);
+        const colHeight = col.h || Math.max(30, (col.pct / 25) * 230);
+
+        page.drawText(`${col.pct}%`, {
+          x: cx + colW / 2 - fontBold.widthOfTextAtSize(`${col.pct}%`, 24) / 2,
+          y: baseY + colHeight + 15,
+          size: 24,
+          font: fontBold,
+          color: col.isHighlight ? textWhite : textLight,
+        });
+
+        page.drawRectangle({
+          x: cx,
+          y: baseY,
+          width: colW,
+          height: colHeight,
+          color: col.isHighlight ? vibrantPurple : electricBlue,
+        });
+
+        page.drawText(col.label, {
+          x: cx + colW / 2 - fontBold.widthOfTextAtSize(col.label, 18) / 2,
+          y: baseY - 30,
+          size: 18,
+          font: fontBold,
+          color: textWhite,
+        });
+      }
+
+      if (rawSlide.takeawayQuote) {
+        const qClean = cleanAscii(rawSlide.takeawayQuote);
+        const qW = fontRegular.widthOfTextAtSize(qClean, 24);
+        page.drawText(qClean, {
+          x: SLIDE_WIDTH / 2 - qW / 2,
+          y: 250,
+          size: 24,
+          font: fontRegular,
+          color: textLight,
+        });
+      }
+
+    } else if (rawSlide.slideType === 'diagram') {
+      // ──────── SYSTEM WORKFLOW DIAGRAM SLIDE ────────
+      const hClean = cleanAscii(rawSlide.headline);
+      const hW = fontBold.widthOfTextAtSize(hClean, 50);
+      page.drawText(hClean, {
+        x: SLIDE_WIDTH / 2 - hW / 2,
+        y: SLIDE_HEIGHT - 170,
+        size: 50,
+        font: fontBold,
+        color: textWhite,
+      });
+
+      if (rawSlide.subheadline) {
+        const sClean = cleanAscii(rawSlide.subheadline);
+        const sW = fontRegular.widthOfTextAtSize(sClean, 24);
+        page.drawText(sClean, {
+          x: SLIDE_WIDTH / 2 - sW / 2,
+          y: SLIDE_HEIGHT - 220,
+          size: 24,
+          font: fontRegular,
+          color: textLight,
+        });
+      }
+
+      const cardY = 360;
+      const cardH = 660;
+      page.drawRectangle({
+        x: 70,
+        y: cardY,
+        width: 940,
+        height: cardH,
+        color: cardBg,
+        borderColor: cardBorder,
+        borderWidth: 2,
+      });
+
+      page.drawText('JETBRAINS', {
+        x: 110,
+        y: cardY + cardH - 60,
+        size: 26,
+        font: fontBold,
+        color: textWhite,
+      });
+      page.drawText('So what happens next?', {
+        x: 110,
+        y: cardY + cardH - 110,
+        size: 32,
+        font: fontBold,
+        color: textWhite,
+      });
+
+      const dData = rawSlide.diagramData || {
+        leftTasks: ['Write boilerplate code', 'Generate unit tests', 'Refactor legacy code', 'Explore complex APIs', 'Design system schemas'],
+        rightOutcomes: ['Handles repetitive tasks', 'Runs build & lint checks', 'Writes documentation', 'Frees time for systems', 'Accelerates velocity 3x'],
+      };
+
+      // Left Tasks Box
+      let tBoxY = cardY + cardH - 180;
+      for (const t of dData.leftTasks) {
+        page.drawRectangle({
+          x: 110,
+          y: tBoxY,
+          width: 250,
+          height: 52,
+          color: rgb(0.06, 0.10, 0.18),
+          borderColor: cardBorder,
+          borderWidth: 1.5,
+        });
+        page.drawText(cleanAscii(t), {
+          x: 125,
+          y: tBoxY + 18,
+          size: 16,
+          font: fontBold,
+          color: textLight,
+        });
+        tBoxY -= 68;
+      }
+
+      // Middle: You Node
+      page.drawCircle({
+        x: 460,
+        y: cardY + cardH - 320,
+        size: 45,
+        color: rgb(0.08, 0.14, 0.26),
+        borderColor: neonCyan,
+        borderWidth: 2.5,
+      });
+      page.drawText('You', {
+        x: 442,
+        y: cardY + cardH - 328,
+        size: 22,
+        font: fontBold,
+        color: textWhite,
+      });
+      page.drawText('Decide what to delegate', {
+        x: 395,
+        y: cardY + cardH - 380,
+        size: 14,
+        font: fontRegular,
+        color: textMuted,
+      });
+
+      // Arrow ->
+      page.drawText('->', {
+        x: 530,
+        y: cardY + cardH - 328,
         size: 28,
         font: fontBold,
         color: neonCyan,
       });
 
-      const stackText = 'Next.js 16  •  React 19  •  High-Scale Node.js  •  Distributed Systems';
-      let stackSize = 22;
-      const stackWidth = fontBold.widthOfTextAtSize(stackText, stackSize);
-      if (stackWidth > 710) {
-        stackSize = Math.floor(stackSize * (710 / stackWidth));
+      // Middle: AI Agent Node
+      page.drawCircle({
+        x: 610,
+        y: cardY + cardH - 320,
+        size: 45,
+        color: vibrantPurple,
+        borderColor: textWhite,
+        borderWidth: 2.5,
+      });
+      page.drawText('AI', {
+        x: 598,
+        y: cardY + cardH - 328,
+        size: 22,
+        font: fontBold,
+        color: textWhite,
+      });
+      page.drawText('Autonomous Agent', {
+        x: 550,
+        y: cardY + cardH - 380,
+        size: 14,
+        font: fontRegular,
+        color: textMuted,
+      });
+
+      // Right Outcomes Box
+      let oBoxY = cardY + cardH - 180;
+      for (const o of dData.rightOutcomes) {
+        page.drawRectangle({
+          x: 710,
+          y: oBoxY,
+          width: 260,
+          height: 52,
+          color: rgb(0.06, 0.10, 0.18),
+          borderColor: cardBorder,
+          borderWidth: 1.5,
+        });
+        page.drawText(cleanAscii(o), {
+          x: 725,
+          y: oBoxY + 18,
+          size: 16,
+          font: fontBold,
+          color: neonCyan,
+        });
+        oBoxY -= 68;
       }
-      page.drawText(stackText, {
-        x: 260,
-        y: profileCardY + 358,
-        size: stackSize,
+
+      if (rawSlide.takeawayQuote) {
+        const qClean = cleanAscii(rawSlide.takeawayQuote);
+        const qW = fontRegular.widthOfTextAtSize(qClean, 24);
+        page.drawText(qClean, {
+          x: SLIDE_WIDTH / 2 - qW / 2,
+          y: 250,
+          size: 24,
+          font: fontRegular,
+          color: textLight,
+        });
+      }
+
+    } else if (isLast || rawSlide.slideType === 'outro') {
+      // ──────── OUTRO / PROFILE CONVERSION SLIDE ────────
+      const hClean = cleanAscii(rawSlide.headline);
+      const hW = fontBold.widthOfTextAtSize(hClean, 52);
+      page.drawText(hClean, {
+        x: SLIDE_WIDTH / 2 - hW / 2,
+        y: SLIDE_HEIGHT - 170,
+        size: 52,
         font: fontBold,
         color: textWhite,
       });
 
-      // Prominent Follow Button Mockup
-      page.drawRectangle({
-        x: 260,
-        y: profileCardY + 258,
-        width: 480,
-        height: 70,
-        color: neonCyan,
+      const sClean = cleanAscii(rawSlide.subheadline || 'Stand out with clean, high-performance web architecture.');
+      const sW = fontRegular.widthOfTextAtSize(sClean, 24);
+      page.drawText(sClean, {
+        x: SLIDE_WIDTH / 2 - sW / 2,
+        y: SLIDE_HEIGHT - 220,
+        size: 24,
+        font: fontRegular,
+        color: textLight,
       });
-      page.drawText('+ Follow @Syed Adil Ali', {
-        x: 310,
-        y: profileCardY + 282,
-        size: 30,
+
+      const cardY = 240;
+      const cardH = 820;
+      page.drawRectangle({
+        x: 70,
+        y: cardY,
+        width: 940,
+        height: cardH,
+        color: cardBg,
+        borderColor: cardBorder,
+        borderWidth: 2,
+      });
+
+      page.drawText('Pak-o-Drive Engineering', {
+        x: SLIDE_WIDTH / 2 - fontBold.widthOfTextAtSize('Pak-o-Drive Engineering', 48) / 2,
+        y: cardY + cardH - 110,
+        size: 48,
         font: fontBold,
-        color: rgb(0.02, 0.05, 0.10),
+        color: textWhite,
       });
 
-      // Divider line
-      page.drawLine({
-        start: { x: 100, y: profileCardY + 225 },
-        end: { x: 980, y: profileCardY + 225 },
-        thickness: 1.5,
-        color: electricBlue,
-      });
+      const questions = rawSlide.points && rawSlide.points.length > 0
+        ? rawSlide.points
+        : [
+            'Why is my site performance lagging?',
+            'Why isn\'t my web application converting?',
+            'How do I integrate autonomous AI agents safely?',
+          ];
 
-      // 3 Action Pillars: Repost, Save, Discuss
-      const pillarWidth = 280;
-
-      // 1. Repost
-      page.drawRectangle({
-        x: 95,
-        y: profileCardY + 45,
-        width: pillarWidth,
-        height: 145,
-        color: codeBg,
-        borderColor: cardBorder,
-        borderWidth: 2,
-      });
-      page.drawText('[ REPOST ]', { x: 115, y: profileCardY + 145, size: 24, font: fontBold, color: neonCyan });
-      page.drawText('Share with peers &', { x: 115, y: profileCardY + 110, size: 22, font: fontBold, color: textWhite });
-      page.drawText('devs in your feed', { x: 115, y: profileCardY + 80, size: 20, font: fontRegular, color: textLight });
-
-      // 2. Save
-      page.drawRectangle({
-        x: 400,
-        y: profileCardY + 45,
-        width: pillarWidth,
-        height: 145,
-        color: codeBg,
-        borderColor: cardBorder,
-        borderWidth: 2,
-      });
-      page.drawText('[ SAVE ]', { x: 420, y: profileCardY + 145, size: 24, font: fontBold, color: neonCyan });
-      page.drawText('Bookmark for your', { x: 420, y: profileCardY + 110, size: 22, font: fontBold, color: textWhite });
-      page.drawText('next sprint review', { x: 420, y: profileCardY + 80, size: 20, font: fontRegular, color: textLight });
-
-      // 3. Discuss
-      page.drawRectangle({
-        x: 705,
-        y: profileCardY + 45,
-        width: pillarWidth,
-        height: 145,
-        color: codeBg,
-        borderColor: cardBorder,
-        borderWidth: 2,
-      });
-      page.drawText('[ DISCUSS ]', { x: 725, y: profileCardY + 145, size: 24, font: fontBold, color: neonCyan });
-      page.drawText('Drop your thoughts', { x: 725, y: profileCardY + 110, size: 22, font: fontBold, color: textWhite });
-      page.drawText('& questions below', { x: 725, y: profileCardY + 80, size: 20, font: fontRegular, color: textLight });
-    } else {
-      // ================= 3. CONTENT SLIDES (SLIDES 02 TO 05) =================
-      // Headline (High Contrast, safely wrapped and fitted)
-      const headlineLines = wrapTextLines(slide.headline, 28).slice(0, 2);
-      let headY = SLIDE_SIZE - 150;
-      for (let hIdx = 0; hIdx < headlineLines.length; hIdx++) {
-        let lineHeadSize = 48;
-        const lineW = fontBold.widthOfTextAtSize(headlineLines[hIdx], lineHeadSize);
-        if (lineW > 920) {
-          lineHeadSize = Math.max(32, Math.floor(lineHeadSize * (920 / lineW)));
-        }
-        page.drawText(headlineLines[hIdx], {
-          x: 70,
-          y: headY,
-          size: lineHeadSize,
-          font: fontBold,
-          color: hIdx === 0 ? textWhite : neonCyan,
-        });
-        headY -= 58;
-      }
-
-      let currentY = headY - 15;
-
-      // Visual Code Terminal (if codeSnippet present)
-      if (rawSlide.codeSnippet) {
-        const rawLines = rawSlide.codeSnippet.split('\n').slice(0, 5);
-        const codeBoxHeight = rawLines.length * 42 + 65;
-
+      let qY = cardY + cardH - 210;
+      for (const q of questions) {
+        const qClean = cleanAscii(q);
+        const qW = fontRegular.widthOfTextAtSize(qClean, 22) + 60;
         page.drawRectangle({
-          x: 70,
-          y: currentY - codeBoxHeight,
-          width: 940,
-          height: codeBoxHeight,
-          color: codeBg,
-          borderColor: codeBorder,
-          borderWidth: 2,
+          x: SLIDE_WIDTH / 2 - qW / 2,
+          y: qY,
+          width: qW,
+          height: 50,
+          color: rgb(0.06, 0.10, 0.19),
+          borderColor: cardBorder,
+          borderWidth: 1.5,
         });
-
-        // Window controls (Red, Yellow, Green mac dots)
-        page.drawCircle({ x: 100, y: currentY - 25, size: 8, color: rgb(0.95, 0.28, 0.28) });
-        page.drawCircle({ x: 126, y: currentY - 25, size: 8, color: rgb(0.96, 0.77, 0.18) });
-        page.drawCircle({ x: 152, y: currentY - 25, size: 8, color: rgb(0.20, 0.80, 0.40) });
-
-        // Terminal file tab title
-        page.drawText('architecture.ts', {
-          x: 185,
-          y: currentY - 33,
-          size: 20,
-          font: fontBold,
+        page.drawText(qClean, {
+          x: SLIDE_WIDTH / 2 - fontRegular.widthOfTextAtSize(qClean, 22) / 2,
+          y: qY + 16,
+          size: 22,
+          font: fontRegular,
           color: textLight,
         });
-
-        // Guard against code overflowing terminal box: max available width is 840px
-        const MAX_CODE_WIDTH = 840;
-        let codeFontSize = 23;
-        for (const line of rawLines) {
-          const cleaned = cleanAscii(line);
-          if (cleaned.length > 0) {
-            const lineWidth = fontCode.widthOfTextAtSize(cleaned, codeFontSize);
-            if (lineWidth > MAX_CODE_WIDTH) {
-              const fitted = Math.floor(codeFontSize * (MAX_CODE_WIDTH / lineWidth));
-              if (fitted < codeFontSize) {
-                codeFontSize = fitted;
-              }
-            }
-          }
-        }
-        codeFontSize = Math.max(17, Math.min(23, codeFontSize));
-
-        let codeY = currentY - 72;
-        for (const line of rawLines) {
-          const isComment = line.trim().startsWith('//');
-          let cleanLine = cleanAscii(line);
-
-          // Hard safety limit: clamp if still wider than MAX_CODE_WIDTH
-          let lineWidth = fontCode.widthOfTextAtSize(cleanLine, codeFontSize);
-          if (lineWidth > MAX_CODE_WIDTH) {
-            while (cleanLine.length > 10 && fontCode.widthOfTextAtSize(cleanLine + '...', codeFontSize) > MAX_CODE_WIDTH) {
-              cleanLine = cleanLine.slice(0, -1);
-            }
-            cleanLine = cleanLine + '...';
-          }
-
-          page.drawText(cleanLine, {
-            x: 100,
-            y: codeY,
-            size: codeFontSize,
-            font: fontCode,
-            color: isComment ? rgb(0.60, 0.70, 0.82) : rgb(0.40, 0.90, 1.0),
-          });
-          codeY -= 40;
-        }
-
-        currentY -= codeBoxHeight + 35;
+        qY -= 75;
       }
 
-      // Feature Takeaway Cards (Roomy, High Contrast, Guaranteed No Overflow)
-      if (slide.points && slide.points.length > 0) {
-        const cardHeight = 96;
-        const totalPoints = slide.points.slice(0, 3);
-        const MAX_POINT_TEXT_WIDTH = 810; // Card is 940px, text starts at 165px -> ends at 975px (35px safety margin)
+      const urlText = rawSlide.footer || 'pakodrive.pk';
+      page.drawText(urlText, {
+        x: SLIDE_WIDTH / 2 - fontBold.widthOfTextAtSize(urlText, 26) / 2,
+        y: qY - 30,
+        size: 26,
+        font: fontBold,
+        color: neonCyan,
+      });
 
-        for (let ptIdx = 0; ptIdx < totalPoints.length; ptIdx++) {
-          const pt = totalPoints[ptIdx];
-          const cardY = currentY - (ptIdx * (cardHeight + 18)) - cardHeight;
+      // Creator Avatar Circle
+      page.drawCircle({
+        x: SLIDE_WIDTH / 2,
+        y: cardY + 180,
+        size: 65,
+        color: rgb(0.04, 0.08, 0.16),
+        borderColor: neonCyan,
+        borderWidth: 3,
+      });
+      page.drawText('SA', {
+        x: SLIDE_WIDTH / 2 - 28,
+        y: cardY + 165,
+        size: 42,
+        font: fontBold,
+        color: neonCyan,
+      });
 
-          // Card Background & Glowing Border
-          page.drawRectangle({
-            x: 70,
-            y: cardY,
-            width: 940,
-            height: cardHeight,
-            color: cardBg,
-            borderColor: cardBorder,
-            borderWidth: 2,
-          });
+      page.drawText('Syed Adil Ali', {
+        x: SLIDE_WIDTH / 2 - fontBold.widthOfTextAtSize('Syed Adil Ali', 32) / 2,
+        y: cardY + 80,
+        size: 32,
+        font: fontBold,
+        color: textWhite,
+      });
+      page.drawText('Senior Full-Stack & Systems Architect', {
+        x: SLIDE_WIDTH / 2 - fontRegular.widthOfTextAtSize('Senior Full-Stack & Systems Architect', 22) / 2,
+        y: cardY + 45,
+        size: 22,
+        font: fontRegular,
+        color: textMuted,
+      });
 
-          // Number Badge Square
-          page.drawRectangle({
-            x: 90,
-            y: cardY + 22,
-            width: 52,
-            height: 52,
-            color: codeBg,
-            borderColor: neonCyan,
-            borderWidth: 2,
-          });
-          page.drawText(`0${ptIdx + 1}`, {
-            x: 101,
-            y: cardY + 37,
+    } else {
+      // ──────── DEFAULT / STAT_CARD / CODE_TERMINAL SLIDE ────────
+      const hClean = cleanAscii(rawSlide.headline);
+      const hW = fontBold.widthOfTextAtSize(hClean, 50);
+      page.drawText(hClean, {
+        x: SLIDE_WIDTH / 2 - hW / 2,
+        y: SLIDE_HEIGHT - 170,
+        size: 50,
+        font: fontBold,
+        color: textWhite,
+      });
+
+      if (rawSlide.subheadline) {
+        const sClean = cleanAscii(rawSlide.subheadline);
+        const sW = fontRegular.widthOfTextAtSize(sClean, 24);
+        page.drawText(sClean, {
+          x: SLIDE_WIDTH / 2 - sW / 2,
+          y: SLIDE_HEIGHT - 220,
+          size: 24,
+          font: fontRegular,
+          color: textLight,
+        });
+      }
+
+      const cardY = 380;
+      const cardH = 640;
+      page.drawRectangle({
+        x: 70,
+        y: cardY,
+        width: 940,
+        height: cardH,
+        color: cardBg,
+        borderColor: cardBorder,
+        borderWidth: 2,
+      });
+
+      const cardContent = rawSlide.cardContent || {
+        badge: rawSlide.tag || 'ARCHITECTURE',
+        title: rawSlide.headline,
+        bodyLines: rawSlide.points || ['Key architectural takeaways for high-scale systems.'],
+      };
+
+      if (cardContent.badge) {
+        page.drawText(cleanAscii(cardContent.badge), {
+          x: 110,
+          y: cardY + cardH - 60,
+          size: 26,
+          font: fontBold,
+          color: textWhite,
+        });
+      }
+
+      if (cardContent.tagline) {
+        page.drawText(cleanAscii(cardContent.tagline), {
+          x: 110,
+          y: cardY + cardH - 120,
+          size: 20,
+          font: fontRegular,
+          color: electricBlue,
+        });
+      }
+
+      if (cardContent.title) {
+        page.drawText(cleanAscii(cardContent.title), {
+          x: 110,
+          y: cardY + cardH - 165,
+          size: 36,
+          font: fontBold,
+          color: textWhite,
+        });
+      }
+
+      page.drawLine({
+        start: { x: 110, y: cardY + cardH - 240 },
+        end: { x: 970, y: cardY + cardH - 240 },
+        thickness: 1,
+        color: rgb(0.15, 0.22, 0.35),
+      });
+
+      if (cardContent.highlightText) {
+        page.drawText(cleanAscii(cardContent.highlightText), {
+          x: 110,
+          y: cardY + cardH - 290,
+          size: 26,
+          font: fontBold,
+          color: vibrantPurple,
+        });
+      }
+
+      let lineY = cardY + cardH - (cardContent.highlightText ? 335 : 290);
+      if (cardContent.bodyLines) {
+        for (const bl of cardContent.bodyLines) {
+          page.drawText(cleanAscii(bl), {
+            x: 110,
+            y: lineY,
             size: 24,
-            font: fontBold,
-            color: neonCyan,
+            font: fontRegular,
+            color: textLight,
           });
-
-          // Parse point text: e.g. "Best for: Description text"
-          const colonIndex = pt.indexOf(':');
-          if (colonIndex > 0 && colonIndex < 25) {
-            const prefix = pt.slice(0, colonIndex + 1);
-            const rest = pt.slice(colonIndex + 1).trim();
-
-            const prefixSize = 25;
-            const prefixWidth = fontBold.widthOfTextAtSize(prefix, prefixSize);
-            const maxRestWidth = MAX_POINT_TEXT_WIDTH - prefixWidth - 12;
-
-            let restSize = 24;
-            let restWidth = fontRegular.widthOfTextAtSize(rest, restSize);
-
-            if (restWidth > maxRestWidth) {
-              const scaled = Math.floor(restSize * (maxRestWidth / restWidth));
-              if (scaled >= 19) {
-                restSize = scaled;
-                restWidth = fontRegular.widthOfTextAtSize(rest, restSize);
-              }
-            }
-
-            if (restWidth <= maxRestWidth) {
-              // Fits on single line
-              page.drawText(prefix, {
-                x: 165,
-                y: cardY + 36,
-                size: prefixSize,
-                font: fontBold,
-                color: neonCyan,
-              });
-              page.drawText(rest, {
-                x: 165 + prefixWidth + 10,
-                y: cardY + 36,
-                size: restSize,
-                font: fontRegular,
-                color: textWhite,
-              });
-            } else {
-              // 2-line layout for longer descriptions
-              const wrappedRest = wrapTextLines(rest, 38).slice(0, 2);
-              page.drawText(prefix, {
-                x: 165,
-                y: cardY + 52,
-                size: 23,
-                font: fontBold,
-                color: neonCyan,
-              });
-              page.drawText(wrappedRest[0] || '', {
-                x: 165 + prefixWidth + 10,
-                y: cardY + 52,
-                size: 21,
-                font: fontRegular,
-                color: textWhite,
-              });
-              if (wrappedRest[1]) {
-                page.drawText(wrappedRest[1], {
-                  x: 165,
-                  y: cardY + 22,
-                  size: 21,
-                  font: fontRegular,
-                  color: textWhite,
-                });
-              }
-            }
-          } else {
-            // Point without colon
-            let ptSize = 25;
-            let ptWidth = fontRegular.widthOfTextAtSize(pt, ptSize);
-
-            if (ptWidth > MAX_POINT_TEXT_WIDTH) {
-              const scaled = Math.floor(ptSize * (MAX_POINT_TEXT_WIDTH / ptWidth));
-              if (scaled >= 20) {
-                ptSize = scaled;
-                ptWidth = fontRegular.widthOfTextAtSize(pt, ptSize);
-              }
-            }
-
-            if (ptWidth <= MAX_POINT_TEXT_WIDTH) {
-              page.drawText(pt, {
-                x: 165,
-                y: cardY + 36,
-                size: ptSize,
-                font: fontRegular,
-                color: textWhite,
-              });
-            } else {
-              // 2-line layout
-              const wrappedLines = wrapTextLines(pt, 48).slice(0, 2);
-              page.drawText(wrappedLines[0] || '', {
-                x: 165,
-                y: cardY + 52,
-                size: 21,
-                font: fontRegular,
-                color: textWhite,
-              });
-              if (wrappedLines[1]) {
-                page.drawText(wrappedLines[1], {
-                  x: 165,
-                  y: cardY + 22,
-                  size: 21,
-                  font: fontRegular,
-                  color: textWhite,
-                });
-              }
-            }
-          }
+          lineY -= 36;
         }
+      }
+
+      // If codeSnippet present, draw clean code box
+      if (rawSlide.codeSnippet) {
+        const rawLines = rawSlide.codeSnippet.split('\n').slice(0, 4);
+        page.drawRectangle({
+          x: 110,
+          y: cardY + 50,
+          width: 860,
+          height: 160,
+          color: codeBg,
+          borderColor: electricBlue,
+          borderWidth: 1.5,
+        });
+
+        let codeY = cardY + 160;
+        for (const cl of rawLines) {
+          page.drawText(cleanAscii(cl), {
+            x: 130,
+            y: codeY,
+            size: 18,
+            font: fontCode,
+            color: cl.trim().startsWith('//') ? textMuted : neonCyan,
+          });
+          codeY -= 30;
+        }
+      }
+
+      if (rawSlide.takeawayQuote) {
+        const qClean = cleanAscii(rawSlide.takeawayQuote);
+        const qW = fontRegular.widthOfTextAtSize(qClean, 24);
+        page.drawText(qClean, {
+          x: SLIDE_WIDTH / 2 - qW / 2,
+          y: 260,
+          size: 24,
+          font: fontRegular,
+          color: textLight,
+        });
       }
     }
-
-    // 5. Global Bottom Footer Bar on Every Slide
-    page.drawLine({
-      start: { x: 70, y: 95 },
-      end: { x: SLIDE_SIZE - 70, y: 95 },
-      thickness: 1.5,
-      color: electricBlue,
-    });
-
-    page.drawText('SYED ADIL ALI  |  Senior Full-Stack Architect', {
-      x: 70,
-      y: 62,
-      size: 22,
-      font: fontBold,
-      color: neonCyan,
-    });
-
-    const rightFooterText = slide.footer || (i === totalSlides - 1 ? 'Save & Repost 🔁' : 'Swipe ->');
-    page.drawText(rightFooterText, {
-      x: SLIDE_SIZE - rightFooterText.length * 14 - 70,
-      y: 62,
-      size: 22,
-      font: fontBold,
-      color: textWhite,
-    });
   }
 
   const pdfBytes = await pdfDoc.save();
