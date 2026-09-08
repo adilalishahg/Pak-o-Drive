@@ -718,7 +718,6 @@ export async function renderSlobodanCarouselPdf(
   }
 
   let embeddedCoverImage: any = null;
-```
   if (coverImageBuffer && coverImageBuffer.length > 2000) {
     try {
       embeddedCoverImage = await pdfDoc.embedJpg(coverImageBuffer);
