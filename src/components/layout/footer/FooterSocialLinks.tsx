@@ -107,7 +107,7 @@ export const FooterSocialLinks: React.FC<FooterSocialLinksProps> = ({ info }) =>
   if (socials.length === 0) return null;
 
   return (
-    <div className="d-flex align-items-center gap-1.5 flex-wrap mt-1.5 mb-1">
+    <div className="d-flex align-items-center gap-2 flex-wrap mt-2 mb-1">
       {socials.map(({ Icon, href, label }) => (
         <a
           key={label}
@@ -115,17 +115,17 @@ export const FooterSocialLinks: React.FC<FooterSocialLinksProps> = ({ info }) =>
           target="_blank"
           rel="noopener noreferrer"
           aria-label={label}
-          className="btn btn-sm-square btn-light rounded-circle text-primary"
+          className="rounded-circle d-inline-flex align-items-center justify-content-center text-decoration-none shadow-sm"
           style={{
-            width: '30px',
-            height: '30px',
-            display: 'inline-flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            textDecoration: 'none',
+            width: '32px',
+            height: '32px',
+            backgroundColor: 'rgba(255, 255, 255, 0.12)',
+            border: '1px solid rgba(255, 255, 255, 0.22)',
+            color: '#ffffff',
+            transition: 'all 0.2s ease',
           }}
         >
-          <Icon size={13} />
+          <Icon size={14} color="#ffffff" />
         </a>
       ))}
     </div>

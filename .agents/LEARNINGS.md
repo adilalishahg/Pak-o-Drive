@@ -4,6 +4,30 @@ This file serves as persistent dynamic memory across coding agent sessions. Ever
 
 ---
 
+### 2026-09-09 — Footer Newsletter Unified Nested Pill, Social Icon Visibility & Product Review English Translation
+- **📌 Issue**:
+  1. On product page reviews section, the empty state text was in Roman Urdu: `"Abhi tak koi review nahi likha gaya."` with button `"Pehle reviewer banein aur apna tajruba share karein!"`. The user requested this to be in English.
+  2. In the mobile footer, the newsletter email input and orange "SignUp" button were misaligned and overflowing the right edge of the input pill.
+  3. Under the brand tagline in the footer, social media links were rendering as blank white circles with invisible icons.
+- **🔍 Root Cause & Failed Attempts**:
+  1. `ProductReviewsSection.tsx` had hardcoded Roman Urdu strings for review empty state and modal review placeholder.
+  2. In `FooterNewsletter.tsx`, the `<button>` had `position-absolute top-0 end-0 mt-1 me-1` inside a `<form className="position-relative">`. On mobile viewports, the fixed button padding exceeded the input's `pe-5` and protruded outside the right curved border.
+  3. In `FooterSocialLinks.tsx`, the `<a>` tag used Bootstrap's `.btn-light` (which sets white background `#f8f9fa`) with `text-primary`. In dark theme or when `.text-primary` inherits white, the SVG icon's `currentColor` became white-on-white, making the icon invisible.
+- **🛠️ Verified Code Fix**:
+  1. **Review Section Translation (`src/components/product/ProductReviewsSection.tsx`)**:
+     - Translated empty state text to `"No reviews yet. Be the first to share your experience!"`.
+     - Translated CTA button to `"Be the first to review and share your experience!"` with a gold star icon and gradient styling.
+     - Updated review modal textarea placeholder to English: `"How was the product quality and fit? Share your honest experience with your car..."`.
+  2. **Unified Nested Pill Newsletter Form (`src/components/layout/footer/FooterNewsletter.tsx`)**:
+     - Eliminated fragile `position: absolute` positioning.
+     - Rebuilt as a seamless flex pill: `<form className="d-flex align-items-center w-100 rounded-pill bg-white p-1">`.
+     - Input is `border-0 bg-transparent shadow-none px-3 py-1.5` with `flex: 1 1 auto; min-width: 0`.
+     - Button is nestled safely inside the pill (`rounded-pill px-3.5 py-1.5 flex-shrink-0 fw-bold`) with orange gradient and cannot overflow on any screen size.
+  3. **Social Icons Visibility (`src/components/layout/footer/FooterSocialLinks.tsx`)**:
+     - Replaced `btn-light text-primary` with sleek dark glass circles (`backgroundColor: rgba(255, 255, 255, 0.12)`, `border: 1px solid rgba(255, 255, 255, 0.22)`).
+     - Explicitly passed `color="#ffffff"` to SVG icons so they are crisp, razor-sharp, and 100% visible against the dark `#0f172a` footer.
+  4. Verified via `npx tsc --noEmit` (0 errors).
+
 ### 2026-09-09 — LinkedIn Post Anti-Duplication Engine, Multi-Provider AI Timeout/Model Fix & Historical MongoDB Tracking
 - **📌 Issue**: User noticed that a post about "rendering" (*Rendering Strategies Explained: CSR vs SSR vs SSG vs ISR*) was published to LinkedIn again even though it had already been published earlier. User requested: store all LinkedIn posts in DB, ensure AI never regenerates or repeats previously posted topics/text, and verify both Cron and Admin triggers upload unique, non-duplicate content.
 - **🔍 Root Cause & Failed Attempts**:

@@ -192,14 +192,22 @@ export const ProductReviewsSection: React.FC<ProductReviewsSectionProps> = ({
         </div>
       ) : reviews.length === 0 ? (
         <div className="py-4 text-center text-muted" style={{ fontSize: '0.84rem' }}>
-          <p className="mb-2">Abhi tak koi review nahi likha gaya.</p>
+          <p className="mb-2 text-muted fw-medium" style={{ fontSize: '0.84rem' }}>
+            No reviews yet. Be the first to share your experience!
+          </p>
           <button
             type="button"
             onClick={() => setIsWriteModalOpen(true)}
-            className="btn btn-sm btn-primary rounded-pill px-3"
-            style={{ fontSize: '0.76rem' }}
+            className="btn btn-sm btn-primary rounded-pill px-4 py-2 fw-bold d-inline-flex align-items-center gap-1.5 shadow-sm"
+            style={{
+              fontSize: '0.8rem',
+              background: 'linear-gradient(135deg, #ea580c 0%, #f97316 100%)',
+              border: 'none',
+              color: '#ffffff',
+            }}
           >
-            Pehle reviewer banein aur apna tajruba share karein!
+            <i className="fas fa-star" style={{ fontSize: '11px' }} />
+            <span>Be the first to review and share your experience!</span>
           </button>
         </div>
       ) : (
@@ -434,7 +442,7 @@ export const ProductReviewsSection: React.FC<ProductReviewsSectionProps> = ({
                   <textarea
                     required
                     rows={3}
-                    placeholder="Quality kaisi thi? Fitting kaisi aayi? Apni gaari ke sath apna tajruba share karein..."
+                    placeholder="How was the product quality and fit? Share your honest experience with your car..."
                     className="form-control form-control-sm"
                     value={comment}
                     onChange={(e) => setComment(e.target.value)}

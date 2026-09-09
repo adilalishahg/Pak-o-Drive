@@ -53,23 +53,42 @@ export const FooterNewsletter: React.FC<FooterNewsletterProps> = ({ isCleanWhite
       <p className="text-slate-300 mb-2" style={{ fontSize: '0.78rem', lineHeight: 1.45 }}>
         Subscribe to receive flash discounts, weekly top sales, and warranty perks.
       </p>
-      <form onSubmit={handleSubscribe} className="position-relative">
+      <form
+        onSubmit={handleSubscribe}
+        className="d-flex align-items-center w-100 rounded-pill bg-white p-1"
+        style={{
+          boxShadow: '0 2px 10px rgba(0, 0, 0, 0.12)',
+          border: '1px solid rgba(255, 255, 255, 0.15)',
+          maxWidth: '100%',
+        }}
+      >
         <input
-          className="form-control rounded-pill w-100 py-2 ps-3.5 pe-5 border-0"
+          className="form-control border-0 bg-transparent shadow-none px-3 py-1.5 text-dark"
           type="email"
           placeholder="Enter your email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           disabled={submitting}
-          style={{ fontSize: '0.8rem' }}
+          required
+          style={{
+            fontSize: '0.82rem',
+            minWidth: 0,
+            flex: '1 1 auto',
+          }}
         />
         <button
           type="submit"
           disabled={submitting}
-          className="btn btn-primary rounded-pill position-absolute top-0 end-0 py-1.5 px-3.5 mt-1 me-1"
-          style={{ fontSize: '0.75rem', fontWeight: 700 }}
+          className="btn rounded-pill px-3.5 py-1.5 fw-bold border-0 flex-shrink-0"
+          style={{
+            fontSize: '0.78rem',
+            background: 'linear-gradient(135deg, #ea580c 0%, #f97316 100%)',
+            color: '#ffffff',
+            boxShadow: '0 2px 6px rgba(234, 88, 12, 0.35)',
+            whiteSpace: 'nowrap',
+          }}
         >
-          {submitting ? '...' : 'SignUp'}
+          {submitting ? '...' : 'Sign Up'}
         </button>
       </form>
       {statusMessage && (
