@@ -411,6 +411,108 @@ export function AdminAiDrawer() {
                           </button>
                         </div>
                       </div>
+                    ) : msg.actionRequired.type === 'auto_beat_price' ? (
+                      <div className="mt-3 p-3 bg-slate-950/90 border border-amber-500/40 rounded-xl text-slate-100 shadow-xl">
+                        <div className="flex items-center justify-between gap-2 mb-1.5">
+                          <div className="flex items-center gap-2 text-amber-400 font-bold text-xs">
+                            <TrendingUp className="w-4 h-4 flex-shrink-0" />
+                            <span className="leading-normal">{msg.actionRequired.title}</span>
+                          </div>
+                          <span className="text-[10px] font-bold bg-amber-600/30 text-amber-300 px-2 py-0.5 rounded-full border border-amber-500/30 flex-shrink-0">
+                            Auto-Beat Pricing
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-slate-300 mb-3 leading-relaxed">
+                          {msg.actionRequired.description}
+                        </p>
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            disabled={isThinking}
+                            onClick={() => confirmPendingAction(msg.actionRequired)}
+                            className="px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-500 text-white font-semibold text-xs flex items-center gap-1.5 transition-all shadow-md active:scale-95 disabled:opacity-50"
+                          >
+                            <Check className="w-3.5 h-3.5" />
+                            <span>✅ Approve & Update Live Price</span>
+                          </button>
+                          <button
+                            type="button"
+                            disabled={isThinking}
+                            onClick={cancelPendingAction}
+                            className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs border border-slate-700 transition-all active:scale-95 disabled:opacity-50"
+                          >
+                            <span>Cancel</span>
+                          </button>
+                        </div>
+                      </div>
+                    ) : msg.actionRequired.type === 'create_flash_sale' ? (
+                      <div className="mt-3 p-3 bg-slate-950/90 border border-rose-500/40 rounded-xl text-slate-100 shadow-xl">
+                        <div className="flex items-center justify-between gap-2 mb-1.5">
+                          <div className="flex items-center gap-2 text-rose-400 font-bold text-xs">
+                            <Sparkles className="w-4 h-4 flex-shrink-0" />
+                            <span className="leading-normal">{msg.actionRequired.title}</span>
+                          </div>
+                          <span className="text-[10px] font-bold bg-rose-600/30 text-rose-300 px-2 py-0.5 rounded-full border border-rose-500/30 flex-shrink-0">
+                            Flash Sale Event
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-slate-300 mb-3 leading-relaxed">
+                          {msg.actionRequired.description}
+                        </p>
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            disabled={isThinking}
+                            onClick={() => confirmPendingAction(msg.actionRequired)}
+                            className="px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-500 text-white font-semibold text-xs flex items-center gap-1.5 transition-all shadow-md active:scale-95 disabled:opacity-50"
+                          >
+                            <Check className="w-3.5 h-3.5" />
+                            <span>✅ Activate Flash Sale Live</span>
+                          </button>
+                          <button
+                            type="button"
+                            disabled={isThinking}
+                            onClick={cancelPendingAction}
+                            className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs border border-slate-700 transition-all active:scale-95 disabled:opacity-50"
+                          >
+                            <span>Cancel</span>
+                          </button>
+                        </div>
+                      </div>
+                    ) : msg.actionRequired.type === 'generate_customer_reviews' ? (
+                      <div className="mt-3 p-3 bg-slate-950/90 border border-sky-500/40 rounded-xl text-slate-100 shadow-xl">
+                        <div className="flex items-center justify-between gap-2 mb-1.5">
+                          <div className="flex items-center gap-2 text-sky-400 font-bold text-xs">
+                            <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
+                            <span className="leading-normal">{msg.actionRequired.title}</span>
+                          </div>
+                          <span className="text-[10px] font-bold bg-sky-600/30 text-sky-300 px-2 py-0.5 rounded-full border border-sky-500/30 flex-shrink-0">
+                            Verified Reviews
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-slate-300 mb-3 leading-relaxed">
+                          {msg.actionRequired.description}
+                        </p>
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            disabled={isThinking}
+                            onClick={() => confirmPendingAction(msg.actionRequired)}
+                            className="px-3 py-1.5 rounded-lg bg-sky-600 hover:bg-sky-500 text-white font-semibold text-xs flex items-center gap-1.5 transition-all shadow-md active:scale-95 disabled:opacity-50"
+                          >
+                            <Check className="w-3.5 h-3.5" />
+                            <span>✅ Publish Verified Reviews</span>
+                          </button>
+                          <button
+                            type="button"
+                            disabled={isThinking}
+                            onClick={cancelPendingAction}
+                            className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs border border-slate-700 transition-all active:scale-95 disabled:opacity-50"
+                          >
+                            <span>Cancel</span>
+                          </button>
+                        </div>
+                      </div>
                     ) : (
                       <div className="mt-3 p-3 bg-rose-950/80 border border-rose-500/40 rounded-xl text-slate-100 shadow-lg">
                         <div className="flex items-center justify-between gap-2 mb-1.5">

@@ -27,112 +27,85 @@ export interface PromptCategory {
 
 export const COPILOT_PROMPT_CATEGORIES: PromptCategory[] = [
   {
+    category: 'Viral Ads & TikTok Scripts',
+    icon: '🎬',
+    prompts: [
+      'Top selling car accessory ka viral TikTok aur Reels video script banao',
+      'Ambient LED light ka Meta Facebook ad copy aur 3-second hook likho',
+      'Twin Cities ke car owners ke liye high-converting ad copy generate karo',
+    ],
+  },
+  {
+    category: 'WhatsApp Anti-RTO & Confirmation',
+    icon: '🛡️',
+    prompts: [
+      'Pending orders ke liye 1-click WhatsApp confirmation links generate karo',
+      'COD fraud aur return risk check karo pending orders par',
+      'Aaj ka WhatsApp Daily Executive Digest generate karo',
+    ],
+  },
+  {
+    category: 'Dynamic Competitor Re-Pricing',
+    icon: '📈',
+    prompts: [
+      'Sehgal Motors se sasti price set karo aur auto-beat price calculate karo',
+      'Top selling ambient light ki price check kar ke competitor se beat karo',
+    ],
+  },
+  {
+    category: '1-Click Flash Sales & Promo Events',
+    icon: '⚡',
+    prompts: [
+      'Weekend Twin Cities Mega Flash Sale 20% discount ke sath live activate karo',
+      'Smog Season Flash Sale campaign create karo 15% discount aur coupon ke sath',
+      'Suggest High-Margin Bundle 💡',
+    ],
+  },
+  {
+    category: 'Authentic Customer Reviews & Social Proof',
+    icon: '⭐',
+    prompts: [
+      'Top product ke liye 4 authentic Pakistani car owners ke verified reviews add karo',
+      'Civic aur Alto owners ke 5-star social proof reviews generate kar ke publish karo',
+    ],
+  },
+  {
+    category: 'Courier Manifest & Dispatch Batch',
+    icon: '🚚',
+    prompts: [
+      'Tamam orders ki TCS / Trax bulk courier dispatch manifest sheet tayyar karo',
+      'Latest order ki thermal courier dispatch slip print karo',
+    ],
+  },
+  {
     category: 'Vision AI & Auto-Listing',
     icon: '📸',
     prompts: [
       'Is tasweer se product identify kar ke auto-list aur competitor price benchmark karo',
       'Car accessory ki photo upload karo aur Sehgal Motors se sasti price set karo',
-      'Naya high-margin combo bundle design karo aur store par live add karo',
     ],
   },
   {
-    category: 'Direct Store Actions & Operations',
-    icon: '⚡',
+    category: 'Store Operations & Inventory',
+    icon: '📦',
     prompts: [
       'Pending orders check karo aur latest order ko Delivered mark kar do',
       'Tamam Cancelled orders database se delete kar do',
-      'Naya coupon code "EID25" 25% discount create karo',
-      'Car Ambient Light ka price PKR 2,499 update kar do',
-      'Nayi category "Smart Dashcams" create kar do',
-    ],
-  },
-  {
-    category: 'Twin Cities (RWP/ISB) Trends',
-    icon: '📍',
-    prompts: [
-      'Rawalpindi aur Islamabad me is season me kon si car accessories sab se ziada trending hain?',
-      'Civic aur Alto ke liye Islamabad ke buyers kon se premium gadgets mangte hain?',
-      'Saddar aur Sultan Ka Khoo market ke muqablay me hum konsay products achi margin pr bech sakte hain?',
-      'Twin Cities ke smog aur sardi ke season me kon se car accessories ki demand barhti hai?',
-    ],
-  },
-  {
-    category: 'Store Stock & Products',
-    icon: '📦',
-    prompts: [
       'Mery store me kon se products ka stock khatam ya 5 se kam reh gaya hai?',
-      'Mery top selling products kon se hain aur unka kitna stock bacha hai?',
-      'Store par dead inventory konsi hai jo pichle 30 dino se nahi biki?',
-      'Ambient lighting aur dashcam products ka current stock aur price check karo.',
-    ],
-  },
-  {
-    category: 'Live Site SEO & Ranking',
-    icon: '🔍',
-    prompts: [
-      'Meri live website ki homepage ka SEO audit karo aur missing meta tags batao.',
-      'Rawalpindi aur Islamabad ke car buyers ke liye high-intent Google keywords suggest karo.',
-      'Google ranking improve karne ke liye mujhe kon se car blogs publish karne chahiye?',
-      'Mery products ke conversion rate (CRO) aur WhatsApp order flow ko behtar karne ke tips do.',
-    ],
-  },
-  {
-    category: 'Orders & Sales Intelligence',
-    icon: '💰',
-    prompts: [
-      'Mera total revenue aur pending vs delivered orders ka status kya hai?',
-      'Cash on Delivery (COD) orders me courier return ratio kam karne ke liye kya strategy ho?',
-      'Pichle orders me sab se ziada orders kis shehar (city) se aye hain?',
-    ],
-  },
-  {
-    category: 'WhatsApp & Courier Automation',
-    icon: '📱',
-    prompts: [
-      'Aaj ka WhatsApp Daily Executive Digest generate karo',
-      'Pending COD orders ka fraud aur return risk check karo',
-      'Latest order ki thermal courier dispatch slip print karo',
-    ],
-  },
-  {
-    category: '1-Click SEO Blog Auto-Pilot',
-    icon: '✍️',
-    prompts: [
-      'Islamabad me Smog aur Fog lights par SEO blog publish kar do',
-      'Civic aur Alto ke trending car gadgets par SEO blog likh kar live kar do',
-      'Winter car battery aur defogger care tips par blog post create karo',
-    ],
-  },
-  {
-    category: 'Predictive Stock & Profit Forecast',
-    icon: '🔮',
-    prompts: [
-      'Agly season ka stock aur projected profit margin forecast karo',
-      'Twin Cities smog season me kitna stock mangwana chahiye?',
-    ],
-  },
-  {
-    category: 'Competitor Spy & Reverse Engineering',
-    icon: '🕵️',
-    prompts: [
-      'Sehgal Motors aur Autostore.pk ke muqablay me hum car ambient light kaisay cheap aur profitable bechein?',
-      'Is competitor product ka live SEO, pricing aur ad strategy analyze karo (Paste URL)',
-      'PakWheels accessories par top selling car gadgets ki pricing aur shipping offer reverse engineer karo.',
-      'Competitor ke active Meta (Facebook) aur TikTok viral ads kaisay check karein?',
     ],
   },
 ];
 
 const DEFAULT_QUICK_PROMPTS = [
+  '🎬 Viral TikTok Video Script',
+  '🛡️ WhatsApp COD Confirmation',
+  '📈 Auto-Beat Competitor Price',
+  '⚡ Launch Flash Sale Event',
+  '⭐ Add Customer Reviews',
+  '🚚 Courier Dispatch Manifest',
   '📸 Snap & Auto-List Photo',
   'Suggest High-Margin Bundle 💡',
   'Daily WhatsApp Digest 📱',
-  'COD Fraud & Return Risk 🛡️',
-  'Publish Smog SEO Blog ✍️',
-  'Seasonal Stock Forecast 🔮',
-  'Store Operations & Actions ⚡',
-  'Rawalpindi & Islamabad Trends 📍',
-  'Low Stock Products Alert 📦',
 ];
 
 const STORAGE_KEY = 'pakodrive_admin_copilot_chat';
