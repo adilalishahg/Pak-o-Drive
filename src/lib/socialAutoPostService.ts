@@ -3,7 +3,13 @@ import { SocialAccount } from '@/models/SocialAccount';
 import LinkedInPostLog from '@/models/LinkedInPostLog';
 import { callMultiProviderAI } from './multiAiEngine';
 import { renderSlobodanCarouselPdf, CURATED_DECKS } from './carouselGenerator';
-import { generateDynamicTechCarouselDeck, TechTrack } from './dynamicCarouselAiEngine';
+import {
+  generateDynamicTechCarouselDeck,
+  TechTrack,
+  getRecentPostedTopics,
+  isTopicDuplicate,
+  normalizeTopicTokens,
+} from './dynamicCarouselAiEngine';
 
 const TECH_TOPICS = [
   'React 19 Server Components vs Client Components in production applications',
@@ -16,34 +22,52 @@ const TECH_TOPICS = [
   'Modern Web Vitals (LCP, INP, CLS): Practical performance optimization tips',
   'Secure API Authentication: OAuth 2.0, refresh token rotation, and JWT traps',
   'Event-Driven Architecture with WebSockets and message queues in Node.js',
+  'Distributed Locks in Node.js with Redis and TTL Lease Renewal',
+  'High-Throughput PostgreSQL Indexing: B-Tree, BRIN and Partitioning Strategies',
+  'Edge Middleware vs Serverless Functions: Cold-Start and Latency Architecture',
+  'Model Context Protocol (MCP): Building Extensible Multi-Agent Tooling in 2026',
 ];
 
 /**
  * 1. Generate High-Impact IT / Tech LinkedIn Post via AI (Gemini with Fallbacks)
+ * Strictly deduplicates against database history to ensure unique content
  */
 export async function generateLinkedInTechPost(): Promise<{ content: string; topic: string }> {
-  const randomTopic = TECH_TOPICS[Math.floor(Math.random() * TECH_TOPICS.length)];
+  const pastTopics = await getRecentPostedTopics();
 
-  const systemPrompt = `You are a Principal Software Architect and Tech Thought Leader writing an engaging, authentic, and high-value technical LinkedIn carousel post.
+  // Filter out any topics that have already been posted
+  const eligibleTopics = TECH_TOPICS.filter(
+    (t) => !isTopicDuplicate(t, '', pastTopics).isDuplicate
+  );
+
+  const chosenTopic = eligibleTopics.length > 0
+    ? eligibleTopics[Math.floor(Math.random() * eligibleTopics.length)]
+    : 'Resilient Microservice Resilience: Circuit Breakers and Bulkheading Patterns';
+
+  const bannedListStr = pastTopics.slice(0, 20).map((t, idx) => `   ${idx + 1}. "${t}"`).join('\n') || '   None';
+
+  const systemPrompt = `You are a Principal Software Architect and Tech Thought Leader writing an engaging, authentic, and high-value technical LinkedIn post.
 Tone: Professional, authoritative yet accessible, inspiring, practical.
 Formatting & Layout Requirements:
 1. Start with an irresistible 1-line hook (no generic greetings like "Hello network" or "Happy Monday").
 2. Frame a common misconception or real-world software engineering challenge.
 3. Provide 3-4 concrete, actionable technical takeaways formatted cleanly with emojis (📌 or ⚡) and neat indentation.
-4. Add a clear call-to-action inviting the reader to swipe the carousel PDF document attached above for the visual breakdown (e.g. "👉 Swipe through the carousel document above for the complete visual breakdown! ➡️").
+4. Add a clear call-to-action inviting the reader to engage.
 5. End with an open-ended question that encourages engineers, tech leads, and founders to comment and discuss.
 6. AT THE VERY BOTTOM, generate and append 8-12 highly relevant, trending hashtags (e.g. #SoftwareEngineering #SystemDesign #TechTrends #WebDev).
+7. STRICT ANTI-DUPLICATION RULE: You must NEVER mention or duplicate these previously covered topics:
+${bannedListStr}
 Do NOT include quotation marks around the entire post. Keep spacing clean with blank lines between paragraphs.`;
 
-  const userMessage = `Write a high-reach technical LinkedIn post on this topic: "${randomTopic}". Keep it punchy, insightful, formatted for maximum readability on mobile feeds, and append 8-12 relevant hashtags at the bottom.`;
+  const userMessage = `Write a high-reach technical LinkedIn post on this topic: "${chosenTopic}". Keep it punchy, insightful, formatted for maximum readability on mobile feeds, and append 8-12 relevant hashtags at the bottom.`;
 
   const aiRes = await callMultiProviderAI(systemPrompt, userMessage);
-  let content = aiRes.text || getDefaultTechPost(randomTopic);
+  let content = aiRes.text || getDefaultTechPost(chosenTopic);
 
   // Guarantee high-reach AI hashtags at the bottom
-  content = await ensurePostHashtagsWithAI(content, randomTopic);
+  content = await ensurePostHashtagsWithAI(content, chosenTopic);
 
-  return { content, topic: randomTopic };
+  return { content, topic: chosenTopic };
 }
 
 /**
@@ -504,15 +528,36 @@ export async function executeAutoLinkedInPost(
     let resolvedTrack: TechTrack = 'agentic-ai';
     let isDynamic = false;
 
-    // 1. If preferred deck index is requested, use curated deck
+    // 1. If preferred deck index is requested, verify it is not an already published duplicate
+    const pastTopics = await getRecentPostedTopics();
     if (
       options.preferredDeckIndex !== undefined &&
       options.preferredDeckIndex >= 0 &&
       options.preferredDeckIndex < CURATED_DECKS.length
     ) {
-      chosenDeck = CURATED_DECKS[options.preferredDeckIndex];
+      const candidateDeck = CURATED_DECKS[options.preferredDeckIndex];
+      const dupCheck = isTopicDuplicate(candidateDeck.topic, candidateDeck.caption, pastTopics);
+      if (dupCheck.isDuplicate) {
+        console.warn(`⚠️ [AutoSocial] Requested curated deck is already published: "${candidateDeck.topic}". Switching to dynamic unique generation.`);
+        const dynamicResult = await generateDynamicTechCarouselDeck(options.track);
+        chosenDeck = dynamicResult.deck;
+        resolvedTrack = dynamicResult.track;
+        isDynamic = dynamicResult.isDynamic;
+      } else {
+        chosenDeck = candidateDeck;
+      }
     } else {
       // 1b. Dynamically generate fresh cutting-edge technical deck using AI
+      const dynamicResult = await generateDynamicTechCarouselDeck(options.track);
+      chosenDeck = dynamicResult.deck;
+      resolvedTrack = dynamicResult.track;
+      isDynamic = dynamicResult.isDynamic;
+    }
+
+    // Pre-Dispatch Safety Shield: Guarantee topic has never been published
+    const preDispatchCheck = isTopicDuplicate(chosenDeck.topic, chosenDeck.caption, pastTopics);
+    if (preDispatchCheck.isDuplicate) {
+      console.warn(`🛡️ [AutoSocial] Duplicate intercepted before dispatch: "${chosenDeck.topic}" (${preDispatchCheck.reason}). Forcing fresh dynamic deck.`);
       const dynamicResult = await generateDynamicTechCarouselDeck(options.track);
       chosenDeck = dynamicResult.deck;
       resolvedTrack = dynamicResult.track;
@@ -583,6 +628,8 @@ export async function executeAutoLinkedInPost(
       await dbConnect();
       await LinkedInPostLog.create({
         topic: chosenDeck.topic,
+        topicNormalized: chosenDeck.topic.toLowerCase().trim(),
+        keywords: normalizeTopicTokens(chosenDeck.topic),
         track: resolvedTrack,
         caption: postCaption,
         slidesCount: chosenDeck.slides.length,

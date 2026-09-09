@@ -46,9 +46,8 @@ async function callGemini(systemPrompt: string, userMessage: string): Promise<st
   if (!apiKey || isCoolingDown('gemini')) return null;
 
   const models = [
-    'gemini-flash-latest',
     'gemini-2.5-flash',
-    'gemini-2.5-flash-lite',
+    'gemini-flash-latest',
     'gemini-2.5-pro',
   ];
   const prompt = systemPrompt
@@ -61,9 +60,14 @@ async function callGemini(systemPrompt: string, userMessage: string): Promise<st
       const res = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        signal: AbortSignal.timeout(5000),
+        signal: AbortSignal.timeout(15000),
         body: JSON.stringify({
           contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: {
+            thinkingConfig: { thinkingBudget: 0 },
+            temperature: 0.7,
+            maxOutputTokens: 2048,
+          },
         }),
       });
 
@@ -83,8 +87,8 @@ async function callGemini(systemPrompt: string, userMessage: string): Promise<st
         }
       } else {
         if (res.status === 429 || res.status === 402 || res.status === 403) {
-          console.warn(`⚠️ [AI Engine: Gemini Quota/Billing ${res.status}] Cooling down Gemini for 5 mins.`);
-          setCoolingDown('gemini', 5 * 60 * 1000);
+          console.warn(`⚠️ [AI Engine: Gemini Quota/Billing ${res.status}] Cooling down Gemini for 3 mins.`);
+          setCoolingDown('gemini', 3 * 60 * 1000);
           return null;
         }
       }
@@ -96,7 +100,64 @@ async function callGemini(systemPrompt: string, userMessage: string): Promise<st
 }
 
 /**
- * 2. Hugging Face Inference API / Router
+ * 2. Groq Cloud Ultra-Fast Provider (Llama / Qwen / GPT-OSS)
+ */
+async function callGroq(systemPrompt: string, userMessage: string): Promise<string | null> {
+  const apiKey = process.env.GROQ_API_KEY;
+  if (!apiKey || isCoolingDown('groq')) return null;
+
+  const models = [
+    'openai/gpt-oss-20b',
+    'qwen/qwen3.6-27b',
+    'groq/compound-mini',
+  ];
+
+  for (const model of models) {
+    try {
+      const url = 'https://api.groq.com/openai/v1/chat/completions';
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${apiKey}`,
+        },
+        signal: AbortSignal.timeout(15000),
+        body: JSON.stringify({
+          model,
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userMessage },
+          ],
+          temperature: 0.7,
+          max_tokens: 1200,
+        }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        const text = data?.choices?.[0]?.message?.content;
+        if (text) {
+          const cleaned = cleanAiResponse(text);
+          if (cleaned) {
+            console.log(`✅ [AI Engine: Groq] Generated reply via ${model}`);
+            return cleaned;
+          }
+        }
+      } else {
+        if (res.status === 429 || res.status === 401) {
+          setCoolingDown('groq', 3 * 60 * 1000);
+          return null;
+        }
+      }
+    } catch (err: any) {
+      console.warn(`⚠️ [AI Engine: Groq Error]:`, err.message);
+    }
+  }
+  return null;
+}
+
+/**
+ * 3. Hugging Face Router API
  */
 async function callHuggingFace(systemPrompt: string, userMessage: string): Promise<string | null> {
   const apiKey = process.env.HUGGINGFACE_API_KEY || process.env.HF_TOKEN;
@@ -106,28 +167,26 @@ async function callHuggingFace(systemPrompt: string, userMessage: string): Promi
     process.env.HUGGINGFACE_MODEL || 'meta-llama/Llama-3.3-70B-Instruct',
     'Qwen/Qwen2.5-72B-Instruct',
     'deepseek-ai/DeepSeek-R1-Distill-Qwen-32B',
-    'mistralai/Mistral-7B-Instruct-v0.3',
-    'microsoft/Phi-3.5-mini-instruct',
   ];
 
   for (const model of models) {
     try {
-      const url = `https://api-inference.huggingface.co/models/${model}/v1/chat/completions`;
+      const url = `https://router.huggingface.co/hf-inference/v1/chat/completions`;
       const res = await fetch(url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${apiKey}`,
         },
-        signal: AbortSignal.timeout(5000),
+        signal: AbortSignal.timeout(15000),
         body: JSON.stringify({
           model,
           messages: [
             { role: 'system', content: systemPrompt },
             { role: 'user', content: userMessage },
           ],
-          temperature: 0.6,
-          max_tokens: 600,
+          temperature: 0.7,
+          max_tokens: 1200,
         }),
       });
 
@@ -155,71 +214,13 @@ async function callHuggingFace(systemPrompt: string, userMessage: string): Promi
 }
 
 /**
- * 3. Groq Cloud Ultra-Fast Provider
- */
-async function callGroq(systemPrompt: string, userMessage: string): Promise<string | null> {
-  const apiKey = process.env.GROQ_API_KEY;
-  if (!apiKey || isCoolingDown('groq')) return null;
-
-  const models = [
-    'openai/gpt-oss-120b',
-    'openai/gpt-oss-20b',
-    'groq/compound',
-    'groq/compound-mini',
-  ];
-
-  for (const model of models) {
-    try {
-      const url = 'https://api.groq.com/openai/v1/chat/completions';
-      const res = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${apiKey}`,
-        },
-        signal: AbortSignal.timeout(5000),
-        body: JSON.stringify({
-          model,
-          messages: [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: userMessage },
-          ],
-          temperature: 0.6,
-          max_tokens: 600,
-        }),
-      });
-
-      if (res.ok) {
-        const data = await res.json();
-        const text = data?.choices?.[0]?.message?.content;
-        if (text) {
-          const cleaned = cleanAiResponse(text);
-          if (cleaned) {
-            console.log(`✅ [AI Engine: Groq] Generated reply via ${model}`);
-            return cleaned;
-          }
-        }
-      } else {
-        if (res.status === 429 || res.status === 401) {
-          setCoolingDown('groq', 5 * 60 * 1000);
-          return null;
-        }
-      }
-    } catch (err: any) {
-      console.warn(`⚠️ [AI Engine: Groq Error]:`, err.message);
-    }
-  }
-  return null;
-}
-
-/**
- * 4. Ultra-Reliable Zero-Key AI Fallback (Pollinations / Cloudflare AI gateway)
+ * 4. Ultra-Reliable Zero-Key AI Fallback (Pollinations AI Gateway)
  */
 async function callFreeFallbackAI(systemPrompt: string, userMessage: string): Promise<string | null> {
   try {
     const fullPrompt = systemPrompt ? `${systemPrompt}\n\nUser Question:\n${userMessage}` : userMessage;
-    const url = `https://text.pollinations.ai/${encodeURIComponent(fullPrompt.slice(0, 2000))}?model=openai&seed=101`;
-    const res = await fetch(url, { signal: AbortSignal.timeout(6000) });
+    const url = `https://text.pollinations.ai/${encodeURIComponent(fullPrompt.slice(0, 3000))}?model=openai&seed=101`;
+    const res = await fetch(url, { signal: AbortSignal.timeout(15000) });
     if (res.ok) {
       const text = await res.text();
       if (text && text.length > 20) {

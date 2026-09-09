@@ -2,6 +2,8 @@ import mongoose, { Schema, Document, Model } from 'mongoose';
 
 export interface ILinkedInPostLog extends Document {
   topic: string;
+  topicNormalized?: string;
+  keywords?: string[];
   track: 'agentic-ai' | 'nextjs-react' | 'typescript' | 'cloud-architecture' | 'fullstack-performance';
   caption: string;
   slidesCount: number;
@@ -21,6 +23,16 @@ const LinkedInPostLogSchema = new Schema<ILinkedInPostLog>(
       type: String,
       required: true,
       trim: true,
+      index: true,
+    },
+    topicNormalized: {
+      type: String,
+      trim: true,
+      index: true,
+    },
+    keywords: {
+      type: [String],
+      default: [],
       index: true,
     },
     track: {
@@ -67,8 +79,9 @@ const LinkedInPostLogSchema = new Schema<ILinkedInPostLog>(
   { timestamps: true }
 );
 
-// Index to quickly query recent topics within the last 45 days
+// Index to quickly query topics and history
 LinkedInPostLogSchema.index({ createdAt: -1 });
+LinkedInPostLogSchema.index({ status: 1, createdAt: -1 });
 
 export const LinkedInPostLog: Model<ILinkedInPostLog> =
   mongoose.models.LinkedInPostLog || mongoose.model<ILinkedInPostLog>('LinkedInPostLog', LinkedInPostLogSchema);

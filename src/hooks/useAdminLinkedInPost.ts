@@ -17,6 +17,13 @@ export interface LinkedInPostLogItem {
   createdAt: string;
 }
 
+export interface PublishedTopicItem {
+  topic: string;
+  track: string;
+  createdAt: string;
+  postId?: string;
+}
+
 export interface LinkedInAccountSummary {
   platform: string;
   accountName?: string;
@@ -35,6 +42,7 @@ export function useAdminLinkedInPost() {
   const [progressMessage, setProgressMessage] = useState<string>('');
   const [lastResult, setLastResult] = useState<any>(null);
   const [recentLogs, setRecentLogs] = useState<LinkedInPostLogItem[]>([]);
+  const [publishedTopics, setPublishedTopics] = useState<PublishedTopicItem[]>([]);
   const [account, setAccount] = useState<LinkedInAccountSummary | null>(null);
   const [tracks, setTracks] = useState<TechTrackInfo[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
@@ -54,6 +62,7 @@ export function useAdminLinkedInPost() {
         setAccount(data.account || null);
         setTracks(data.tracks || []);
         setRecentLogs(data.recentLogs || []);
+        setPublishedTopics(data.publishedTopics || []);
       }
     } catch (err) {
       console.warn('⚠️ Failed to load LinkedIn post history:', err);
@@ -139,6 +148,7 @@ export function useAdminLinkedInPost() {
     progressMessage,
     lastResult,
     recentLogs,
+    publishedTopics,
     account,
     tracks,
     loadingHistory,

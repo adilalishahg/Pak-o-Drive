@@ -33,9 +33,10 @@ export async function GET(request: Request) {
 
     await dbConnect();
 
-    const [account, recentLogs] = await Promise.all([
+    const [account, recentLogs, allPublishedLogs] = await Promise.all([
       SocialAccount.findOne({ platform: 'linkedin' }).lean(),
-      LinkedInPostLog.find().sort({ createdAt: -1 }).limit(10).lean(),
+      LinkedInPostLog.find().sort({ createdAt: -1 }).limit(25).lean(),
+      LinkedInPostLog.find({ status: 'published' }).select('topic createdAt track postId').sort({ createdAt: -1 }).lean(),
     ]);
 
     return NextResponse.json({
@@ -52,6 +53,12 @@ export async function GET(request: Request) {
         : null,
       tracks: Object.values(TECH_TRACKS),
       recentLogs,
+      publishedTopics: allPublishedLogs.map((l: any) => ({
+        topic: l.topic,
+        track: l.track,
+        createdAt: l.createdAt,
+        postId: l.postId,
+      })),
     });
   } catch (err: any) {
     return NextResponse.json(

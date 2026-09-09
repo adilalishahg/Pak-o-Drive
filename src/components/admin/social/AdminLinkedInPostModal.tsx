@@ -253,9 +253,14 @@ export function AdminLinkedInPostModal({ hook }: AdminLinkedInPostModalProps) {
             {/* Recent Post History Audit Table */}
             <div>
               <div className="d-flex align-items-center justify-content-between mb-2">
-                <span className="text-uppercase text-secondary fw-bold" style={{ fontSize: '0.72rem', letterSpacing: '0.5px' }}>
-                  Recent LinkedIn Carousels Log
-                </span>
+                <div className="d-flex align-items-center gap-2">
+                  <span className="text-uppercase text-secondary fw-bold" style={{ fontSize: '0.72rem', letterSpacing: '0.5px' }}>
+                    Recent LinkedIn Carousels Log
+                  </span>
+                  <span className="badge bg-success-subtle text-success border border-success-subtle rounded-pill" style={{ fontSize: '0.68rem' }}>
+                    🛡️ Anti-Duplication Shield Active
+                  </span>
+                </div>
                 {loadingHistory && <span className="spinner-border spinner-border-sm text-muted" />}
               </div>
 
@@ -314,7 +319,7 @@ export function AdminLinkedInPostModal({ hook }: AdminLinkedInPostModalProps) {
 
           <div className="modal-footer border-0 px-4 py-2 bg-white d-flex justify-content-between">
             <span className="text-muted" style={{ fontSize: '0.75rem' }}>
-              💡 Real-time trend discovery + deduplication prevents repeating topics within 45 days.
+              🛡️ Multi-layer AI Shield Active: Semantic deduplication prevents repeating previously published topics across history.
             </span>
             <button
               type="button"

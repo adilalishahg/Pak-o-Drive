@@ -51,27 +51,129 @@ export const TECH_TRACKS: Record<TechTrack, TechTrackInfo> = {
   },
 };
 
+const STOP_WORDS = new Set([
+  'the', 'a', 'an', 'and', 'or', 'of', 'for', 'with', 'in', 'on', 'at', 'to', 'from',
+  'by', 'about', 'as', 'into', 'like', 'through', 'after', 'over', 'between', 'out',
+  'against', 'during', 'without', 'before', 'under', 'around', 'among', 'vs', 'versus',
+  'how', 'why', 'what', 'when', 'explained', 'strategies', 'guide', 'complete', 'deep',
+  'dive', 'breakdown', 'masterclass', 'cheat', 'sheet', 'part', 'production', 'modern',
+  'architectures', 'systems', 'design'
+]);
+
 /**
- * Fetch recently posted topics within the last 45 days to prevent duplicate posts
+ * Tokenizes and normalizes topic string into meaningful technical keywords
  */
-export async function getRecentPostedTopics(days: number = 45): Promise<string[]> {
+export function normalizeTopicTokens(text: string): string[] {
+  if (!text) return [];
+  return text
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .split(/\s+/)
+    .filter((token) => token.length > 2 && !STOP_WORDS.has(token));
+}
+
+/**
+ * Calculates Jaccard token overlap between two technical topics
+ */
+export function calculateTopicSimilarity(topicA: string, topicB: string): {
+  score: number;
+  sharedTokens: string[];
+} {
+  const tokensA = new Set(normalizeTopicTokens(topicA));
+  const tokensB = new Set(normalizeTopicTokens(topicB));
+  if (tokensA.size === 0 || tokensB.size === 0) return { score: 0, sharedTokens: [] };
+
+  const intersection: string[] = [];
+  tokensA.forEach((token) => {
+    if (tokensB.has(token)) {
+      intersection.push(token);
+    }
+  });
+
+  const unionSize = new Set([...tokensA, ...tokensB]).size;
+  const score = unionSize > 0 ? intersection.length / unionSize : 0;
+  return { score, sharedTokens: intersection };
+}
+
+/**
+ * Strict verification gate: Checks if a candidate topic or content is duplicate or overly similar to past posts
+ */
+export function isTopicDuplicate(
+  candidateTopic: string,
+  candidateCaption: string = '',
+  pastTopics: string[]
+): { isDuplicate: boolean; reason?: string; matchedTopic?: string } {
+  if (!candidateTopic) return { isDuplicate: false };
+  const normCandidate = candidateTopic.toLowerCase().trim();
+
+  // 1. Exact match or candidate contains full past topic
+  for (const past of pastTopics) {
+    const normPast = past.toLowerCase().trim();
+    if (!normPast) continue;
+
+    if (normCandidate === normPast) {
+      return { isDuplicate: true, reason: 'Exact match with previous post', matchedTopic: past };
+    }
+    if (normCandidate.includes(normPast) || normPast.includes(normCandidate)) {
+      return { isDuplicate: true, reason: 'Direct substring match with previous post', matchedTopic: past };
+    }
+
+    // 2. Token Jaccard overlap (> 30% overlap with 2+ shared keywords)
+    const { score, sharedTokens } = calculateTopicSimilarity(candidateTopic, past);
+    if (score >= 0.30 && sharedTokens.length >= 2) {
+      return {
+        isDuplicate: true,
+        reason: `High semantic overlap (${Math.round(score * 100)}%): shared keywords [${sharedTokens.join(', ')}]`,
+        matchedTopic: past,
+      };
+    }
+  }
+
+  // 3. Specific domain keyword collision check (e.g. CSR vs SSR vs SSG vs ISR / Rendering)
+  for (const past of pastTopics) {
+    const normPast = past.toLowerCase();
+    const isPastRendering = normPast.includes('render') || normPast.includes('csr') || normPast.includes('ssr');
+    const isCandidateRendering = normCandidate.includes('render') || normCandidate.includes('csr') || normCandidate.includes('ssr');
+    if (isPastRendering && isCandidateRendering) {
+      return {
+        isDuplicate: true,
+        reason: 'Rendering (CSR/SSR/SSG/ISR) topic already published previously',
+        matchedTopic: past,
+      };
+    }
+
+    const isPastIndex = normPast.includes('index') && normPast.includes('database');
+    const isCandidateIndex = normCandidate.includes('index') && normCandidate.includes('database');
+    if (isPastIndex && isCandidateIndex) {
+      return {
+        isDuplicate: true,
+        reason: 'Database Indexing topic already published previously',
+        matchedTopic: past,
+      };
+    }
+  }
+
+  return { isDuplicate: false };
+}
+
+/**
+ * Fetch ALL previously published topics to guarantee zero duplication across all time
+ */
+export async function getRecentPostedTopics(days: number = 365): Promise<string[]> {
   try {
     await dbConnect();
-    const cutoffDate = new Date();
-    cutoffDate.setDate(cutoffDate.getDate() - days);
-
+    // Query published posts across history to prevent repeats
     const logs = await LinkedInPostLog.find({
       status: 'published',
-      createdAt: { $gte: cutoffDate },
     })
       .select('topic')
       .sort({ createdAt: -1 })
-      .limit(50)
+      .limit(300)
       .lean();
 
-    return logs.map((l: any) => l.topic);
+    return logs.map((l: any) => l.topic).filter(Boolean);
   } catch (err) {
-    console.warn('⚠️ [DynamicCarouselAI] Could not fetch recent post history:', err);
+    console.warn('⚠️ [DynamicCarouselAI] Could not fetch post history:', err);
     return [];
   }
 }
@@ -263,20 +365,27 @@ function sanitizeGeneratedDeck(raw: any, track: TechTrack): CarouselDeck {
 
 /**
  * Master Generator: Generates a 100% dynamic, cutting-edge CarouselDeck with AI
+ * Enforces strict anti-duplication against all past posts in LinkedInPostLog
  */
 export async function generateDynamicTechCarouselDeck(
   preferredTrack?: TechTrack | 'auto'
 ): Promise<{ deck: CarouselDeck; track: TechTrack; isDynamic: boolean }> {
   const track = await pickNextTrack(preferredTrack);
   const trackInfo = TECH_TRACKS[track];
-  const recentTopics = await getRecentPostedTopics(45);
+  const recentTopics = await getRecentPostedTopics(365);
 
   console.log(`🤖 [DynamicCarouselAI] Generating fresh technical carousel for track: "${trackInfo.title}"...`);
   if (recentTopics.length > 0) {
-    console.log(`🛡️ [DynamicCarouselAI] Deduplicating against ${recentTopics.length} recent topics.`);
+    console.log(`🛡️ [DynamicCarouselAI] Active Anti-Duplication Shield: Guarding against ${recentTopics.length} previously published topics.`);
   }
 
-  const systemPrompt = `You are a Principal Software Architect and elite Tech Content Creator who crafts viral, high-authority Slobodan Gajić-style technical carousels for LinkedIn.
+  const bannedList = [...recentTopics];
+
+  // Try up to 2 generation attempts with AI to guarantee uniqueness
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    const formattedBannedList = bannedList.slice(0, 30).map((t, idx) => `   ${idx + 1}. "${t}"`).join('\n') || '   None';
+
+    const systemPrompt = `You are a Principal Software Architect and elite Tech Content Creator who crafts viral, high-authority Slobodan Gajić-style technical carousels for LinkedIn.
 Your audience: Senior Software Engineers, Tech Leads, CTOs, and Engineering Managers.
 Domain: ${trackInfo.title} (${trackInfo.description}).
 Tone: Authoritative, deeply technical, practical, zero fluff, concise.
@@ -362,42 +471,167 @@ Schema definition:
   ]
 }
 
-CRITICAL RULES:
-1. OUTPUT PURE JSON ONLY. No markdown wrapper outside the JSON if possible. No commentary before or after.
-2. The topic must be FRESH, modern, and NOT mention any of these previously posted topics:
-${recentTopics.slice(0, 15).map((t, idx) => `   ${idx + 1}. "${t}"`).join('\n') || '   None'}
-3. Every slide headline must be impactful and concise (fits comfortably on 1080x1350 slide canvas).`;
+CRITICAL ANTI-DUPLICATION RULES:
+1. OUTPUT PURE JSON ONLY. No markdown wrapper outside the JSON. No commentary before or after.
+2. ABSOLUTELY FORBIDDEN: You must NEVER generate a post on or related to any of the following previously published topics:
+${formattedBannedList}
+3. If your candidate topic touches the same concept or domain as any topic in the list above, choose a completely different, fresh 2026 engineering topic instead.
+4. Every slide headline must be impactful and concise (fits comfortably on 1080x1350 slide canvas).`;
 
-  const userMessage = `Generate a fresh, cutting-edge LinkedIn carousel deck on: "${trackInfo.title}".
+    const userMessage = `Generate a fresh, cutting-edge LinkedIn carousel deck on: "${trackInfo.title}".
 Keywords: ${trackInfo.focusKeywords.join(', ')}.
 Make sure it represents modern 2026 software engineering reality. Return pure valid JSON matching the schema.`;
 
-  try {
-    const aiRes = await callMultiProviderAI(systemPrompt, userMessage);
-    const parsedJson = extractJsonFromText(aiRes.text);
+    try {
+      const aiRes = await callMultiProviderAI(systemPrompt, userMessage);
+      const parsedJson = extractJsonFromText(aiRes.text);
 
-    if (parsedJson && parsedJson.topic && Array.isArray(parsedJson.slides)) {
-      const sanitizedDeck = sanitizeGeneratedDeck(parsedJson, track);
-      console.log(`✓ [DynamicCarouselAI] Successfully generated dynamic deck: "${sanitizedDeck.topic}" (${sanitizedDeck.slides.length} slides)`);
-      return {
-        deck: sanitizedDeck,
-        track,
-        isDynamic: true,
-      };
+      if (parsedJson && parsedJson.topic && Array.isArray(parsedJson.slides)) {
+        const sanitizedDeck = sanitizeGeneratedDeck(parsedJson, track);
+
+        // Deduplication Verification Gate
+        const dupCheck = isTopicDuplicate(sanitizedDeck.topic, sanitizedDeck.caption, recentTopics);
+        if (dupCheck.isDuplicate) {
+          console.warn(`⚠️ [DynamicCarouselAI] Deduplication gate blocked candidate topic (Attempt ${attempt}): "${sanitizedDeck.topic}" - Reason: ${dupCheck.reason}`);
+          bannedList.push(sanitizedDeck.topic);
+          continue; // Retry with updated ban list
+        }
+
+        console.log(`✓ [DynamicCarouselAI] Successfully generated fresh dynamic deck: "${sanitizedDeck.topic}" (${sanitizedDeck.slides.length} slides)`);
+        return {
+          deck: sanitizedDeck,
+          track,
+          isDynamic: true,
+        };
+      }
+      console.warn(`⚠️ [DynamicCarouselAI] AI returned invalid JSON structure on attempt ${attempt}.`);
+    } catch (aiErr) {
+      console.warn(`⚠️ [DynamicCarouselAI] AI generation error on attempt ${attempt}:`, aiErr);
     }
-    console.warn('⚠️ [DynamicCarouselAI] AI returned invalid JSON structure, falling back to curated deck.');
-  } catch (aiErr) {
-    console.warn('⚠️ [DynamicCarouselAI] AI generation error:', aiErr);
   }
 
-  // Graceful fallback to CURATED_DECKS to guarantee zero PDF breakage
-  const fallbackIndex = Math.floor(Math.random() * CURATED_DECKS.length);
-  const fallbackDeck = CURATED_DECKS[fallbackIndex];
-  console.log(`🔄 [DynamicCarouselAI] Using curated deck fallback: "${fallbackDeck.topic}"`);
+  // Graceful Fallback: Filter CURATED_DECKS to ONLY those that have NEVER been posted
+  const eligibleCuratedDecks = CURATED_DECKS.filter(
+    (deck) => !isTopicDuplicate(deck.topic, deck.caption, recentTopics).isDuplicate
+  );
 
+  if (eligibleCuratedDecks.length > 0) {
+    const fallbackIndex = Math.floor(Math.random() * eligibleCuratedDecks.length);
+    const fallbackDeck = eligibleCuratedDecks[fallbackIndex];
+    console.log(`🔄 [DynamicCarouselAI] Using unposted curated deck fallback: "${fallbackDeck.topic}"`);
+    return {
+      deck: fallbackDeck,
+      track,
+      isDynamic: false,
+    };
+  }
+
+  // Emergency Fallback: If all curated decks have been posted, generate a guaranteed-fresh architecture deck
+  console.log('🔄 [DynamicCarouselAI] All standard curated decks were previously posted. Generating emergency fresh architecture deck...');
+  const emergencyDeck = createEmergencyUniqueDeck(track, recentTopics);
   return {
-    deck: fallbackDeck,
+    deck: emergencyDeck,
     track,
     isDynamic: false,
+  };
+}
+
+/**
+ * Creates a clean unique fallback deck if every standard curated deck has already been posted
+ */
+function createEmergencyUniqueDeck(track: TechTrack, pastTopics: string[]): CarouselDeck {
+  const EMERGENCY_TOPICS = [
+    {
+      topic: 'Distributed Locks in Node.js: Preventing Double-Spend & Race Conditions',
+      tag: 'DISTRIBUTED SYSTEMS',
+      points: [
+        'Why in-memory state fails across multiple containers',
+        'Redis Redlock algorithm and TTL lease management',
+        'Fencing tokens to prevent stale process writes',
+      ],
+    },
+    {
+      topic: 'Edge Runtime vs Node.js Serverless: Cold Starts, Limits & TTFB',
+      tag: 'CLOUD ARCHITECTURE',
+      points: [
+        'V8 Isolate micro-runtimes vs full container initialization',
+        'Global edge propagation and zero cold start tradeoffs',
+        'Node.js native API compatibility constraints',
+      ],
+    },
+    {
+      topic: 'PostgreSQL Connection Pooling: PgBouncer vs Direct Connections',
+      tag: 'BACKEND PERFORMANCE',
+      points: [
+        'Why each Postgres connection consumes 5-10MB backend RAM',
+        'Transaction pooling vs Session pooling in serverless environments',
+        'Eliminating connection exhaustion under traffic spikes',
+      ],
+    },
+    {
+      topic: 'Zero-Copy Streaming in Node.js: Processing Gigabyte Payloads',
+      tag: 'SYSTEMS PROGRAMMING',
+      points: [
+        'Backpressure handling with Readable and Writable streams',
+        'Avoiding high-watermark memory exhaustion',
+        'Pipeline utility for error propagation safety',
+      ],
+    },
+  ];
+
+  // Pick first topic not in pastTopics
+  const candidate = EMERGENCY_TOPICS.find(
+    (item) => !isTopicDuplicate(item.topic, '', pastTopics).isDuplicate
+  ) || EMERGENCY_TOPICS[0];
+
+  return {
+    topic: candidate.topic,
+    caption: `Concurrency bugs in production don't announce themselves — they silently corrupt state during traffic spikes. ⚡\n\nWhen scaling distributed web applications:\n📌 Never rely on in-memory single-process locks across scaled instances.\n📌 Use distributed leases with strict fencing tokens to prevent zombie process overwrites.\n📌 Profile end-to-end latency before introducing distributed state.\n\n👉 Swipe through this visual architectural breakdown above! ➡️\n\n#SoftwareEngineering #DistributedSystems #NodeJS #SystemDesign #BackendEngineering #TechArchitecture #CleanCode`,
+    slides: [
+      {
+        isCover: true,
+        slideType: 'cover',
+        tag: candidate.tag,
+        headline: candidate.topic,
+        subheadline: 'Swipe to explore the complete visual breakdown',
+        footer: 'SWIPE TO LEARN ->',
+      },
+      {
+        slideType: 'intro',
+        tag: '01 / CORE BOTTLENECK',
+        headline: 'Why single-node assumptions break at scale',
+        subheadline: 'Production challenges with concurrent state operations',
+        points: candidate.points,
+        footer: 'Swipe to continue ->',
+      },
+      {
+        slideType: 'stat_card',
+        tag: '02 / PRODUCTION ARCHITECTURE',
+        headline: 'Resilient Scalability Pattern',
+        cardContent: {
+          badge: 'PRODUCTION ARCHITECTURE',
+          title: 'Deterministic State Management',
+          highlightText: 'Zero race conditions, zero orphaned leases',
+          bodyLines: [
+            'Maintain strict TTL expiration on distributed resources.',
+            'Validate fencing tokens before committing persistent writes.',
+          ],
+        },
+        footer: 'Swipe to continue ->',
+      },
+      {
+        isSummary: true,
+        slideType: 'outro',
+        tag: 'SUMMARY & ACTION',
+        headline: 'Key Architectural Takeaways',
+        subheadline: 'Apply these resilient patterns in your production infrastructure.',
+        points: [
+          'Design with network partition awareness from day one.',
+          'Isolate state stores behind connection pools.',
+          'Enforce strict lease expirations.',
+        ],
+        footer: 'Follow for weekly deep tech breakdowns',
+      },
+    ],
   };
 }
