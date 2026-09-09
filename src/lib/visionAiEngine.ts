@@ -77,15 +77,21 @@ Output ONLY a raw valid JSON object (no markdown, no backticks):
 }
 `;
 
-  // 1. Try Gemini 2.0 Flash Vision
+  // 1. Try Gemini Flash Vision
   if (apiKey) {
-    const models = ['gemini-2.0-flash', 'gemini-1.5-flash'];
+    const models = [
+      'gemini-flash-latest',
+      'gemini-2.5-flash',
+      'gemini-2.5-flash-image',
+      'gemini-2.5-flash-lite',
+    ];
     for (const model of models) {
       try {
         const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
         const res = await fetch(url, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
+          signal: AbortSignal.timeout(8000),
           body: JSON.stringify({
             contents: [
               {
@@ -105,7 +111,8 @@ Output ONLY a raw valid JSON object (no markdown, no backticks):
 
         if (res.ok) {
           const data = await res.json();
-          const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+          const parts = data?.candidates?.[0]?.content?.parts || [];
+          const rawText = parts.map((p: any) => p.text || '').join('');
           if (rawText) {
             const cleaned = rawText.replace(/```json/gi, '').replace(/```/g, '').trim();
             const parsed = JSON.parse(cleaned);

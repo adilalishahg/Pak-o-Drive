@@ -16,6 +16,15 @@ export interface AdminStoreSummary {
   totalRevenuePKR: number;
   recentOrdersCities: string[];
   categoriesList: string[];
+  recentOrdersList: Array<{
+    orderId: string;
+    amount: number;
+    status: string;
+    paymentMethod: string;
+    customerName: string;
+    city: string;
+    itemsSummary: string;
+  }>;
 }
 
 export interface AdminAiChatPayload {
@@ -39,6 +48,7 @@ export async function getAdminStoreSnapshot(): Promise<AdminStoreSummary> {
       pendingOrders,
       deliveredOrders,
       ordersAgg,
+      recentOrdersRaw,
       categories,
     ] = await Promise.all([
       Product.countDocuments(),
@@ -64,12 +74,27 @@ export async function getAdminStoreSnapshot(): Promise<AdminStoreSummary> {
           },
         },
       ]),
+      Order.find()
+        .sort({ createdAt: -1 })
+        .limit(8)
+        .select('orderId totalAmount status paymentMethod customerDetails.city customerDetails.fullName items.name items.quantity')
+        .lean(),
       Category.find().select('name').limit(15).lean(),
     ]);
 
     const revenue = ordersAgg[0]?.totalRevenue || 0;
     const rawCities: string[] = ordersAgg[0]?.cities || [];
     const recentCities = Array.from(new Set(rawCities.filter(Boolean))).slice(0, 10);
+
+    const recentOrdersList = (recentOrdersRaw || []).map((o: any) => ({
+      orderId: o.orderId,
+      amount: o.totalAmount,
+      status: o.status,
+      paymentMethod: o.paymentMethod || 'COD',
+      customerName: o.customerDetails?.fullName || 'Valued Customer',
+      city: o.customerDetails?.city || 'Twin Cities',
+      itemsSummary: (o.items || []).map((i: any) => `${i.name} (x${i.quantity || 1})`).join(', ') || 'Auto Accessories',
+    }));
 
     return {
       totalProducts,
@@ -92,6 +117,7 @@ export async function getAdminStoreSnapshot(): Promise<AdminStoreSummary> {
       totalRevenuePKR: revenue,
       recentOrdersCities: recentCities,
       categoriesList: (categories || []).map((c: any) => c.name),
+      recentOrdersList,
     };
   } catch (error) {
     console.error('Error fetching admin store snapshot:', error);
@@ -106,6 +132,7 @@ export async function getAdminStoreSnapshot(): Promise<AdminStoreSummary> {
       totalRevenuePKR: 0,
       recentOrdersCities: [],
       categoriesList: [],
+      recentOrdersList: [],
     };
   }
 }
@@ -560,12 +587,16 @@ You are the "Pak-o-Drive Executive AI Copilot & Market Brain" — the chief digi
 - Store Categories: ${storeData.categoriesList.join(', ')}
 - SEO Health: ${seoData.totalMissingSeo} products have missing SEO metadata. Sample unoptimized: ${seoData.sampleUnoptimizedProducts.join(', ') || 'None'}.
 
+### RECENT ORDERS LIST (LATEST IN STORE):
+${storeData.recentOrdersList && storeData.recentOrdersList.length > 0 ? storeData.recentOrdersList.map((o) => `- Order #${o.orderId}: PKR ${o.amount.toLocaleString()} | Status: ${o.status} (${o.paymentMethod}) | Customer: ${o.customerName} (${o.city}) | Items: ${o.itemsSummary}`).join('\n') : 'No orders recorded yet.'}
+
 ${dynamicContext}
 
 ${regionalKnowledge}
 
 ### GUIDELINES FOR YOUR ANSWERS:
 - Be direct, specific, and grounded in Pakistani e-commerce reality (COD cash-on-delivery dynamics, courier delivery times via Trax/TCS/PostEx, PKR pricing).
+- If the user asks about orders, summarize pending vs delivered, total revenue, and highlight the latest orders with customer name, city, and status.
 - If the user asks about Rawalpindi/Islamabad trends, mention specific car models (Civic, Corolla, Alto, Yaris, Sportage) and popular accessories suitable for Twin Cities weather, roads, and car enthusiasts.
 - If asked about low stock or products, quote actual real numbers from the data above.
 - If asked about SEO, provide concrete Meta Titles, Meta Descriptions, and High-Volume Keywords for Pakistani searchers (e.g., "car accessories rawalpindi cod", "car gadgets islamabad").
@@ -594,15 +625,47 @@ ${regionalKnowledge}
     console.error('Error generating AI Copilot response:', error);
   }
 
-  // Fallback if AI providers are temporarily slow
+  // Intelligent context-aware response if AI providers are temporarily slow
+  const isOrderQuery = /(order|orders|pending|delivered|sale|sales|kammayi|revenue|kamai)/i.test(userQuery);
+  const isProductQuery = /(product|products|item|items|stock|maal|cheezain|inventory)/i.test(userQuery);
+
+  if (isOrderQuery) {
+    return `
+### 📦 Store Orders Live Breakdown
+Aapke store ka live orders status yeh hai:
+
+- **Total Orders:** ${storeData.totalOrders}
+- **Pending Orders:** ${storeData.pendingOrdersCount} (COD verification/dispatch zaroori hai)
+- **Delivered Orders:** ${storeData.deliveredOrdersCount}
+- **Total Revenue:** PKR ${storeData.totalRevenuePKR.toLocaleString()}
+
+**Halia Orders (Latest):**
+${storeData.recentOrdersList && storeData.recentOrdersList.length > 0 ? storeData.recentOrdersList.slice(0, 5).map((o) => `• **#${o.orderId}** — PKR ${o.amount.toLocaleString()} (${o.status}, ${o.paymentMethod}) — *${o.customerName}, ${o.city}* (${o.itemsSummary})`).join('\n') : '• Koi halia order nahi mila.'}
+
+💡 *Aap kisi bhi pending order ka WhatsApp confirmation link nikalne ke liye query kar sakte hain ya status Delivered kar sakte hain.*
+`.trim();
+  }
+
+  if (isProductQuery) {
+    return `
+### 🏷️ Store Inventory & Products Breakdown
+Aapke store ka live product overview yeh hai:
+
+- **Total Active Products:** ${storeData.totalProducts}
+- **Out of Stock:** ${storeData.outOfStockCount}
+- **Low Stock Items:** ${storeData.lowStockItems.length > 0 ? storeData.lowStockItems.map(i => `${i.name} (${i.stock} left)`).join(', ') : 'Sab products ka stock healthy hai'}
+- **Top Selling Products:** ${storeData.topSellingProducts.map(p => p.name).join(', ') || 'All catalog active'}
+
+💡 *Naya product add karne ke liye camera icon se photo upload karein ya auto-repricing chalayein.*
+`.trim();
+  }
+
   return `
-### Pak-o-Drive Intelligence Update 🚀
-Aapke store ka live data snapshot yeh hai:
+### Pak-o-Drive Store Intelligence 🚀
+Aapke store ka live data snapshot:
 - **Total Products:** ${storeData.totalProducts} (Out of stock: ${storeData.outOfStockCount})
 - **Total Orders:** ${storeData.totalOrders} (Pending: ${storeData.pendingOrdersCount})
 - **Total Revenue:** PKR ${storeData.totalRevenuePKR.toLocaleString()}
 - **Top Twin Cities Demand:** Ambient lighting, Solar Perfumes, aur 4K Dashcams (Islamabad/Rawalpindi Saddar & G-8 auto hubs).
-
-*AI Engine refresh ho raha hai, baraye meherbani 10 seconds baad dubara query karein.*
 `.trim();
 }

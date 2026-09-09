@@ -46,8 +46,10 @@ async function callGemini(systemPrompt: string, userMessage: string): Promise<st
   if (!apiKey || isCoolingDown('gemini')) return null;
 
   const models = [
-    'gemini-2.0-flash',
-    'gemini-1.5-flash',
+    'gemini-flash-latest',
+    'gemini-2.5-flash',
+    'gemini-2.5-flash-lite',
+    'gemini-2.5-pro',
   ];
   const prompt = systemPrompt
     ? `${systemPrompt}\n\nInput / User Request:\n${userMessage}`
@@ -67,7 +69,11 @@ async function callGemini(systemPrompt: string, userMessage: string): Promise<st
 
       if (res.ok) {
         const data = await res.json();
-        const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+        const parts = data?.candidates?.[0]?.content?.parts || [];
+        const text = parts
+          .map((p: any) => p.text || '')
+          .filter(Boolean)
+          .join('');
         if (text) {
           const cleaned = cleanAiResponse(text);
           if (cleaned) {
@@ -113,6 +119,7 @@ async function callHuggingFace(systemPrompt: string, userMessage: string): Promi
           'Content-Type': 'application/json',
           Authorization: `Bearer ${apiKey}`,
         },
+        signal: AbortSignal.timeout(5000),
         body: JSON.stringify({
           model,
           messages: [
@@ -155,10 +162,10 @@ async function callGroq(systemPrompt: string, userMessage: string): Promise<stri
   if (!apiKey || isCoolingDown('groq')) return null;
 
   const models = [
-    'llama-3.3-70b-versatile',
-    'llama-3.1-8b-instant',
-    'mixtral-8x7b-32768',
-    'gemma2-9b-it',
+    'openai/gpt-oss-120b',
+    'openai/gpt-oss-20b',
+    'groq/compound',
+    'groq/compound-mini',
   ];
 
   for (const model of models) {
@@ -170,6 +177,7 @@ async function callGroq(systemPrompt: string, userMessage: string): Promise<stri
           'Content-Type': 'application/json',
           Authorization: `Bearer ${apiKey}`,
         },
+        signal: AbortSignal.timeout(5000),
         body: JSON.stringify({
           model,
           messages: [
