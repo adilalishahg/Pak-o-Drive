@@ -14,6 +14,9 @@ export default function AdminAiCopilotPage() {
     snapshot,
     seoAudit,
     snapshotLoading,
+    competitorUrl,
+    setCompetitorUrl,
+    analyzeCompetitor,
     sendMessage,
     clearChat,
     fetchSnapshot,
@@ -23,6 +26,7 @@ export default function AdminAiCopilotPage() {
   const [inputMessage, setInputMessage] = useState('');
   const [targetSeoUrl, setTargetSeoUrl] = useState('');
   const [showSeoBar, setShowSeoBar] = useState(false);
+  const [showCompetitorBar, setShowCompetitorBar] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -38,7 +42,7 @@ export default function AdminAiCopilotPage() {
 
   const handleSend = () => {
     if (!inputMessage.trim() || loading) return;
-    sendMessage(inputMessage, targetSeoUrl.trim() || undefined);
+    sendMessage(inputMessage, targetSeoUrl.trim() || undefined, competitorUrl.trim() || undefined);
     setInputMessage('');
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
@@ -53,7 +57,7 @@ export default function AdminAiCopilotPage() {
   };
 
   const handlePromptClick = (prompt: string) => {
-    sendMessage(prompt, targetSeoUrl.trim() || undefined);
+    sendMessage(prompt, targetSeoUrl.trim() || undefined, competitorUrl.trim() || undefined);
   };
 
   const handleCopy = (content: string, id: string) => {
@@ -102,7 +106,18 @@ export default function AdminAiCopilotPage() {
             style={{ borderRadius: '10px' }}
           >
             <i className="fas fa-search" />
-            <span>{showSeoBar ? 'Close SEO URL Bar' : 'Audit Specific URL'}</span>
+            <span>{showSeoBar ? 'Close SEO URL' : 'Audit Specific URL'}</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setShowCompetitorBar((v) => !v)}
+            className={`btn btn-sm d-flex align-items-center gap-1.5 ${showCompetitorBar ? 'btn-danger' : 'btn-outline-danger'}`}
+            style={{ borderRadius: '10px' }}
+            title="Inspect any competitor store or product link"
+          >
+            <i className="fas fa-user-secret" />
+            <span>{showCompetitorBar ? 'Close Competitor Spy' : '🕵️ Competitor Spy'}</span>
           </button>
 
           <button
@@ -219,6 +234,70 @@ export default function AdminAiCopilotPage() {
           >
             Audit URL Now
           </button>
+        </div>
+      )}
+
+      {/* Competitor Spy & Reverse Engineering Bar */}
+      {showCompetitorBar && (
+        <div className="bg-danger-subtle border border-danger-subtle rounded-3 p-3 mb-3 shadow-sm">
+          <div className="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-2 mb-2">
+            <div className="d-flex align-items-center gap-2 text-danger fw-bold small">
+              <i className="fas fa-user-secret fs-5" />
+              <span>Competitor Spy & Strategy Breakdown:</span>
+            </div>
+            <div className="d-flex align-items-center gap-1.5 flex-wrap">
+              <span className="text-muted small" style={{ fontSize: '11px' }}>Quick Examples:</span>
+              <button
+                type="button"
+                onClick={() => setCompetitorUrl('https://sehgalmotors.pk/product/car-interior-ambient-lighting-kit')}
+                className="badge bg-white text-secondary border text-decoration-none py-1 px-2 cursor-pointer"
+                style={{ fontSize: '10px' }}
+              >
+                Sehgal Motors
+              </button>
+              <button
+                type="button"
+                onClick={() => setCompetitorUrl('https://autostore.pk/product/solar-rotating-car-perfume')}
+                className="badge bg-white text-secondary border text-decoration-none py-1 px-2 cursor-pointer"
+                style={{ fontSize: '10px' }}
+              >
+                Autostore.pk
+              </button>
+              <button
+                type="button"
+                onClick={() => setCompetitorUrl('https://www.pakwheels.com/accessories-spare-parts/')}
+                className="badge bg-white text-secondary border text-decoration-none py-1 px-2 cursor-pointer"
+                style={{ fontSize: '10px' }}
+              >
+                PakWheels
+              </button>
+            </div>
+          </div>
+
+          <div className="d-flex flex-column flex-sm-row align-items-center gap-2">
+            <div className="flex-grow-1 w-100">
+              <input
+                type="text"
+                className="form-control form-control-sm bg-white border"
+                placeholder="Paste competitor link (e.g. https://sehgalmotors.pk/product/... or Daraz or PakWheels)..."
+                value={competitorUrl}
+                onChange={(e) => setCompetitorUrl(e.target.value)}
+              />
+            </div>
+            <button
+              type="button"
+              disabled={!competitorUrl.trim() || loading}
+              className="btn btn-sm btn-danger text-nowrap d-flex align-items-center gap-1.5 px-3"
+              onClick={() => {
+                if (competitorUrl.trim()) {
+                  analyzeCompetitor(competitorUrl.trim());
+                }
+              }}
+            >
+              <i className="fas fa-crosshairs" />
+              <span>Reverse Engineer Competitor</span>
+            </button>
+          </div>
         </div>
       )}
 

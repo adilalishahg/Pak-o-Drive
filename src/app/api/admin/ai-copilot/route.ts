@@ -4,12 +4,23 @@ import {
   getAdminStoreSnapshot,
   getStoreSeoAuditSnapshot,
   auditLivePageSeo,
+  scrapeCompetitorPage,
 } from '@/lib/adminAiEngine';
 
 export async function GET(req: NextRequest) {
   try {
     const url = new URL(req.url);
     const auditPath = url.searchParams.get('auditPath');
+    const competitorUrl = url.searchParams.get('competitorUrl');
+
+    // If query requests a live competitor scrape
+    if (competitorUrl) {
+      const competitorData = await scrapeCompetitorPage(competitorUrl);
+      return NextResponse.json({
+        success: true,
+        data: { competitorData },
+      });
+    }
 
     // If query requests a live page audit
     if (auditPath) {
@@ -44,7 +55,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { message, history, targetSeoUrl } = body;
+    const { message, history, targetSeoUrl, competitorUrl } = body;
 
     if (!message || typeof message !== 'string' || !message.trim()) {
       return NextResponse.json(
@@ -56,7 +67,8 @@ export async function POST(req: NextRequest) {
     const reply = await generateAdminAiExecutiveResponse(
       message.trim(),
       history || [],
-      targetSeoUrl
+      targetSeoUrl,
+      competitorUrl
     );
 
     return NextResponse.json({

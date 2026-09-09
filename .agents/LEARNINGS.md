@@ -6,6 +6,17 @@ This file serves as persistent dynamic memory across coding agent sessions. Ever
 
 ## 🏛️ PART 1: The 8 Core Pakistani E-Commerce Engineering Rules
 
+### 2026-09-09 — Competitor Spy & Strategy Reverse Engineering Engine (SEO, Pricing, Offer & Ad Breakdown)
+- **📌 Issue**: User requested expanding the Admin AI Copilot so it can analyze any competitor (e.g. Sehgal Motors, Autostore.pk, PakWheels, Daraz), extract their SEO, pricing, offer strategy, explain why their products rank/list on Google, and provide actionable blueprints to outcompete them in Roman Urdu.
+- **🔍 Root Cause & Failed Attempts**:
+  - The AI Copilot previously only inspected internal store database stats and scanned internal URLs, without capabilities to safely scrape external competitor product pages, extract competitor pricing in PKR, detect trust badges (Free Shipping, COD, Warranty), or generate targeted Meta Ad Library & TikTok search links.
+- **🛠️ Verified Code Fix**:
+  1. Built `scrapeCompetitorPage()` in `src/lib/adminAiEngine.ts` to safely crawl external competitor URLs, extract page titles, meta descriptions, headings, schema/regex prices in PKR, trust signals (COD, Free Delivery, 7-Day Warranty), and compile direct links to Meta Ad Library (Pakistan) and TikTok ad search.
+  2. Enhanced `generateAdminAiExecutiveResponse()` with dedicated Competitor Reverse Engineering guidance: "Why Are They Ranking on Google?", "Competitor Offer & Pricing Breakdown", and "Actionable Beat-the-Competitor Blueprint for Pak-o-Drive".
+  3. Upgraded `src/app/api/admin/ai-copilot/route.ts` and `src/hooks/useAdminAiCopilot.ts` with `competitorUrl`, `analyzeCompetitor()`, and a dedicated `🕵️ Competitor Spy & Strategy Breakdown` prompt category.
+  4. Built a responsive Competitor Spy Bar in `src/app/admin/ai-copilot/page.tsx` with 1-click example shortcuts (`Sehgal Motors`, `Autostore.pk`, `PakWheels`).
+  5. Verified via `pnpm tsc --noEmit` (0 errors).
+
 ### 2026-09-09 — Customer-Facing Green WhatsApp/StoreChat Widget Isolation from Admin Panel
 - **📌 Issue**: User reported that the green customer-facing chat widget (`StoreChatWidget` / `WhatsAppSupport`), which belongs exclusively on the client storefront, was also appearing on the Admin Panel alongside the Admin AI Copilot.
 - **🔍 Root Cause & Failed Attempts**:

@@ -315,6 +315,119 @@ export async function searchStoreItems(query: string) {
   }
 }
 
+export interface CompetitorScrapeResult {
+  url: string;
+  domain: string;
+  title: string;
+  description: string;
+  headings: string[];
+  estimatedPricePKR: string | null;
+  detectedBrandOrStore: string;
+  trustSignals: string[];
+  keyTermsExtracted: string[];
+  adLinks: {
+    metaAdLibraryPk: string;
+    tiktokSearchPk: string;
+    googleSearchPk: string;
+  };
+}
+
+/**
+ * Live Competitor Page Deep-Scraper & Strategy Extractor
+ */
+export async function scrapeCompetitorPage(targetUrl: string): Promise<CompetitorScrapeResult | null> {
+  try {
+    let cleanUrl = targetUrl.trim();
+    if (!cleanUrl.startsWith('http://') && !cleanUrl.startsWith('https://')) {
+      cleanUrl = `https://${cleanUrl}`;
+    }
+
+    const domain = new URL(cleanUrl).hostname.replace(/^www\./, '');
+
+    const res = await fetch(cleanUrl, {
+      headers: {
+        'User-Agent':
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36',
+        Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.9,ur;q=0.8',
+      },
+      cache: 'no-store',
+      next: { revalidate: 0 },
+    });
+
+    if (!res.ok) {
+      return null;
+    }
+
+    const html = await res.text();
+
+    // Extract Title
+    const titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/i);
+    const title = titleMatch ? titleMatch[1].replace(/&amp;/g, '&').trim() : '';
+
+    // Extract Meta Description
+    const descMatch =
+      html.match(/<meta[^>]+name=["']description["'][^>]+content=["']([^"']+)["']/i) ||
+      html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+name=["']description["']/i);
+    const description = descMatch ? descMatch[1].replace(/&amp;/g, '&').trim() : '';
+
+    // Extract Headings
+    const headings = Array.from(html.matchAll(/<h[1-3][^>]*>([\s\S]*?)<\/h[1-3]>/gi))
+      .map((m) => m[1].replace(/<[^>]+>/g, '').trim())
+      .filter((h) => h.length > 3 && h.length < 120)
+      .slice(0, 6);
+
+    // Extract Price in PKR (Schema, Meta, or regex)
+    let price: string | null = null;
+    const schemaPriceMatch = html.match(/["']price["']\s*:\s*["']?([\d,]+)["']?/i);
+    const ogPriceMatch = html.match(/<meta[^>]+property=["']product:price:amount["'][^>]+content=["']([^"']+)["']/i);
+    const textPriceMatch = html.match(/(?:Rs\.?|PKR)\s*([\d,]{3,7})/i);
+
+    if (schemaPriceMatch) price = `PKR ${schemaPriceMatch[1]}`;
+    else if (ogPriceMatch) price = `PKR ${ogPriceMatch[1]}`;
+    else if (textPriceMatch) price = `PKR ${textPriceMatch[1]}`;
+
+    // Trust Signals
+    const trustSignals: string[] = [];
+    if (/cash on delivery|cod/i.test(html)) trustSignals.push('Cash on Delivery (COD)');
+    if (/free shipping|free delivery/i.test(html)) trustSignals.push('Free Delivery Offer');
+    if (/warranty|guarantee|7 days|replacement/i.test(html)) trustSignals.push('Warranty / Replacement Policy');
+    if (/review|rating|customer review/i.test(html)) trustSignals.push('Customer Reviews / Social Proof');
+
+    // Extract search query terms for Meta / TikTok ad lookup
+    const searchTermsSeed = (title || headings[0] || domain)
+      .replace(/[^\w\s]/g, '')
+      .split(/\s+/)
+      .filter((w) => w.length > 2 && !/the|and|for|car|auto|store|pk|com/i.test(w))
+      .slice(0, 4)
+      .join(' ');
+
+    const queryEncoded = encodeURIComponent(searchTermsSeed || 'car accessories');
+
+    const adLinks = {
+      metaAdLibraryPk: `https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=PK&q=${queryEncoded}&search_type=keyword_unordered&media_type=all`,
+      tiktokSearchPk: `https://www.tiktok.com/search?q=${queryEncoded}+pakistan`,
+      googleSearchPk: `https://www.google.com/search?q=${queryEncoded}+pakistan`,
+    };
+
+    return {
+      url: cleanUrl,
+      domain,
+      title,
+      description,
+      headings,
+      estimatedPricePKR: price,
+      detectedBrandOrStore: domain,
+      trustSignals,
+      keyTermsExtracted: searchTermsSeed ? searchTermsSeed.split(' ') : [],
+      adLinks,
+    };
+  } catch (err: any) {
+    console.error('Error scraping competitor page:', err.message);
+    return null;
+  }
+}
+
 /**
  * Regional Market Intelligence Knowledge Base (Rawalpindi, Islamabad & Nationwide)
  */
@@ -344,7 +457,8 @@ export function getRegionalMarketKnowledge(): string {
 export async function generateAdminAiExecutiveResponse(
   userQuery: string,
   history: Array<{ role: 'user' | 'assistant'; content: string }> = [],
-  targetSeoUrl?: string
+  targetSeoUrl?: string,
+  competitorUrl?: string
 ): Promise<string> {
   const [storeData, seoData] = await Promise.all([
     getAdminStoreSnapshot(),
@@ -357,9 +471,22 @@ export async function generateAdminAiExecutiveResponse(
   // Dynamic live SEO audit if user asks about SEO or provides a URL/path
   let liveSeoAudit: any = null;
   const isSeoQuery = /(seo|meta|ranking|rank|google|audit|keywords|search engine|crawl)/i.test(userQuery);
-  if (targetSeoUrl || isSeoQuery) {
+  if (targetSeoUrl || (isSeoQuery && !competitorUrl)) {
     const pathToAudit = targetSeoUrl || (userQuery.match(/(\/[\w\d\-_/]+)/)?.[1] || '/');
     liveSeoAudit = await auditLivePageSeo(pathToAudit);
+  }
+
+  // Dynamic Competitor Deep-Scrape & Reverse Engineering
+  let competitorData: CompetitorScrapeResult | null = null;
+  const urlInQuery = userQuery.match(/https?:\/\/[^\s]+/i)?.[0];
+  const detectedCompetitorUrl =
+    competitorUrl ||
+    (urlInQuery && !urlInQuery.includes('localhost') && !urlInQuery.includes('pakodrive')
+      ? urlInQuery
+      : undefined);
+
+  if (detectedCompetitorUrl) {
+    competitorData = await scrapeCompetitorPage(detectedCompetitorUrl);
   }
 
   const regionalKnowledge = getRegionalMarketKnowledge();
@@ -382,6 +509,28 @@ ${liveSeoAudit ? `
 - JSON-LD Present: ${liveSeoAudit.hasJsonLd}
 - Issues Identified: ${liveSeoAudit.issues.join(' | ') || 'None'}
 - Key Recommendations: ${liveSeoAudit.recommendations.join(' | ') || 'None'}
+` : ''}
+
+${competitorData ? `
+### 🕵️ LIVE COMPETITOR DEEP-SCAN & REVERSE ENGINEERING AUDIT (${competitorData.domain}):
+- Target Competitor URL: ${competitorData.url}
+- Competitor Brand / Store: ${competitorData.detectedBrandOrStore}
+- Page Title: "${competitorData.title}"
+- Meta Description: "${competitorData.description}"
+- Extracted Headings / Product Name: ${JSON.stringify(competitorData.headings)}
+- Competitor Estimated Price: ${competitorData.estimatedPricePKR || 'Custom / Check Link'}
+- Detected Trust Badges: ${competitorData.trustSignals.join(', ') || 'Standard Checkout'}
+- Meta Ad Library Pakistan Link: ${competitorData.adLinks.metaAdLibraryPk}
+- TikTok Search & Ads Link: ${competitorData.adLinks.tiktokSearchPk}
+
+INSTRUCTIONS FOR COMPETITOR REVERSE ENGINEERING IN YOUR RESPONSE:
+1. "Why Are They Ranking on Google?": Analyze their title, headings, and keywords. Explain why Google ranks their listing.
+2. "Competitor Offer & Pricing Breakdown": Break down their pricing in PKR, their shipping policy, and warranty/trust claims.
+3. "Actionable Beat-the-Competitor Blueprint for Pak-o-Drive":
+   - Exact Counter-Title for Pak-o-Drive (keyword-optimized).
+   - Recommended PKR Pricing & Bundle deal (e.g. buy 1 get free shipping, or bundle with car perfume/microfiber cloth).
+   - High-converting Urdu/Roman Urdu hook for Pak-o-Drive product description.
+4. Include the direct clickable Markdown links to inspect their live Meta Ads & TikTok search results.
 ` : ''}
 `;
 

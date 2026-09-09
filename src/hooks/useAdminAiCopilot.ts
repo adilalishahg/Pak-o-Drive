@@ -56,6 +56,16 @@ export const COPILOT_PROMPT_CATEGORIES: PromptCategory[] = [
       'Pichle orders me sab se ziada orders kis shehar (city) se aye hain?',
     ],
   },
+  {
+    category: 'Competitor Spy & Reverse Engineering',
+    icon: '🕵️',
+    prompts: [
+      'Sehgal Motors aur Autostore.pk ke muqablay me hum car ambient light kaisay cheap aur profitable bechein?',
+      'Is competitor product ka live SEO, pricing aur ad strategy analyze karo (Paste URL)',
+      'PakWheels accessories par top selling car gadgets ki pricing aur shipping offer reverse engineer karo.',
+      'Competitor ke active Meta (Facebook) aur TikTok viral ads kaisay check karein?',
+    ],
+  },
 ];
 
 const DEFAULT_QUICK_PROMPTS = [
@@ -63,6 +73,7 @@ const DEFAULT_QUICK_PROMPTS = [
   'Low Stock Products Alert 📦',
   'Live Site SEO & Ranking Audit 🔍',
   'Top Selling Items & Revenue 💰',
+  'Competitor Spy & Strategy 🕵️',
 ];
 
 const STORAGE_KEY = 'pakodrive_admin_copilot_chat';
@@ -71,6 +82,7 @@ export function useAdminAiCopilot() {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
+  const [competitorUrl, setCompetitorUrl] = useState('');
   const [isThinking, setIsThinking] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [snapshot, setSnapshot] = useState<AdminStoreSummary | null>(null);
@@ -142,9 +154,9 @@ export function useAdminAiCopilot() {
     fetchSnapshot();
   }, [fetchSnapshot]);
 
-  // Send message
+  // Send message with optional SEO URL or Competitor URL
   const sendMessage = useCallback(
-    async (customText?: string, targetSeoUrl?: string) => {
+    async (customText?: string, targetSeoUrl?: string, customCompetitorUrl?: string) => {
       const query = (customText ?? input).trim();
       if (!query || isThinking) return;
 
@@ -169,6 +181,8 @@ export function useAdminAiCopilot() {
             content: m.content,
           }));
 
+        const effectiveCompetitorUrl = customCompetitorUrl ?? (competitorUrl.trim() || undefined);
+
         const res = await fetch('/api/admin/ai-copilot', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -176,6 +190,7 @@ export function useAdminAiCopilot() {
             message: query,
             history: historyPayload,
             targetSeoUrl,
+            competitorUrl: effectiveCompetitorUrl,
           }),
         });
 
@@ -205,7 +220,17 @@ export function useAdminAiCopilot() {
         setIsThinking(false);
       }
     },
-    [input, isThinking, messages]
+    [input, isThinking, messages, competitorUrl]
+  );
+
+  const analyzeCompetitor = useCallback(
+    async (urlToAnalyze?: string) => {
+      const url = (urlToAnalyze ?? competitorUrl).trim();
+      if (!url) return;
+      const prompt = `Is competitor URL (${url}) ka mukammal live SEO, pricing, offer breakdown aur Google ranking ki wajah reverse engineer karo. Aur Pak-o-Drive ke liye actionable strategy aur Meta/TikTok ad insights batao.`;
+      await sendMessage(prompt, undefined, url);
+    },
+    [competitorUrl, sendMessage]
   );
 
   const clearChat = useCallback(() => {
@@ -218,7 +243,7 @@ export function useAdminAiCopilot() {
       {
         id: 'welcome',
         role: 'assistant',
-        content: `**Chat clear ho gayi hai!** Main aapki nayi queries ke liye tayyar hoon. Aap Products, Twin Cities Trends ya Live SEO ke mutalliq kuch bhi pooch sakte hain.`,
+        content: `**Chat clear ho gayi hai!** Main aapki nayi queries ke liye tayyar hoon. Aap Products, Twin Cities Trends, Competitor Analysis ya Live SEO ke mutalliq kuch bhi pooch sakte hain.`,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       },
     ]);
@@ -230,6 +255,8 @@ export function useAdminAiCopilot() {
     messages,
     input,
     setInput,
+    competitorUrl,
+    setCompetitorUrl,
     isThinking,
     loading: isThinking,
     error,
@@ -239,6 +266,7 @@ export function useAdminAiCopilot() {
     seoAudit,
     snapshotLoading,
     sendMessage,
+    analyzeCompetitor,
     clearChat,
     fetchSnapshot,
     messagesEndRef,
