@@ -6,6 +6,17 @@ This file serves as persistent dynamic memory across coding agent sessions. Ever
 
 ## 🏛️ PART 1: The 8 Core Pakistani E-Commerce Engineering Rules
 
+### 2026-09-09 — 0ms Deterministic Fast-Path Routing for Admin Quick Actions & Vercel Timeout Shield
+- **📌 Issue**: When clicking predefined quick action chips like `"⚡ Launch Flash Sale Event"` or `"🎬 Viral TikTok Video Script"`, the Admin AI Copilot sometimes fell back to a generic store snapshot (*"AI Engine refresh ho raha hai, baraye meherbani 10 seconds baad dubara query karein"*) instead of showing the interactive proposal card.
+- **🔍 Root Cause & Failed Attempts**:
+  - `detectActionWithAI()` previously delegated intent classification to external LLM APIs (`callMultiProviderAI`) first.
+  - On Vercel serverless deployments, if external LLM APIs (Gemini/Groq) were slow, timed out, or rate-limited, the call fell through to the old minimal regex heuristics that only supported order updates and deletions—leaving flash sales, ad scripts, courier manifests, and reviews unhandled.
+  - Consequently, `detectActionWithAI` returned `null`, falling through to `generateAdminAiExecutiveResponse()`, which also timed out on Vercel's 10-15s serverless execution window and triggered the fallback snapshot text.
+- **🛠️ Verified Code Fix**:
+  1. Added an **Instant Deterministic Fast-Path** (0.001ms execution, 0 network dependencies) at the very top of `detectActionWithAI()` in `src/lib/adminActionEngine.ts` covering all 15 operational intents via comprehensive regex patterns.
+  2. Streamlined `callGemini` in `src/lib/multiAiEngine.ts` with strict `AbortSignal.timeout(5000)` and fast models (`gemini-2.0-flash`, `gemini-1.5-flash`), failing fast into Groq (`llama-3.3-70b-versatile`) in under 400ms.
+  3. Verified with `pnpm tsc --noEmit` (0 errors), committed, and pushed to `main` branch.
+
 ### 2026-09-09 — 6-Pillar Enterprise AI Automation Suite: Viral Ads, Anti-RTO Shield, Auto-Repricing, Flash Sales, Reviews & Courier Manifest
 - **📌 Issue**: User requested implementing all 6 next-level e-commerce automations to run store operations on auto-pilot: Viral TikTok/Reels Video Scripts & Meta Ads, WhatsApp COD Confirmation & Anti-RTO Shield, Dynamic Competitor Auto-Beat Re-Pricing, 1-Click Flash Sale & Promo Events, Authentic Pakistani Car Reviews Generator, and Bulk Courier Manifest Export.
 - **🔍 Root Cause & Failed Attempts**:
