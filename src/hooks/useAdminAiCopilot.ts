@@ -2,12 +2,20 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import type { AdminStoreSummary } from '@/lib/adminAiEngine';
+import type { AdminActionRequired } from '@/lib/adminActionEngine';
 
 export interface ChatMessage {
   id: string;
   role: 'user' | 'assistant';
   content: string;
   timestamp: string;
+  actionRequired?: AdminActionRequired;
+  actionExecuted?: {
+    type: string;
+    description: string;
+    count?: number;
+    details?: any;
+  };
 }
 
 export interface PromptCategory {
@@ -17,6 +25,17 @@ export interface PromptCategory {
 }
 
 export const COPILOT_PROMPT_CATEGORIES: PromptCategory[] = [
+  {
+    category: 'Direct Store Actions & Operations',
+    icon: '⚡',
+    prompts: [
+      'Pending orders check karo aur latest order ko Delivered mark kar do',
+      'Tamam Cancelled orders database se delete kar do',
+      'Naya coupon code "EID25" 25% discount create karo',
+      'Car Ambient Light ka price PKR 2,499 update kar do',
+      'Nayi category "Smart Dashcams" create kar do',
+    ],
+  },
   {
     category: 'Twin Cities (RWP/ISB) Trends',
     icon: '📍',
@@ -69,6 +88,7 @@ export const COPILOT_PROMPT_CATEGORIES: PromptCategory[] = [
 ];
 
 const DEFAULT_QUICK_PROMPTS = [
+  'Store Operations & Actions ⚡',
   'Rawalpindi & Islamabad Trends 📍',
   'Low Stock Products Alert 📦',
   'Live Site SEO & Ranking Audit 🔍',
@@ -88,6 +108,7 @@ export function useAdminAiCopilot() {
   const [snapshot, setSnapshot] = useState<AdminStoreSummary | null>(null);
   const [seoAudit, setSeoAudit] = useState<{ totalMissingSeo: number; sampleUnoptimizedProducts: string[] } | null>(null);
   const [snapshotLoading, setSnapshotLoading] = useState(false);
+  const [pendingAction, setPendingAction] = useState<AdminActionRequired | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -116,7 +137,7 @@ export function useAdminAiCopilot() {
       {
         id: 'welcome',
         role: 'assistant',
-        content: `**Assalam-o-Alaikum! Main Pak-o-Drive ka Executive AI Copilot hoon.** 🚗💼\n\nAap mujh se apne store ke **Live Products & Stock**, **Orders & Revenue**, **Rawalpindi & Islamabad ke Local Car Market Trends**, ya **Live Site SEO & Google Rankings** ke bare me jo chahein pooch sakte hain.\n\nNeeche diye gaye **Quick Prompts** par click karein ya apna sawal type karein!`,
+        content: `**Assalam-o-Alaikum! Main Pak-o-Drive ka Executive AI Copilot hoon.** 🚗💼⚡\n\nAap mujh se:\n- **Direct Store Actions:** Orders ka status badalna (*"Status Delivered kar do"*), details update karna, ya orders delete karna.\n- **Products & Stock Management:** Prices update karna (*"Price 2500 kar do"*), stock check/modify karna ya coupons create karna.\n- **Twin Cities Trends:** Rawalpindi / Islamabad ke local automotive market trends.\n- **Live Site SEO & Competitor Spy:** Live rankings aur competitor reverse engineering.\n\nNeeche diye gaye **Quick Prompts** par click karein ya apna hukum type karein!`,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       },
     ]);
@@ -201,9 +222,21 @@ export function useAdminAiCopilot() {
             id: `assistant-${Date.now()}`,
             role: 'assistant',
             content: data.reply,
+            actionRequired: data.actionRequired,
+            actionExecuted: data.actionExecuted,
             timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
           };
           setMessages((prev) => [...prev, aiMsg]);
+
+          if (data.actionRequired) {
+            setPendingAction(data.actionRequired);
+          } else {
+            setPendingAction(null);
+          }
+
+          if (data.actionExecuted) {
+            fetchSnapshot();
+          }
         } else {
           throw new Error(data.error || 'AI response error');
         }
@@ -220,8 +253,76 @@ export function useAdminAiCopilot() {
         setIsThinking(false);
       }
     },
-    [input, isThinking, messages, competitorUrl]
+    [input, isThinking, messages, competitorUrl, fetchSnapshot]
   );
+
+  // Confirms and executes an action that required explicit admin permission
+  const confirmPendingAction = useCallback(
+    async (actionToConfirm?: AdminActionRequired) => {
+      const act = actionToConfirm || pendingAction;
+      if (!act || isThinking) return;
+
+      setIsThinking(true);
+      setPendingAction(null);
+
+      const userConfirmMsg: ChatMessage = {
+        id: `user-${Date.now()}`,
+        role: 'user',
+        content: `✅ Confirmed: ${act.title}`,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      };
+      setMessages((prev) => [...prev, userConfirmMsg]);
+
+      try {
+        const res = await fetch('/api/admin/ai-copilot', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            actionConfirmation: act.payload,
+          }),
+        });
+
+        const data = await res.json();
+        if (data.success && data.reply) {
+          const aiMsg: ChatMessage = {
+            id: `assistant-${Date.now()}`,
+            role: 'assistant',
+            content: data.reply,
+            actionExecuted: data.actionExecuted,
+            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          };
+          setMessages((prev) => [...prev, aiMsg]);
+          fetchSnapshot();
+        } else {
+          throw new Error(data.error || 'Action execution failed');
+        }
+      } catch (err: any) {
+        setError(err.message || 'Action execute karne me masla pesh aya.');
+        const fallbackMsg: ChatMessage = {
+          id: `assistant-${Date.now()}`,
+          role: 'assistant',
+          content: `❌ **Error:** Action mukammal nahi ho saka: ${err.message}`,
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        };
+        setMessages((prev) => [...prev, fallbackMsg]);
+      } finally {
+        setIsThinking(false);
+      }
+    },
+    [pendingAction, isThinking, fetchSnapshot]
+  );
+
+  // Cancels pending safety action
+  const cancelPendingAction = useCallback(() => {
+    setPendingAction(null);
+    const cancelMsg: ChatMessage = {
+      id: `assistant-${Date.now()}`,
+      role: 'assistant',
+      content: `🚫 **Action Cancelled:** Deletion rok di gayi hai. Database me koi tabdeeli nahi hui.`,
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    };
+    setMessages((prev) => [...prev, cancelMsg]);
+  }, []);
 
   const analyzeCompetitor = useCallback(
     async (urlToAnalyze?: string) => {
@@ -239,11 +340,12 @@ export function useAdminAiCopilot() {
     } catch {
       // Ignore
     }
+    setPendingAction(null);
     setMessages([
       {
         id: 'welcome',
         role: 'assistant',
-        content: `**Chat clear ho gayi hai!** Main aapki nayi queries ke liye tayyar hoon. Aap Products, Twin Cities Trends, Competitor Analysis ya Live SEO ke mutalliq kuch bhi pooch sakte hain.`,
+        content: `**Chat clear ho gayi hai!** Main aapki nayi queries aur database actions ke liye tayyar hoon.`,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       },
     ]);
@@ -265,6 +367,9 @@ export function useAdminAiCopilot() {
     snapshot,
     seoAudit,
     snapshotLoading,
+    pendingAction,
+    confirmPendingAction,
+    cancelPendingAction,
     sendMessage,
     analyzeCompetitor,
     clearChat,

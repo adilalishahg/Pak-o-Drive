@@ -6,7 +6,18 @@ This file serves as persistent dynamic memory across coding agent sessions. Ever
 
 ## 🏛️ PART 1: The 8 Core Pakistani E-Commerce Engineering Rules
 
-### 2026-09-09 — Competitor Spy & Strategy Reverse Engineering Engine (SEO, Pricing, Offer & Ad Breakdown)
+### 2026-09-09 — Autonomous Admin AI Copilot Store Action Execution Engine with Two-Step Safety Guardrails
+- **📌 Issue**: User requested allowing the Admin AI Copilot to directly perform actions in the store based on conversation in Roman Urdu (e.g. updating order statuses, modifying customer delivery details/tracking numbers, deleting specific orders, deleting bulk orders by status/date range, updating product prices/stock, and creating promotions/categories).
+- **🔍 Root Cause & Failed Attempts**:
+  - The AI Copilot was previously a read-only advisor without capabilities to modify MongoDB documents.
+  - Destructive bulk actions (e.g., deleting orders or products) must never run silently without an interactive safety confirmation card showing the exact count of documents affected, preventing accidental data loss.
+- **🛠️ Verified Code Fix**:
+  1. Built `src/lib/adminActionEngine.ts` with intent classification parser `detectActionWithAI()` and action dispatcher `executeAdminAction()`. Supports: `update_order_status`, `update_order_details`, `delete_orders_bulk`, `delete_order`, `update_product`, `delete_product`, `create_product`, `create_promotion`, `create_category`.
+  2. Integrated 2-step safety guardrail: destructive actions calculate matching documents and return an `actionRequired` schema when unconfirmed, rendering a high-contrast Safety Confirmation Card in chat with `[ ✅ Confirm & Execute ]` and `[ ❌ Cancel ]` buttons.
+  3. Upgraded `src/app/api/admin/ai-copilot/route.ts` to detect action intent, execute confirmed or safe actions, and return structured action execution / safety payloads.
+  4. Enhanced `src/hooks/useAdminAiCopilot.ts` with `pendingAction`, `confirmPendingAction()`, `cancelPendingAction()`, and automated live metrics auto-sync via `fetchSnapshot()` upon action execution.
+  5. Updated both the dedicated full command center (`src/app/admin/ai-copilot/page.tsx`) and the global floating drawer (`src/components/admin/ai-copilot/AdminAiDrawer.tsx`) to render action executed badges and safety cards seamlessly.
+  6. Verified via `pnpm tsc --noEmit` (0 errors).
 - **📌 Issue**: User requested expanding the Admin AI Copilot so it can analyze any competitor (e.g. Sehgal Motors, Autostore.pk, PakWheels, Daraz), extract their SEO, pricing, offer strategy, explain why their products rank/list on Google, and provide actionable blueprints to outcompete them in Roman Urdu.
 - **🔍 Root Cause & Failed Attempts**:
   - The AI Copilot previously only inspected internal store database stats and scanned internal URLs, without capabilities to safely scrape external competitor product pages, extract competitor pricing in PKR, detect trust badges (Free Shipping, COD, Warranty), or generate targeted Meta Ad Library & TikTok search links.

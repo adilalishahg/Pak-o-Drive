@@ -20,6 +20,8 @@ import {
   Loader2,
   Maximize2,
   Minimize2,
+  CheckCircle2,
+  ShieldAlert,
 } from 'lucide-react';
 import { useAdminAiCopilot } from '@/hooks/useAdminAiCopilot';
 
@@ -36,6 +38,9 @@ export function AdminAiDrawer() {
     sendMessage,
     clearChat,
     messagesEndRef,
+    pendingAction,
+    confirmPendingAction,
+    cancelPendingAction,
   } = useAdminAiCopilot();
 
   const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -55,6 +60,8 @@ export function AdminAiDrawer() {
   };
 
   const getPromptIcon = (promptText: string) => {
+    if (promptText.includes('Operations') || promptText.includes('Actions'))
+      return <Sparkles className="w-3.5 h-3.5 text-orange-400" />;
     if (promptText.includes('Trends')) return <TrendingUp className="w-3.5 h-3.5 text-amber-400" />;
     if (promptText.includes('Stock')) return <Package className="w-3.5 h-3.5 text-rose-400" />;
     if (promptText.includes('SEO')) return <Search className="w-3.5 h-3.5 text-sky-400" />;
@@ -257,6 +264,58 @@ export function AdminAiDrawer() {
                       >
                         {msg.content}
                       </ReactMarkdown>
+                    </div>
+                  )}
+
+                  {/* Action Executed Badge */}
+                  {msg.actionExecuted && (
+                    <div className="mt-2.5 p-2 bg-emerald-950/70 border border-emerald-500/30 rounded-xl flex items-center gap-2 text-emerald-300 text-xs">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                      <div>
+                        <span className="font-semibold block text-[11px] leading-tight text-emerald-300">
+                          Database Synchronized
+                        </span>
+                        <span className="text-[10.5px] text-emerald-200/80 leading-normal">
+                          {msg.actionExecuted.description}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Safety Confirmation Card */}
+                  {msg.actionRequired && pendingAction?.id === msg.actionRequired.id && (
+                    <div className="mt-3 p-3 bg-rose-950/80 border border-rose-500/40 rounded-xl text-slate-100 shadow-lg">
+                      <div className="flex items-center justify-between gap-2 mb-1.5">
+                        <div className="flex items-center gap-2 text-rose-400 font-bold text-xs">
+                          <ShieldAlert className="w-4 h-4 flex-shrink-0" />
+                          <span className="leading-normal">{msg.actionRequired.title}</span>
+                        </div>
+                        <span className="text-[10px] font-bold bg-rose-600/40 text-rose-200 px-2 py-0.5 rounded-full border border-rose-500/30 flex-shrink-0">
+                          {msg.actionRequired.count} items
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-slate-300 mb-3 leading-relaxed">
+                        {msg.actionRequired.description}
+                      </p>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          disabled={isThinking}
+                          onClick={() => confirmPendingAction(msg.actionRequired)}
+                          className="px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-500 text-white font-semibold text-xs flex items-center gap-1.5 transition-all shadow-md active:scale-95 disabled:opacity-50"
+                        >
+                          <Check className="w-3.5 h-3.5" />
+                          <span>Confirm & Execute</span>
+                        </button>
+                        <button
+                          type="button"
+                          disabled={isThinking}
+                          onClick={cancelPendingAction}
+                          className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs border border-slate-700 transition-all active:scale-95 disabled:opacity-50"
+                        >
+                          <span>Cancel</span>
+                        </button>
+                      </div>
                     </div>
                   )}
 

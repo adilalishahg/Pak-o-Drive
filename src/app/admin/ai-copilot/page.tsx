@@ -21,6 +21,9 @@ export default function AdminAiCopilotPage() {
     clearChat,
     fetchSnapshot,
     promptCategories,
+    pendingAction,
+    confirmPendingAction,
+    cancelPendingAction,
   } = useAdminAiCopilot();
 
   const [inputMessage, setInputMessage] = useState('');
@@ -441,6 +444,56 @@ export default function AdminAiCopilotPage() {
                             {m.content}
                           </ReactMarkdown>
                         </div>
+
+                        {/* Action Executed Badge */}
+                        {m.actionExecuted && (
+                          <div className="mt-2.5 p-2 bg-success-subtle border border-success-subtle rounded-3 d-flex align-items-center gap-2 text-success small">
+                            <i className="fas fa-check-circle fs-6" />
+                            <div>
+                              <strong className="d-block" style={{ fontSize: '11.5px' }}>Database Synchronized</strong>
+                              <span style={{ fontSize: '11px' }}>{m.actionExecuted.description}</span>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Safety Confirmation Card */}
+                        {m.actionRequired && pendingAction?.id === m.actionRequired.id && (
+                          <div className="mt-3 p-3 bg-danger-subtle border border-danger-subtle rounded-3 text-dark shadow-sm">
+                            <div className="d-flex align-items-center justify-content-between gap-2 mb-2">
+                              <div className="d-flex align-items-center gap-2 text-danger fw-bold">
+                                <i className="fas fa-shield-alt fs-5" />
+                                <span style={{ fontSize: '13px' }}>{m.actionRequired.title}</span>
+                              </div>
+                              <span className="badge bg-danger text-white px-2 py-1" style={{ fontSize: '11px' }}>
+                                {m.actionRequired.count} Items
+                              </span>
+                            </div>
+                            <p className="small mb-3 text-secondary" style={{ fontSize: '12px', lineHeight: '1.4' }}>
+                              {m.actionRequired.description}
+                            </p>
+                            <div className="d-flex align-items-center gap-2">
+                              <button
+                                type="button"
+                                disabled={loading}
+                                onClick={() => confirmPendingAction(m.actionRequired)}
+                                className="btn btn-sm btn-danger d-flex align-items-center gap-1.5 px-3 py-1.5 fw-semibold"
+                                style={{ borderRadius: '8px', fontSize: '12px' }}
+                              >
+                                <i className="fas fa-check" />
+                                <span>Confirm & Execute</span>
+                              </button>
+                              <button
+                                type="button"
+                                disabled={loading}
+                                onClick={cancelPendingAction}
+                                className="btn btn-sm btn-outline-secondary px-3 py-1.5"
+                                style={{ borderRadius: '8px', fontSize: '12px' }}
+                              >
+                                <span>Cancel</span>
+                              </button>
+                            </div>
+                          </div>
+                        )}
                       </div>
 
                       {/* User Avatar */}
