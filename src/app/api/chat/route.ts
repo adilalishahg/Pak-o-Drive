@@ -80,22 +80,22 @@ function formatOrderLiveStatus(order: any): string {
 
   const trackingText = order.trackingNumber
     ? `\n🚚 *Courier Tracking:* ${order.courierName || 'Leopards / TCS / PostEx'} (CN: *${order.trackingNumber}*)`
-    : '\n🚚 *Courier Tracking:* Parcel verification stage par hai, courier dispatch hotay hi tracking number update ho jayega.';
+    : '\n🚚 *Courier Tracking:* Your parcel is currently in the dispatch preparation stage. Tracking details will update automatically upon handover.';
 
   const addressText = order.customerDetails?.city
     ? `📍 *Delivery Address:* ${order.customerDetails?.address}, ${order.customerDetails?.city}\n`
     : '';
 
   return (
-    `السلام علیکم ${order.customerDetails?.name || 'Customer'}! ✨\n\n` +
-    `Aapka order record database me verify ho gaya hai:\n\n` +
+    `Hello ${order.customerDetails?.name || 'Valued Customer'}! ✨\n\n` +
+    `Your order has been verified in our database:\n\n` +
     `📋 *Order ID:* #${shortId}\n` +
     `📦 *Current Status:* *${order.status}*\n` +
     `💰 *Total Amount:* Rs. ${order.totalAmount?.toLocaleString()} (Cash On Delivery)\n` +
     addressText +
     trackingText +
     `\n\n*Ordered Items:*\n${itemsSummary}\n\n` +
-    `Pak-o-Drive par shopping karne ka shukriya! Kisi bhi mazeed maloomat ke liye hum hazir hain.`
+    `Thank you for shopping with Pak-o-Drive! Please let us know if you have any questions.`
   );
 }
 
@@ -112,7 +112,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<ChatMessageRe
       return NextResponse.json(
         {
           success: false,
-          reply: `Aap bohot taiz messages bhej rahay hain. Baraye meharbani ${rateCheck.reset} seconds intezar karein.`,
+          reply: `You are sending messages too quickly. Please wait ${rateCheck.reset} seconds before trying again.`,
           source: 'fallback',
           error: 'Rate limit exceeded',
         },
@@ -228,15 +228,15 @@ export async function POST(req: NextRequest): Promise<NextResponse<ChatMessageRe
 
       let agentReply =
         `👨‍💼 *Live Support Agent Handoff*\n\n` +
-        `Aapka message hamare store executive ko forward kar diya gaya hai (Session: *#${shortCode}*).\n\n` +
-        `Hamara agent jald isi chat window me aapse rabta karega. Aap apna sawal yahan type kar sakte hain!`;
+        `Your message has been forwarded to our support executive (Session: *#${shortCode}*).\n\n` +
+        `Our support representative will assist you in this chat window shortly. Please feel free to type any details below!`;
 
       if (isWarehouseInquiry) {
         agentReply =
           `🏢 *Central Warehouse Stock Check — Live Agent Connected* 🟢\n\n` +
-          `Aapki inquiry hamare Central Warehouse executive ko live forward kar di gayi hai (Session: *#${shortCode}*).\n\n` +
-          `Hamari team internal warehouse inventory mein yeh item check kar rahi hai aur aapko foran isi chat mein rate aur stock update mil jayega! 📦✨\n\n` +
-          `👉 *Mazeed kisi auto part ya gadget ki inquiry karni ho tou direct yahan type karein.*`;
+          `Your inquiry has been forwarded directly to our Central Warehouse team (Session: *#${shortCode}*).\n\n` +
+          `Our inventory specialists are verifying stock for this item now. You will receive an update on availability and price right here! 📦✨\n\n` +
+          `👉 *If you need any other automotive parts or accessories, please type them below.*`;
       }
 
       const msgId = 'bot_' + Date.now();
@@ -320,7 +320,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<ChatMessageRe
       {
         success: false,
         reply:
-          'وعلیکم السلام! Pak-o-Drive Support par khush-amdeed. Hum aapki kia madad kar sakte hain?\n\n1. Order Status\n2. Bank & JazzCash Details\n3. 7-Day Return Policy\n4. Live Agent Support',
+          'Hello! Welcome to Pak-o-Drive Support. How can we assist you today?\n\n1️⃣ Track Order Status\n2️⃣ Bank & Payment Details\n3️⃣ 7-Day Return & Replacement Policy\n4️⃣ Connect with Live Support',
         source: 'fallback',
         error: err.message,
       },

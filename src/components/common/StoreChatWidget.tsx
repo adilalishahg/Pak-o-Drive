@@ -261,35 +261,49 @@ export const StoreChatWidget: React.FC = () => {
             className="chat-prompt-popover"
             style={{
               position: 'absolute',
-              bottom: '6px',
-              right: '72px',
+              bottom: '8px',
+              right: '68px',
               background: '#ffffff',
-              padding: '10px 14px',
-              borderRadius: '16px',
-              boxShadow: '0 10px 30px rgba(0,0,0,0.15), 0 0 0 1px rgba(0,0,0,0.06)',
+              padding: '8px 12px',
+              borderRadius: '14px',
+              boxShadow: '0 8px 24px rgba(15, 23, 42, 0.15), 0 0 0 1px rgba(15, 23, 42, 0.06)',
               display: 'flex',
               alignItems: 'center',
-              gap: '10px',
+              gap: '8px',
+              width: 'max-content',
+              maxWidth: 'calc(100vw - 90px)',
               whiteSpace: 'nowrap',
               animation: 'chatBadgeBounce 3s infinite ease-in-out',
               zIndex: 99999,
               cursor: 'pointer',
+              boxSizing: 'border-box',
             }}
             onClick={toggleChat}
           >
-            <span style={{ fontSize: '16px' }}>👋</span>
-            <div>
+            <span style={{ fontSize: '15px', flexShrink: 0, lineHeight: 1 }}>👋</span>
+            <div style={{ flex: '0 1 auto', minWidth: 0 }}>
               <p
-                className="leading-normal font-semibold"
-                style={{ fontSize: '12.5px', color: '#0f172a', margin: 0 }}
+                style={{
+                  fontSize: '12px',
+                  fontWeight: 700,
+                  color: '#0f172a',
+                  margin: 0,
+                  lineHeight: '1.25',
+                  whiteSpace: 'nowrap',
+                }}
               >
                 Need help? We're online!
               </p>
               <p
-                className="leading-normal"
-                style={{ fontSize: '10.5px', color: '#64748b', margin: 0 }}
+                style={{
+                  fontSize: '10px',
+                  color: '#64748b',
+                  margin: '1px 0 0',
+                  lineHeight: '1.25',
+                  whiteSpace: 'nowrap',
+                }}
               >
-                Ask about order status or any questions
+                Track orders or ask anything
               </p>
             </div>
             <button
@@ -309,6 +323,8 @@ export const StoreChatWidget: React.FC = () => {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
+                flexShrink: 0,
+                marginLeft: '2px',
               }}
               aria-label="Dismiss tooltip"
             >
@@ -324,8 +340,8 @@ export const StoreChatWidget: React.FC = () => {
                 width: '10px',
                 height: '10px',
                 background: '#ffffff',
-                borderRight: '1px solid rgba(0,0,0,0.06)',
-                borderTop: '1px solid rgba(0,0,0,0.06)',
+                borderRight: '1px solid rgba(15, 23, 42, 0.08)',
+                borderTop: '1px solid rgba(15, 23, 42, 0.08)',
               }}
             />
           </div>
@@ -523,8 +539,10 @@ export const StoreChatWidget: React.FC = () => {
 
         @media (max-width: 480px) {
           .chat-prompt-popover {
-            max-width: calc(100vw - 110px);
-            white-space: normal !important;
+            max-width: calc(100vw - 90px) !important;
+            padding: 7px 10px !important;
+            right: 66px !important;
+            white-space: nowrap !important;
           }
         }
       `}</style>

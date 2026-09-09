@@ -71,7 +71,7 @@ function ShopContent({ initialProducts }: ShopClientProps) {
         width: '100%',
         display: 'flex',
         gap: '24px',
-        padding: '16px 12px 24px',
+        padding: '16px 12px 110px',
         alignItems: 'flex-start'
       }}>
 
