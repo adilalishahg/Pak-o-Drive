@@ -4,8 +4,11 @@ import React from 'react';
 import Link from 'next/link';
 import MetricCard from '../../components/common/MetricCard';
 import { useAdminDashboard } from '@/hooks/useAdminDashboard';
+import { useAdminLinkedInPost } from '@/hooks/useAdminLinkedInPost';
+import { AdminLinkedInPostModal } from '../../components/admin/social/AdminLinkedInPostModal';
 
 export default function AdminDashboardPage() {
+  const linkedInHook = useAdminLinkedInPost();
   const {
     data,
     stats,
@@ -93,6 +96,29 @@ export default function AdminDashboardPage() {
           animation: fadeIn 0.35s ease-out forwards;
         }
       `}} />
+
+      {/* Top Header & AI LinkedIn Trigger Bar */}
+      <div className="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4 pb-3 border-bottom">
+        <div>
+          <h4 className="fw-bold text-dark mb-1" style={{ fontSize: '1.25rem' }}>Admin Operations & Growth Telemetry</h4>
+          <p className="text-muted mb-0" style={{ fontSize: '0.8rem' }}>
+            Real-time business performance, automated fulfillment, and AI social authority system.
+          </p>
+        </div>
+        <div className="d-flex align-items-center gap-2">
+          <button
+            type="button"
+            onClick={() => linkedInHook.setIsOpen(true)}
+            className="btn btn-sm text-white fw-bold d-flex align-items-center gap-2 rounded-3 px-3 py-2 shadow-sm border-0"
+            style={{
+              background: 'linear-gradient(135deg, #0a66c2 0%, #1e40af 100%)',
+            }}
+          >
+            <i className="fab fa-linkedin" style={{ fontSize: '1.1rem' }} />
+            <span>🚀 Post AI LinkedIn Carousel</span>
+          </button>
+        </div>
+      </div>
 
       {/* Metric Cards Grid — col-12 = 1 per row on mobile, col-sm-6 = 2 per row on tablets, col-xl = equal width on desktop */}
       <div className="row g-3 mb-4">
@@ -379,6 +405,9 @@ export default function AdminDashboardPage() {
           </div>
         </div>
       </div>
+
+      {/* Dynamic AI LinkedIn Carousel Modal */}
+      <AdminLinkedInPostModal hook={linkedInHook} />
     </div>
   );
 }

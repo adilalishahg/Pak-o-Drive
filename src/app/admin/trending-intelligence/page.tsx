@@ -4,8 +4,11 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { useTrendingIntelligence } from '@/hooks/useTrendingIntelligence';
 import { TrendingAdIntelligence } from '@/lib/intelligenceEngine';
+import { useAdminLinkedInPost } from '@/hooks/useAdminLinkedInPost';
+import { AdminLinkedInPostModal } from '@/components/admin/social/AdminLinkedInPostModal';
 
 export default function TrendingIntelligencePage() {
+  const linkedInHook = useAdminLinkedInPost();
   const {
     report,
     isLoading,
@@ -115,6 +118,21 @@ export default function TrendingIntelligencePage() {
             className="trends-whatsapp-btn"
           >
             <span>📲</span> <span>{isSendingWhatsApp ? 'Sending...' : 'Send to WhatsApp'}</span>
+          </button>
+
+          {/* AI LinkedIn Carousel Trigger Button */}
+          <button
+            type="button"
+            onClick={() => linkedInHook.setIsOpen(true)}
+            className="trends-action-btn font-semibold"
+            style={{
+              background: 'linear-gradient(135deg, #0a66c2 0%, #1e40af 100%)',
+              color: '#ffffff',
+              border: 'none',
+            }}
+            title="Generate and publish dynamic technical carousel to LinkedIn"
+          >
+            <span>🚀</span> <span>Post AI LinkedIn Carousel</span>
           </button>
         </div>
       </div>
@@ -989,6 +1007,9 @@ export default function TrendingIntelligencePage() {
           50% { opacity: 0.5; }
         }
       `}</style>
+
+      {/* Dynamic AI LinkedIn Carousel Modal */}
+      <AdminLinkedInPostModal hook={linkedInHook} />
     </div>
   );
 }

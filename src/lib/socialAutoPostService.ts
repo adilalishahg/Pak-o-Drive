@@ -1,7 +1,9 @@
 import dbConnect from '@/lib/mongodb';
 import { SocialAccount } from '@/models/SocialAccount';
+import LinkedInPostLog from '@/models/LinkedInPostLog';
 import { callMultiProviderAI } from './multiAiEngine';
 import { renderSlobodanCarouselPdf, CURATED_DECKS } from './carouselGenerator';
+import { generateDynamicTechCarouselDeck, TechTrack } from './dynamicCarouselAiEngine';
 
 const TECH_TOPICS = [
   'React 19 Server Components vs Client Components in production applications',
@@ -468,24 +470,60 @@ export async function ensurePostHashtagsWithAI(caption: string, topic: string): 
 /**
  * 4. Master Trigger: Generate Carousel Deck + Render Multi-Page PDF + Publish to LinkedIn
  */
-export async function executeAutoLinkedInPost(preferredDeckIndex?: number): Promise<{
+export interface AutoLinkedInPostOptions {
+  preferredDeckIndex?: number;
+  track?: TechTrack | 'auto';
+  source?: 'cron' | 'admin-manual';
+  forceDynamic?: boolean;
+}
+
+/**
+ * 4. Master Trigger: Generate Dynamic Carousel Deck + Render Multi-Page PDF + Publish to LinkedIn
+ */
+export async function executeAutoLinkedInPost(
+  optionsOrIndex?: number | AutoLinkedInPostOptions
+): Promise<{
   success: boolean;
   topic?: string;
   content?: string;
   postId?: string;
   isCarousel?: boolean;
+  isDynamic?: boolean;
+  track?: string;
   error?: string;
 }> {
+  const options: AutoLinkedInPostOptions =
+    typeof optionsOrIndex === 'number'
+      ? { preferredDeckIndex: optionsOrIndex }
+      : optionsOrIndex || {};
+
+  const postSource = options.source || 'cron';
+
   try {
-    // 1. Pick a rich architectural topic deck
-    const deckIndex =
-      preferredDeckIndex !== undefined && preferredDeckIndex >= 0 && preferredDeckIndex < CURATED_DECKS.length
-        ? preferredDeckIndex
-        : Math.floor(Math.random() * CURATED_DECKS.length);
-    const chosenDeck = CURATED_DECKS[deckIndex];
+    let chosenDeck;
+    let resolvedTrack: TechTrack = 'agentic-ai';
+    let isDynamic = false;
+
+    // 1. If preferred deck index is requested, use curated deck
+    if (
+      options.preferredDeckIndex !== undefined &&
+      options.preferredDeckIndex >= 0 &&
+      options.preferredDeckIndex < CURATED_DECKS.length
+    ) {
+      chosenDeck = CURATED_DECKS[options.preferredDeckIndex];
+    } else {
+      // 1b. Dynamically generate fresh cutting-edge technical deck using AI
+      const dynamicResult = await generateDynamicTechCarouselDeck(options.track);
+      chosenDeck = dynamicResult.deck;
+      resolvedTrack = dynamicResult.track;
+      isDynamic = dynamicResult.isDynamic;
+    }
+
     const postCaption = await ensurePostHashtagsWithAI(chosenDeck.caption, chosenDeck.topic);
 
-    console.log(`🚀 [AutoSocial] Preparing Slobodan Gajić-style Carousel for: "${chosenDeck.topic}"...`);
+    console.log(
+      `🚀 [AutoSocial] Preparing Slobodan Gajić-style Carousel for: "${chosenDeck.topic}" (Dynamic: ${isDynamic}, Track: ${resolvedTrack})...`
+    );
 
     // 2. Generate 3D dark-mode Tech Graphic for the Cover Slide
     let coverGraphic: Buffer | null = null;
@@ -496,7 +534,7 @@ export async function executeAutoLinkedInPost(preferredDeckIndex?: number): Prom
       console.warn('⚠️ [AutoSocial] Cover graphic generation skipped:', gErr);
     }
 
-    // 3. Render 6-slide 1080x1080 dark mode PDF with embedded graphic & large typography
+    // 3. Render 6-to-8 slide 1080x1350 4:5 vertical PDF with embedded graphic & large typography
     let pdfBuffer: Buffer | null = null;
     try {
       pdfBuffer = await renderSlobodanCarouselPdf(chosenDeck, coverGraphic);
@@ -510,7 +548,7 @@ export async function executeAutoLinkedInPost(preferredDeckIndex?: number): Prom
       console.warn('⚠️ [AutoSocial] PDF rendering failed, will fall back to single 3D image:', pdfErr);
     }
 
-    // 3. Dispatch to LinkedIn (Document Carousel takes priority)
+    // 4. Dispatch to LinkedIn (Document Carousel takes priority)
     let publishRes;
     let isCarousel = false;
 
@@ -540,12 +578,40 @@ export async function executeAutoLinkedInPost(preferredDeckIndex?: number): Prom
       }
     }
 
-    if (!publishRes.success) {
+    // 5. Audit Logging to MongoDB (LinkedInPostLog) for history and anti-duplication
+    try {
+      await dbConnect();
+      await LinkedInPostLog.create({
+        topic: chosenDeck.topic,
+        track: resolvedTrack,
+        caption: postCaption,
+        slidesCount: chosenDeck.slides.length,
+        postId: publishRes?.postId,
+        source: postSource,
+        isCarousel,
+        status: publishRes?.success ? 'published' : 'failed',
+        error: publishRes?.error,
+        pdfUrl: '/active-carousel.pdf',
+      });
+
+      if (publishRes?.success) {
+        await SocialAccount.updateOne(
+          { platform: 'linkedin' },
+          { $set: { lastPostedAt: new Date() }, $inc: { postCount: 1 } }
+        );
+      }
+    } catch (logErr) {
+      console.warn('⚠️ [AutoSocial] Could not persist LinkedIn post log:', logErr);
+    }
+
+    if (!publishRes || !publishRes.success) {
       return {
         success: false,
         topic: chosenDeck.topic,
         content: postCaption,
-        error: publishRes.error,
+        track: resolvedTrack,
+        isDynamic,
+        error: publishRes?.error || 'Failed to dispatch post to LinkedIn',
       };
     }
 
@@ -554,6 +620,8 @@ export async function executeAutoLinkedInPost(preferredDeckIndex?: number): Prom
       topic: chosenDeck.topic,
       content: postCaption,
       postId: publishRes.postId,
+      track: resolvedTrack,
+      isDynamic,
       isCarousel,
     };
   } catch (err: any) {
