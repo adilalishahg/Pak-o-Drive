@@ -4,6 +4,27 @@ This file serves as persistent dynamic memory across coding agent sessions. Ever
 
 ---
 
+### 2026-09-09 — Vision AI "Snap & Auto-List" Gemini 3.6 Migration, Jimp Compression & Interactive Editable Proposal Card
+- **📌 Issue**: User uploaded a photo of "Cosmic Car Wax" (yellow tin with sponge) in the Admin AI Copilot to add a product, but the AI misidentified it and defaulted to a generic placeholder title (*"Universal Automotive Smart Car Accessory"*, category *"Car Gadgets"*, price PKR 1,499) with read-only buttons that prevented editing details before publishing.
+- **🔍 Root Cause & Failed Attempts**:
+  1. Google Gemini 2026 API update deprecated `gemini-2.5-flash` (returned 404 NOT_FOUND: *"This model is no longer available, update code to use gemini-3.6-flash"*).
+  2. The previous API call had an aggressive `AbortSignal.timeout(8000)` (8s) which aborted long vision inference on high-res camera photos, silently dropping into the static placeholder fallback.
+  3. Raw phone camera images (3MB–10MB base64) caused extreme network latency and payload limits.
+  4. The proposal card in `AdminAiDrawer` and `admin/ai-copilot` rendered read-only text with no editable inputs for the store owner to adjust Title, Category, Selling Price, Competitor Benchmark, or Initial Stock before publishing live.
+- **🛠️ Verified Code Fix**:
+  1. Updated `src/lib/visionAiEngine.ts`:
+     - Added automatic Jimp image downscaling/compression to max 1024x1024 (JPEG quality 80, ~100KB) when base64 payload exceeds 200KB.
+     - Upgraded Gemini model fallback cascade to `['gemini-3.6-flash', 'gemini-flash-latest', 'gemini-flash-lite-latest', 'gemini-3.1-flash-lite']`.
+     - Increased timeout to 22s (`AbortSignal.timeout(22000)`).
+     - Overhauled automotive vision system prompt to aggressively extract brand names and product text (e.g. "Cosmic", "7CF", "Turtle Wax", "3M", "Areon") and categorize automotive products correctly (`Car Care & Detailing`, `LED Lights & Bulbs`, etc.).
+     - Made fallback generator context-aware instead of returning static placeholder strings.
+  2. Updated `src/lib/adminActionEngine.ts`:
+     - Configured `publish_vision_product` to upload the user's real camera photo directly to Cloudinary (`pakodrive_products`), preserving authentic product photography.
+  3. Created `src/components/admin/ai-copilot/VisionProductProposalCard.tsx`:
+     - Built an interactive proposal card adhering to Rule 3 (uncropped dual-layer blur presentation) and Rule 4 (zero typography clipping).
+     - Added an **"✏️ Edit Details"** / **"👁️ Preview Card"** toggle allowing the admin to dynamically modify the Product Title, Category dropdown, Selling Price (PKR), Competitor Price (PKR), and Initial Stock directly in the chat proposal card before clicking `[ ✅ Approve & Publish Live ]`.
+  4. Verified with `pnpm tsc --noEmit` (0 errors).
+
 ### 2026-09-09 — 0% Heavy Runtime Animate UI / Magic UI / Aceternity UI Performance Suite (Marquee, Shimmer Button, Spotlight Card)
 - **📌 Issue**: User requested integrating high-conversion animations inspired by Animate UI, Magic UI, and Aceternity UI (with visual inspiration from Inspira UI) across the Main Page, Product Listing, Product Detail Page, and Order Success, while strictly preserving 95+ Lighthouse scores (0% heavy runtime impact).
 - **🔍 Root Cause & Failed Attempts**:

@@ -78,7 +78,7 @@ export const HomeCleanWhiteLayout: React.FC<HomeCleanWhiteLayoutProps> = ({
               autoPlayEnabled={sliderConfig.autoPlayEnabled}
               showArrows={sliderConfig.showArrows}
               showDots={sliderConfig.showDots}
-              engine={sliderConfig.sliderEngine || 'classic'}
+              engine={(sliderConfig.sliderEngine as 'classic' | 'smooothy') || 'smooothy'}
             />
           </div>
         </section>

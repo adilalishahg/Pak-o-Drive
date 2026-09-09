@@ -137,6 +137,74 @@ export const HomeCleanCategoryStrip: React.FC<HomeCleanCategoryStripProps> = ({
     setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 10);
   }, []);
 
+  // ── Auto-Advance Every 2 Seconds with Silky-Smooth Animation ──
+  const isInteractingRef = useRef(false);
+  const autoPlayTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const resumeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const stepForward = useCallback(() => {
+    if (!scrollRef.current || isInteractingRef.current) return;
+    const el = scrollRef.current;
+    const firstCard = el.firstElementChild as HTMLElement | null;
+    const cardStep = firstCard ? firstCard.offsetWidth + 14 : 219;
+    const maxScroll = el.scrollWidth - el.clientWidth;
+
+    if (el.scrollLeft >= maxScroll - 15) {
+      // Reached the end -> gracefully loop back to the start
+      el.scrollTo({ left: 0, behavior: 'smooth' });
+    } else {
+      // Step to the next card with native smooth snap animation
+      el.scrollBy({ left: cardStep, behavior: 'smooth' });
+    }
+  }, []);
+
+  const stopAutoPlay = useCallback(() => {
+    if (autoPlayTimerRef.current) {
+      clearInterval(autoPlayTimerRef.current);
+      autoPlayTimerRef.current = null;
+    }
+    if (resumeTimeoutRef.current) {
+      clearTimeout(resumeTimeoutRef.current);
+      resumeTimeoutRef.current = null;
+    }
+  }, []);
+
+  const startAutoPlay = useCallback(() => {
+    stopAutoPlay();
+    if (categoryCards.length <= 1) return;
+    autoPlayTimerRef.current = setInterval(() => {
+      stepForward();
+    }, 2000);
+  }, [categoryCards.length, stepForward, stopAutoPlay]);
+
+  const scheduleResume = useCallback((delayMs = 2000) => {
+    stopAutoPlay();
+    resumeTimeoutRef.current = setTimeout(() => {
+      isInteractingRef.current = false;
+      startAutoPlay();
+    }, delayMs);
+  }, [startAutoPlay, stopAutoPlay]);
+
+  // Handle visibility and auto-play lifecycle
+  useEffect(() => {
+    startAutoPlay();
+
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        stopAutoPlay();
+      } else {
+        startAutoPlay();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      stopAutoPlay();
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [startAutoPlay, stopAutoPlay]);
+
   useEffect(() => {
     const el = scrollRef.current;
     if (!el) return;
@@ -151,15 +219,42 @@ export const HomeCleanCategoryStrip: React.FC<HomeCleanCategoryStripProps> = ({
 
   const handleScroll = (direction: 'left' | 'right') => {
     if (!scrollRef.current) return;
-    const containerWidth = scrollRef.current.clientWidth;
-    const scrollAmount = direction === 'left' ? -Math.max(170, containerWidth * 0.75) : Math.max(170, containerWidth * 0.75);
+    stopAutoPlay();
+    const firstCard = scrollRef.current.firstElementChild as HTMLElement | null;
+    const cardStep = firstCard ? (firstCard.offsetWidth + 14) * 2 : 438;
+    const scrollAmount = direction === 'left' ? -cardStep : cardStep;
     scrollRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+    scheduleResume(2500);
+  };
+
+  const handleMouseEnter = () => {
+    isInteractingRef.current = true;
+    stopAutoPlay();
+  };
+
+  const handleMouseLeave = () => {
+    isInteractingRef.current = false;
+    startAutoPlay();
+  };
+
+  const handleTouchStart = () => {
+    isInteractingRef.current = true;
+    stopAutoPlay();
+  };
+
+  const handleTouchEnd = () => {
+    scheduleResume(2000);
   };
 
   if (categoryCards.length === 0) return null;
 
   return (
-    <div className="w-full relative select-none bg-white" aria-label="AutoStore Style Category Carousel">
+    <div
+      className="w-full relative select-none bg-white"
+      aria-label="AutoStore Style Category Carousel"
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+    >
       
       {/* 1. Slim Brand Stripe Band (Matching AutoStore slim ~44px height) */}
       <div
@@ -178,7 +273,7 @@ export const HomeCleanCategoryStrip: React.FC<HomeCleanCategoryStripProps> = ({
           <button
             type="button"
             onClick={() => handleScroll('left')}
-            className="absolute left-0 sm:left-2 top-1/2 -translate-y-1/2 w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center shadow-lg z-30 transition-transform hover:scale-105 cursor-pointer border-2 border-white focus:outline-none p-0 m-0"
+            className="absolute left-0 sm:left-2 top-1/2 -translate-y-1/2 w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center shadow-lg z-30 transition-transform hover:scale-105 active:scale-95 cursor-pointer border-2 border-white focus:outline-none p-0 m-0"
             style={{ backgroundColor: primaryColor }}
             aria-label="Previous categories"
           >
@@ -191,7 +286,7 @@ export const HomeCleanCategoryStrip: React.FC<HomeCleanCategoryStripProps> = ({
           <button
             type="button"
             onClick={() => handleScroll('right')}
-            className="absolute right-0 sm:right-2 top-1/2 -translate-y-1/2 w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center shadow-lg z-30 transition-transform hover:scale-105 cursor-pointer border-2 border-white focus:outline-none p-0 m-0"
+            className="absolute right-0 sm:right-2 top-1/2 -translate-y-1/2 w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center shadow-lg z-30 transition-transform hover:scale-105 active:scale-95 cursor-pointer border-2 border-white focus:outline-none p-0 m-0"
             style={{ backgroundColor: primaryColor }}
             aria-label="Next categories"
           >
@@ -202,12 +297,16 @@ export const HomeCleanCategoryStrip: React.FC<HomeCleanCategoryStripProps> = ({
         {/* Horizontal Track of White Cards */}
         <div
           ref={scrollRef}
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+          onTouchCancel={handleTouchEnd}
           className="flex items-stretch gap-2.5 sm:gap-3.5 overflow-x-auto pb-4 pt-1 px-1 scrollbar-none scroll-smooth focus:outline-none relative z-20"
           style={{
             scrollbarWidth: 'none',
             msOverflowStyle: 'none',
             scrollSnapType: 'x mandatory',
             WebkitOverflowScrolling: 'touch',
+            scrollBehavior: 'smooth',
           }}
         >
           {categoryCards.map((cat, idx) => (

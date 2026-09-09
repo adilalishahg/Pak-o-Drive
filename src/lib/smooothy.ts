@@ -1,7 +1,7 @@
 /**
  * Smooothy Physics Slider Engine
- * Inspired by github.com/vallafederico/smooothy
- * Ultra-smooth, 60fps momentum drag, physics lerp interpolation, and touch gestures.
+ * Ultra-smooth 120fps direct touch tracking, flick momentum, and seamless infinite loop wrapping.
+ * Zero-boundary locking: finger dragging can never get stuck across slide boundaries.
  */
 
 export interface SmooothyOptions {
@@ -10,7 +10,7 @@ export interface SmooothyOptions {
   slides: HTMLElement[];
   realSlideCount?: number;
   initialIndex?: number;
-  lerpFactor?: number; // 0.05 to 0.2 (lower = smoother inertia, higher = snappier)
+  lerpFactor?: number;
   dragSpeed?: number;
   snap?: boolean;
   infinite?: boolean;
@@ -20,14 +20,27 @@ export interface SmooothyOptions {
   onProgress?: (progress: number) => void;
 }
 
+function getTranslateX(element: HTMLElement): number {
+  if (typeof window === 'undefined') return 0;
+  const style = window.getComputedStyle(element);
+  const matrix = style.transform || (style as any).webkitTransform;
+  if (!matrix || matrix === 'none') return 0;
+  if (matrix.startsWith('matrix3d(')) {
+    const parts = matrix.slice(9, -1).split(',');
+    return parseFloat(parts[12]) || 0;
+  }
+  if (matrix.startsWith('matrix(')) {
+    const parts = matrix.slice(7, -1).split(',');
+    return parseFloat(parts[4]) || 0;
+  }
+  return 0;
+}
+
 export class Smooothy {
   private wrapper: HTMLElement;
   private container: HTMLElement;
   private slides: HTMLElement[];
   private realSlideCount: number;
-  private lerpFactor: number;
-  private dragSpeed: number;
-  private snap: boolean;
   private infinite: boolean;
   private autoPlay: boolean;
   private autoPlayInterval: number;
@@ -35,20 +48,23 @@ export class Smooothy {
   private onProgress?: (progress: number) => void;
 
   private currentX = 0;
-  private targetX = 0;
-  private isDragging = false;
   private isPointerDown = false;
+  private isDragging = false;
   private isHorizontalDrag = false;
+  private axisDetermined = false;
   private hasMoved = false;
+
   private startX = 0;
   private startY = 0;
-  private prevDragX = 0;
-  private velocity = 0;
-  private rafId: number | null = null;
-  private autoPlayTimer: any = null;
+  private lastX = 0;
+  private lastTime = 0;
+  private velocityX = 0;
+
   private slideWidth = 0;
-  private totalWidth = 0;
+  private totalTrackWidth = 0;
   private currentIndex = 0;
+  private autoPlayTimer: any = null;
+  private transitionTimer: any = null;
   private isDestroyed = false;
 
   constructor(options: SmooothyOptions) {
@@ -56,29 +72,24 @@ export class Smooothy {
     this.container = options.container;
     this.slides = options.slides;
     this.realSlideCount = options.realSlideCount ?? options.slides.length;
-    this.lerpFactor = options.lerpFactor ?? 0.12;
-    this.dragSpeed = options.dragSpeed ?? 1.15;
-    this.snap = options.snap ?? true;
-    this.infinite = options.infinite ?? false;
-    this.autoPlay = options.autoPlay ?? false;
-    this.autoPlayInterval = options.autoPlayInterval ?? 5000;
+    this.infinite = (options.infinite ?? true) && this.realSlideCount > 1;
+    this.autoPlay = options.autoPlay ?? true;
+    this.autoPlayInterval = Math.max(options.autoPlayInterval ?? 5000, 2500);
     this.onIndexChange = options.onIndexChange;
     this.onProgress = options.onProgress;
 
-    this.currentIndex = options.initialIndex ?? (this.infinite && this.realSlideCount > 1 ? 1 : 0);
+    // Track index: with infinite loop, real slide 0 starts at track index 1 (after the clone of last slide)
+    this.currentIndex = options.initialIndex ?? (this.infinite ? 1 : 0);
 
     this.init();
   }
 
   private init() {
     this.updateDimensions();
-    this.targetX = -this.currentIndex * this.slideWidth;
-    this.currentX = this.targetX;
-    if (this.container) {
-      this.container.style.transform = `translate3d(${this.currentX.toFixed(2)}px, 0, 0)`;
-    }
+    this.currentX = -this.currentIndex * this.slideWidth;
+    this.applyTransform(this.currentX, 0);
+
     this.bindEvents();
-    this.startRenderLoop();
     if (this.autoPlay) {
       this.startAutoPlay();
     }
@@ -87,31 +98,64 @@ export class Smooothy {
   public updateDimensions() {
     if (!this.wrapper || this.slides.length === 0) return;
     this.slideWidth = this.wrapper.clientWidth || this.slides[0]?.offsetWidth || window.innerWidth;
-    this.totalWidth = this.slideWidth * this.slides.length;
+    this.totalTrackWidth = this.slideWidth * this.slides.length;
+  }
+
+  private applyTransform(x: number, durationMs = 0, easing = 'cubic-bezier(0.22, 1, 0.36, 1)') {
+    if (!this.container) return;
+    if (durationMs > 0) {
+      this.container.style.transition = `transform ${durationMs}ms ${easing}`;
+    } else {
+      this.container.style.transition = 'none';
+    }
+    this.container.style.transform = `translate3d(${x.toFixed(2)}px, 0, 0)`;
+
+    if (this.onProgress && this.totalTrackWidth > 0) {
+      const progress = Math.max(0, Math.min(1, -x / (this.totalTrackWidth - this.slideWidth || 1)));
+      this.onProgress(progress);
+    }
   }
 
   private bindEvents() {
+    // Touch Events for 100% native mobile responsiveness
+    this.wrapper.addEventListener('touchstart', this.onTouchStart, { passive: true });
+    window.addEventListener('touchmove', this.onTouchMove, { passive: false });
+    window.addEventListener('touchend', this.onTouchEnd, { passive: true });
+    window.addEventListener('touchcancel', this.onTouchEnd, { passive: true });
+
+    // Pointer / Mouse events for desktop dragging
     this.wrapper.addEventListener('pointerdown', this.onPointerDown, { passive: true });
     window.addEventListener('pointermove', this.onPointerMove, { passive: false });
     window.addEventListener('pointerup', this.onPointerUp);
     window.addEventListener('pointercancel', this.onPointerUp);
-    window.addEventListener('resize', this.onResize);
 
+    window.addEventListener('resize', this.onResize);
     this.wrapper.addEventListener('mouseenter', this.pauseAutoPlay);
     this.wrapper.addEventListener('mouseleave', this.resumeAutoPlay);
     this.wrapper.addEventListener('click', this.onWrapperClick, true);
+
+    this.container.addEventListener('transitionend', this.onTransitionEnd);
   }
 
   private unbindEvents() {
+    this.wrapper.removeEventListener('touchstart', this.onTouchStart);
+    window.removeEventListener('touchmove', this.onTouchMove);
+    window.removeEventListener('touchend', this.onTouchEnd);
+    window.removeEventListener('touchcancel', this.onTouchEnd);
+
     this.wrapper.removeEventListener('pointerdown', this.onPointerDown);
     window.removeEventListener('pointermove', this.onPointerMove);
     window.removeEventListener('pointerup', this.onPointerUp);
     window.removeEventListener('pointercancel', this.onPointerUp);
-    window.removeEventListener('resize', this.onResize);
 
+    window.removeEventListener('resize', this.onResize);
     this.wrapper.removeEventListener('mouseenter', this.pauseAutoPlay);
     this.wrapper.removeEventListener('mouseleave', this.resumeAutoPlay);
     this.wrapper.removeEventListener('click', this.onWrapperClick, true);
+
+    if (this.container) {
+      this.container.removeEventListener('transitionend', this.onTransitionEnd);
+    }
   }
 
   private onWrapperClick = (e: MouseEvent) => {
@@ -121,208 +165,308 @@ export class Smooothy {
     }
   };
 
-  private startRenderLoop() {
-    if (this.isDestroyed || this.rafId !== null) return;
-    this.rafId = requestAnimationFrame(this.render);
+  private handleDragStart(clientX: number, clientY: number) {
+    this.pauseAutoPlay();
+    if (this.transitionTimer) {
+      clearTimeout(this.transitionTimer);
+      this.transitionTimer = null;
+    }
+
+    // Freeze mid-flight animation at exact pixel position
+    const currentComputedX = getTranslateX(this.container);
+    if (!isNaN(currentComputedX) && currentComputedX !== 0) {
+      this.currentX = currentComputedX;
+    }
+
+    // Normalize boundaries BEFORE user starts dragging so we never hit an edge
+    if (this.infinite && this.slideWidth > 0) {
+      const realWidth = this.realSlideCount * this.slideWidth;
+      if (this.currentX <= -(this.realSlideCount + 0.5) * this.slideWidth) {
+        this.currentX += realWidth;
+      } else if (this.currentX >= -0.5 * this.slideWidth) {
+        this.currentX -= realWidth;
+      }
+    }
+
+    this.applyTransform(this.currentX, 0);
+
+    this.isPointerDown = true;
+    this.isDragging = false;
+    this.isHorizontalDrag = false;
+    this.axisDetermined = false;
+    this.hasMoved = false;
+
+    this.startX = clientX;
+    this.startY = clientY;
+    this.lastX = clientX;
+    this.lastTime = performance.now();
+    this.velocityX = 0;
   }
 
-  private onPointerDown = (e: PointerEvent) => {
-    if (e.button !== 0 && e.pointerType === 'mouse') return;
-    this.isPointerDown = true;
-    this.isHorizontalDrag = false;
-    this.hasMoved = false;
-    this.startX = e.clientX;
-    this.startY = e.clientY;
-    this.prevDragX = e.clientX;
-    this.velocity = 0;
-    this.pauseAutoPlay();
-  };
-
-  private onPointerMove = (e: PointerEvent) => {
+  private handleDragMove(clientX: number, clientY: number, originalEvent: Event) {
     if (!this.isPointerDown) return;
 
-    const diffX = e.clientX - this.startX;
-    const diffY = e.clientY - this.startY;
+    const diffX = clientX - this.startX;
+    const diffY = clientY - this.startY;
 
-    if (!this.isHorizontalDrag) {
-      if (Math.abs(diffY) > Math.abs(diffX) && Math.abs(diffY) > 8) {
+    // Detect gesture intent (vertical page scroll vs horizontal slider drag)
+    if (!this.axisDetermined) {
+      if (Math.abs(diffY) > 8 && Math.abs(diffY) > Math.abs(diffX)) {
+        // User intends to scroll the page vertically
+        this.axisDetermined = true;
         this.isPointerDown = false;
         return;
       }
-      if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 8) {
+      if (Math.abs(diffX) > 6 && Math.abs(diffX) >= Math.abs(diffY)) {
+        // User intends to swipe the slider horizontally
+        this.axisDetermined = true;
         this.isHorizontalDrag = true;
         this.isDragging = true;
         this.wrapper.style.cursor = 'grabbing';
-        this.startRenderLoop();
-        try {
-          this.wrapper.setPointerCapture?.(e.pointerId);
-        } catch { }
       }
     }
 
-    if (this.isDragging) {
-      if (e.cancelable) {
-        e.preventDefault();
-      }
-      if (Math.abs(diffX) > 8) {
-        this.hasMoved = true;
-      }
-      const delta = (e.clientX - this.prevDragX) * this.dragSpeed;
-      this.prevDragX = e.clientX;
-      this.velocity = delta;
-      this.targetX += delta;
+    if (!this.isDragging) return;
 
-      if (!this.infinite) {
-        const minX = -(this.totalWidth - this.slideWidth);
-        const maxX = 0;
-        if (this.targetX > maxX) {
-          this.targetX = maxX + (this.targetX - maxX) * 0.35;
-        } else if (this.targetX < minX) {
-          this.targetX = minX + (this.targetX - minX) * 0.35;
-        }
-      }
-      this.startRenderLoop();
+    if (originalEvent.cancelable) {
+      originalEvent.preventDefault();
     }
-  };
 
-  private onPointerUp = (e: PointerEvent) => {
+    if (Math.abs(diffX) > 6) {
+      this.hasMoved = true;
+    }
+
+    const deltaX = clientX - this.lastX;
+    const now = performance.now();
+    const dt = Math.max(now - this.lastTime, 1);
+    this.velocityX = deltaX / dt; // pixels per ms
+    this.lastX = clientX;
+    this.lastTime = now;
+
+    this.currentX += deltaX;
+
+    // ── DYNAMIC CONTINUOUS DRAG WRAPPING (Never hits a wall!) ──
+    if (this.infinite && this.slideWidth > 0) {
+      const realWidth = this.realSlideCount * this.slideWidth;
+      // If dragged past clone of first slide (moving left)
+      if (this.currentX < -(this.realSlideCount + 1) * this.slideWidth) {
+        this.currentX += realWidth;
+        this.startX += realWidth;
+      }
+      // If dragged past clone of last slide (moving right)
+      else if (this.currentX > 0) {
+        this.currentX -= realWidth;
+        this.startX -= realWidth;
+      }
+    }
+
+    // Direct 1:1 hardware-accelerated finger tracking
+    this.applyTransform(this.currentX, 0);
+  }
+
+  private handleDragEnd() {
     if (!this.isPointerDown && !this.isDragging) return;
+
     const wasDragging = this.isDragging;
     this.isPointerDown = false;
     this.isDragging = false;
     this.isHorizontalDrag = false;
     this.wrapper.style.cursor = '';
-    try {
-      this.wrapper.releasePointerCapture?.(e.pointerId);
-    } catch { }
 
-    if (wasDragging && this.snap) {
-      const projectedX = this.targetX + this.velocity * 4;
-      let targetTrackIndex = Math.round(-projectedX / (this.slideWidth || 1));
-      targetTrackIndex = Math.max(0, Math.min(this.slides.length - 1, targetTrackIndex));
-      this.goToTrackIndex(targetTrackIndex);
-    } else if (wasDragging) {
-      this.startRenderLoop();
+    if (!wasDragging) {
+      this.resumeAutoPlay();
+      return;
+    }
+
+    if (this.slideWidth <= 0) {
+      this.updateDimensions();
+    }
+
+    const W = this.slideWidth || 1;
+    const continuousIndex = -this.currentX / W;
+
+    // Determine target slide based on flick velocity or distance
+    let targetIndex = Math.round(continuousIndex);
+
+    // Fast flick gesture detection (> 0.25px/ms)
+    if (Math.abs(this.velocityX) > 0.25) {
+      if (this.velocityX < 0) {
+        // Swiped left -> next slide
+        targetIndex = Math.ceil(continuousIndex);
+        if (targetIndex <= continuousIndex) targetIndex += 1;
+      } else {
+        // Swiped right -> previous slide
+        targetIndex = Math.floor(continuousIndex);
+        if (targetIndex >= continuousIndex) targetIndex -= 1;
+      }
+    }
+
+    // Animate smoothly to the target index
+    this.animateToTrackIndex(targetIndex);
+  }
+
+  public animateToTrackIndex(trackIndex: number, forcedDuration?: number) {
+    if (this.slides.length === 0) return;
+    this.updateDimensions();
+    const W = this.slideWidth || 1;
+
+    let target = trackIndex;
+    if (!this.infinite) {
+      target = Math.max(0, Math.min(this.slides.length - 1, trackIndex));
+    }
+
+    this.currentIndex = target;
+    const targetX = -target * W;
+    const distance = Math.abs(targetX - this.currentX);
+
+    // Dynamic duration: snappy yet buttery smooth (between 260ms and 400ms)
+    const duration = forcedDuration ?? Math.min(420, Math.max(260, Math.round(distance * 0.75)));
+
+    this.applyTransform(targetX, duration, 'cubic-bezier(0.22, 1, 0.36, 1)');
+    this.currentX = targetX;
+
+    // Notify real index to UI
+    let realIndex = 0;
+    if (this.infinite) {
+      if (target <= 0) {
+        realIndex = this.realSlideCount - 1;
+      } else if (target >= this.realSlideCount + 1) {
+        realIndex = 0;
+      } else {
+        realIndex = target - 1;
+      }
+    } else {
+      realIndex = (target + this.slides.length) % this.slides.length;
+    }
+    this.onIndexChange?.(realIndex);
+
+    // Fallback timer in case transitionend does not fire
+    if (this.transitionTimer) clearTimeout(this.transitionTimer);
+    this.transitionTimer = setTimeout(() => {
+      this.onTransitionEnd();
+    }, duration + 30);
+  }
+
+  private onTransitionEnd = () => {
+    if (this.transitionTimer) {
+      clearTimeout(this.transitionTimer);
+      this.transitionTimer = null;
+    }
+
+    if (!this.infinite || this.realSlideCount <= 1 || this.slideWidth <= 0) {
+      this.resumeAutoPlay();
+      return;
+    }
+
+    const W = this.slideWidth;
+
+    // ── INSTANT SEAMLESS BOUNDARY WRAPPING ──
+    // When landed on clone of first slide (index = realSlideCount + 1)
+    if (this.currentIndex >= this.realSlideCount + 1) {
+      this.currentIndex = 1;
+      this.currentX = -1 * W;
+      this.applyTransform(this.currentX, 0);
+      // Force DOM reflow so subsequent transitions animate properly
+      if (this.container) void this.container.offsetHeight;
+    }
+    // When landed on clone of last slide (index = 0)
+    else if (this.currentIndex <= 0) {
+      this.currentIndex = this.realSlideCount;
+      this.currentX = -this.realSlideCount * W;
+      this.applyTransform(this.currentX, 0);
+      if (this.container) void this.container.offsetHeight;
     }
 
     this.resumeAutoPlay();
   };
 
-  public goToTrackIndex(trackIndex: number) {
-    if (this.slides.length === 0) return;
-    const clampedIndex = Math.max(0, Math.min(this.slides.length - 1, trackIndex));
-    this.currentIndex = clampedIndex;
-    this.targetX = -clampedIndex * this.slideWidth;
+  // ── Touch Event Handlers ──
+  private onTouchStart = (e: TouchEvent) => {
+    if (e.touches.length !== 1) return;
+    const touch = e.touches[0];
+    this.handleDragStart(touch.clientX, touch.clientY);
+  };
 
-    let realIndex = 0;
-    if (this.infinite && this.realSlideCount > 1) {
-      if (clampedIndex === 0) {
-        realIndex = this.realSlideCount - 1;
-      } else if (clampedIndex >= this.realSlideCount + 1) {
-        realIndex = 0;
-      } else {
-        realIndex = clampedIndex - 1;
-      }
-    } else {
-      realIndex = (clampedIndex + this.slides.length) % this.slides.length;
-    }
+  private onTouchMove = (e: TouchEvent) => {
+    if (e.touches.length !== 1) return;
+    const touch = e.touches[0];
+    this.handleDragMove(touch.clientX, touch.clientY, e);
+  };
 
-    this.onIndexChange?.(realIndex);
-    this.startRenderLoop();
-  }
+  private onTouchEnd = () => {
+    this.handleDragEnd();
+  };
 
-  public goTo(realIndex: number) {
-    if (this.infinite && this.realSlideCount > 1) {
-      this.goToTrackIndex(realIndex + 1);
-    } else {
-      const bounded = (realIndex + this.slides.length) % this.slides.length;
-      this.currentIndex = bounded;
-      this.targetX = -bounded * this.slideWidth;
-      this.onIndexChange?.(bounded);
-      this.startRenderLoop();
-    }
-  }
+  // ── Pointer / Mouse Event Handlers ──
+  private onPointerDown = (e: PointerEvent) => {
+    if (e.pointerType === 'touch') return; // Handled by native touchstart for maximum fidelity
+    if (e.button !== 0) return;
+    this.handleDragStart(e.clientX, e.clientY);
+  };
 
+  private onPointerMove = (e: PointerEvent) => {
+    if (e.pointerType === 'touch') return;
+    this.handleDragMove(e.clientX, e.clientY, e);
+  };
+
+  private onPointerUp = (e: PointerEvent) => {
+    if (e.pointerType === 'touch') return;
+    this.handleDragEnd();
+  };
+
+  // ── Public Navigation API ──
   public next() {
-    if (this.infinite && this.realSlideCount > 1) {
-      this.goToTrackIndex(this.currentIndex + 1);
+    if (this.infinite) {
+      // If already at clone of first, normalize before advancing
+      if (this.currentIndex >= this.realSlideCount + 1) {
+        this.currentIndex = 1;
+        this.currentX = -1 * this.slideWidth;
+        this.applyTransform(this.currentX, 0);
+        if (this.container) void this.container.offsetHeight;
+      }
+      this.animateToTrackIndex(this.currentIndex + 1);
     } else {
       this.goTo((this.currentIndex + 1) % this.slides.length);
     }
   }
 
   public prev() {
-    if (this.infinite && this.realSlideCount > 1) {
-      this.goToTrackIndex(this.currentIndex - 1);
+    if (this.infinite) {
+      // If already at clone of last, normalize before retreating
+      if (this.currentIndex <= 0) {
+        this.currentIndex = this.realSlideCount;
+        this.currentX = -this.realSlideCount * this.slideWidth;
+        this.applyTransform(this.currentX, 0);
+        if (this.container) void this.container.offsetHeight;
+      }
+      this.animateToTrackIndex(this.currentIndex - 1);
     } else {
       this.goTo((this.currentIndex - 1 + this.slides.length) % this.slides.length);
     }
   }
 
-  private render = () => {
-    if (this.isDestroyed) return;
-
-    const diff = this.targetX - this.currentX;
-
-    // If resting and not dragging, snap exactly and check infinite loop wrap
-    if (!this.isDragging && Math.abs(diff) < 0.15) {
-      this.currentX = this.targetX;
-
-      // Seamless Infinite Loop Wrapping
-      if (this.infinite && this.realSlideCount > 1) {
-        if (this.currentIndex >= this.realSlideCount + 1) {
-          this.currentIndex = 1;
-          this.targetX = -1 * this.slideWidth;
-          this.currentX = this.targetX;
-        } else if (this.currentIndex <= 0) {
-          this.currentIndex = this.realSlideCount;
-          this.targetX = -this.realSlideCount * this.slideWidth;
-          this.currentX = this.targetX;
-        }
-      }
-
-      if (this.container) {
-        this.container.style.transform = `translate3d(${this.currentX.toFixed(2)}px, 0, 0)`;
-      }
-      if (this.onProgress && this.totalWidth > 0) {
-        const progress = Math.max(0, Math.min(1, -this.currentX / (this.totalWidth - this.slideWidth || 1)));
-        this.onProgress(progress);
-      }
-      this.rafId = null;
-      return;
+  public goTo(realIndex: number) {
+    if (this.infinite) {
+      this.animateToTrackIndex(realIndex + 1);
+    } else {
+      const bounded = (realIndex + this.slides.length) % this.slides.length;
+      this.animateToTrackIndex(bounded);
     }
-
-    // Linear Interpolation (Physics Lerp)
-    this.currentX += diff * this.lerpFactor;
-
-    if (this.container) {
-      this.container.style.transform = `translate3d(${this.currentX.toFixed(2)}px, 0, 0)`;
-    }
-
-    if (this.onProgress && this.totalWidth > 0) {
-      const progress = Math.max(0, Math.min(1, -this.currentX / (this.totalWidth - this.slideWidth || 1)));
-      this.onProgress(progress);
-    }
-
-    this.rafId = requestAnimationFrame(this.render);
-  };
+  }
 
   private onResize = () => {
     this.updateDimensions();
-    this.targetX = -this.currentIndex * this.slideWidth;
-    this.currentX = this.targetX;
-    if (this.container) {
-      this.container.style.transform = `translate3d(${this.currentX.toFixed(2)}px, 0, 0)`;
-    }
+    this.currentX = -this.currentIndex * this.slideWidth;
+    this.applyTransform(this.currentX, 0);
   };
 
   private startAutoPlay() {
-    if (!this.autoPlay || this.realSlideCount <= 1) return;
+    if (!this.autoPlay || this.realSlideCount <= 1 || this.isDestroyed) return;
     this.stopAutoPlay();
     this.autoPlayTimer = setTimeout(() => {
       this.next();
       this.startAutoPlay();
-    }, Math.max(this.autoPlayInterval, 2000));
+    }, this.autoPlayInterval);
   }
 
   private stopAutoPlay() {
@@ -337,16 +481,18 @@ export class Smooothy {
   };
 
   private resumeAutoPlay = () => {
-    if (this.autoPlay) {
+    if (this.autoPlay && !this.isPointerDown && !this.isDragging) {
       this.startAutoPlay();
     }
   };
 
   public destroy() {
     this.isDestroyed = true;
-    if (this.rafId) cancelAnimationFrame(this.rafId);
-    this.rafId = null;
     this.stopAutoPlay();
+    if (this.transitionTimer) {
+      clearTimeout(this.transitionTimer);
+      this.transitionTimer = null;
+    }
     this.unbindEvents();
   }
 }
