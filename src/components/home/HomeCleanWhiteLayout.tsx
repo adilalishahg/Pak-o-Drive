@@ -13,6 +13,8 @@ import { CategorySection } from '@/hooks/useHomePage';
 import { CategoryProductsBlock } from './CategoryProductsBlock';
 import { HomeCampaignOfferBanner } from './HomeCampaignOfferBanner';
 import { HomeCleanCategoryStrip } from './HomeCleanCategoryStrip';
+import { Marquee } from '@/components/ui/Marquee';
+import { SpotlightCard } from '@/components/ui/SpotlightCard';
 
 export interface HomeCleanWhiteLayoutProps {
   theme: SiteTheme;
@@ -54,10 +56,15 @@ export const HomeCleanWhiteLayout: React.FC<HomeCleanWhiteLayoutProps> = ({
 
   return (
     <div className="bg-[#fafafa] text-slate-800 font-sans antialiased min-h-screen flex flex-col">
-      {/* ── Announcement Bar ── */}
+      {/* ── Announcement Bar with Infinite Marquee ── */}
       {theme.announcementBarEnabled && (
-        <div className="announcement-bar text-slate-800 text-center py-2 px-3 overflow-hidden text-xs sm:text-sm font-semibold border-b border-slate-200">
-          <span className="announcement-inner">{theme.announcementBarText}</span>
+        <div className="announcement-bar text-slate-800 text-center py-2 px-2 overflow-hidden text-xs sm:text-sm font-semibold border-b border-slate-200">
+          <Marquee speed={30} gap="3rem" fadeEdges={false} pauseOnHover>
+            <span className="announcement-inner d-inline-flex items-center gap-2">
+              <i className="fas fa-bullhorn" style={{ color: theme.primaryColor || '#ea580c' }} />
+              <span>{theme.announcementBarText}</span>
+            </span>
+          </Marquee>
         </div>
       )}
 
@@ -300,20 +307,27 @@ export const HomeCleanWhiteLayout: React.FC<HomeCleanWhiteLayoutProps> = ({
                 { icon: 'M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z', color: 'bg-purple-50 text-purple-600', title: 'Secure Payment', desc: '100% encrypted SSL checkout' },
                 { icon: 'M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a5.969 5.969 0 01-.474-.065 4.48 4.48 0 00.978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z', color: 'bg-orange-50 text-orange-600', title: '24/7 Support', desc: 'Dedicated professional support' },
               ].map((item, i) => (
-                <div key={i} className="flex items-center gap-4 p-4">
-                  <div
-                    className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${i === 0 ? '' : item.color}`}
-                    style={i === 0 ? { backgroundColor: `color-mix(in srgb, ${theme.primaryColor} 10%, transparent)`, color: theme.primaryColor } : {}}
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" className="w-6 h-6">
-                      <path strokeLinecap="round" strokeLinejoin="round" d={item.icon} />
-                    </svg>
+                <SpotlightCard
+                  key={i}
+                  spotlightColor="rgba(37, 99, 235, 0.12)"
+                  borderColor="rgba(37, 99, 235, 0.3)"
+                  className="rounded-2xl border border-slate-100 bg-white"
+                >
+                  <div className="flex items-center gap-4 p-4">
+                    <div
+                      className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${i === 0 ? '' : item.color}`}
+                      style={i === 0 ? { backgroundColor: `color-mix(in srgb, ${theme.primaryColor} 10%, transparent)`, color: theme.primaryColor } : {}}
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" className="w-6 h-6">
+                        <path strokeLinecap="round" strokeLinejoin="round" d={item.icon} />
+                      </svg>
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-bold text-slate-900">{item.title}</h4>
+                      <p className="text-xs text-slate-500 mt-0.5">{item.desc}</p>
+                    </div>
                   </div>
-                  <div>
-                    <h4 className="text-sm font-bold text-slate-900">{item.title}</h4>
-                    <p className="text-xs text-slate-500 mt-0.5">{item.desc}</p>
-                  </div>
-                </div>
+                </SpotlightCard>
               ))}
             </div>
           </div>

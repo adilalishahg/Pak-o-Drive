@@ -15,6 +15,8 @@ import { ThemeIcon } from '@/components/common/ThemeIcon';
 import { ProductTabKey, CategorySection } from '@/hooks/useHomePage';
 import { CategoryProductsBlock } from './CategoryProductsBlock';
 import { HomeCleanCategoryStrip } from './HomeCleanCategoryStrip';
+import { Marquee } from '@/components/ui/Marquee';
+import { SpotlightCard } from '@/components/ui/SpotlightCard';
 
 export interface HomeModernLayoutProps {
   theme: SiteTheme;
@@ -63,12 +65,15 @@ export const HomeModernLayout: React.FC<HomeModernLayoutProps> = ({
 
   return (
     <div className={isModernGreen ? '' : 'bg-white'}>
-      {/* ── Announcement Bar ─────────────────────────────── */}
+      {/* ── Announcement Bar with Infinite Marquee ── */}
       {theme.announcementBarEnabled && (
-        <div className="announcement-bar text-white text-center py-2 px-3 overflow-hidden">
-          <span className="announcement-inner">
-            {theme.announcementBarText}
-          </span>
+        <div className="announcement-bar text-white text-center py-2 px-2 overflow-hidden">
+          <Marquee speed={32} gap="3.5rem" fadeEdges={false} pauseOnHover>
+            <span className="announcement-inner d-inline-flex items-center gap-2">
+              <i className="fas fa-bullhorn" style={{ color: '#fbbf24' }} />
+              <span>{theme.announcementBarText}</span>
+            </span>
+          </Marquee>
         </div>
       )}
 
@@ -85,6 +90,39 @@ export const HomeModernLayout: React.FC<HomeModernLayoutProps> = ({
           />
         </div>
       </section>
+
+      {/* ── High-Conversion Trust & Delivery Infinite Marquee Strip ── */}
+      <div
+        className="py-2 border-bottom"
+        style={{
+          background: isModernGreen ? '#0d231d' : '#0f172a',
+          color: '#ffffff',
+          borderColor: 'rgba(255,255,255,0.08)',
+        }}
+      >
+        <Marquee speed={28} gap="2.5rem" pauseOnHover>
+          <div className="d-flex align-items-center gap-2" style={{ fontSize: '0.78rem', fontWeight: 600 }}>
+            <span style={{ color: '#22c55e' }}>●</span>
+            <span>🇵🇰 Cash on Delivery (COD) Nationwide</span>
+          </div>
+          <div className="d-flex align-items-center gap-2" style={{ fontSize: '0.78rem', fontWeight: 600 }}>
+            <span style={{ color: '#f97316' }}>★</span>
+            <span>100% Genuine Car Parts & Accessories</span>
+          </div>
+          <div className="d-flex align-items-center gap-2" style={{ fontSize: '0.78rem', fontWeight: 600 }}>
+            <span style={{ color: '#38bdf8' }}>⚡</span>
+            <span>Fast Dispatch via TCS / Trax Express</span>
+          </div>
+          <div className="d-flex align-items-center gap-2" style={{ fontSize: '0.78rem', fontWeight: 600 }}>
+            <span style={{ color: '#a855f7' }}>🛡️</span>
+            <span>Inspect Before You Pay Guarantee</span>
+          </div>
+          <div className="d-flex align-items-center gap-2" style={{ fontSize: '0.78rem', fontWeight: 600 }}>
+            <span style={{ color: '#22c55e' }}>💬</span>
+            <span>24/7 WhatsApp Order & Support Desk</span>
+          </div>
+        </Marquee>
+      </div>
 
       {/* ── AutoStore Clean Category Icons Strip ───────────── */}
       <HomeCleanCategoryStrip
@@ -266,28 +304,34 @@ export const HomeModernLayout: React.FC<HomeModernLayoutProps> = ({
               },
             ].map((box, i) => (
               <div key={i} className="col-md-6 col-lg-3 animate-on-scroll">
-                <div className="why-us-card p-4 h-100 text-center border rounded shadow-sm bg-white">
-                  <div
-                    className="why-us-icon-container rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3"
-                    style={{
-                      width: '64px',
-                      height: '64px',
-                      background: isModernGreen
-                        ? 'rgba(212, 175, 55, 0.15)'
-                        : (isCleanWhite ? 'rgba(37, 99, 235, 0.1)' : 'rgba(234, 88, 12, 0.1)'),
-                      color: isModernGreen
-                        ? '#d4af37'
-                        : (isCleanWhite ? (theme.primaryColor || '#2563eb') : 'var(--pd-primary)'),
-                      border: isModernGreen
-                        ? '1px solid rgba(212, 175, 55, 0.3)'
-                        : '1px solid rgba(234, 88, 12, 0.2)',
-                    }}
-                  >
-                    <ThemeIcon name={box.icon} style={{ fontSize: '24px' }} />
+                <SpotlightCard
+                  spotlightColor={isModernGreen ? 'rgba(212, 175, 55, 0.16)' : 'rgba(234, 88, 12, 0.14)'}
+                  borderColor={isModernGreen ? 'rgba(212, 175, 55, 0.4)' : 'rgba(234, 88, 12, 0.35)'}
+                  className="rounded-4 border bg-white h-100 shadow-sm"
+                >
+                  <div className="why-us-card p-4 h-100 text-center">
+                    <div
+                      className="why-us-icon-container rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3"
+                      style={{
+                        width: '64px',
+                        height: '64px',
+                        background: isModernGreen
+                          ? 'rgba(212, 175, 55, 0.15)'
+                          : (isCleanWhite ? 'rgba(37, 99, 235, 0.1)' : 'rgba(234, 88, 12, 0.1)'),
+                        color: isModernGreen
+                          ? '#d4af37'
+                          : (isCleanWhite ? (theme.primaryColor || '#2563eb') : 'var(--pd-primary)'),
+                        border: isModernGreen
+                          ? '1px solid rgba(212, 175, 55, 0.3)'
+                          : '1px solid rgba(234, 88, 12, 0.2)',
+                      }}
+                    >
+                      <ThemeIcon name={box.icon} style={{ fontSize: '24px' }} />
+                    </div>
+                    <h5 className="fw-bold mb-2">{box.title}</h5>
+                    <p className="text-muted mb-0" style={{ fontSize: '0.8rem', lineHeight: 1.5 }}>{box.desc}</p>
                   </div>
-                  <h5 className="fw-bold mb-2">{box.title}</h5>
-                  <p className="text-muted mb-0" style={{ fontSize: '0.8rem', lineHeight: 1.5 }}>{box.desc}</p>
-                </div>
+                </SpotlightCard>
               </div>
             ))}
           </div>

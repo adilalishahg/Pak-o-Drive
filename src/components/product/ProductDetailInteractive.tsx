@@ -14,6 +14,7 @@ import { getBestCategoryIcon } from '@/lib/categoryIconService';
 import { FrequentlyBoughtTogether } from './FrequentlyBoughtTogether';
 import { ProductReviewsSection } from './ProductReviewsSection';
 import { StockUrgencyBanner } from './StockUrgencyBanner';
+import { SpotlightCard } from '../ui/SpotlightCard';
 
 export const ProductDetailInteractive: React.FC<ProductDetailInteractiveProps> = ({ product }) => {
   const {
@@ -372,62 +373,73 @@ export const ProductDetailInteractive: React.FC<ProductDetailInteractiveProps> =
         <div className="row g-3 mt-2">
           {/* Left Half: Features & Why You Need This (Circled Area in User's Screenshot) */}
           <div className="col-12 col-md-6">
-            <div
-              className="pd-card h-100 p-3 p-lg-4"
-              style={{
-                background: '#ffffff',
-                borderRadius: '12px',
-                border: '1px solid #e2e8f0',
-                boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
-              }}
+            <SpotlightCard
+              spotlightColor="rgba(234, 88, 12, 0.12)"
+              borderColor="rgba(234, 88, 12, 0.3)"
+              className="rounded-3 h-100"
             >
-              <div className="d-flex align-items-center gap-2 mb-3 pb-2 border-bottom">
-                <span
-                  style={{
-                    width: '32px',
-                    height: '32px',
-                    borderRadius: '8px',
-                    background: 'rgba(234, 88, 12, 0.1)',
-                    color: 'var(--pd-primary, #ea580c)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '14px',
-                    flexShrink: 0,
-                  }}
-                >
-                  <i className="fas fa-check-circle" />
-                </span>
-                <div>
-                  <h3 className="mb-0 fw-bold text-dark" style={{ fontSize: '1rem', lineHeight: 1.2 }}>
-                    Why You Need This & Key Features
-                  </h3>
-                  <span style={{ fontSize: '0.72rem', color: '#64748b' }}>
-                    Highlights & Benefits of this product
-                  </span>
-                </div>
-              </div>
-              <MarkdownRenderer
-                content={featuresDescription || cleanedDescription}
+              <div
+                className="pd-card h-100 p-3 p-lg-4"
                 style={{
-                  fontSize: '0.88rem',
-                  lineHeight: 1.65,
+                  background: '#ffffff',
+                  borderRadius: '12px',
+                  border: '1px solid #e2e8f0',
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
                 }}
-              />
-            </div>
+              >
+                <div className="d-flex align-items-center gap-2 mb-3 pb-2 border-bottom">
+                  <span
+                    style={{
+                      width: '32px',
+                      height: '32px',
+                      borderRadius: '8px',
+                      background: 'rgba(234, 88, 12, 0.1)',
+                      color: 'var(--pd-primary, #ea580c)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '14px',
+                      flexShrink: 0,
+                    }}
+                  >
+                    <i className="fas fa-check-circle" />
+                  </span>
+                  <div>
+                    <h3 className="mb-0 fw-bold text-dark" style={{ fontSize: '1rem', lineHeight: 1.2 }}>
+                      Why You Need This & Key Features
+                    </h3>
+                    <span style={{ fontSize: '0.72rem', color: '#64748b' }}>
+                      Highlights & Benefits of this product
+                    </span>
+                  </div>
+                </div>
+                <MarkdownRenderer
+                  content={featuresDescription || cleanedDescription}
+                  style={{
+                    fontSize: '0.88rem',
+                    lineHeight: 1.65,
+                  }}
+                />
+              </div>
+            </SpotlightCard>
           </div>
 
           {/* Right Half: Technical Specifications & Fitment */}
           <div className="col-12 col-md-6">
-            <div
-              className="pd-card h-100 p-3 p-lg-4"
-              style={{
-                background: '#ffffff',
-                borderRadius: '12px',
-                border: '1px solid #e2e8f0',
-                boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
-              }}
+            <SpotlightCard
+              spotlightColor="rgba(37, 99, 235, 0.12)"
+              borderColor="rgba(37, 99, 235, 0.3)"
+              className="rounded-3 h-100"
             >
+              <div
+                className="pd-card h-100 p-3 p-lg-4"
+                style={{
+                  background: '#ffffff',
+                  borderRadius: '12px',
+                  border: '1px solid #e2e8f0',
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+                }}
+              >
               <div className="d-flex align-items-center gap-2 mb-3 pb-2 border-bottom">
                 <span
                   style={{
@@ -496,8 +508,9 @@ export const ProductDetailInteractive: React.FC<ProductDetailInteractiveProps> =
                   <div className="mb-1">• Easy Direct Fitment & Installation</div>
                   <div>• 7-Day Easy Return & Cash on Delivery Across Pakistan</div>
                 </div>
-              )}
-            </div>
+                )}
+              </div>
+            </SpotlightCard>
           </div>
         </div>
       )}

@@ -50,13 +50,13 @@ export const ProductCardCleanWhite: React.FC<ProductCardCleanWhiteProps> = ({
       {/* Top Badges */}
       <div className="absolute top-2 left-2 sm:top-3 sm:left-3 flex flex-col gap-1 z-10">
         {discountPercent > 0 && (
-          <span className="bg-gradient-to-r from-red-600 to-rose-500 text-white text-[9px] sm:text-[10px] font-extrabold px-2 py-0.5 rounded-full uppercase tracking-wider shadow-sm leading-normal">
+          <span className="badge-shimmer bg-gradient-to-r from-red-600 to-rose-500 text-white text-[9px] sm:text-[10px] font-extrabold px-2 py-0.5 rounded-full uppercase tracking-wider shadow-sm leading-normal">
             -{discountPercent}% OFF
           </span>
         )}
         {product.isNewArrival && (
           <span
-            className="text-white text-[9px] sm:text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider shadow-sm leading-normal"
+            className="badge-shimmer text-white text-[9px] sm:text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider shadow-sm leading-normal"
             style={{ backgroundColor: 'var(--pd-primary-dark, #c2410c)' }}
           >
             NEW

@@ -135,6 +135,7 @@ export const ProductCardModern: React.FC<ProductCardModernProps> = ({
         <div style={{ position: 'absolute', top: '8px', left: '8px', zIndex: 2, display: 'flex', flexDirection: 'column', gap: '4px' }}>
           {discountPercent > 0 ? (
             <span
+              className="badge-shimmer"
               style={{
                 background: 'linear-gradient(135deg, #ef4444, #dc2626)',
                 color: '#fff',
@@ -152,6 +153,7 @@ export const ProductCardModern: React.FC<ProductCardModernProps> = ({
             </span>
           ) : product.isNewArrival ? (
             <span
+              className="badge-shimmer"
               style={{
                 background: 'var(--pd-primary-dark, #c2410c)',
                 color: '#fff',

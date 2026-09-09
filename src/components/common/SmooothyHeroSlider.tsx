@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { HeroSlide } from '@/types/common';
 import { Smooothy } from '@/lib/smooothy';
+import { ShimmerButton } from '../ui/ShimmerButton';
 
 export interface SmooothyHeroSliderProps {
   slides: HeroSlide[];
@@ -244,6 +245,24 @@ export function SmooothyHeroSlider({
                     )}
                   </div>
                 )}
+
+                {/* Hero Action Shimmer Button */}
+                <div style={{ marginTop: '10px' }}>
+                  <ShimmerButton
+                    asSpan
+                    variant="primary"
+                    borderRadius="24px"
+                    style={{
+                      padding: '6px 16px',
+                      fontSize: '0.8rem',
+                      fontWeight: 700,
+                      display: 'inline-flex',
+                    }}
+                    icon={<i className="fas fa-arrow-right" style={{ fontSize: '9px' }} />}
+                  >
+                    {slide.btnText || 'Shop Now'}
+                  </ShimmerButton>
+                </div>
               </div>
 
               {/* Right Product Image Column: Clean Centered Image */}

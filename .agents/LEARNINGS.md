@@ -4,7 +4,23 @@ This file serves as persistent dynamic memory across coding agent sessions. Ever
 
 ---
 
-## 🏛️ PART 1: The 8 Core Pakistani E-Commerce Engineering Rules
+### 2026-09-09 — Seamless Infinite Touch Carousel & Finger Swipe Wrap for Hero Slider on Mobile
+- **📌 Issue**: On the home page, when swiping the Hero Slider with a finger on mobile devices, reaching the last slide did not smoothly transition into the first slide; instead, it hit a hard elastic boundary and got stuck at the last slide (*"last pr ruk jata ha"*).
+- **🔍 Root Cause & Failed Attempts**:
+  1. In `src/components/common/SmooothyHeroSlider.tsx`, `infinite` was set to `false`.
+  2. In `src/lib/smooothy.ts`, `infinite` was never actually implemented for physics dragging. `snapToClosest()` clamped the target index to `[0, slides.length - 1]`, and `onPointerMove()` applied elastic resistance when dragged past the last slide, forcefully bouncing back to the last slide instead of wrapping to the first slide.
+  3. Swiping with a finger on mobile could also accidentally trigger the inner slide `<Link>` click navigation.
+  4. In `ClassicHeroSlider`, touch dragging was missing altogether.
+- **🛠️ Verified Code Fix**:
+  1. Built **Extended Infinite Loop Architecture** in `src/components/common/SmooothyHeroSlider.tsx`:
+     - Extended the track with cloned boundary slides: `[cloneLastSlide, ...realSlides, cloneFirstSlide]`.
+     - Initialized track at `initialIndex = 1` with initial CSS `translate3d(-${(100 / displaySlides.length)}%, 0, 0)` so real Slide 0 is centered with 0 layout shift.
+  2. Overhauled `Smooothy` engine in `src/lib/smooothy.ts`:
+     - Added gesture intent recognition: distinguishes vertical page scroll vs horizontal slider swiping, preventing gesture hijacking.
+     - Added `hasMoved` threshold and capture-phase click blocker on the wrapper so swiping never accidentally triggers link navigation.
+     - Implemented **Seamless Modulo Jump Wrapping**: when lerp inertia smoothly lands on `realSlideCount + 1` (clone of Slide 0), it instantly resets `currentIndex = 1` and `targetX = -1 * slideWidth` without animation, appearing completely continuous to the user. Same for backwards drag from Slide 0 to clone of last slide.
+  3. Added mobile touch swipe tracking (`onTouchStart`, `onTouchMove`, `onTouchEnd`) with infinite modulo wrapping to `ClassicHeroSlider` in `src/components/common/HeroSlider.tsx`.
+  4. Verified with `pnpm tsc --noEmit` (0 errors).
 
 ### 2026-09-09 — Single-Order Deterministic Index & Hex Resolution & Accidental Bulk Update Prevention
 - **📌 Issue**: User said *"Order id 1 ka status complete kra do"*, but the AI Copilot updated 10 orders to "Delivered" simultaneously, replied *"10 order(s) ka status successfully Delivered kar diya gaya hai"*, and then claimed *"Hamare backend me order IDs undefined hain"*. Additionally, an unsightly orange vertical scrollbar pill was rendered inside the bottom chat textarea on Android Chrome.

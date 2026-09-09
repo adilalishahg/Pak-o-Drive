@@ -4,6 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { ProductActionsProps } from '@/types/product';
 import { useProductActions } from '@/hooks/useProductActions';
+import { ShimmerButton } from '../ui/ShimmerButton';
 
 export const ProductActions: React.FC<ProductActionsProps> = ({ product, selectedVariant }) => {
   const {
@@ -142,63 +143,43 @@ export const ProductActions: React.FC<ProductActionsProps> = ({ product, selecte
             <span>{added ? 'Added!' : 'Add to Cart'}</span>
           </button>
 
-          {/* 2. Direct Buy Now (COD) */}
-          <button
+          {/* 2. Direct Buy Now (COD) with Shimmer */}
+          <ShimmerButton
             type="button"
             onClick={handleBuyNow}
             disabled={outOfStock}
-            className="product-card-btn"
+            variant="primary"
+            borderRadius="10px"
             style={{
-              border: 'none',
-              borderRadius: '10px',
               padding: '11px 12px',
               fontSize: '0.86rem',
               fontWeight: 800,
               width: '100%',
-              cursor: outOfStock ? 'not-allowed' : 'pointer',
-              opacity: outOfStock ? 0.6 : 1,
-              background: 'linear-gradient(135deg, #ea580c, #c2410c)',
-              color: '#fff',
-              boxShadow: '0 4px 14px rgba(234,88,12,0.3)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '6px',
-              transition: 'transform 0.15s ease',
             }}
+            icon={<i className="fas fa-bolt" />}
           >
-            <i className="fas fa-bolt" />
-            <span>{outOfStock ? 'Out of Stock' : '⚡ Buy Now'}</span>
-          </button>
+            {outOfStock ? 'Out of Stock' : '⚡ Buy Now'}
+          </ShimmerButton>
         </div>
 
         {/* Row 2: WhatsApp 1-Click Order + Wishlist Heart */}
         <div style={{ display: 'flex', gap: '8px' }}>
-          {/* 3. WhatsApp Direct Order Button */}
-          <button
+          {/* 3. WhatsApp Direct Order Button with Shimmer */}
+          <ShimmerButton
             type="button"
             onClick={handleWhatsApp}
-            className="product-card-btn"
+            variant="whatsapp"
+            borderRadius="10px"
             style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '8px',
-              border: 'none',
-              borderRadius: '10px',
               padding: '11px 16px',
               fontSize: '0.86rem',
               fontWeight: 700,
               flex: 1,
-              cursor: 'pointer',
-              background: '#25D366',
-              color: '#fff',
-              boxShadow: '0 3px 12px rgba(37,211,102,0.25)',
             }}
+            icon={<i className="fab fa-whatsapp" style={{ fontSize: '1.15rem' }} />}
           >
-            <i className="fab fa-whatsapp" style={{ fontSize: '1.15rem' }} />
-            <span>Order via WhatsApp</span>
-          </button>
+            Order via WhatsApp
+          </ShimmerButton>
 
           {/* 4. Native Share Button (Attaches rich preview card on WhatsApp/Social) */}
           <button
@@ -344,29 +325,22 @@ export const ProductActions: React.FC<ProductActionsProps> = ({ product, selecte
             <span>{added ? 'Added!' : 'Add'}</span>
           </button>
 
-          <button
+          <ShimmerButton
             type="button"
             onClick={handleBuyNow}
             disabled={outOfStock}
+            variant="primary"
+            borderRadius="8px"
             style={{
-              background: 'linear-gradient(135deg, #ea580c, #c2410c)',
-              color: '#fff',
-              border: 'none',
-              borderRadius: '8px',
               padding: '8px 10px',
               fontSize: '0.78rem',
               fontWeight: 800,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '4px',
               flex: 1.2,
-              boxShadow: '0 2px 8px rgba(234,88,12,0.3)',
             }}
+            icon={<i className="fas fa-bolt" style={{ fontSize: '10px' }} />}
           >
-            <i className="fas fa-bolt" style={{ fontSize: '10px' }} />
-            <span>{outOfStock ? 'Out of Stock' : '⚡ Buy Now'}</span>
-          </button>
+            {outOfStock ? 'Out of Stock' : '⚡ Buy Now'}
+          </ShimmerButton>
         </div>
       </div>
     </div>
