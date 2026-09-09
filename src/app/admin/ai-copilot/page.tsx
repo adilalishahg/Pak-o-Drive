@@ -24,9 +24,21 @@ export default function AdminAiCopilotPage() {
     pendingAction,
     confirmPendingAction,
     cancelPendingAction,
+    input,
+    setInput,
+    isListening,
+    speechSupported,
+    toggleVoiceInput,
   } = useAdminAiCopilot();
 
   const [inputMessage, setInputMessage] = useState('');
+
+  // Sync speech input transcript into inputMessage
+  useEffect(() => {
+    if (input) {
+      setInputMessage(input);
+    }
+  }, [input]);
   const [targetSeoUrl, setTargetSeoUrl] = useState('');
   const [showSeoBar, setShowSeoBar] = useState(false);
   const [showCompetitorBar, setShowCompetitorBar] = useState(false);
@@ -562,6 +574,25 @@ export default function AdminAiCopilotPage() {
                   className="form-control border-0 shadow-none bg-transparent resize-none"
                   style={{ fontSize: '13.5px', maxHeight: '120px' }}
                 />
+                {/* Voice Input Button */}
+                {speechSupported && (
+                  <button
+                    type="button"
+                    onClick={toggleVoiceInput}
+                    className={`btn d-flex align-items-center justify-content-center flex-shrink-0 ${
+                      isListening ? 'btn-danger' : 'btn-light border text-secondary'
+                    }`}
+                    style={{
+                      width: '42px',
+                      height: '42px',
+                      borderRadius: '10px',
+                    }}
+                    title={isListening ? 'Listening... Click to stop' : 'Voice Command (Urdu / English)'}
+                  >
+                    <i className={`fas ${isListening ? 'fa-microphone-slash fa-pulse' : 'fa-microphone'}`} />
+                  </button>
+                )}
+
                 <button
                   type="button"
                   onClick={handleSend}

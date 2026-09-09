@@ -76,6 +76,32 @@ export const COPILOT_PROMPT_CATEGORIES: PromptCategory[] = [
     ],
   },
   {
+    category: 'WhatsApp & Courier Automation',
+    icon: '📱',
+    prompts: [
+      'Aaj ka WhatsApp Daily Executive Digest generate karo',
+      'Pending COD orders ka fraud aur return risk check karo',
+      'Latest order ki thermal courier dispatch slip print karo',
+    ],
+  },
+  {
+    category: '1-Click SEO Blog Auto-Pilot',
+    icon: '✍️',
+    prompts: [
+      'Islamabad me Smog aur Fog lights par SEO blog publish kar do',
+      'Civic aur Alto ke trending car gadgets par SEO blog likh kar live kar do',
+      'Winter car battery aur defogger care tips par blog post create karo',
+    ],
+  },
+  {
+    category: 'Predictive Stock & Profit Forecast',
+    icon: '🔮',
+    prompts: [
+      'Agly season ka stock aur projected profit margin forecast karo',
+      'Twin Cities smog season me kitna stock mangwana chahiye?',
+    ],
+  },
+  {
     category: 'Competitor Spy & Reverse Engineering',
     icon: '🕵️',
     prompts: [
@@ -88,12 +114,14 @@ export const COPILOT_PROMPT_CATEGORIES: PromptCategory[] = [
 ];
 
 const DEFAULT_QUICK_PROMPTS = [
+  'Daily WhatsApp Digest 📱',
+  'COD Fraud & Return Risk 🛡️',
+  'Publish Smog SEO Blog ✍️',
+  'Seasonal Stock Forecast 🔮',
   'Store Operations & Actions ⚡',
   'Rawalpindi & Islamabad Trends 📍',
   'Low Stock Products Alert 📦',
   'Live Site SEO & Ranking Audit 🔍',
-  'Top Selling Items & Revenue 💰',
-  'Competitor Spy & Strategy 🕵️',
 ];
 
 const STORAGE_KEY = 'pakodrive_admin_copilot_chat';
@@ -109,6 +137,64 @@ export function useAdminAiCopilot() {
   const [seoAudit, setSeoAudit] = useState<{ totalMissingSeo: number; sampleUnoptimizedProducts: string[] } | null>(null);
   const [snapshotLoading, setSnapshotLoading] = useState(false);
   const [pendingAction, setPendingAction] = useState<AdminActionRequired | null>(null);
+
+  // Web Speech API Voice Command State
+  const [isListening, setIsListening] = useState(false);
+  const [speechSupported, setSpeechSupported] = useState(false);
+  const recognitionRef = useRef<any>(null);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const SpeechRecognition =
+        (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      if (SpeechRecognition) {
+        setSpeechSupported(true);
+        const recognition = new SpeechRecognition();
+        recognition.continuous = false;
+        recognition.interimResults = true;
+        recognition.lang = 'ur-PK';
+
+        recognition.onresult = (event: any) => {
+          let transcript = '';
+          for (let i = event.resultIndex; i < event.results.length; ++i) {
+            transcript += event.results[i][0].transcript;
+          }
+          if (transcript) {
+            setInput(transcript);
+          }
+        };
+
+        recognition.onerror = () => {
+          setIsListening(false);
+        };
+
+        recognition.onend = () => {
+          setIsListening(false);
+        };
+
+        recognitionRef.current = recognition;
+      }
+    }
+  }, []);
+
+  const toggleVoiceInput = useCallback(() => {
+    if (!speechSupported || !recognitionRef.current) return;
+    if (isListening) {
+      try {
+        recognitionRef.current.stop();
+      } catch {
+        // ignore
+      }
+      setIsListening(false);
+    } else {
+      try {
+        recognitionRef.current.start();
+        setIsListening(true);
+      } catch {
+        setIsListening(false);
+      }
+    }
+  }, [isListening, speechSupported]);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -137,7 +223,7 @@ export function useAdminAiCopilot() {
       {
         id: 'welcome',
         role: 'assistant',
-        content: `**Assalam-o-Alaikum! Main Pak-o-Drive ka Executive AI Copilot hoon.** 🚗💼⚡\n\nAap mujh se:\n- **Direct Store Actions:** Orders ka status badalna (*"Status Delivered kar do"*), details update karna, ya orders delete karna.\n- **Products & Stock Management:** Prices update karna (*"Price 2500 kar do"*), stock check/modify karna ya coupons create karna.\n- **Twin Cities Trends:** Rawalpindi / Islamabad ke local automotive market trends.\n- **Live Site SEO & Competitor Spy:** Live rankings aur competitor reverse engineering.\n\nNeeche diye gaye **Quick Prompts** par click karein ya apna hukum type karein!`,
+        content: `**Assalam-o-Alaikum! Main Pak-o-Drive ka Supercharged AI Copilot hoon.** 🚗💼⚡\n\nAap mujh se:\n- **🎙️ Voice Commands:** Mic dabayein aur bol kar hukum dein.\n- **📱 WhatsApp Executive Briefing:** *"Aaj ka daily WhatsApp digest banao"* bol kar 1-click share karein.\n- **✍️ 1-Click SEO Blog Publisher:** *"Smog care aur Fog lights par blog publish kar do"* — AI likh kar live publish karega.\n- **🛡️ COD Fraud & Return Risk:** Pending orders ka risk score analyze karayein.\n- **🚚 Courier Dispatch Thermal Slips:** Orders ki printable slips generate karein.\n- **🔮 Seasonal Stock & Profit Forecasting:** Rawalpindi & Islamabad ke winter/summer trends.\n\nNeeche diye gaye **Quick Prompts** par click karein ya mic dabayein!`,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       },
     ]);
@@ -370,6 +456,9 @@ export function useAdminAiCopilot() {
     pendingAction,
     confirmPendingAction,
     cancelPendingAction,
+    isListening,
+    speechSupported,
+    toggleVoiceInput,
     sendMessage,
     analyzeCompetitor,
     clearChat,

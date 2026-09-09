@@ -47,11 +47,10 @@ async function callGemini(systemPrompt: string, userMessage: string): Promise<st
 
   const versions = ['v1beta', 'v1'];
   const models = [
-    'gemini-2.5-flash',
-    'gemini-3.5-flash',
-    'gemini-flash-latest',
-    'gemini-pro-latest',
-    'gemini-2.5-pro',
+    'gemini-2.0-flash',
+    'gemini-1.5-flash',
+    'gemini-1.5-pro',
+    'gemini-2.0-flash-lite',
   ];
   const prompt = systemPrompt
     ? `${systemPrompt}\n\nInput / User Request:\n${userMessage}`
@@ -160,11 +159,10 @@ async function callGroq(systemPrompt: string, userMessage: string): Promise<stri
   if (!apiKey || isCoolingDown('groq')) return null;
 
   const models = [
-    'openai/gpt-oss-120b',
-    'qwen/qwen3.8-27b',
-    'openai/gpt-oss-20b',
-    'groq/compound-mini',
-    'qwen/qwen3.6-27b',
+    'llama-3.3-70b-versatile',
+    'llama-3.1-8b-instant',
+    'mixtral-8x7b-32768',
+    'gemma2-9b-it',
   ];
 
   for (const model of models) {
@@ -211,7 +209,27 @@ async function callGroq(systemPrompt: string, userMessage: string): Promise<stri
 }
 
 /**
- * 4. Master AI Dispatcher with Sequential Waterfall Fallback
+ * 4. Ultra-Reliable Zero-Key AI Fallback (Pollinations / Cloudflare AI gateway)
+ */
+async function callFreeFallbackAI(systemPrompt: string, userMessage: string): Promise<string | null> {
+  try {
+    const fullPrompt = systemPrompt ? `${systemPrompt}\n\nUser Question:\n${userMessage}` : userMessage;
+    const url = `https://text.pollinations.ai/${encodeURIComponent(fullPrompt.slice(0, 2000))}?model=openai&seed=101`;
+    const res = await fetch(url, { signal: AbortSignal.timeout(6000) });
+    if (res.ok) {
+      const text = await res.text();
+      if (text && text.length > 20) {
+        return cleanAiResponse(text);
+      }
+    }
+  } catch {
+    // Ignore fallback failure
+  }
+  return null;
+}
+
+/**
+ * 5. Master AI Dispatcher with Sequential Waterfall Fallback
  */
 export async function callMultiProviderAI(
   systemPrompt: string,
@@ -221,13 +239,17 @@ export async function callMultiProviderAI(
   const geminiText = await callGemini(systemPrompt, userMessage);
   if (geminiText) return { text: geminiText, provider: 'gemini' };
 
-  // 2. Try Groq (Ultra-Fast 500ms response)
+  // 2. Try Groq (Ultra-Fast 500ms response with Llama 3.3 70B)
   const groqText = await callGroq(systemPrompt, userMessage);
   if (groqText) return { text: groqText, provider: 'groq' };
 
   // 3. Try Hugging Face
   const hfText = await callHuggingFace(systemPrompt, userMessage);
   if (hfText) return { text: hfText, provider: 'huggingface' };
+
+  // 4. Free AI Gateway Fallback
+  const freeText = await callFreeFallbackAI(systemPrompt, userMessage);
+  if (freeText) return { text: freeText, provider: 'free-gateway' };
 
   return { text: null, provider: 'none' };
 }

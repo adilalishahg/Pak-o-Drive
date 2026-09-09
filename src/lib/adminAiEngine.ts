@@ -343,23 +343,27 @@ export async function scrapeCompetitorPage(targetUrl: string): Promise<Competito
     }
 
     const domain = new URL(cleanUrl).hostname.replace(/^www\./, '');
+    let html = '';
 
-    const res = await fetch(cleanUrl, {
-      headers: {
-        'User-Agent':
-          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36',
-        Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-        'Accept-Language': 'en-US,en;q=0.9,ur;q=0.8',
-      },
-      cache: 'no-store',
-      next: { revalidate: 0 },
-    });
+    try {
+      const res = await fetch(cleanUrl, {
+        headers: {
+          'User-Agent':
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36',
+          Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+          'Accept-Language': 'en-US,en;q=0.9,ur;q=0.8',
+        },
+        signal: AbortSignal.timeout(4000),
+        cache: 'no-store',
+        next: { revalidate: 0 },
+      });
 
-    if (!res.ok) {
-      return null;
+      if (res.ok) {
+        html = await res.text();
+      }
+    } catch {
+      // If live scrape blocked/slow, fallback to URL-based reverse engineering
     }
-
-    const html = await res.text();
 
     // Extract Title
     const titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/i);

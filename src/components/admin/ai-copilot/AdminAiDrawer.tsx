@@ -22,6 +22,8 @@ import {
   Minimize2,
   CheckCircle2,
   ShieldAlert,
+  Mic,
+  MicOff,
 } from 'lucide-react';
 import { useAdminAiCopilot } from '@/hooks/useAdminAiCopilot';
 
@@ -41,6 +43,9 @@ export function AdminAiDrawer() {
     pendingAction,
     confirmPendingAction,
     cancelPendingAction,
+    isListening,
+    speechSupported,
+    toggleVoiceInput,
   } = useAdminAiCopilot();
 
   const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -397,6 +402,22 @@ export function AdminAiDrawer() {
                 className="w-full bg-slate-950 text-slate-100 text-xs sm:text-sm placeholder-slate-500 rounded-xl px-3.5 py-2.5 border border-slate-700/80 focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 resize-none max-h-24 min-h-[44px] transition-all disabled:opacity-50"
               />
             </div>
+            {/* Voice Input Button */}
+            {speechSupported && (
+              <button
+                type="button"
+                onClick={toggleVoiceInput}
+                className={`h-[44px] px-3 rounded-xl flex items-center justify-center transition-all border flex-shrink-0 ${
+                  isListening
+                    ? 'bg-rose-600 text-white border-rose-500 animate-pulse'
+                    : 'bg-slate-800 text-slate-300 border-slate-700 hover:text-white hover:bg-slate-700'
+                }`}
+                title={isListening ? 'Listening (Click to stop)' : 'Voice Command (Click & speak Urdu/English)'}
+              >
+                {isListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+              </button>
+            )}
+
             <button
               type="submit"
               disabled={!input.trim() || isThinking}
