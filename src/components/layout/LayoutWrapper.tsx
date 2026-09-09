@@ -9,6 +9,7 @@ import { AnnouncementBar } from './AnnouncementBar';
 import { BlogNavbar } from '../blog/BlogNavbar';
 import { BlogFooter } from '../blog/BlogFooter';
 import { isBlogPath } from '@/lib/constants';
+import { SmoothScrollProvider } from '../common/SmoothScrollProvider';
 
 // Lazy-load non-critical floating widgets to slash initial page payload
 const WhatsAppSupport = dynamic(
@@ -32,16 +33,18 @@ export function LayoutWrapper({ children }: { children: React.ReactNode }) {
 
   if (isBlog) {
     return (
-      <div className="blog-publication-wrapper min-h-screen flex flex-col bg-slate-50">
-        <BlogNavbar />
-        <main className="flex-1 w-full">{children}</main>
-        <BlogFooter />
-      </div>
+      <SmoothScrollProvider>
+        <div className="blog-publication-wrapper min-h-screen flex flex-col bg-slate-50">
+          <BlogNavbar />
+          <main className="flex-1 w-full">{children}</main>
+          <BlogFooter />
+        </div>
+      </SmoothScrollProvider>
     );
   }
 
   return (
-    <>
+    <SmoothScrollProvider>
       <AnnouncementBar />
       <Navbar />
       <main>{children}</main>
@@ -49,6 +52,6 @@ export function LayoutWrapper({ children }: { children: React.ReactNode }) {
       <WhatsAppSupport />
       <FloatingCartButton />
       <RecentSalesNotification />
-    </>
+    </SmoothScrollProvider>
   );
 }

@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { AdminUploadProvider } from '../../context/AdminUploadContext';
 import { AdminErrorProvider } from '../../context/AdminErrorContext';
 import { AdminGlobalErrorBar } from '../../components/admin/common/AdminGlobalErrorBar';
+import { AdminAiDrawer } from '../../components/admin/ai-copilot/AdminAiDrawer';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -53,6 +54,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   const menuItems = [
     { name: 'Dashboard', path: '/admin', icon: 'fas fa-chart-line' },
+    { name: 'AI Copilot & Brain', path: '/admin/ai-copilot', icon: 'fas fa-brain' },
     { name: 'Products', path: '/admin/products', icon: 'fas fa-box' },
     { name: 'Product Ads & Sales', path: '/admin/products/ads-analytics', icon: 'fas fa-bullhorn' },
     { name: 'Categories', path: '/admin/categories', icon: 'fas fa-tags' },
@@ -294,6 +296,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               </div>
             )}
           </main>
+          {authorized && <AdminAiDrawer />}
         </div>
       </div>
     </AdminUploadProvider>
