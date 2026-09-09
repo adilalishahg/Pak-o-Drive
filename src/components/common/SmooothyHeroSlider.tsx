@@ -28,6 +28,11 @@ export function SmooothyHeroSlider({
 
   const [activeIndex, setActiveIndex] = useState(0);
 
+  const isLoopable = slides.length > 1;
+  const displaySlides = isLoopable
+    ? [slides[slides.length - 1], ...slides, slides[0]]
+    : slides;
+
   useEffect(() => {
     if (!wrapperRef.current || !containerRef.current || slides.length === 0) return;
 
@@ -38,10 +43,12 @@ export function SmooothyHeroSlider({
       wrapper: wrapperRef.current,
       container: containerRef.current,
       slides: validSlides,
+      realSlideCount: slides.length,
+      initialIndex: isLoopable ? 1 : 0,
       lerpFactor: 0.12,
-      dragSpeed: 1.2,
+      dragSpeed: 1.15,
       snap: true,
-      infinite: false,
+      infinite: isLoopable,
       autoPlay: autoPlayEnabled,
       autoPlayInterval: autoPlayMs,
       onIndexChange: (idx) => setActiveIndex(idx),
@@ -53,7 +60,7 @@ export function SmooothyHeroSlider({
       smooothyInstance.destroy();
       engineRef.current = null;
     };
-  }, [slides, autoPlayMs, autoPlayEnabled]);
+  }, [slides, autoPlayMs, autoPlayEnabled, isLoopable]);
 
   const lastClickRef = useRef<number>(0);
 
@@ -99,25 +106,36 @@ export function SmooothyHeroSlider({
         className="smooothy-track"
         style={{
           display: 'flex',
-          width: `${slides.length * 100}%`,
+          width: `${displaySlides.length * 100}%`,
           willChange: 'transform',
-          transform: 'translateZ(0)',
+          transform: isLoopable
+            ? `translate3d(-${(100 / displaySlides.length).toFixed(4)}%, 0, 0)`
+            : 'translate3d(0, 0, 0)',
         }}
       >
-        {slides.map((slide, idx) => (
-          <div
-            key={idx}
-            ref={(el) => {
-              slideRefs.current[idx] = el;
-            }}
-            className="smooothy-slide"
-            style={{
-              width: `${100 / slides.length}%`,
-              flexShrink: 0,
-              background: slide.bg || 'var(--pd-hero-grad-start, #fff7ed)',
-              transform: 'translateZ(0)',
-            }}
-          >
+        {displaySlides.map((slide, idx) => {
+          const isClone = isLoopable && (idx === 0 || idx === displaySlides.length - 1);
+          const slideKey = isClone
+            ? idx === 0
+              ? 'slide-clone-last'
+              : 'slide-clone-first'
+            : `slide-real-${idx - (isLoopable ? 1 : 0)}`;
+          const isPriority = isLoopable ? idx === 1 : idx === 0;
+
+          return (
+            <div
+              key={slideKey}
+              ref={(el) => {
+                slideRefs.current[idx] = el;
+              }}
+              className="smooothy-slide"
+              style={{
+                width: `${100 / displaySlides.length}%`,
+                flexShrink: 0,
+                background: slide.bg || 'var(--pd-hero-grad-start, #fff7ed)',
+                transform: 'translateZ(0)',
+              }}
+            >
             <Link
               href={slide.btnLink || '/shop'}
               className="smooothy-slide-clickable text-decoration-none"
@@ -257,9 +275,9 @@ export function SmooothyHeroSlider({
                       fill
                       sizes="(max-width: 767px) 40vw, (max-width: 991px) 35vw, 260px"
                       style={{ objectFit: 'contain' }}
-                      priority={idx === 0}
-                      fetchPriority={idx === 0 ? 'high' : 'auto'}
-                      loading={idx === 0 ? undefined : 'lazy'}
+                      priority={isPriority}
+                      fetchPriority={isPriority ? 'high' : 'auto'}
+                      loading={isPriority ? undefined : 'lazy'}
                       draggable={false}
                     />
                   </div>
@@ -267,8 +285,9 @@ export function SmooothyHeroSlider({
               )}
             </Link>
           </div>
-        ))}
-      </div>
+        );
+      })}
+    </div>
 
       {/* Progress Line */}
       {autoPlayEnabled && (

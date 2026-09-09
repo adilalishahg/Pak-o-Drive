@@ -35,6 +35,41 @@ function ClassicHeroSlider({
     return () => { if (timerRef.current) clearTimeout(timerRef.current); };
   }, [current, next, autoPlayMs, autoPlayEnabled, slides.length, isPaused]);
 
+  const touchStartX = useRef<number>(0);
+  const touchStartY = useRef<number>(0);
+  const isSwiping = useRef<boolean>(false);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setIsPaused(true);
+    touchStartX.current = e.touches[0].clientX;
+    touchStartY.current = e.touches[0].clientY;
+    isSwiping.current = true;
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isSwiping.current) return;
+    const diffX = e.touches[0].clientX - touchStartX.current;
+    const diffY = e.touches[0].clientY - touchStartY.current;
+    if (Math.abs(diffY) > Math.abs(diffX) && Math.abs(diffY) > 10) {
+      isSwiping.current = false;
+    }
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    setIsPaused(false);
+    if (!isSwiping.current) return;
+    isSwiping.current = false;
+    const diffX = e.changedTouches[0].clientX - touchStartX.current;
+    const diffY = e.changedTouches[0].clientY - touchStartY.current;
+    if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 35) {
+      if (diffX < 0) {
+        next();
+      } else {
+        prev();
+      }
+    }
+  };
+
   if (!slides || slides.length === 0) return null;
   const slide = slides[current] || slides[0];
 
@@ -42,13 +77,15 @@ function ClassicHeroSlider({
     <div
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
-      onTouchStart={() => setIsPaused(true)}
-      onTouchEnd={() => setIsPaused(false)}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
       style={{
         position: 'relative',
         background: slide.bg || 'var(--pd-hero-grad-start, #fff7ed)',
         transition: 'background 0.5s ease',
         overflow: 'hidden',
+        touchAction: 'pan-y',
       }}
     >
       <Link
