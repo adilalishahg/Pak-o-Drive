@@ -6,6 +6,16 @@ This file serves as persistent dynamic memory across coding agent sessions. Ever
 
 ## 🏛️ PART 1: The 8 Core Pakistani E-Commerce Engineering Rules
 
+### 2026-09-09 — Customer-Facing Green WhatsApp/StoreChat Widget Isolation from Admin Panel
+- **📌 Issue**: User reported that the green customer-facing chat widget (`StoreChatWidget` / `WhatsAppSupport`), which belongs exclusively on the client storefront, was also appearing on the Admin Panel alongside the Admin AI Copilot.
+- **🔍 Root Cause & Failed Attempts**:
+  - `RootLayout` (`src/app/layout.tsx`) relied on `headers().get('x-pathname')` to detect `isAdmin`. Since no middleware set `x-pathname`, `isAdmin` evaluated to `false`, causing `RootLayout` to render `LayoutWrapper` on `/admin` routes as well.
+  - `LayoutWrapper`, `WhatsAppSupport`, and `StoreChatWidget` lacked client-side `usePathname().startsWith('/admin')` guards, rendering the customer chat launcher button in the admin view.
+- **🛠️ Verified Code Fix**:
+  1. Updated `src/components/layout/LayoutWrapper.tsx` to immediately return `<>{children}</>` whenever `pathname?.startsWith('/admin')`, completely bypassing the storefront navbar, footer, client chat, and floating store buttons.
+  2. Implemented defense-in-depth in `src/components/common/WhatsAppSupport.tsx` and `src/components/common/StoreChatWidget.tsx` by returning `null` if `pathname?.startsWith('/admin')`.
+  3. Verified via `pnpm tsc --noEmit` (0 errors) and confirmed the green client chat button only appears on the storefront, leaving the admin panel clean for the dedicated orange AI Copilot.
+
 ### 2026-09-09 — Admin Panel Dedicated AI Copilot Full-Page Command Center & Live URL SEO Scanner
 - **📌 Issue**: User requested a comprehensive AI chatbot in the Admin Panel that tells them everything about all store products, live inventory, sales, Pakistan & Twin Cities (Rawalpindi/Islamabad) car market trends, and live site SEO & Google rankings with actionable recommendations, in Roman Urdu.
 - **🔍 Root Cause & Failed Attempts**:

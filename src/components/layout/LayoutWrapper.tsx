@@ -29,6 +29,12 @@ const RecentSalesNotification = dynamic(
 
 export function LayoutWrapper({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+
+  // Strictly isolate Admin Panel: NEVER render storefront navbar, client WhatsApp/StoreChat widget, or footer on /admin
+  if (pathname?.startsWith('/admin')) {
+    return <>{children}</>;
+  }
+
   const isBlog = isBlogPath(pathname);
 
   if (isBlog) {

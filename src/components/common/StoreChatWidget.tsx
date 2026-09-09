@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 import { useStoreChatBot } from '@/hooks/useStoreChatBot';
 import { ChatHeader } from '@/components/chat/ChatHeader';
 import { ChatSuggestions } from '@/components/chat/ChatSuggestions';
@@ -41,7 +42,9 @@ export const StoreChatWidget: React.FC = () => {
     };
   }, [isOpen]);
 
-  if (!isMounted) return null;
+  const pathname = usePathname();
+
+  if (!isMounted || pathname?.startsWith('/admin')) return null;
 
   return (
     <div
