@@ -6,6 +6,8 @@ import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
 import { IProduct, IProductVariant } from '../types';
 
+import { useSmoothScroll } from '../components/common/SmoothScrollProvider';
+
 export interface UseProductActionsProps {
   product: IProduct;
   selectedVariant?: IProductVariant;
@@ -13,6 +15,7 @@ export interface UseProductActionsProps {
 
 export function useProductActions({ product, selectedVariant }: UseProductActionsProps) {
   const router = useRouter();
+  const { lenis } = useSmoothScroll();
   const { addToCart, cartCount } = useCart();
   const { toggleWishlist, isInWishlist } = useWishlist();
   const [quantity, setQuantity] = useState(1);
@@ -31,18 +34,23 @@ export function useProductActions({ product, selectedVariant }: UseProductAction
     setQuantity(1);
   }, [selectedVariant]);
 
-  // Monitor scroll for mobile sticky bar
+  // Monitor scroll for mobile sticky bar synced with Lenis virtual scroll
   useEffect(() => {
-    const handleScroll = () => {
-      if (window.scrollY > 280) {
-        setShowSticky(true);
-      } else {
-        setShowSticky(false);
-      }
+    const handleScroll = (e?: any) => {
+      const currentScroll = e?.animatedScroll ?? (typeof window !== 'undefined' ? window.scrollY : 0);
+      setShowSticky(currentScroll > 280);
     };
+
+    if (lenis) {
+      lenis.on('scroll', handleScroll);
+      return () => {
+        lenis.off('scroll', handleScroll);
+      };
+    }
+
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  }, [lenis]);
 
   const handleAdd = useCallback(() => {
     addToCart(product, quantity, selectedVariant);

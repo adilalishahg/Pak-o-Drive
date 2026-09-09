@@ -19,6 +19,19 @@ This file serves as persistent dynamic memory across coding agent sessions. Ever
   5. Added `AI Copilot & Brain` to sidebar in `src/app/admin/layout.tsx` and validated with `pnpm tsc --noEmit` (0 errors).
 
 
+### 2026-09-09 — Lenis Luxury Supercharged Upgrades: Smart Auto-Hide Glassmorphic Navbar, Modal Auto-Lock & 120fps Sticky CTA Sync
+- **📌 Issue**: User requested advancing the Lenis smooth scroll engine with cutting-edge upgrades to maximize screen space, luxury brand feel, and conversion rate ("acha wo ek task dia tha lenis ka tou us me mazeed mujhy btao kia mazeed update ho skta ha or upgrade kia ki ja skti ha lenis sy... kra do").
+- **🔍 Root Cause & Failed Attempts**:
+  - The initial Lenis integration provided smooth scrolling and a progress bar, but headers remained static on screen, taking up valuable mobile shopping area.
+  - When opening drawers or modals, virtual scroll could clash with body scroll locks without automated `lenis.stop()` and `lenis.start()`.
+  - Product sticky buy bars relied on passive raw `window.scrollY`, causing micro-lag when Lenis was decelerating.
+- **🛠️ Verified Code Fix**:
+  1. Enhanced `src/components/common/SmoothScrollProvider.tsx` with hardware-accelerated attributes (`data-scroll-direction="up"|"down"`, `data-scrolled="true"`), rich context (`lenis`, `scrollDirection`, `isScrolled`, `scrollY`, `stopScroll`, `startScroll`), and automated `MutationObserver` on `body` to call `lenis.stop()` / `lenis.start()` when modals/drawers open.
+  2. Implemented Smart Auto-Hide Glassmorphism Navbar in `src/app/globals.css`: scrolling down smoothly slides the sticky header up (`transform: translateY(-100%)`), while scrolling up smoothly reveals it with luxury glassmorphism (`backdrop-blur-md bg-white/92 border-b border-slate-200/80 shadow-md`).
+  3. Created `src/components/common/ParallaxSection.tsx` for multi-layer 3D depth on automotive banners.
+  4. Synced product sticky 1-click WhatsApp/Buy bar in `src/hooks/useProductActions.ts` with Lenis's 120fps scroll listener.
+  5. Verified with `pnpm tsc --noEmit` (0 errors).
+
 ### 2026-09-09 — Storefront Lenis Smooth Scroll by Darkroom Engineering with Luxury Glowing Progress Bar
 - **📌 Issue**: User requested integrating Lenis (`https://github.com/darkroomengineering/lenis.git`) across the Pak-o-Drive website for an incredible, fascinating, buttery-smooth luxury scrolling experience.
 - **🔍 Root Cause & Failed Attempts**:

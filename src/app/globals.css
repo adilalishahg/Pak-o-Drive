@@ -87,6 +87,33 @@ body {
   will-change: transform;
 }
 
+/* ---------- Smart Auto-Hide & Glassmorphic Navbar ----------- */
+header.sticky {
+  transition: transform 0.38s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.3s ease, box-shadow 0.3s ease, backdrop-filter 0.3s ease !important;
+  will-change: transform;
+}
+
+/* When scrolling down past threshold, smoothly slide navbar out of view */
+html[data-scroll-direction="down"][data-scrolled="true"] header.sticky {
+  transform: translateY(-100%);
+}
+
+/* When scrolling up, smoothly slide navbar in with luxury glassmorphism */
+html[data-scroll-direction="up"][data-scrolled="true"] header.sticky {
+  transform: translateY(0);
+  background-color: rgba(255, 255, 255, 0.92) !important;
+  backdrop-filter: blur(16px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(180%) !important;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04) !important;
+  border-bottom: 1px solid rgba(226, 232, 240, 0.8) !important;
+}
+
+/* Prevent navbar hiding when modals or drawers are open */
+body.overflow-hidden header.sticky,
+.modal-open header.sticky {
+  transform: translateY(0) !important;
+}
+
 /* ---------- Premium Custom Scrollbar ----------------------- */
 ::-webkit-scrollbar {
   width: 7px;
