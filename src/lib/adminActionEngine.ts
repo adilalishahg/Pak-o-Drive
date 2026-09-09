@@ -59,6 +59,193 @@ function normalizeOrderStatus(statusStr: string): string | null {
  * Detects if the prompt is an actionable database command
  */
 export async function detectActionWithAI(userQuery: string): Promise<any | null> {
+  const lower = userQuery.toLowerCase().trim();
+
+  // -----------------------------------------------------------
+  // ⚡ INSTANT DETERMINISTIC FAST-PATH (0ms latency, zero failure)
+  // -----------------------------------------------------------
+
+  // 1. Flash Sale: e.g. "⚡ Launch Flash Sale Event", "flash sale create karo", "sale event"
+  if (/(flash sale|sale event|flash deal|mega sale|launch flash sale)/i.test(lower)) {
+    const discountMatch = lower.match(/(\d{1,2})%/)?.[1];
+    return {
+      isAction: true,
+      operation: 'create_flash_sale',
+      params: {
+        theme: userQuery.replace(/[⚡🔥🎉]/g, '').trim() || 'Weekend Mega Flash Sale',
+        discountPercent: discountMatch ? parseInt(discountMatch, 10) : 20,
+      },
+      isDestructive: false,
+    };
+  }
+
+  // 2. Viral Video / Ad Script: e.g. "🎬 Viral TikTok Video Script", "ad script", "tiktok"
+  if (/(ad script|video script|tiktok|reels|ad copy|viral video|viral ad|viral tiktok)/i.test(lower)) {
+    return {
+      isAction: true,
+      operation: 'generate_ad_campaign',
+      params: {
+        productName: userQuery.replace(/(ad script|video script|tiktok|reels|viral|🎬|banao|generate karo|copy)/gi, '').trim(),
+      },
+      isDestructive: false,
+    };
+  }
+
+  // 3. WhatsApp COD Confirmation & Anti-RTO: e.g. "🛡️ WhatsApp COD Confirmation", "cod confirmation"
+  if (/(whatsapp cod|cod confirmation|anti-rto|confirmation link|confirm order|confirmation)/i.test(lower) && /(whatsapp|cod|rto|order)/i.test(lower)) {
+    return {
+      isAction: true,
+      operation: 'generate_cod_confirmation',
+      params: { limit: 6 },
+      isDestructive: false,
+    };
+  }
+
+  // 4. Auto-Beat Pricing: e.g. "📈 Auto-Beat Competitor Price", "auto beat", "competitor price"
+  if (/(auto-beat|auto beat|competitor price|beat competitor|sasti price|price beat|auto-beat competitor)/i.test(lower)) {
+    return {
+      isAction: true,
+      operation: 'auto_beat_price',
+      params: {
+        productName: userQuery.replace(/(auto-beat|auto beat|competitor price|📈|sasti price|set karo|karo)/gi, '').trim(),
+      },
+      isDestructive: false,
+    };
+  }
+
+  // 5. Customer Reviews: e.g. "⭐ Add Customer Reviews", "customer review", "reviews add"
+  if (/(customer review|customer reviews|social proof|add review|reviews add|reviews generate)/i.test(lower)) {
+    return {
+      isAction: true,
+      operation: 'generate_customer_reviews',
+      params: {
+        productName: userQuery.replace(/(customer review|customer reviews|⭐|add karo|publish karo|generate karo)/gi, '').trim(),
+        count: 4,
+      },
+      isDestructive: false,
+    };
+  }
+
+  // 6. Courier Manifest: e.g. "🚚 Courier Dispatch Manifest", "courier manifest", "dispatch manifest"
+  if (/(courier manifest|dispatch manifest|manifest sheet|booking manifest|tcs manifest|trax manifest|manifest)/i.test(lower) && /(courier|dispatch|tcs|trax|sheet|manifest)/i.test(lower)) {
+    return {
+      isAction: true,
+      operation: 'export_courier_manifest',
+      params: { courier: 'TCS / Trax Express' },
+      isDestructive: false,
+    };
+  }
+
+  // 7. High-Margin Bundle: e.g. "Suggest High-Margin Bundle 💡", "combo bundle", "suggest bundle"
+  if (/(suggest bundle|high-margin bundle|combo bundle|bundle create|naya bundle|suggest high-margin)/i.test(lower)) {
+    return {
+      isAction: true,
+      operation: 'suggest_bundle',
+      params: {},
+      isDestructive: false,
+    };
+  }
+
+  // 8. WhatsApp Daily Digest: e.g. "Daily WhatsApp Digest 📱", "whatsapp digest"
+  if (/(whatsapp digest|daily digest|executive digest|daily whatsapp)/i.test(lower)) {
+    return {
+      isAction: true,
+      operation: 'generate_whatsapp_digest',
+      params: {},
+      isDestructive: false,
+    };
+  }
+
+  // 9. COD Fraud Risk: e.g. "COD Fraud & Return Risk 🛡️", "fraud risk", "return risk"
+  if (/(fraud risk|return risk|cod risk|fraud & return)/i.test(lower)) {
+    return {
+      isAction: true,
+      operation: 'analyze_cod_risk',
+      params: {},
+      isDestructive: false,
+    };
+  }
+
+  // 10. Thermal Dispatch Slip: e.g. "dispatch slip", "thermal slip"
+  if (/(dispatch slip|thermal slip|courier slip|thermal courier)/i.test(lower)) {
+    return {
+      isAction: true,
+      operation: 'generate_dispatch_slip',
+      params: {},
+      isDestructive: false,
+    };
+  }
+
+  // 11. Seasonal Stock Forecast: e.g. "Seasonal Stock Forecast 🔮", "stock forecast"
+  if (/(stock forecast|seasonal forecast|forecast karo|seasonal stock)/i.test(lower)) {
+    return {
+      isAction: true,
+      operation: 'predictive_stock_forecast',
+      params: {},
+      isDestructive: false,
+    };
+  }
+
+  // 12. SEO Blog: e.g. "Publish Smog SEO Blog ✍️", "seo blog publish", "blog post"
+  if (/(seo blog|publish blog|blog post|blog publish|publish smog)/i.test(lower)) {
+    return {
+      isAction: true,
+      operation: 'create_blog_post',
+      params: {
+        topic: userQuery.replace(/(publish|seo blog|blog post|✍️|create karo|likho)/gi, '').trim() || 'Car Care & Accessories in Pakistan',
+      },
+      isDestructive: false,
+    };
+  }
+
+  // 13. Order status update: e.g. "order #123 delivered kar do"
+  if (/(status|mark|update|kar do|kardo)\s+.*?(delivered|shipped|processing|cancelled|pending)/i.test(lower)) {
+    const statusMatch = normalizeOrderStatus(lower);
+    const idMatch = userQuery.match(/#?([a-f0-9]{24}|\d{3,8})/i)?.[1] || '';
+    if (statusMatch) {
+      return {
+        isAction: true,
+        operation: 'update_order_status',
+        params: { identifier: idMatch, newStatus: statusMatch },
+        isDestructive: false,
+      };
+    }
+  }
+
+  // 14. Delete orders bulk
+  if (/(delete|remove|hatao|khatam|uda do)\s+.*?(order|orders)/i.test(lower)) {
+    const isAll = /(all|tamam|sary|saray|sab)/i.test(lower);
+    const isCancelled = /(cancelled|cancel)/i.test(lower);
+    const isPending = /(pending)/i.test(lower);
+    const status = isCancelled ? 'Cancelled' : isPending ? 'Pending' : undefined;
+
+    return {
+      isAction: true,
+      operation: 'delete_orders_bulk',
+      params: { deleteAll: isAll && !status, status },
+      isDestructive: true,
+    };
+  }
+
+  // 15. Product price or stock update
+  if (/(price|keemat|rate|stock|taadad)\s+.*?(kar do|badal do|update|set)/i.test(lower)) {
+    const numMatch = lower.match(/(?:price|rate|keemat|rs\.?|pkr)?\s*(\d{2,7})\s*(?:kar do|kardo|pkr)?/i)?.[1];
+    const stockMatch = lower.match(/stock\s*(?:of)?\s*(\d{1,5})/i)?.[1];
+    return {
+      isAction: true,
+      operation: 'update_product',
+      params: {
+        productName: userQuery.replace(/(price|rate|stock|update|kar do|badal do|\d+)/gi, '').trim(),
+        price: numMatch ? parseInt(numMatch, 10) : undefined,
+        stock: stockMatch ? parseInt(stockMatch, 10) : undefined,
+      },
+      isDestructive: false,
+    };
+  }
+
+  // -----------------------------------------------------------
+  // 🧠 SECONDARY LLM INTENT PARSING (For complex/unstructured phrasing)
+  // -----------------------------------------------------------
   const prompt = `
 You are an intent classification parser for the Pak-o-Drive E-commerce Admin Panel.
 Analyze if the user prompt is instructing to modify, update, delete, or create data in the database (Orders, Products, Categories, Promotions, Blogs, WhatsApp digest, COD risk, Courier dispatch, Ad scripts, Reviews, Flash sales).
@@ -109,55 +296,7 @@ If NOT an action (just casual talk), return {"isAction": false}.
       }
     }
   } catch (err) {
-    // Fall back to regex heuristics below
-  }
-
-  // Regex Heuristics fallback
-  const lower = userQuery.toLowerCase().trim();
-
-  // 1. Order status update: e.g. "order #123 delivered kar do"
-  if (/(status|mark|update|kar do|kardo)\s+.*?(delivered|shipped|processing|cancelled|pending)/i.test(lower)) {
-    const statusMatch = normalizeOrderStatus(lower);
-    const idMatch = userQuery.match(/#?([a-f0-9]{24}|\d{3,8})/i)?.[1] || '';
-    if (statusMatch) {
-      return {
-        isAction: true,
-        operation: 'update_order_status',
-        params: { identifier: idMatch, newStatus: statusMatch },
-        isDestructive: false,
-      };
-    }
-  }
-
-  // 2. Delete orders bulk
-  if (/(delete|remove|hatao|khatam|uda do)\s+.*?(order|orders)/i.test(lower)) {
-    const isAll = /(all|tamam|sary|saray|sab)/i.test(lower);
-    const isCancelled = /(cancelled|cancel)/i.test(lower);
-    const isPending = /(pending)/i.test(lower);
-    const status = isCancelled ? 'Cancelled' : isPending ? 'Pending' : undefined;
-
-    return {
-      isAction: true,
-      operation: 'delete_orders_bulk',
-      params: { deleteAll: isAll && !status, status },
-      isDestructive: true,
-    };
-  }
-
-  // 3. Product price or stock update
-  if (/(price|keemat|rate|stock|taadad)\s+.*?(kar do|badal do|update|set)/i.test(lower)) {
-    const numMatch = lower.match(/(?:price|rate|keemat|rs\.?|pkr)?\s*(\d{2,7})\s*(?:kar do|kardo|pkr)?/i)?.[1];
-    const stockMatch = lower.match(/stock\s*(?:of)?\s*(\d{1,5})/i)?.[1];
-    return {
-      isAction: true,
-      operation: 'update_product',
-      params: {
-        productName: userQuery.replace(/(price|rate|stock|update|kar do|badal do|\d+)/gi, '').trim(),
-        price: numMatch ? parseInt(numMatch, 10) : undefined,
-        stock: stockMatch ? parseInt(stockMatch, 10) : undefined,
-      },
-      isDestructive: false,
-    };
+    // Fail silently
   }
 
   return null;

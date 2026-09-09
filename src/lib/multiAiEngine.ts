@@ -45,49 +45,45 @@ async function callGemini(systemPrompt: string, userMessage: string): Promise<st
   const apiKey = process.env.GEMINI_API_KEY || process.env.Gemini_API_KEY;
   if (!apiKey || isCoolingDown('gemini')) return null;
 
-  const versions = ['v1beta', 'v1'];
   const models = [
     'gemini-2.0-flash',
     'gemini-1.5-flash',
-    'gemini-1.5-pro',
-    'gemini-2.0-flash-lite',
   ];
   const prompt = systemPrompt
     ? `${systemPrompt}\n\nInput / User Request:\n${userMessage}`
     : userMessage;
 
-  for (const ver of versions) {
-    for (const model of models) {
-      try {
-        const url = `https://generativelanguage.googleapis.com/${ver}/models/${model}:generateContent?key=${apiKey}`;
-        const res = await fetch(url, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }],
-          }),
-        });
+  for (const model of models) {
+    try {
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        signal: AbortSignal.timeout(5000),
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+        }),
+      });
 
-        if (res.ok) {
-          const data = await res.json();
-          const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-          if (text) {
-            const cleaned = cleanAiResponse(text);
-            if (cleaned) {
-              console.log(`✅ [AI Engine: Gemini] Generated reply via ${model} (${ver})`);
-              return cleaned;
-            }
-          }
-        } else {
-          if (res.status === 429 || res.status === 402 || res.status === 403) {
-            console.warn(`⚠️ [AI Engine: Gemini Quota/Billing ${res.status}] Cooling down Gemini for 5 mins.`);
-            setCoolingDown('gemini', 5 * 60 * 1000);
-            return null;
+      if (res.ok) {
+        const data = await res.json();
+        const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (text) {
+          const cleaned = cleanAiResponse(text);
+          if (cleaned) {
+            console.log(`✅ [AI Engine: Gemini] Generated reply via ${model}`);
+            return cleaned;
           }
         }
-      } catch (err: any) {
-        // Continue to next model
+      } else {
+        if (res.status === 429 || res.status === 402 || res.status === 403) {
+          console.warn(`⚠️ [AI Engine: Gemini Quota/Billing ${res.status}] Cooling down Gemini for 5 mins.`);
+          setCoolingDown('gemini', 5 * 60 * 1000);
+          return null;
+        }
       }
+    } catch (err: any) {
+      // Continue to next model
     }
   }
   return null;
