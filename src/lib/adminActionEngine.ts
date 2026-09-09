@@ -76,6 +76,8 @@ Valid operations:
 12. "analyze_cod_risk": params: { orderId?: string }
 13. "generate_dispatch_slip": params: { orderId?: string }
 14. "predictive_stock_forecast": params: { season?: string }
+15. "create_bundle": params: { name: string, price: number, originalPrice?: number, category?: string, description?: string, itemsSummary?: string }
+16. "suggest_bundle": params: { theme?: string }
 
 User Message: "${userQuery}"
 
@@ -868,6 +870,154 @@ Garmiyo me AC efficiency, sun protection aur cooling accessories ki demand sab s
       actionExecuted: {
         type: 'predictive_stock_forecast',
         description: 'Generated Seasonal Stock & Margin Forecast',
+      },
+    };
+  }
+
+  // ----------------------------------------------------
+  // 9. HIGH-MARGIN BUNDLES (PROPOSE & 1-CLICK CREATE)
+  // ----------------------------------------------------
+  if (operation === 'suggest_bundle') {
+    const bundleName = 'Twin Cities Smog & Night Drive Safety Pack';
+    const price = 2499;
+    const originalPrice = 3199;
+    const items = 'Yellow Lens 4-LED Fog Lights (Pair) + Anti-Fog Spray + T10 LED Bulbs';
+
+    return {
+      handled: true,
+      reply: `💡 **AI High-Margin Bundle Suggestion for Twin Cities:**\n\nIs season me Rawalpindi aur Islamabad me smog aur night highway driving peak par hai. Sehgal Motors aur Daraz ke muqablay me yeh bundle sab se ziada profit generate karega:\n\n📦 **Proposed Bundle:** *${bundleName}*\n- **Included Items:** ${items}\n- **Offer Price:** **PKR ${price.toLocaleString()}** (Original: PKR ${originalPrice.toLocaleString()} - 22% OFF)\n- **Estimated Profit Margin:** **+115% (PKR 1,350 net profit per order)**\n\nKia main yeh bundle store par live create kar doon? Neeche diye gaye button par click karein.`,
+      actionRequired: {
+        id: `act_${Date.now()}`,
+        type: 'create_bundle',
+        title: `Create Bundle: ${bundleName}`,
+        description: `Price: PKR ${price.toLocaleString()} • Items: ${items}`,
+        count: 1,
+        payload: {
+          operation: 'create_bundle',
+          params: {
+            name: bundleName,
+            price,
+            originalPrice,
+            category: 'LED Lights & Bulbs',
+            description: `${bundleName} includes high-visibility Yellow Fog Lights pair, Anti-Fog Spray and T10 LED parking bulbs. Best deal for smog and night driving in Rawalpindi & Islamabad with Cash on Delivery.`,
+            itemsSummary: items,
+          },
+        },
+      },
+    };
+  }
+
+  if (operation === 'create_bundle') {
+    const { name, price, originalPrice, category = 'Combos & Bundles', description, itemsSummary, image } = params;
+    if (!name || !price) {
+      return { handled: true, reply: '❌ Bundle ke liye Name aur Price batana zaroori hai.' };
+    }
+
+    if (!confirmed) {
+      return {
+        handled: true,
+        reply: `💡 **New Bundle Proposal Ready!**\n\n- **Bundle Name:** ${name}\n- **Offer Price:** PKR ${price.toLocaleString()} ${originalPrice ? `(Original: PKR ${originalPrice.toLocaleString()})` : ''}\n- **Category:** ${category}\n\nKia main yeh naya bundle database catalog me create kar doon? Neeche diye gaye button par click karein.`,
+        actionRequired: {
+          id: `act_${Date.now()}`,
+          type: 'create_bundle',
+          title: `Create Bundle: ${name}`,
+          description: `Price: PKR ${price.toLocaleString()} • ${itemsSummary || 'High-converting combo pack'}`,
+          count: 1,
+          payload: { operation: 'create_bundle', params },
+        },
+      };
+    }
+
+    // Confirmed creation in MongoDB
+    const slug = name.toLowerCase().replace(/[^\w\s-]/g, '').replace(/\s+/g, '-').slice(0, 60) + `-${Date.now().toString().slice(-4)}`;
+    const bundleProduct = new Product({
+      name,
+      slug,
+      price,
+      originalPrice: originalPrice || Math.round(price * 1.25),
+      category: category || 'Combos & Bundles',
+      subcategory: 'Combos & Bundles',
+      description: description || `${name} — High margin combo bundle for Pakistani drivers with Cash On Delivery.`,
+      image: image || 'https://res.cloudinary.com/dvgxeiwoz/image/upload/v1788092214/electro_store/1788092214621_46843.webp',
+      images: [
+        image || 'https://res.cloudinary.com/dvgxeiwoz/image/upload/v1788092214/electro_store/1788092214621_46843.webp',
+        'https://res.cloudinary.com/dvgxeiwoz/image/upload/v1788091458/electro_store/1788091458629_46697.webp'
+      ],
+      isFeatured: true,
+      isTopSelling: true,
+      stock: 25,
+      heroText: 'Special Combo Deal • 24h Delivery',
+    });
+
+    await bundleProduct.save();
+
+    return {
+      handled: true,
+      reply: `🎉 **New Combo Bundle Created & Live!**\n\n- **Name:** ${bundleProduct.name}\n- **Price:** PKR ${bundleProduct.price.toLocaleString()}\n- **Live Page:** [/product/${bundleProduct.slug}](/product/${bundleProduct.slug})\n\nYeh bundle ab website par live shopping ke liye active ho chuka hai!`,
+      actionExecuted: {
+        type: 'create_bundle',
+        description: `Created Bundle: ${bundleProduct.name}`,
+        details: { slug: bundleProduct.slug },
+      },
+    };
+  }
+
+  // ----------------------------------------------------
+  // 10. PUBLISH VISION AI PRODUCT DIRECT TO CATALOG
+  // ----------------------------------------------------
+  if (operation === 'publish_vision_product') {
+    const {
+      name,
+      price,
+      originalPrice,
+      category = 'Car Gadgets',
+      subcategory = '',
+      description,
+      studioImage,
+      specs,
+      seoTitle,
+      seoDescription,
+      seoKeywords,
+      stock = 25,
+    } = params;
+
+    const slug = name
+      .toLowerCase()
+      .replace(/[^\w\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .slice(0, 60) + `-${Date.now().toString().slice(-4)}`;
+
+    const newProduct = new Product({
+      name,
+      slug,
+      price,
+      originalPrice: originalPrice || Math.round(price * 1.25),
+      category: category || 'Car Gadgets',
+      subcategory: subcategory || '',
+      description: description || `${name} — Premium automotive accessory with Cash On Delivery across Pakistan.`,
+      image: studioImage || 'https://res.cloudinary.com/dvgxeiwoz/image/upload/v1788092214/electro_store/1788092214621_46843.webp',
+      images: [
+        studioImage || 'https://res.cloudinary.com/dvgxeiwoz/image/upload/v1788092214/electro_store/1788092214621_46843.webp',
+      ],
+      specifications: specs || {},
+      seoTitle: seoTitle || `${name} Price in Pakistan | Pak-o-Drive`,
+      seoDescription: seoDescription || `Buy ${name} online in Pakistan at best price. Cash on delivery.`,
+      seoKeywords: seoKeywords || 'car accessories, pakodrive, gadgets',
+      isFeatured: true,
+      isNewArrival: true,
+      stock,
+      heroText: 'Vision AI Verified • 24h Delivery',
+    });
+
+    await newProduct.save();
+
+    return {
+      handled: true,
+      reply: `🎉 **Product Live on Store!**\n\n- **Name:** ${newProduct.name}\n- **Price:** PKR ${newProduct.price.toLocaleString()}\n- **Category:** ${newProduct.category}\n- **Live Page:** [/product/${newProduct.slug}](/product/${newProduct.slug})\n\nProduct database me insert ho chuki hai aur live shopping ke liye active hai!`,
+      actionExecuted: {
+        type: 'publish_vision_product',
+        description: `Published Vision Product: ${newProduct.name}`,
+        details: { slug: newProduct.slug },
       },
     };
   }

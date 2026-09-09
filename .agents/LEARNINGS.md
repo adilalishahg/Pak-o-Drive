@@ -6,7 +6,30 @@ This file serves as persistent dynamic memory across coding agent sessions. Ever
 
 ## 🏛️ PART 1: The 8 Core Pakistani E-Commerce Engineering Rules
 
-### 2026-09-09 — Zero-Downtime Multi-AI Fallback Engine & Enterprise Automation Suite (Voice Commands, SEO Blog Auto-Pilot, WhatsApp Digest, COD Risk, Courier Slips)
+### 2026-09-09 — Vision AI "Snap & Auto-List" Machine & Competitor Counter-Pricing Pipeline
+- **📌 Issue**: User requested enabling Admin AI Copilot to accept product photos, automatically detect the automotive gadget, benchmark competitor pricing (Sehgal Motors / Daraz), generate SEO metadata and studio imagery, and propose an interactive card in chat (`[ ✅ Approve & Publish Live ]`) to publish the product live to MongoDB upon approval.
+- **🔍 Root Cause & Failed Attempts**:
+  - The AI Copilot previously only processed text queries and lacked multi-modal image ingestion (base64 data URL parsing) and automotive vision intelligence.
+  - Sourcing pricing needed to be anchored to local wholesale hubs (Rawalpindi Saddar & Sultan Ka Khoo) to lock in 80-120% profit margins.
+- **🛠️ Verified Code Fix**:
+  1. Built `src/lib/visionAiEngine.ts` using Google Gemini 2.0 Flash Vision (`gemini-2.0-flash` with `inline_data` base64 payload). Generates PKR competitor counter-pricing, SEO titles, descriptions, specifications, and studio AI imagery (`generateStudioImageUrl()`).
+  2. Implemented `publish_vision_product` operation in `src/lib/adminActionEngine.ts` saving directly to MongoDB `Product` collection with `isFeatured: true`, stock, SEO slug, and Cloudinary/studio assets.
+  3. Integrated image upload handler (`handleImageSelect`), base64 reader, preview thumbnail, and `clearSelectedImage` in `src/hooks/useAdminAiCopilot.ts`.
+  4. Enhanced both `/admin/ai-copilot` and `AdminAiDrawer` with Camera button, preview strip, image attachment display in message bubbles, and dual-layer uncropped media preview cards (`blur-2xl opacity-40` backdrop + `object-contain`, adhering to Rule 3).
+  5. Verified with `pnpm tsc --noEmit` (0 errors).
+
+### 2026-09-09 — Proactive High-Margin Bundle Strategy & 1-Click Interactive Chat Creation Pipeline
+- **📌 Issue**: User requested creating the 2 high-margin bundles in the store and enabling the Admin AI Copilot to proactively suggest bundles, ask for confirmation with an interactive card in the chat, and create the bundle directly in MongoDB upon user acknowledgement.
+- **🔍 Root Cause & Failed Attempts**:
+  - The AI Copilot previously only responded to static queries and did not have specialized bundle strategy heuristics or an operational `create_bundle` dispatcher connected to the Safety Guardrail card UI.
+- **🛠️ Verified Code Fix**:
+  1. Seeded the 2 high-margin bundles directly into MongoDB with genuine Cloudinary product images:
+     - `Twin Cities Gloss & Glow Combo (Cosmic Wax + 7CF Tyre Spray + Microfiber Towel)` (PKR 2,599)
+     - `Safety & Style LED Combo (17cm COB DRLs + T10 RGB Remote Lights)` (PKR 1,099)
+  2. Implemented `suggest_bundle` and `create_bundle` operations in `src/lib/adminActionEngine.ts`. The AI proactively computes item wholesale costs, optimal bundle price in PKR, and projected margin, and presents an interactive Safety Confirmation Card in chat.
+  3. When the admin acknowledges (clicks `[ ✅ Confirm & Execute ]` or confirms in chat), the bundle product is saved into MongoDB with automated SEO slug, tags, and 24h Twin Cities delivery badges, auto-refreshing dashboard metrics.
+  4. Added `Suggest High-Margin Bundle 💡` to quick prompts in `src/hooks/useAdminAiCopilot.ts`.
+  5. Verified with `pnpm tsc --noEmit` (0 errors).
 - **📌 Issue**: User reported that the Competitor Spy tool timed out and failed with "maazrat is waqt ai masroof ha" due to external site hangs and invalid Gemini/Groq model identifiers, and requested activating the complete Enterprise Automation Suite.
 - **🔍 Root Cause & Failed Attempts**:
   - `callGemini` used obsolete model strings (`gemini-2.5-flash`), while `callGroq` used non-existent model IDs (`openai/gpt-oss-120b`).

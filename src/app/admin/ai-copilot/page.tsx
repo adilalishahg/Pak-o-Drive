@@ -26,6 +26,10 @@ export default function AdminAiCopilotPage() {
     cancelPendingAction,
     input,
     setInput,
+    selectedImage,
+    selectedImageName,
+    handleImageSelect,
+    clearSelectedImage,
     isListening,
     speechSupported,
     toggleVoiceInput,
@@ -45,6 +49,7 @@ export default function AdminAiCopilotPage() {
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Auto scroll to bottom
   const scrollToBottom = () => {
@@ -56,7 +61,7 @@ export default function AdminAiCopilotPage() {
   }, [messages, loading]);
 
   const handleSend = () => {
-    if (!inputMessage.trim() || loading) return;
+    if ((!inputMessage.trim() && !selectedImage) || loading) return;
     sendMessage(inputMessage, targetSeoUrl.trim() || undefined, competitorUrl.trim() || undefined);
     setInputMessage('');
     if (textareaRef.current) {
@@ -447,6 +452,18 @@ export default function AdminAiCopilotPage() {
                           </div>
                         </div>
 
+                        {/* Uploaded / Attached Image Thumbnail */}
+                        {m.imageUrl && (
+                          <div className="mb-2">
+                            <img
+                              src={m.imageUrl}
+                              alt="Uploaded car accessory"
+                              className="rounded-3 border shadow-sm"
+                              style={{ maxHeight: '200px', maxWidth: '100%', objectFit: 'cover' }}
+                            />
+                          </div>
+                        )}
+
                         {/* Markdown Content */}
                         <div
                           className={`copilot-markdown ${isUser ? 'text-white' : ''}`}
@@ -468,43 +485,160 @@ export default function AdminAiCopilotPage() {
                           </div>
                         )}
 
-                        {/* Safety Confirmation Card */}
+                        {/* Action Proposal & Confirmation Cards */}
                         {m.actionRequired && pendingAction?.id === m.actionRequired.id && (
-                          <div className="mt-3 p-3 bg-danger-subtle border border-danger-subtle rounded-3 text-dark shadow-sm">
-                            <div className="d-flex align-items-center justify-content-between gap-2 mb-2">
-                              <div className="d-flex align-items-center gap-2 text-danger fw-bold">
-                                <i className="fas fa-shield-alt fs-5" />
-                                <span style={{ fontSize: '13px' }}>{m.actionRequired.title}</span>
+                          m.actionRequired.type === 'publish_vision_product' ? (
+                            <div className="mt-3 p-3 bg-white border border-success-subtle rounded-3 text-dark shadow-sm">
+                              <div className="d-flex align-items-center justify-content-between gap-2 mb-2">
+                                <div className="d-flex align-items-center gap-2 text-success fw-bold">
+                                  <i className="fas fa-camera fs-5" />
+                                  <span style={{ fontSize: '13px' }}>{m.actionRequired.title}</span>
+                                </div>
+                                <span className="badge bg-success text-white px-2 py-1" style={{ fontSize: '11px' }}>
+                                  Vision Auto-Listing
+                                </span>
                               </div>
-                              <span className="badge bg-danger text-white px-2 py-1" style={{ fontSize: '11px' }}>
-                                {m.actionRequired.count} Items
-                              </span>
+
+                              {/* Studio Preview Dual Layer Presentation (Rule 3) */}
+                              {m.actionRequired.payload?.params?.images?.[0] && (
+                                <div
+                                  className="rounded-3 overflow-hidden mb-2.5 border position-relative"
+                                  style={{ height: '160px', backgroundColor: '#f8fafc' }}
+                                >
+                                  <img
+                                    src={m.actionRequired.payload.params.images[0]}
+                                    alt="Studio Preview Ambient"
+                                    className="w-100 h-100 position-absolute"
+                                    style={{ filter: 'blur(16px)', opacity: 0.35, objectFit: 'cover' }}
+                                  />
+                                  <img
+                                    src={m.actionRequired.payload.params.images[0]}
+                                    alt="Studio Preview Sharp"
+                                    className="w-100 h-100 position-relative"
+                                    style={{ objectFit: 'contain', padding: '6px' }}
+                                  />
+                                </div>
+                              )}
+
+                              {/* Benchmark & Margin Comparison Grid */}
+                              <div className="d-flex flex-wrap gap-2 mb-3">
+                                <div className="p-2 rounded bg-light border flex-grow-1" style={{ minWidth: '120px' }}>
+                                  <div className="text-muted" style={{ fontSize: '10px' }}>Suggested Selling Price</div>
+                                  <div className="fw-bold text-success" style={{ fontSize: '14px' }}>
+                                    PKR {m.actionRequired.payload?.params?.price?.toLocaleString() || '0'}
+                                  </div>
+                                </div>
+                                <div className="p-2 rounded bg-light border flex-grow-1" style={{ minWidth: '120px' }}>
+                                  <div className="text-muted" style={{ fontSize: '10px' }}>
+                                    Competitor ({m.actionRequired.payload?.params?.competitorSource || 'Market'})
+                                  </div>
+                                  <div className="text-danger text-decoration-line-through fw-semibold" style={{ fontSize: '13px' }}>
+                                    PKR {m.actionRequired.payload?.params?.competitorPrice?.toLocaleString() || '0'}
+                                  </div>
+                                </div>
+                                <div className="p-2 rounded bg-light border flex-grow-1" style={{ minWidth: '120px' }}>
+                                  <div className="text-muted" style={{ fontSize: '10px' }}>Est. Margin & Stock</div>
+                                  <div className="fw-bold text-dark" style={{ fontSize: '13px' }}>
+                                    +{m.actionRequired.payload?.params?.profitMarginPercentage || 85}% • {m.actionRequired.payload?.params?.stock || 20} units
+                                  </div>
+                                </div>
+                              </div>
+
+                              <div className="d-flex align-items-center gap-2">
+                                <button
+                                  type="button"
+                                  disabled={loading}
+                                  onClick={() => confirmPendingAction(m.actionRequired)}
+                                  className="btn btn-sm btn-success d-flex align-items-center gap-1.5 px-3 py-1.5 fw-semibold"
+                                  style={{ borderRadius: '8px', fontSize: '12px' }}
+                                >
+                                  <i className="fas fa-check" />
+                                  <span>✅ Approve & Publish Live</span>
+                                </button>
+                                <button
+                                  type="button"
+                                  disabled={loading}
+                                  onClick={cancelPendingAction}
+                                  className="btn btn-sm btn-outline-secondary px-3 py-1.5"
+                                  style={{ borderRadius: '8px', fontSize: '12px' }}
+                                >
+                                  <span>Cancel</span>
+                                </button>
+                              </div>
                             </div>
-                            <p className="small mb-3 text-secondary" style={{ fontSize: '12px', lineHeight: '1.4' }}>
-                              {m.actionRequired.description}
-                            </p>
-                            <div className="d-flex align-items-center gap-2">
-                              <button
-                                type="button"
-                                disabled={loading}
-                                onClick={() => confirmPendingAction(m.actionRequired)}
-                                className="btn btn-sm btn-danger d-flex align-items-center gap-1.5 px-3 py-1.5 fw-semibold"
-                                style={{ borderRadius: '8px', fontSize: '12px' }}
-                              >
-                                <i className="fas fa-check" />
-                                <span>Confirm & Execute</span>
-                              </button>
-                              <button
-                                type="button"
-                                disabled={loading}
-                                onClick={cancelPendingAction}
-                                className="btn btn-sm btn-outline-secondary px-3 py-1.5"
-                                style={{ borderRadius: '8px', fontSize: '12px' }}
-                              >
-                                <span>Cancel</span>
-                              </button>
+                          ) : m.actionRequired.type === 'create_bundle' ? (
+                            <div className="mt-3 p-3 bg-white border border-primary-subtle rounded-3 text-dark shadow-sm">
+                              <div className="d-flex align-items-center justify-content-between gap-2 mb-2">
+                                <div className="d-flex align-items-center gap-2 text-primary fw-bold">
+                                  <i className="fas fa-box-open fs-5" />
+                                  <span style={{ fontSize: '13px' }}>{m.actionRequired.title}</span>
+                                </div>
+                                <span className="badge bg-primary text-white px-2 py-1" style={{ fontSize: '11px' }}>
+                                  High-Margin Combo
+                                </span>
+                              </div>
+                              <p className="small mb-3 text-secondary" style={{ fontSize: '12px', lineHeight: '1.4' }}>
+                                {m.actionRequired.description}
+                              </p>
+                              <div className="d-flex align-items-center gap-2">
+                                <button
+                                  type="button"
+                                  disabled={loading}
+                                  onClick={() => confirmPendingAction(m.actionRequired)}
+                                  className="btn btn-sm btn-primary d-flex align-items-center gap-1.5 px-3 py-1.5 fw-semibold"
+                                  style={{ borderRadius: '8px', fontSize: '12px' }}
+                                >
+                                  <i className="fas fa-check" />
+                                  <span>✅ Create & Publish Bundle</span>
+                                </button>
+                                <button
+                                  type="button"
+                                  disabled={loading}
+                                  onClick={cancelPendingAction}
+                                  className="btn btn-sm btn-outline-secondary px-3 py-1.5"
+                                  style={{ borderRadius: '8px', fontSize: '12px' }}
+                                >
+                                  <span>Cancel</span>
+                                </button>
+                              </div>
                             </div>
-                          </div>
+                          ) : (
+                            <div className="mt-3 p-3 bg-danger-subtle border border-danger-subtle rounded-3 text-dark shadow-sm">
+                              <div className="d-flex align-items-center justify-content-between gap-2 mb-2">
+                                <div className="d-flex align-items-center gap-2 text-danger fw-bold">
+                                  <i className="fas fa-shield-alt fs-5" />
+                                  <span style={{ fontSize: '13px' }}>{m.actionRequired.title}</span>
+                                </div>
+                                <span className="badge bg-danger text-white px-2 py-1" style={{ fontSize: '11px' }}>
+                                  {m.actionRequired.count} Items
+                                </span>
+                              </div>
+                              <p className="small mb-3 text-secondary" style={{ fontSize: '12px', lineHeight: '1.4' }}>
+                                {m.actionRequired.description}
+                              </p>
+                              <div className="d-flex align-items-center gap-2">
+                                <button
+                                  type="button"
+                                  disabled={loading}
+                                  onClick={() => confirmPendingAction(m.actionRequired)}
+                                  className="btn btn-sm btn-danger d-flex align-items-center gap-1.5 px-3 py-1.5 fw-semibold"
+                                  style={{ borderRadius: '8px', fontSize: '12px' }}
+                                >
+                                  <i className="fas fa-check" />
+                                  <span>Confirm & Execute</span>
+                                </button>
+                                <button
+                                  type="button"
+                                  disabled={loading}
+                                  onClick={cancelPendingAction}
+                                  className="btn btn-sm btn-outline-secondary px-3 py-1.5"
+                                  style={{ borderRadius: '8px', fontSize: '12px' }}
+                                >
+                                  <span>Cancel</span>
+                                </button>
+                              </div>
+                            </div>
+                          )
                         )}
                       </div>
 
@@ -563,17 +697,84 @@ export default function AdminAiCopilotPage() {
 
             {/* Input Bar */}
             <div className="p-2.5 p-md-3 border-top bg-light rounded-bottom-4">
+              {/* Image Preview Strip */}
+              {selectedImage && (
+                <div className="mb-2 p-2 bg-emerald-subtle border border-emerald-subtle rounded-3 d-flex align-items-center justify-content-between">
+                  <div className="d-flex align-items-center gap-2">
+                    <img
+                      src={selectedImage}
+                      alt="Selected preview"
+                      className="rounded-2 border"
+                      style={{ width: '44px', height: '44px', objectFit: 'cover' }}
+                    />
+                    <div>
+                      <div className="fw-semibold text-dark" style={{ fontSize: '12px' }}>
+                        📸 {selectedImageName || 'Product Photo Attached'}
+                      </div>
+                      <div className="text-muted" style={{ fontSize: '11px' }}>
+                        Vision AI is ready to detect, benchmark competitor pricing & auto-list
+                      </div>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={clearSelectedImage}
+                    className="btn btn-sm btn-outline-danger py-1 px-2.5 d-flex align-items-center gap-1"
+                    style={{ borderRadius: '6px', fontSize: '11px' }}
+                    title="Remove image"
+                  >
+                    <i className="fas fa-times" />
+                    <span>Remove</span>
+                  </button>
+                </div>
+              )}
+
+              {/* Hidden File Input */}
+              <input
+                type="file"
+                ref={fileInputRef}
+                accept="image/*"
+                className="d-none"
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  if (f) handleImageSelect(f);
+                  e.target.value = '';
+                }}
+              />
+
               <div className="d-flex align-items-end gap-2 bg-white rounded-3 border p-1.5 shadow-sm focus-within-ring">
                 <textarea
                   ref={textareaRef}
                   value={inputMessage}
                   onChange={(e) => setInputMessage(e.target.value)}
                   onKeyDown={handleKeyDown}
-                  placeholder="Kuch bhi poochein: e.g. 'Islamabad me Alto ke trending accessories' ya 'Mera stock check karo'..."
+                  placeholder={
+                    selectedImage
+                      ? "Optional instruction for this product photo (e.g. 'Keep price under 3000' or press Send)..."
+                      : "Kuch bhi poochein ya product photo attach karein..."
+                  }
                   rows={2}
                   className="form-control border-0 shadow-none bg-transparent resize-none"
                   style={{ fontSize: '13.5px', maxHeight: '120px' }}
                 />
+
+                {/* Camera / Photo Upload Button */}
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="btn btn-light border text-secondary d-flex align-items-center justify-content-center flex-shrink-0"
+                  style={{
+                    width: '42px',
+                    height: '42px',
+                    borderRadius: '10px',
+                    backgroundColor: selectedImage ? '#ecfdf5' : undefined,
+                    borderColor: selectedImage ? '#10b981' : undefined,
+                  }}
+                  title="Snap / Upload Product Photo for Auto-Listing"
+                >
+                  <i className={`fas fa-camera ${selectedImage ? 'text-success' : 'text-emerald'}`} style={{ color: '#059669' }} />
+                </button>
+
                 {/* Voice Input Button */}
                 {speechSupported && (
                   <button
@@ -596,14 +797,14 @@ export default function AdminAiCopilotPage() {
                 <button
                   type="button"
                   onClick={handleSend}
-                  disabled={!inputMessage.trim() || loading}
+                  disabled={(!inputMessage.trim() && !selectedImage) || loading}
                   className="btn btn-primary d-flex align-items-center justify-content-center flex-shrink-0"
                   style={{
                     width: '42px',
                     height: '42px',
                     borderRadius: '10px',
-                    backgroundColor: inputMessage.trim() && !loading ? '#059669' : undefined,
-                    borderColor: inputMessage.trim() && !loading ? '#059669' : undefined,
+                    backgroundColor: (inputMessage.trim() || selectedImage) && !loading ? '#059669' : undefined,
+                    borderColor: (inputMessage.trim() || selectedImage) && !loading ? '#059669' : undefined,
                   }}
                   title="Send Message (Enter)"
                 >

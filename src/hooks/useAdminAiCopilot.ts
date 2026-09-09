@@ -9,6 +9,7 @@ export interface ChatMessage {
   role: 'user' | 'assistant';
   content: string;
   timestamp: string;
+  imageUrl?: string;
   actionRequired?: AdminActionRequired;
   actionExecuted?: {
     type: string;
@@ -25,6 +26,15 @@ export interface PromptCategory {
 }
 
 export const COPILOT_PROMPT_CATEGORIES: PromptCategory[] = [
+  {
+    category: 'Vision AI & Auto-Listing',
+    icon: '📸',
+    prompts: [
+      'Is tasweer se product identify kar ke auto-list aur competitor price benchmark karo',
+      'Car accessory ki photo upload karo aur Sehgal Motors se sasti price set karo',
+      'Naya high-margin combo bundle design karo aur store par live add karo',
+    ],
+  },
   {
     category: 'Direct Store Actions & Operations',
     icon: '⚡',
@@ -114,6 +124,8 @@ export const COPILOT_PROMPT_CATEGORIES: PromptCategory[] = [
 ];
 
 const DEFAULT_QUICK_PROMPTS = [
+  '📸 Snap & Auto-List Photo',
+  'Suggest High-Margin Bundle 💡',
   'Daily WhatsApp Digest 📱',
   'COD Fraud & Return Risk 🛡️',
   'Publish Smog SEO Blog ✍️',
@@ -121,7 +133,6 @@ const DEFAULT_QUICK_PROMPTS = [
   'Store Operations & Actions ⚡',
   'Rawalpindi & Islamabad Trends 📍',
   'Low Stock Products Alert 📦',
-  'Live Site SEO & Ranking Audit 🔍',
 ];
 
 const STORAGE_KEY = 'pakodrive_admin_copilot_chat';
@@ -131,6 +142,8 @@ export function useAdminAiCopilot() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [competitorUrl, setCompetitorUrl] = useState('');
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [selectedImageName, setSelectedImageName] = useState<string | null>(null);
   const [isThinking, setIsThinking] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [snapshot, setSnapshot] = useState<AdminStoreSummary | null>(null);
@@ -261,22 +274,61 @@ export function useAdminAiCopilot() {
     fetchSnapshot();
   }, [fetchSnapshot]);
 
-  // Send message with optional SEO URL or Competitor URL
+  // Handle image upload from file picker
+  const handleImageSelect = useCallback((file: File) => {
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      setError('Baraye meherbani sirf tasweer (image) file select karein.');
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      setError('Tasweer ka size 10MB se kam hona chahiye.');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const result = e.target?.result as string;
+      if (result) {
+        setSelectedImage(result);
+        setSelectedImageName(file.name);
+        setError(null);
+      }
+    };
+    reader.onerror = () => {
+      setError('Tasweer read karne me masla hua.');
+    };
+    reader.readAsDataURL(file);
+  }, []);
+
+  const clearSelectedImage = useCallback(() => {
+    setSelectedImage(null);
+    setSelectedImageName(null);
+  }, []);
+
+  // Send message with optional SEO URL or Competitor URL or Attached Image
   const sendMessage = useCallback(
     async (customText?: string, targetSeoUrl?: string, customCompetitorUrl?: string) => {
       const query = (customText ?? input).trim();
-      if (!query || isThinking) return;
+      const currentImage = selectedImage;
+      const currentImageName = selectedImageName;
+
+      // Need either text or image
+      if ((!query && !currentImage) || isThinking) return;
 
       setError(null);
       const userMsg: ChatMessage = {
         id: `user-${Date.now()}`,
         role: 'user',
-        content: query,
+        content: query || (currentImage ? `📸 [Product Photo: ${currentImageName || 'product.jpg'}]` : ''),
+        imageUrl: currentImage || undefined,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       };
 
       setMessages((prev) => [...prev, userMsg]);
       setInput('');
+      setSelectedImage(null);
+      setSelectedImageName(null);
       setIsThinking(true);
 
       try {
@@ -294,7 +346,8 @@ export function useAdminAiCopilot() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            message: query,
+            message: query || (currentImage ? 'Analyze this product photo and auto-list' : ''),
+            image: currentImage || undefined,
             history: historyPayload,
             targetSeoUrl,
             competitorUrl: effectiveCompetitorUrl,
@@ -339,7 +392,7 @@ export function useAdminAiCopilot() {
         setIsThinking(false);
       }
     },
-    [input, isThinking, messages, competitorUrl, fetchSnapshot]
+    [input, isThinking, messages, competitorUrl, selectedImage, selectedImageName, fetchSnapshot]
   );
 
   // Confirms and executes an action that required explicit admin permission
@@ -427,6 +480,8 @@ export function useAdminAiCopilot() {
       // Ignore
     }
     setPendingAction(null);
+    setSelectedImage(null);
+    setSelectedImageName(null);
     setMessages([
       {
         id: 'welcome',
@@ -445,6 +500,10 @@ export function useAdminAiCopilot() {
     setInput,
     competitorUrl,
     setCompetitorUrl,
+    selectedImage,
+    selectedImageName,
+    handleImageSelect,
+    clearSelectedImage,
     isThinking,
     loading: isThinking,
     error,

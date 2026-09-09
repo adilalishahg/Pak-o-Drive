@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import {
@@ -24,6 +24,8 @@ import {
   ShieldAlert,
   Mic,
   MicOff,
+  Camera,
+  Image as ImageIcon,
 } from 'lucide-react';
 import { useAdminAiCopilot } from '@/hooks/useAdminAiCopilot';
 
@@ -34,6 +36,10 @@ export function AdminAiDrawer() {
     messages,
     input,
     setInput,
+    selectedImage,
+    selectedImageName,
+    handleImageSelect,
+    clearSelectedImage,
     isThinking,
     error,
     quickPrompts,
@@ -50,6 +56,7 @@ export function AdminAiDrawer() {
 
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [isExpanded, setIsExpanded] = useState<boolean>(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleCopy = (text: string, id: string) => {
     navigator.clipboard.writeText(text);
@@ -226,6 +233,17 @@ export function AdminAiDrawer() {
                       : 'bg-slate-900 text-slate-200 border border-slate-800/80 rounded-tl-none'
                   }`}
                 >
+                  {/* Attached Image */}
+                  {msg.imageUrl && (
+                    <div className="mb-2.5">
+                      <img
+                        src={msg.imageUrl}
+                        alt="Product upload"
+                        className="rounded-xl border border-white/10 max-h-44 max-w-full object-cover shadow-sm"
+                      />
+                    </div>
+                  )}
+
                   {/* Markdown Renderer for Assistant Messages */}
                   {isUser ? (
                     <p className="whitespace-pre-wrap leading-relaxed font-normal">{msg.content}</p>
@@ -287,41 +305,147 @@ export function AdminAiDrawer() {
                     </div>
                   )}
 
-                  {/* Safety Confirmation Card */}
+                  {/* Action Proposal & Confirmation Cards */}
                   {msg.actionRequired && pendingAction?.id === msg.actionRequired.id && (
-                    <div className="mt-3 p-3 bg-rose-950/80 border border-rose-500/40 rounded-xl text-slate-100 shadow-lg">
-                      <div className="flex items-center justify-between gap-2 mb-1.5">
-                        <div className="flex items-center gap-2 text-rose-400 font-bold text-xs">
-                          <ShieldAlert className="w-4 h-4 flex-shrink-0" />
-                          <span className="leading-normal">{msg.actionRequired.title}</span>
+                    msg.actionRequired.type === 'publish_vision_product' ? (
+                      <div className="mt-3 p-3 bg-slate-950/90 border border-emerald-500/40 rounded-xl text-slate-100 shadow-xl">
+                        <div className="flex items-center justify-between gap-2 mb-2">
+                          <div className="flex items-center gap-2 text-emerald-400 font-bold text-xs">
+                            <Camera className="w-4 h-4 flex-shrink-0" />
+                            <span className="leading-normal">{msg.actionRequired.title}</span>
+                          </div>
+                          <span className="text-[10px] font-bold bg-emerald-600/30 text-emerald-300 px-2 py-0.5 rounded-full border border-emerald-500/30 flex-shrink-0">
+                            Vision Auto-List
+                          </span>
                         </div>
-                        <span className="text-[10px] font-bold bg-rose-600/40 text-rose-200 px-2 py-0.5 rounded-full border border-rose-500/30 flex-shrink-0">
-                          {msg.actionRequired.count} items
-                        </span>
+
+                        {/* Dual layer uncropped studio preview (Rule 3) */}
+                        {msg.actionRequired.payload?.params?.images?.[0] && (
+                          <div className="relative rounded-lg overflow-hidden mb-2.5 border border-slate-800 bg-slate-900 h-32">
+                            <img
+                              src={msg.actionRequired.payload.params.images[0]}
+                              alt="Studio preview"
+                              className="w-full h-full absolute inset-0 blur-xl opacity-35 object-cover"
+                            />
+                            <img
+                              src={msg.actionRequired.payload.params.images[0]}
+                              alt="Studio preview"
+                              className="w-full h-full relative z-10 object-contain p-1.5"
+                            />
+                          </div>
+                        )}
+
+                        {/* Benchmark comparison & margin */}
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 mb-3 text-[11px]">
+                          <div className="p-1.5 rounded-lg bg-slate-900/80 border border-slate-800">
+                            <span className="text-slate-400 text-[9px] block">Selling Price</span>
+                            <span className="font-bold text-emerald-400 text-xs">
+                              PKR {msg.actionRequired.payload?.params?.price?.toLocaleString() || 0}
+                            </span>
+                          </div>
+                          <div className="p-1.5 rounded-lg bg-slate-900/80 border border-slate-800">
+                            <span className="text-slate-400 text-[9px] block">Competitor</span>
+                            <span className="line-through text-rose-400 text-[11px]">
+                              PKR {msg.actionRequired.payload?.params?.competitorPrice?.toLocaleString() || 0}
+                            </span>
+                          </div>
+                          <div className="p-1.5 rounded-lg bg-slate-900/80 border border-slate-800 col-span-2 sm:col-span-1">
+                            <span className="text-slate-400 text-[9px] block">Margin & Stock</span>
+                            <span className="font-semibold text-amber-300 text-[11px]">
+                              +{msg.actionRequired.payload?.params?.profitMarginPercentage || 85}% • {msg.actionRequired.payload?.params?.stock || 20} pcs
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            disabled={isThinking}
+                            onClick={() => confirmPendingAction(msg.actionRequired)}
+                            className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs flex items-center gap-1.5 transition-all shadow-md active:scale-95 disabled:opacity-50"
+                          >
+                            <Check className="w-3.5 h-3.5" />
+                            <span>✅ Approve & Publish Live</span>
+                          </button>
+                          <button
+                            type="button"
+                            disabled={isThinking}
+                            onClick={cancelPendingAction}
+                            className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs border border-slate-700 transition-all active:scale-95 disabled:opacity-50"
+                          >
+                            <span>Cancel</span>
+                          </button>
+                        </div>
                       </div>
-                      <p className="text-[11px] text-slate-300 mb-3 leading-relaxed">
-                        {msg.actionRequired.description}
-                      </p>
-                      <div className="flex items-center gap-2">
-                        <button
-                          type="button"
-                          disabled={isThinking}
-                          onClick={() => confirmPendingAction(msg.actionRequired)}
-                          className="px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-500 text-white font-semibold text-xs flex items-center gap-1.5 transition-all shadow-md active:scale-95 disabled:opacity-50"
-                        >
-                          <Check className="w-3.5 h-3.5" />
-                          <span>Confirm & Execute</span>
-                        </button>
-                        <button
-                          type="button"
-                          disabled={isThinking}
-                          onClick={cancelPendingAction}
-                          className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs border border-slate-700 transition-all active:scale-95 disabled:opacity-50"
-                        >
-                          <span>Cancel</span>
-                        </button>
+                    ) : msg.actionRequired.type === 'create_bundle' ? (
+                      <div className="mt-3 p-3 bg-slate-950/90 border border-amber-500/40 rounded-xl text-slate-100 shadow-xl">
+                        <div className="flex items-center justify-between gap-2 mb-1.5">
+                          <div className="flex items-center gap-2 text-amber-400 font-bold text-xs">
+                            <Package className="w-4 h-4 flex-shrink-0" />
+                            <span className="leading-normal">{msg.actionRequired.title}</span>
+                          </div>
+                          <span className="text-[10px] font-bold bg-amber-600/30 text-amber-300 px-2 py-0.5 rounded-full border border-amber-500/30 flex-shrink-0">
+                            Combo Bundle
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-slate-300 mb-3 leading-relaxed">
+                          {msg.actionRequired.description}
+                        </p>
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            disabled={isThinking}
+                            onClick={() => confirmPendingAction(msg.actionRequired)}
+                            className="px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-500 text-white font-semibold text-xs flex items-center gap-1.5 transition-all shadow-md active:scale-95 disabled:opacity-50"
+                          >
+                            <Check className="w-3.5 h-3.5" />
+                            <span>✅ Create & Publish Bundle</span>
+                          </button>
+                          <button
+                            type="button"
+                            disabled={isThinking}
+                            onClick={cancelPendingAction}
+                            className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs border border-slate-700 transition-all active:scale-95 disabled:opacity-50"
+                          >
+                            <span>Cancel</span>
+                          </button>
+                        </div>
                       </div>
-                    </div>
+                    ) : (
+                      <div className="mt-3 p-3 bg-rose-950/80 border border-rose-500/40 rounded-xl text-slate-100 shadow-lg">
+                        <div className="flex items-center justify-between gap-2 mb-1.5">
+                          <div className="flex items-center gap-2 text-rose-400 font-bold text-xs">
+                            <ShieldAlert className="w-4 h-4 flex-shrink-0" />
+                            <span className="leading-normal">{msg.actionRequired.title}</span>
+                          </div>
+                          <span className="text-[10px] font-bold bg-rose-600/40 text-rose-200 px-2 py-0.5 rounded-full border border-rose-500/30 flex-shrink-0">
+                            {msg.actionRequired.count} items
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-slate-300 mb-3 leading-relaxed">
+                          {msg.actionRequired.description}
+                        </p>
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            disabled={isThinking}
+                            onClick={() => confirmPendingAction(msg.actionRequired)}
+                            className="px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-500 text-white font-semibold text-xs flex items-center gap-1.5 transition-all shadow-md active:scale-95 disabled:opacity-50"
+                          >
+                            <Check className="w-3.5 h-3.5" />
+                            <span>Confirm & Execute</span>
+                          </button>
+                          <button
+                            type="button"
+                            disabled={isThinking}
+                            onClick={cancelPendingAction}
+                            className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs border border-slate-700 transition-all active:scale-95 disabled:opacity-50"
+                          >
+                            <span>Cancel</span>
+                          </button>
+                        </div>
+                      </div>
+                    )
                   )}
 
                   {/* Message Footer: Timestamp & Copy button */}
@@ -384,6 +508,48 @@ export function AdminAiDrawer() {
             paddingBottom: 'max(1rem, env(safe-area-inset-bottom, 1rem))',
           }}
         >
+          {/* Image Preview Strip */}
+          {selectedImage && (
+            <div className="mb-2 p-2 bg-emerald-950/60 border border-emerald-500/30 rounded-xl flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2 min-w-0">
+                <img
+                  src={selectedImage}
+                  alt="Preview"
+                  className="w-10 h-10 rounded-lg object-cover border border-emerald-500/30 flex-shrink-0"
+                />
+                <div className="min-w-0">
+                  <span className="text-[11px] font-semibold text-emerald-300 block truncate">
+                    📸 {selectedImageName || 'Photo Attached'}
+                  </span>
+                  <span className="text-[9.5px] text-slate-400 block truncate">
+                    Vision AI ready to detect & benchmark
+                  </span>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={clearSelectedImage}
+                className="p-1 text-rose-400 hover:text-rose-300 hover:bg-rose-950/50 rounded-md transition-colors flex-shrink-0"
+                title="Remove image"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          )}
+
+          {/* Hidden File Input */}
+          <input
+            type="file"
+            ref={fileInputRef}
+            accept="image/*"
+            className="hidden"
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              if (f) handleImageSelect(f);
+              e.target.value = '';
+            }}
+          />
+
           <form
             onSubmit={(e) => {
               e.preventDefault();
@@ -397,11 +563,30 @@ export function AdminAiDrawer() {
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
                 rows={1}
-                placeholder="Poochhein (e.g. Rawalpindi trends, low stock, SEO ranking...)"
+                placeholder={
+                  selectedImage
+                    ? "Product photo ke sath koi note (ya enter dabayein)..."
+                    : "Poochhein ya photo attach karein..."
+                }
                 disabled={isThinking}
                 className="w-full bg-slate-950 text-slate-100 text-xs sm:text-sm placeholder-slate-500 rounded-xl px-3.5 py-2.5 border border-slate-700/80 focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 resize-none max-h-24 min-h-[44px] transition-all disabled:opacity-50"
               />
             </div>
+
+            {/* Camera / Photo Upload Button */}
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className={`h-[44px] px-3 rounded-xl flex items-center justify-center transition-all border flex-shrink-0 ${
+                selectedImage
+                  ? 'bg-emerald-600 text-white border-emerald-500'
+                  : 'bg-slate-800 text-slate-300 border-slate-700 hover:text-white hover:bg-slate-700'
+              }`}
+              title="Snap / Upload Product Photo for Auto-Listing"
+            >
+              <Camera className="w-4 h-4" />
+            </button>
+
             {/* Voice Input Button */}
             {speechSupported && (
               <button
@@ -420,7 +605,7 @@ export function AdminAiDrawer() {
 
             <button
               type="submit"
-              disabled={!input.trim() || isThinking}
+              disabled={(!input.trim() && !selectedImage) || isThinking}
               className="h-[44px] px-3.5 sm:px-4 rounded-xl font-medium text-white flex items-center justify-center gap-1.5 transition-all shadow-md active:scale-95 disabled:opacity-40 disabled:pointer-events-none flex-shrink-0"
               style={{
                 background: 'linear-gradient(135deg, #ea580c 0%, #f97316 100%)',

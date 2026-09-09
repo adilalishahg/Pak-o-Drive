@@ -7,6 +7,7 @@ import {
   scrapeCompetitorPage,
 } from '@/lib/adminAiEngine';
 import { detectActionWithAI, executeAdminAction } from '@/lib/adminActionEngine';
+import { analyzeProductImageWithAI } from '@/lib/visionAiEngine';
 
 export async function GET(req: NextRequest) {
   try {
@@ -56,7 +57,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { message, history, targetSeoUrl, competitorUrl, actionConfirmation } = body;
+    const { message, history, targetSeoUrl, competitorUrl, actionConfirmation, image } = body;
 
     // 1. Direct Safety Confirmed Execution
     if (actionConfirmation && actionConfirmation.operation) {
@@ -66,6 +67,38 @@ export async function POST(req: NextRequest) {
         reply: confirmedResult.reply,
         actionExecuted: confirmedResult.actionExecuted,
         actionRequired: confirmedResult.actionRequired,
+      });
+    }
+
+    // 2. Vision AI Snap & Auto-List Handling
+    if (image && typeof image === 'string') {
+      const analysis = await analyzeProductImageWithAI(
+        image,
+        message && typeof message === 'string' ? message : 'Analyze this product and prepare an auto-listing'
+      );
+
+      const displayStock = analysis.stock || 25;
+      const displayWholesale = analysis.wholesaleCost || Math.round(analysis.price * 0.45);
+
+      return NextResponse.json({
+        success: true,
+        reply: `📸 **Vision AI Auto-Analysis Mukammal!**\n\nTasweer me **"${analysis.name}"** identify ho chuki hai. Pakistan automotive market aur competitors (Sehgal Motors / Daraz) se benchmark kar ke optimized PKR pricing aur SEO description tayyar hai:\n\n- 🏷️ **Product Title:** ${analysis.name}\n- 💰 **Suggested Retail Price:** PKR ${analysis.price.toLocaleString()} *(Estimated Wholesale: PKR ${displayWholesale.toLocaleString()})*\n- 🏬 **Competitor Benchmark:** PKR ${analysis.competitorPrice.toLocaleString()} (${analysis.competitorStore})\n- 🚀 **Profit Margin:** ~${analysis.profitMarginPercent}%\n- 📦 **Initial Stock:** ${displayStock} units\n- 📂 **Category:** ${analysis.category}\n- 🔑 **Target SEO Keywords:** ${analysis.seoKeywords}\n\nAgar aap mutma'in hain tou neeche diye gaye proposal card par **"✅ Approve & Publish Live"** dabayein taake product foran store par live ho jaye!`,
+        actionRequired: {
+          id: `act_${Date.now()}`,
+          type: 'publish_vision_product',
+          title: `Publish: ${analysis.name}`,
+          description: `PKR ${analysis.price.toLocaleString()} (Competitor: PKR ${analysis.competitorPrice.toLocaleString()})`,
+          payload: {
+            operation: 'publish_vision_product',
+            params: {
+              ...analysis,
+              stock: displayStock,
+              profitMarginPercentage: analysis.profitMarginPercent,
+              competitorSource: analysis.competitorStore,
+              images: [analysis.studioImage],
+            },
+          },
+        },
       });
     }
 
