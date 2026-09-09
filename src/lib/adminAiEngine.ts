@@ -203,7 +203,7 @@ export async function auditLivePageSeo(urlOrPath: string = '/'): Promise<{
   try {
     const res = await fetch(targetUrl, {
       headers: {
-        'User-Agent': 'PakODrive-SEO-Bot/1.0 (+https://pakodrive.com)',
+        'User-Agent': 'PakODrive-SEO-Bot/1.0 (+https://www.pakodrive.pk)',
       },
       cache: 'no-store',
       next: { revalidate: 0 },
