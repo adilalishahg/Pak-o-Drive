@@ -6,6 +6,22 @@ This file serves as persistent dynamic memory across coding agent sessions. Ever
 
 ## 🏛️ PART 1: The 8 Core Pakistani E-Commerce Engineering Rules
 
+### 2026-09-09 — Single-Order Deterministic Index & Hex Resolution & Accidental Bulk Update Prevention
+- **📌 Issue**: User said *"Order id 1 ka status complete kra do"*, but the AI Copilot updated 10 orders to "Delivered" simultaneously, replied *"10 order(s) ka status successfully Delivered kar diya gaya hai"*, and then claimed *"Hamare backend me order IDs undefined hain"*. Additionally, an unsightly orange vertical scrollbar pill was rendered inside the bottom chat textarea on Android Chrome.
+- **🔍 Root Cause & Failed Attempts**:
+  1. `getAdminStoreSnapshot` and `searchStoreItems` in `src/lib/adminAiEngine.ts` queried `orderId` and `customerDetails.fullName` instead of `_id` and `customerDetails.name` (as defined in `src/models/Order.ts`). This caused `orderId` and customer name to be `undefined`, prompting the LLM to output that order IDs were undefined.
+  2. In `src/lib/adminActionEngine.ts`, when user queried `"order id 1"`, the identifier was parsed as `"1"`. The query filter checked `^\d+$` and performed a regex search on `{ 'customerDetails.phone': { $regex: '1' } }`. Since almost every Pakistani phone number contains the digit '1', it matched all orders and called `Order.updateMany` with a limit of 10!
+  3. No index-based order lookup existed for `"order 1"` / `"order #1"` / `"pehla order"` to resolve to the 1st recent order in MongoDB.
+  4. On Android mobile browsers, `textarea` with `rows={1}` and `min-h-[44px]` triggered default WebKit vertical scrollbars styled with the site's orange accent color.
+- **🛠️ Verified Code Fix**:
+  1. In `src/lib/adminAiEngine.ts`, updated `getAdminStoreSnapshot` and `searchStoreItems` to select `_id` and `customerDetails.name`, providing `orderId` (6-char uppercase hex `#774526`), `fullId` (MongoDB ObjectId), sequence `index` (1-based), customer name, phone, and city.
+  2. In `src/lib/adminActionEngine.ts`:
+     - Updated `normalizeOrderStatus` to recognize `"complete"`, `"completed"`, `"done"`, `"finish"`, and Urdu status commands mapping directly to `"Delivered"`.
+     - Completely overhauled `update_order_status`: isolated bulk updates strictly to explicit requests (`all`, `tamam`, `sab`, `all_pending`). For single orders, implemented deterministic resolution: (a) 1-based index (e.g. "1" maps to `recentOrders[0]`), (b) 24-char ObjectId, (c) 6-char hex suffix matching `_id`, (d) phone number (restricted to 7+ digits only), or (e) customer name/city. Uses `Order.updateOne` targeting exclusively 1 document.
+     - Reverted the 9 accidentally delivered orders back to `"Pending"` via targeted database script while preserving the intended Hingorga order (#774526) as `"Delivered"`.
+  3. In `src/components/admin/ai-copilot/AdminAiDrawer.tsx`, added `[scrollbar-width:none] [&::-webkit-scrollbar]:hidden` and inline `scrollbarWidth: 'none'` to the input textarea, completely eliminating the orange scrollbar artifact on mobile.
+  4. Verified with `pnpm tsc --noEmit` (0 errors) and live test scripts.
+
 ### 2026-09-09 — 0ms Deterministic Fast-Path Routing for Admin Quick Actions & Vercel Timeout Shield
 - **📌 Issue**: When clicking predefined quick action chips like `"⚡ Launch Flash Sale Event"` or `"🎬 Viral TikTok Video Script"`, the Admin AI Copilot sometimes fell back to a generic store snapshot (*"AI Engine refresh ho raha hai, baraye meherbani 10 seconds baad dubara query karein"*) instead of showing the interactive proposal card.
 - **🔍 Root Cause & Failed Attempts**:

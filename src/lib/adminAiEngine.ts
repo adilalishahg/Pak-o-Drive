@@ -18,10 +18,13 @@ export interface AdminStoreSummary {
   categoriesList: string[];
   recentOrdersList: Array<{
     orderId: string;
+    fullId: string;
+    index: number;
     amount: number;
     status: string;
     paymentMethod: string;
     customerName: string;
+    customerPhone: string;
     city: string;
     itemsSummary: string;
   }>;
@@ -76,8 +79,8 @@ export async function getAdminStoreSnapshot(): Promise<AdminStoreSummary> {
       ]),
       Order.find()
         .sort({ createdAt: -1 })
-        .limit(8)
-        .select('orderId totalAmount status paymentMethod customerDetails.city customerDetails.fullName items.name items.quantity')
+        .limit(10)
+        .select('_id totalAmount status paymentMethod customerDetails items createdAt')
         .lean(),
       Category.find().select('name').limit(15).lean(),
     ]);
@@ -86,12 +89,15 @@ export async function getAdminStoreSnapshot(): Promise<AdminStoreSummary> {
     const rawCities: string[] = ordersAgg[0]?.cities || [];
     const recentCities = Array.from(new Set(rawCities.filter(Boolean))).slice(0, 10);
 
-    const recentOrdersList = (recentOrdersRaw || []).map((o: any) => ({
-      orderId: o.orderId,
-      amount: o.totalAmount,
-      status: o.status,
+    const recentOrdersList = (recentOrdersRaw || []).map((o: any, idx: number) => ({
+      orderId: o._id ? o._id.toString().slice(-6).toUpperCase() : `ORD-${idx + 1}`,
+      fullId: o._id ? o._id.toString() : '',
+      index: idx + 1,
+      amount: o.totalAmount || 0,
+      status: o.status || 'Pending',
       paymentMethod: o.paymentMethod || 'COD',
-      customerName: o.customerDetails?.fullName || 'Valued Customer',
+      customerName: o.customerDetails?.name || o.customerDetails?.fullName || 'Valued Customer',
+      customerPhone: o.customerDetails?.phone || '',
       city: o.customerDetails?.city || 'Twin Cities',
       itemsSummary: (o.items || []).map((i: any) => `${i.name} (x${i.quantity || 1})`).join(', ') || 'Auto Accessories',
     }));
@@ -308,12 +314,13 @@ export async function searchStoreItems(query: string) {
 
       Order.find({
         $or: [
-          { orderId: { $regex: regexPattern, $options: 'i' } },
+          { 'customerDetails.name': { $regex: regexPattern, $options: 'i' } },
           { 'customerDetails.city': { $regex: regexPattern, $options: 'i' } },
-          { 'customerDetails.fullName': { $regex: regexPattern, $options: 'i' } },
+          { 'customerDetails.phone': { $regex: regexPattern, $options: 'i' } },
+          { trackingNumber: { $regex: regexPattern, $options: 'i' } },
         ],
       })
-        .select('orderId totalAmount status paymentMethod customerDetails.city createdAt')
+        .select('_id totalAmount status paymentMethod customerDetails items createdAt')
         .sort({ createdAt: -1 })
         .limit(5)
         .lean(),
@@ -328,12 +335,14 @@ export async function searchStoreItems(query: string) {
         category: p.category,
         slug: p.slug,
       })),
-      orders: (matchedOrders || []).map((o: any) => ({
-        orderId: o.orderId,
-        amount: o.totalAmount,
-        status: o.status,
+      orders: (matchedOrders || []).map((o: any, idx: number) => ({
+        orderId: o._id ? o._id.toString().slice(-6).toUpperCase() : `ORD-${idx + 1}`,
+        fullId: o._id ? o._id.toString() : '',
+        amount: o.totalAmount || 0,
+        status: o.status || 'Pending',
+        customerName: o.customerDetails?.name || 'Customer',
         city: o.customerDetails?.city || 'Unknown',
-        payment: o.paymentMethod,
+        payment: o.paymentMethod || 'COD',
       })),
     };
   } catch (err) {
@@ -588,7 +597,7 @@ You are the "Pak-o-Drive Executive AI Copilot & Market Brain" — the chief digi
 - SEO Health: ${seoData.totalMissingSeo} products have missing SEO metadata. Sample unoptimized: ${seoData.sampleUnoptimizedProducts.join(', ') || 'None'}.
 
 ### RECENT ORDERS LIST (LATEST IN STORE):
-${storeData.recentOrdersList && storeData.recentOrdersList.length > 0 ? storeData.recentOrdersList.map((o) => `- Order #${o.orderId}: PKR ${o.amount.toLocaleString()} | Status: ${o.status} (${o.paymentMethod}) | Customer: ${o.customerName} (${o.city}) | Items: ${o.itemsSummary}`).join('\n') : 'No orders recorded yet.'}
+${storeData.recentOrdersList && storeData.recentOrdersList.length > 0 ? storeData.recentOrdersList.map((o) => `- [Order ${o.index}] (Short ID: #${o.orderId} | Full ID: ${o.fullId}): PKR ${o.amount.toLocaleString()} | Status: ${o.status} (${o.paymentMethod}) | Customer: ${o.customerName} (${o.city}, Ph: ${o.customerPhone || 'N/A'}) | Items: ${o.itemsSummary}`).join('\n') : 'No orders recorded yet.'}
 
 ${dynamicContext}
 
@@ -596,7 +605,8 @@ ${regionalKnowledge}
 
 ### GUIDELINES FOR YOUR ANSWERS:
 - Be direct, specific, and grounded in Pakistani e-commerce reality (COD cash-on-delivery dynamics, courier delivery times via Trax/TCS/PostEx, PKR pricing).
-- If the user asks about orders, summarize pending vs delivered, total revenue, and highlight the latest orders with customer name, city, and status.
+- **Accurate Order Identification**: Every order has a 1-based index (e.g. Order 1 is the latest order), a 6-digit hex Short ID (e.g. #${storeData.recentOrdersList[0]?.orderId || '774526'}), and a full MongoDB ObjectId. Order IDs are NEVER undefined. Always identify orders clearly by their Short ID (e.g. "#774526") and customer name/city.
+- If the user asks about orders, summarize pending vs delivered, total revenue, and highlight the latest orders with customer name, city, short ID, and status.
 - If the user asks about Rawalpindi/Islamabad trends, mention specific car models (Civic, Corolla, Alto, Yaris, Sportage) and popular accessories suitable for Twin Cities weather, roads, and car enthusiasts.
 - If asked about low stock or products, quote actual real numbers from the data above.
 - If asked about SEO, provide concrete Meta Titles, Meta Descriptions, and High-Volume Keywords for Pakistani searchers (e.g., "car accessories rawalpindi cod", "car gadgets islamabad").

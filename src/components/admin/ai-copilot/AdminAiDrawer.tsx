@@ -671,7 +671,8 @@ export function AdminAiDrawer() {
                     : "Poochhein ya photo attach karein..."
                 }
                 disabled={isThinking}
-                className="w-full bg-slate-950 text-slate-100 text-xs sm:text-sm placeholder-slate-500 rounded-xl px-3.5 py-2.5 border border-slate-700/80 focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 resize-none max-h-24 min-h-[44px] transition-all disabled:opacity-50"
+                style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                className="w-full bg-slate-950 text-slate-100 text-xs sm:text-sm placeholder-slate-500 rounded-xl px-3.5 py-2.5 border border-slate-700/80 focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 resize-none max-h-24 min-h-[44px] overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden transition-all disabled:opacity-50"
               />
             </div>
 

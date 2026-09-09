@@ -46,12 +46,12 @@ const VALID_ORDER_STATUSES = [
 function normalizeOrderStatus(statusStr: string): string | null {
   if (!statusStr) return null;
   const s = statusStr.toLowerCase().trim();
-  if (s.includes('deliver') || s.includes('delivered') || s.includes('pahunch')) return 'Delivered';
-  if (s.includes('ship') || s.includes('shipped') || s.includes('rawana')) return 'Shipped';
-  if (s.includes('way') || s.includes('on the way') || s.includes('transit')) return 'On the Way';
-  if (s.includes('process') || s.includes('processing') || s.includes('taiari')) return 'Processing';
-  if (s.includes('cancel') || s.includes('cancelled') || s.includes('mansookh')) return 'Cancelled';
-  if (s.includes('pend') || s.includes('pending') || s.includes('intezar')) return 'Pending';
+  if (s.includes('deliver') || s.includes('complete') || s.includes('completed') || s.includes('done') || s.includes('finish') || s.includes('pahunch') || s.includes('khatam')) return 'Delivered';
+  if (s.includes('ship') || s.includes('shipped') || s.includes('rawana') || s.includes('bhej')) return 'Shipped';
+  if (s.includes('way') || s.includes('on the way') || s.includes('transit') || s.includes('raste')) return 'On the Way';
+  if (s.includes('process') || s.includes('processing') || s.includes('taiari') || s.includes('pack')) return 'Processing';
+  if (s.includes('cancel') || s.includes('cancelled') || s.includes('mansookh') || s.includes('radd')) return 'Cancelled';
+  if (s.includes('pend') || s.includes('pending') || s.includes('intezar') || s.includes('wapas pending')) return 'Pending';
   return null;
 }
 
@@ -198,10 +198,17 @@ export async function detectActionWithAI(userQuery: string): Promise<any | null>
     };
   }
 
-  // 13. Order status update: e.g. "order #123 delivered kar do"
-  if (/(status|mark|update|kar do|kardo)\s+.*?(delivered|shipped|processing|cancelled|pending)/i.test(lower)) {
+  // 13. Order status update: e.g. "order id 1 ka status complete kra do", "order #123 delivered kar do"
+  if (
+    /(status|mark|update|kar do|kardo|kra do|krwa do|karwa do|kardein|karde|karo)\s+.*?(delivered|complete|completed|done|finish|shipped|processing|cancelled|pending)/i.test(lower) ||
+    /(order|orders)\s+(?:id\s+|no\s+|number\s+|#)?([a-f0-9]+|\d+)\s+.*?(status|delivered|complete|completed|done|finish|shipped|processing|cancelled|pending|kar do|kardo|kra do)/i.test(lower)
+  ) {
     const statusMatch = normalizeOrderStatus(lower);
-    const idMatch = userQuery.match(/#?([a-f0-9]{24}|\d{3,8})/i)?.[1] || '';
+    const idMatch =
+      userQuery.match(/order\s+(?:id\s+|no\s+|number\s+|#)?([a-f0-9]{4,24}|\d{1,8})/i)?.[1] ||
+      userQuery.match(/#([a-f0-9]{4,24}|\d{1,8})/i)?.[1] ||
+      userQuery.match(/([a-f0-9]{24}|\d{3,8})/i)?.[1] ||
+      '';
     if (statusMatch) {
       return {
         isAction: true,
@@ -251,7 +258,7 @@ You are an intent classification parser for the Pak-o-Drive E-commerce Admin Pan
 Analyze if the user prompt is instructing to modify, update, delete, or create data in the database (Orders, Products, Categories, Promotions, Blogs, WhatsApp digest, COD risk, Courier dispatch, Ad scripts, Reviews, Flash sales).
 
 Valid operations:
-1. "update_order_status": params: { identifier: string (orderId or customer name or phone or "all_pending" or "all_cancelled"), newStatus: "Pending"|"Processing"|"On the Way"|"Shipped"|"Delivered"|"Cancelled" }
+1. "update_order_status": params: { identifier: string (order sequence like "1", short hex like "#774526" or "774526", customer name, or "all_pending"), newStatus: "Pending"|"Processing"|"On the Way"|"Shipped"|"Delivered"|"Cancelled" } (Note: If user says "order id 1" or "order 1", identifier MUST be "1". If user says "complete" or "done", newStatus MUST be "Delivered".)
 2. "update_order_details": params: { identifier: string, address?: string, phone?: string, trackingNumber?: string, courierName?: string }
 3. "delete_order": params: { identifier: string }
 4. "delete_orders_bulk": params: { status?: string, dateBefore?: string, dateAfter?: string, deleteAll?: boolean }
@@ -325,56 +332,161 @@ export async function executeAdminAction(
       };
     }
 
-    let filter: any = {};
-    if (identifier && mongoose.Types.ObjectId.isValid(identifier)) {
-      filter._id = new mongoose.Types.ObjectId(identifier);
-    } else if (identifier && /^\d+$/.test(identifier)) {
-      filter.$or = [
-        { 'customerDetails.phone': { $regex: identifier } },
-        { trackingNumber: { $regex: identifier } },
-      ];
-    } else if (identifier && identifier.toLowerCase().includes('all_pending')) {
-      filter.status = 'Pending';
-    } else if (identifier && identifier.length > 2) {
-      filter.$or = [
-        { 'customerDetails.name': { $regex: identifier, $options: 'i' } },
-        { 'customerDetails.phone': { $regex: identifier } },
-      ];
-    } else {
-      // If no identifier provided, update the latest pending order
-      filter.status = 'Pending';
-    }
+    const trimmedId = typeof identifier === 'string' ? identifier.trim() : String(identifier || '').trim();
+    const isBulk = /^(all|all_pending|all_cancelled|tamam|sab|saray|sary)/i.test(trimmedId);
 
-    const matchedOrders = await Order.find(filter).limit(10).lean();
-    if (matchedOrders.length === 0) {
+    // -------------------------------------------------------------
+    // BULK UPDATE PATH (Only when user explicitly asked for all/tamam/sab)
+    // -------------------------------------------------------------
+    if (isBulk) {
+      let bulkFilter: any = { status: 'Pending' };
+      if (trimmedId.toLowerCase().includes('cancelled')) {
+        bulkFilter = { status: 'Cancelled' };
+      }
+      const matchedOrders = await Order.find(bulkFilter).limit(20).lean();
+      if (matchedOrders.length === 0) {
+        return {
+          handled: true,
+          reply: `ℹ️ Diye gaye bulk criteria ke mutabiq koi order nahi mila.`,
+        };
+      }
+
+      const ids = matchedOrders.map((o: any) => o._id);
+      await Order.updateMany(
+        { _id: { $in: ids } },
+        {
+          $set: { status: targetStatus },
+          $push: {
+            statusHistory: {
+              status: targetStatus,
+              changedAt: new Date(),
+              note: `Bulk updated to ${targetStatus} via AI Executive Copilot`,
+            },
+          },
+        }
+      );
+
       return {
         handled: true,
-        reply: `❌ Diye gaye query ke mutabiq koi order nahi mila. Baraye meherbani sahi Order ID, customer name ya phone number likhein.`,
+        reply: `✅ **Bulk Status Updated!** ${matchedOrders.length} order(s) ka status successfully **"${targetStatus}"** kar diya gaya hai.\n\n- Updated IDs: ${matchedOrders.map((o: any) => `#${o._id.toString().slice(-6).toUpperCase()}`).join(', ')}`,
+        actionExecuted: {
+          type: 'update_order_status',
+          description: `${matchedOrders.length} order(s) marked as ${targetStatus}`,
+          count: matchedOrders.length,
+        },
       };
     }
 
-    const ids = matchedOrders.map((o: any) => o._id);
-    await Order.updateMany(
-      { _id: { $in: ids } },
+    // -------------------------------------------------------------
+    // SINGLE ORDER UPDATE PATH (Deterministic & Zero False Positives)
+    // -------------------------------------------------------------
+    let targetOrder: any = null;
+
+    // 1. 1-Based Index lookup (e.g. "1", "2", "order 1", "order #1", "pehla order")
+    const indexMatch = trimmedId.match(/^(?:order\s*)?(?:#|id\s*)?(\d{1,2})$/i);
+    if (indexMatch) {
+      const idxNum = parseInt(indexMatch[1], 10);
+      if (idxNum >= 1 && idxNum <= 30) {
+        const recentOrders = await Order.find().sort({ createdAt: -1 }).limit(idxNum).lean();
+        if (recentOrders.length >= idxNum) {
+          targetOrder = recentOrders[idxNum - 1];
+        }
+      }
+    }
+
+    // 2. Full 24-char MongoDB ObjectId
+    const cleanHex = trimmedId.replace(/^#/, '');
+    if (!targetOrder && mongoose.Types.ObjectId.isValid(cleanHex) && cleanHex.length === 24) {
+      targetOrder = await Order.findById(cleanHex).lean();
+    }
+
+    // 3. Short hex ID suffix (e.g. "774526", "e214bd")
+    if (!targetOrder && /^[a-f0-9]{4,12}$/i.test(cleanHex)) {
+      const recentOrders = await Order.find().sort({ createdAt: -1 }).limit(100).lean();
+      targetOrder = recentOrders.find((o: any) =>
+        o._id.toString().toLowerCase().endsWith(cleanHex.toLowerCase())
+      ) || null;
+
+      if (!targetOrder) {
+        targetOrder = await Order.findOne({
+          $expr: {
+            $regexMatch: {
+              input: { $toString: '$_id' },
+              regex: `${cleanHex}$`,
+              options: 'i',
+            },
+          },
+        }).lean();
+      }
+    }
+
+    // 4. Phone Number lookup (Strictly 7+ digits to avoid false-positive single digit matches!)
+    if (!targetOrder && /^\+?\d{7,13}$/.test(trimmedId)) {
+      const purePhone = trimmedId.replace(/^\+/, '');
+      targetOrder = await Order.findOne({
+        'customerDetails.phone': { $regex: purePhone },
+      }).sort({ createdAt: -1 }).lean();
+    }
+
+    // 5. Customer Name or City or Tracking Number lookup
+    if (!targetOrder && trimmedId.length >= 2 && !/^\d+$/.test(trimmedId)) {
+      targetOrder = await Order.findOne({
+        $or: [
+          { trackingNumber: trimmedId },
+          { 'customerDetails.name': { $regex: trimmedId, $options: 'i' } },
+          { 'customerDetails.city': { $regex: trimmedId, $options: 'i' } },
+        ],
+      }).sort({ createdAt: -1 }).lean();
+    }
+
+    // 6. Fallback: If no identifier or words like "latest", "recent", "pehla", pick latest Pending order
+    if (!targetOrder && (!trimmedId || /latest|last|recent|pehla|newest/i.test(trimmedId))) {
+      targetOrder = await Order.findOne({ status: 'Pending' }).sort({ createdAt: -1 }).lean()
+        || await Order.findOne().sort({ createdAt: -1 }).lean();
+    }
+
+    if (!targetOrder) {
+      return {
+        handled: true,
+        reply: `❌ Diye gaye query ("${trimmedId || 'None'}") ke mutabiq koi order nahi mila. Baraye meherbani sahi Order sequence (maslan: "Order 1"), Short ID (maslan: "#774526"), ya customer ka naam likhein.`,
+      };
+    }
+
+    // Update ONLY this single order
+    await Order.updateOne(
+      { _id: targetOrder._id },
       {
         $set: { status: targetStatus },
         $push: {
           statusHistory: {
             status: targetStatus,
             changedAt: new Date(),
-            note: 'Updated via AI Executive Copilot',
+            note: `Updated to ${targetStatus} via AI Executive Copilot (${trimmedId || 'Single Order'})`,
           },
         },
       }
     );
 
+    const shortId = targetOrder._id.toString().slice(-6).toUpperCase();
+    const custName = targetOrder.customerDetails?.name || 'Customer';
+    const custCity = targetOrder.customerDetails?.city || 'Pakistan';
+    const amountStr = (targetOrder.totalAmount || 0).toLocaleString();
+
     return {
       handled: true,
-      reply: `✅ **Status Updated!** ${matchedOrders.length} order(s) ka status successfully **"${targetStatus}"** kar diya gaya hai.\n\n- Updated IDs: ${matchedOrders.map((o: any) => `#${o._id.toString().slice(-6)}`).join(', ')}`,
+      reply: `✅ **Status Updated!** Order **#${shortId}** (${custName} - ${custCity}, PKR ${amountStr}) ka status successfully **"${targetStatus}"** kar diya gaya hai.`,
       actionExecuted: {
         type: 'update_order_status',
-        description: `${matchedOrders.length} order(s) marked as ${targetStatus}`,
-        count: matchedOrders.length,
+        description: `Order #${shortId} (${custName}) marked as ${targetStatus}`,
+        count: 1,
+        details: {
+          orderId: targetOrder._id.toString(),
+          shortId,
+          customer: custName,
+          city: custCity,
+          amount: targetOrder.totalAmount,
+          newStatus: targetStatus,
+        },
       },
     };
   }
