@@ -260,7 +260,7 @@ export function SmooothyHeroSlider({
                     }}
                     icon={<i className="fas fa-arrow-right" style={{ fontSize: '9px' }} />}
                   >
-                    {slide.btnText || 'Shop Now'}
+                    {slide.btnLabel || slide.btnText || 'Shop Now'}
                   </ShimmerButton>
                 </div>
               </div>

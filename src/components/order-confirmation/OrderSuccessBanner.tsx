@@ -1,4 +1,5 @@
 import React from 'react';
+import { ShimmerButton } from '../ui/ShimmerButton';
 
 export interface OrderSuccessBannerProps {
   shortId: string;
@@ -17,6 +18,7 @@ export function OrderSuccessBanner({ shortId, onWhatsApp, onPrint }: OrderSucces
       }}
     >
       <div
+        className="badge-shimmer"
         style={{
           width: '64px',
           height: '64px',
@@ -49,28 +51,22 @@ export function OrderSuccessBanner({ shortId, onWhatsApp, onPrint }: OrderSucces
           margin: '0 auto',
         }}
       >
-        <button
+        <ShimmerButton
           type="button"
           onClick={onWhatsApp}
+          variant="whatsapp"
+          borderRadius="8px"
+          shimmerColor="rgba(255, 255, 255, 0.45)"
           style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '8px',
-            background: '#25D366',
-            border: 'none',
-            borderRadius: '8px',
             padding: '13px 20px',
-            color: '#fff',
-            fontWeight: 700,
             fontSize: '0.9rem',
-            cursor: 'pointer',
-            boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+            fontWeight: 700,
+            width: '100%',
           }}
+          icon={<i className="fab fa-whatsapp" style={{ fontSize: '1.15rem' }} />}
         >
-          <i className="fab fa-whatsapp" style={{ fontSize: '1.1rem' }} />
           Confirm Order on WhatsApp (1-Click)
-        </button>
+        </ShimmerButton>
 
         <a
           href={`/track-order?orderId=${shortId}`}

@@ -83,6 +83,7 @@ export interface HeroSlide {
   id?: string;
   subtitle?: string;
   buttonText?: string;
+  btnText?: string;
   buttonLink?: string;
   price?: number;
   originalPrice?: number;

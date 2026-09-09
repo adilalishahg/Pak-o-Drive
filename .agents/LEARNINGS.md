@@ -4,6 +4,27 @@ This file serves as persistent dynamic memory across coding agent sessions. Ever
 
 ---
 
+### 2026-09-09 — 0% Heavy Runtime Animate UI / Magic UI / Aceternity UI Performance Suite (Marquee, Shimmer Button, Spotlight Card)
+- **📌 Issue**: User requested integrating high-conversion animations inspired by Animate UI, Magic UI, and Aceternity UI (with visual inspiration from Inspira UI) across the Main Page, Product Listing, Product Detail Page, and Order Success, while strictly preserving 95+ Lighthouse scores (0% heavy runtime impact).
+- **🔍 Root Cause & Failed Attempts**:
+  1. Inspira UI has a Vue.js backend and importing heavy third-party animation runtimes into Next.js 16 / React 19 would bloat bundles and drop Lighthouse performance below 95+.
+  2. Traditional marquee and mouse-follow spotlight libraries cause React state churn (`setState` on mousemove) and layout shift during scrolling.
+  3. Slide links in hero carousels cannot contain nested HTML `<button>` or `<Link>` tags without hydration syntax mismatches.
+- **🛠️ Verified Code Fix**:
+  1. Created 3 zero-dependency, GPU-accelerated UI primitives in `src/components/ui/`:
+     - `Marquee.tsx`: Infinite dual-track CSS marquee with hardware-accelerated `translate3d(-100%, 0, 0)`, gradient edge fade masks, and pause-on-hover.
+     - `ShimmerButton.tsx`: Magic UI-inspired radiant shimmer beam with support for `asSpan` (safe nesting in parent links) and variants (`primary`, `whatsapp`, `dark`).
+     - `SpotlightCard.tsx`: Aceternity-inspired mouse-following radial spotlight glow updating CSS variables (`--spotlight-x`, `--spotlight-y`) via direct DOM style mutations with 0 React re-renders.
+  2. Updated `src/app/globals.css` with performance keyframes (`@keyframes marquee`, `@keyframes marqueeReverse`, `@keyframes shimmerSlide`, `.spotlight-card`).
+  3. Integrated across high-conversion pages:
+     - **Main Page**: Dynamic ShimmerButton for Hero slide CTAs, Infinite Marquee for Announcement Bar, high-conversion Pakistani Trust Ticker Marquee (COD, Genuine Parts, TCS/Trax Dispatch), and SpotlightCards for "Why Choose PAKODRIVE" value cards.
+     - **Product Listing**: Wrapped ProductCard with `SpotlightCard` for cursor-following hover glow, and added `badge-shimmer` sweep to discount badges.
+     - **Product Detail Page**: Upgraded "⚡ Buy Now" and "Order via WhatsApp" with `ShimmerButton`, and wrapped Key Features & Technical Specifications in `SpotlightCard`.
+     - **Order Success Page**: Upgraded 1-Click WhatsApp confirmation with emerald `ShimmerButton` and celebration badge shimmer.
+  4. Verified with `pnpm tsc --noEmit` (0 errors).
+
+---
+
 ### 2026-09-09 — Seamless Infinite Touch Carousel & Finger Swipe Wrap for Hero Slider on Mobile
 - **📌 Issue**: On the home page, when swiping the Hero Slider with a finger on mobile devices, reaching the last slide did not smoothly transition into the first slide; instead, it hit a hard elastic boundary and got stuck at the last slide (*"last pr ruk jata ha"*).
 - **🔍 Root Cause & Failed Attempts**:
