@@ -4,6 +4,48 @@ This file serves as persistent dynamic memory across coding agent sessions. Ever
 
 ---
 
+### 2026-09-09 — Persistent Chat Popover Dismissal & Non-Overlapping Scroll-To-Top Floating Button
+- **📌 Issue**:
+  1. The chat teaser popover badge (*"Need help? We're online!"*) reappeared every time the user visited or refreshed the website, even if they had previously dismissed it. User requested that if dismissed once on a device, it should never show up again.
+  2. When scrolling down the page, there was no quick "scroll to top" button. User requested a sleek upward arrow button when scrolling down, positioned directly above the chat widget so it never gets blocked or covered by the chat button.
+- **🔍 Root Cause & Failed Attempts**:
+  1. `StoreChatWidget.tsx` and `useStoreChatBot.ts` relied solely on volatile component state (`showPromptBadge = true` via `setTimeout(..., 4000)` on every mount). There was no persistent device-level check in `localStorage`.
+  2. There was no floating scroll-to-top component or hook, and standard bottom-right placement would collide with the 58px floating chat widget launcher.
+- **🛠️ Verified Code Fix**:
+  1. **Device Persistence (`src/hooks/useStoreChatBot.ts`)**:
+     - Added `POPOVER_DISMISSED_KEY = 'pakodrive_chat_popover_dismissed'`.
+     - Initial mount checks `localStorage.getItem(POPOVER_DISMISSED_KEY) === 'true'`; if dismissed, the 4-second popover timer is completely aborted.
+     - Implemented `dismissPromptBadge()`: sets `showPromptBadge(false)` and permanently writes `'true'` to `localStorage`.
+     - `toggleChat()` also marks the popover as dismissed once engaged.
+  2. **High-Performance Scroll-to-Top Hook (`src/hooks/useScrollToTop.ts`)**:
+     - Built `useScrollToTop(280)` with passive scroll listener and `requestAnimationFrame` debouncing to protect 60 FPS mobile scrolling.
+     - `scrollToTop` performs smooth native scrolling (`window.scrollTo({ top: 0, behavior: 'smooth' })`).
+  3. **Co-Axial Floating Layout & Popover Pointer (`src/components/common/StoreChatWidget.tsx`)**:
+     - Integrated `showScrollTop && !isOpen` inside `chat-widget-root`.
+     - Positioned the 44px scroll button directly above the 58px launcher with `marginBottom: 10px` and `marginRight: 7px` (centers it coaxially: `(58-44)/2 = 7px`).
+     - Repositioned the prompt popover to the left of the launcher (`right: 72px, bottom: 6px`) with a directional speech bubble arrow pointer, ensuring zero collision between scroll-to-top and popover.
+     - Added CSS animations (`scrollTopFadeIn`, hover elevation `translateY(-3px)`, active press feedback).
+  4. Verified with `pnpm tsc --noEmit` (0 compilation errors).
+
+### 2026-09-09 — 100% Professional Clean English Conversion Across Storefront, Chatbot & WhatsApp Notification Flows
+- **📌 Issue**: User requested converting all customer-facing text across the website, chatbot, and messaging channels to clean, professional English (*"acha ye sab ko english kra do professional and clean"*).
+- **🔍 Root Cause & Failed Attempts**:
+  1. Default auto-responder rules in `src/models/WhatsAppRule.ts` and fallback responses in `src/lib/geminiAssistant.ts` were written in Roman Urdu and Urdu script.
+  2. Order tracking, abandoned cart recovery, and order confirmation WhatsApp templates in `src/lib/whatsapp.ts`, `src/lib/whatsappBot/engine.ts`, `src/worker/whatsapp-worker.ts`, and `src/lib/whatsappNotification.ts` contained mixed Urdu/Roman Urdu phrases.
+  3. Checkout inputs previously had bracketed Urdu labels (e.g., `Full Name (پورا نام)`).
+- **🛠️ Verified Code Fix**:
+  1. **Storefront & Checkout (`src/app/checkout/page.tsx`, `src/components/checkout/AddressLocationPicker.tsx`)**:
+     - Stripped Urdu script from form fields to produce crisp labels: `Full Name`, `Mobile / WhatsApp Number`, `City`, `Complete Delivery Address`.
+  2. **Product Reviews (`src/components/product/ProductReviewsSection.tsx`)**:
+     - Converted empty state to `"No reviews yet. Be the first to share your experience!"` and CTA to `"Be the first to review and share your experience!"`.
+  3. **AI Chatbot & Assistant (`src/lib/geminiAssistant.ts`, `src/components/common/StoreChatWidget.tsx`, `src/hooks/useStoreChatBot.ts`)**:
+     - Converted all bot scenarios (Order Tracking, Payment Info, 7-Day Warranty, Agent Handoff, Catalog Recommendations) and system prompts to professional English.
+  4. **WhatsApp Rules & Dynamic Bot Engines (`src/models/WhatsAppRule.ts`, `src/lib/whatsappBot/engine.ts`, `src/worker/whatsapp-worker.ts`)**:
+     - Updated all default rules (Main Menu, Tracking, Bank Details, Warranty, Live Agent) and dynamic order lookups to clean English.
+  5. **Notification Templates (`src/lib/whatsapp.ts`, `src/lib/whatsappNotification.ts`)**:
+     - Converted Order Confirmation, Dispatch Tracking, and Cart Recovery templates to professional English.
+  6. Verified with `pnpm tsc --noEmit` (0 compilation errors).
+
 ### 2026-09-09 — Footer Newsletter Unified Nested Pill, Social Icon Visibility & Product Review English Translation
 - **📌 Issue**:
   1. On product page reviews section, the empty state text was in Roman Urdu: `"Abhi tak koi review nahi likha gaya."` with button `"Pehle reviewer banein aur apna tajruba share karein!"`. The user requested this to be in English.

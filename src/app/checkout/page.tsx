@@ -129,7 +129,7 @@ export default function CheckoutPage() {
                   {/* Full Name */}
                   <div className="col-12">
                     <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>
-                      Full Name (مکمل نام) <span style={{ color: '#ef4444' }}>*</span>
+                      Full Name <span style={{ color: '#ef4444' }}>*</span>
                     </label>
                     <input
                       type="text"
@@ -148,7 +148,7 @@ export default function CheckoutPage() {
                   {/* Phone Number */}
                   <div className="col-12">
                     <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>
-                      Mobile / WhatsApp Number (موبائل یا واٹس ایپ نمبر) <span style={{ color: '#ef4444' }}>*</span>
+                      Mobile / WhatsApp Number <span style={{ color: '#ef4444' }}>*</span>
                     </label>
                     <div style={{ position: 'relative' }}>
                       <input
@@ -184,7 +184,7 @@ export default function CheckoutPage() {
                   {/* City Selector with Type-to-Search Filter */}
                   <div className="col-12 col-sm-6">
                     <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>
-                      City (شہر) <span style={{ color: '#ef4444' }}>*</span>
+                      City <span style={{ color: '#ef4444' }}>*</span>
                     </label>
                     <SearchableCitySelect
                       value={formData.city}

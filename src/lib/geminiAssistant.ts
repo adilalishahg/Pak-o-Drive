@@ -202,8 +202,8 @@ export async function generateGeminiStoreResponse(
   if (classification.scenario === 'track_order') {
     if (!classification.order_identifier) {
       return (
-        `وعلیکم السلام! Jee bilkul bhai, aap apna *Order ID* (jaise #40F921) ya apna *11-digit Mobile Number* yahan share karein.\n\n` +
-        `Main foran database check karke aapke parcel ka live status, courier tracking (TCS/Leopards) aur delivery time bata deta hoon! 😊📦`
+        `Hello! Please share your *Order ID* (e.g., #40F921) or your *11-digit mobile number* here.\n\n` +
+        `I will immediately check our database and provide your parcel's live status, courier tracking, and estimated delivery time! 😊📦`
       );
     }
   }
@@ -212,10 +212,10 @@ export async function generateGeminiStoreResponse(
   if (classification.scenario === 'payment_info') {
     return (
       `💳 *Pak-o-Drive Official Payment Options:*\n\n` +
-      `1️⃣ *Cash On Delivery (COD):* Poore Pakistan mein parcel receive karte waqt payment karein (Sab se aasan!).\n` +
+      `1️⃣ *Cash On Delivery (COD):* Pay in cash upon parcel delivery across Pakistan (Most convenient!).\n` +
       `2️⃣ *JazzCash / Easypaisa (0318-5205667):* Account Title: *Adil Ali Shah*\n` +
       `3️⃣ *Bank Transfer:* Available upon request.\n\n` +
-      `Agar aapne advance payment ki hai tou transaction screenshot yahan share kar dein! 👍`
+      `If you made an advance transfer, kindly share a screenshot of the payment receipt here! 👍`
     );
   }
 
@@ -223,9 +223,9 @@ export async function generateGeminiStoreResponse(
   if (classification.scenario === 'warranty_return') {
     return (
       `🛡️ *Pak-o-Drive 7-Day Replacement & Checking Warranty:*\n\n` +
-      `Hamare har product par **7 Din Ki Hassle-Free Checking Warranty** milti hai.\n` +
-      `Agar parcel receive hone ke baad item me koi issue ya defect ho, tou hum bina kisi extra charge ke piece exchange / replace kar dete hain.\n\n` +
-      `Aap befikr ho kar shopping kar sakte hain! 🚚✨`
+      `Every product includes our **7-Day Hassle-Free Checking Warranty**.\n` +
+      `If your item arrives with any defect or issue, we replace or exchange it free of charge.\n\n` +
+      `Shop with complete peace of mind! 🚚✨`
     );
   }
 
@@ -233,8 +233,8 @@ export async function generateGeminiStoreResponse(
   if (classification.scenario === 'agent_handoff') {
     return (
       `👨‍💼 *Live Support Executive Alert*\n\n` +
-      `Aapka message hamari customer support team ko direct forward kar diya gaya hai.\n` +
-      `Hamara representative jald aapse rabta karega. Aap apna sawal ya requirement yahan detail me likh sakte hain! ✨`
+      `Your request has been forwarded directly to our customer support team.\n` +
+      `A representative will reach out to you shortly. Feel free to leave details of your inquiry here! ✨`
     );
   }
 
@@ -270,12 +270,12 @@ Store Policies:
 - 💳 Payment Methods: Cash on Delivery (COD), JazzCash & Easypaisa (0318-5205667), Bank Transfer.
 
 Guidelines:
-1. Respond in natural, polite, respectful Pakistani Roman Urdu (e.g. "Jee bilkul bhai!", "Assalam-o-Alaikum!", "Aap befikr rahein").
+1. Respond in clear, professional, warm, and helpful English.
 2. If matching in-stock products are present in [CURRENT CATALOG CONTEXT], recommend them with exact names, PKR prices, and full links.
 3. If [CURRENT CATALOG CONTEXT] is empty or no products match what the customer asked for:
-   - Politely tell the customer that this item is currently not directly listed on our online store catalog.
-   - Reassure them that you have immediately forwarded their inquiry to our store management / procurement team to check availability and reply back to them.
-   - Inform them that our representative will contact them shortly on this number.
+   - Politely inform the customer that this item is currently not directly listed on our online store catalog.
+   - Reassure them that you have immediately forwarded their inquiry to our store management / procurement team to check availability and follow up.
+   - Inform them that our representative will contact them shortly.
    - Mention that they can also explore other trending car accessories on https://pakodrive.pk.
 4. Keep responses concise, clear, and easy to read on mobile (use bullet points and emojis tastefully).
 
@@ -301,10 +301,10 @@ Reply as Ali (Pak-o-Drive):`;
     const list = products
       .map((p: any) => `• *${p.name}* — Rs. ${p.price.toLocaleString()} (https://pakodrive.pk/product/${p.slug || p._id})`)
       .join('\n');
-    return `وعلیکم السلام! Jee bilkul hamare pas yeh items in-stock available hain:\n\n${list}\n\n🚚 Nationwide Free Cash On Delivery & 🛡️ 7-Day Warranty.\nKya aapko Cash on Delivery par order book karwana hai?`;
+    return `Hello! We have these matching items in stock:\n\n${list}\n\n🚚 Nationwide Free Cash On Delivery & 🛡️ 7-Day Checking Warranty.\nWould you like to place an order via Cash on Delivery?`;
   }
 
-  return `وعلیکم السلام! Jee bhai, filhaal "${userMessage}" hamaray online store catalog me directly available nahi hai. Lekin maine hamari store management aur procurement team ko aapka message forward kar diya hai taake wo jald aapse rabta karein! 😊✨\n\nAap mazeed latest accessories dekhne ke liye https://pakodrive.pk visit kar sakte hain.`;
+  return `Hello! Currently, "${userMessage}" is not directly listed in our online store catalog. However, I have forwarded your inquiry to our procurement team so they can check availability for you! 😊✨\n\nYou can also explore our latest trending accessories at https://pakodrive.pk.`;
 }
 
 

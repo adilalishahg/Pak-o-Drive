@@ -371,7 +371,7 @@ export const ProductReviewsSection: React.FC<ProductReviewsSectionProps> = ({
             {submitSuccess ? (
               <div className="alert alert-success text-center py-3">
                 <i className="fas fa-check-circle fs-3 text-success d-block mb-2" />
-                <strong>Shukriya!</strong> Aapka review kamyabi se submit ho gaya hai.
+                <strong>Thank you!</strong> Your review has been submitted successfully.
               </div>
             ) : (
               <form onSubmit={handleSubmitReview}>

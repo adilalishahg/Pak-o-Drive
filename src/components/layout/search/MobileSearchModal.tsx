@@ -344,13 +344,13 @@ export function MobileSearchModal({ searchState }: MobileSearchModalProps) {
                     15,000+ Items in Central Warehouse
                   </h6>
                   <p style={{ margin: 0, fontSize: '11.5px', color: '#64748b' }}>
-                    Rozana hazaron naye spare parts aur gadgets update hotay hain.
+                    Thousands of auto parts and gadgets updated daily.
                   </p>
                 </div>
               </div>
 
               <p style={{ margin: 0, fontSize: '12.5px', color: '#334155', lineHeight: 1.4 }}>
-                Agar aapko koi specific product chahiye jo website par na mil rahi ho, aap direct hamaray Live Support Agent se chat mein pooch saktay hain!
+                Looking for a specific part not shown on the website? Chat directly with our Live Support Agent right now!
               </p>
 
               <button
@@ -587,7 +587,7 @@ export function MobileSearchModal({ searchState }: MobileSearchModalProps) {
                   lineHeight: 1.25,
                 }}
               >
-                &ldquo;{query}&rdquo; Website Par Abhi Listed Nahi Hai
+                &ldquo;{query}&rdquo; Is Not Yet Listed Online
               </h5>
 
               <p
@@ -598,7 +598,7 @@ export function MobileSearchModal({ searchState }: MobileSearchModalProps) {
                   margin: '0 0 12px 0',
                 }}
               >
-                Hamare Central Warehouse mein <b>15,000+ unlisted</b> auto parts mojood hain. Live agent se foran inventory check karwayein:
+                Our Central Warehouse stocks <b>15,000+ unlisted</b> auto parts. Check real-time inventory with a live agent right now:
               </p>
 
               {/* ── ACTION BUTTONS: PLACED PROMINENTLY RIGHT HERE (NEVER HIDDEN BY KEYBOARD!) ── */}

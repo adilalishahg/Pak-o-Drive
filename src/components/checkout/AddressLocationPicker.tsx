@@ -185,7 +185,7 @@ export const AddressLocationPicker: React.FC<AddressLocationPickerProps> = ({
             margin: 0,
           }}
         >
-          Complete Delivery Address (گھر یا دکان کا مکمل پتہ){' '}
+          Complete Delivery Address{' '}
           {required && <span style={{ color: '#ef4444' }}>*</span>}
         </label>
 

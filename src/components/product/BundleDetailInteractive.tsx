@@ -85,14 +85,14 @@ export const BundleDetailInteractive: React.FC<BundleDetailInteractiveProps> = (
       .join('\n');
 
     const msg =
-      `Assalam-o-Alaikum Pak-o-Drive! ✨\n\n` +
-      `Mujhe yeh special bundle package deal order karni hai:\n\n` +
+      `Hello Pak-o-Drive! ✨\n\n` +
+      `I would like to order this special bundle package deal:\n\n` +
       `📦 *${product.name}*\n` +
       `💰 *Package Deal Price:* Rs. ${(dealPrice * quantity).toLocaleString()} (Qty: ${quantity})\n` +
       (totalSavings > 0 ? `🎉 *Discount Savings:* Rs. ${(totalSavings * quantity).toLocaleString()} (${discountPercent}% OFF)\n` : '') +
       `\n*Included Products in Package:*\n${productList}\n\n` +
       `📍 Delivery: Cash on Delivery (Free Delivery on 2+ Products Qualified!)\n` +
-      `Please mera order confirm karein aur delivery time batayein!`;
+      `Please confirm my order and share the delivery time. Thank you!`;
 
     return `https://wa.me/${cleanNum}?text=${encodeURIComponent(msg)}`;
   };
@@ -246,7 +246,7 @@ export const BundleDetailInteractive: React.FC<BundleDetailInteractiveProps> = (
               </div>
             )}
             <div className="text-muted small mt-2" style={{ fontSize: '0.72rem' }}>
-              💡 Kisi bhi photo par tap karein us product ko inspect karne ke liye
+              💡 Tap any photo to inspect that product
             </div>
           </div>
 
@@ -540,7 +540,7 @@ export const BundleDetailInteractive: React.FC<BundleDetailInteractiveProps> = (
               </div>
 
               <div className="alert alert-warning py-2 px-3 rounded-3 small mb-3 text-start" style={{ fontSize: '0.78rem' }}>
-                <strong>📦 Bundle Deal Benefit:</strong> Yeh item is package deal mein discounted rate par shamil hai.
+                <strong>📦 Bundle Deal Benefit:</strong> This item is included in the package deal at a special discounted rate.
               </div>
 
               <div className="d-flex flex-column gap-2">

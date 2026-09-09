@@ -82,13 +82,13 @@ export const DEFAULT_WHATSAPP_RULES: Omit<IWhatsAppRule, '_id'>[] = [
     triggerType: 'contains',
     keywords: ['hi', 'hello', 'salam', 'assalam', 'aoa', 'menu', 'help', 'start'],
     replyMessage:
-      'وعلیکم السلام! *Pak-o-Drive Support* mein khush-amdeed 🛒✨\n\n' +
-      'Hum aapki kia madad kar sakte hain? Number reply karein:\n\n' +
-      '1️⃣ *Order Status Maloom Karein*\n' +
+      'Hello! Welcome to *Pak-o-Drive Support* 🛒✨\n\n' +
+      'How can we assist you today? Please reply with a number or type your query:\n\n' +
+      '1️⃣ *Track Order Status*\n' +
       '2️⃣ *Payment & Bank / JazzCash Details*\n' +
       '3️⃣ *7-Day Return & Replacement Policy*\n' +
-      '4️⃣ *Human Agent se Rabta Karein*\n\n' +
-      '👉 Ya apna sawal direct type karein.',
+      '4️⃣ *Connect with Live Support Agent*\n\n' +
+      '👉 Or simply type your question below.',
     dynamicAction: 'interactive_menu',
     enabled: true,
     priority: 1,
@@ -111,10 +111,10 @@ export const DEFAULT_WHATSAPP_RULES: Omit<IWhatsAppRule, '_id'>[] = [
       '1',
     ],
     replyMessage:
-      'Aapka order hamare pas process ho raha hai.\n\n' +
+      'We are looking up your order details.\n\n' +
       '📦 *Order Verification & Tracking:*\n' +
-      'Agar aapne website se order place kiya hai tou aapka order 24 ghante ke andar courier rider ko hand over kar diya jata hai.\n\n' +
-      'Aap apna Order ID (e.g. #12345) ya phone number share karein taake hum live tracking check kar sakein.',
+      'Orders placed on our store are verified and handed over to our courier partner within 24 hours.\n\n' +
+      'Please reply with your Order ID (e.g., #12345) or 11-digit mobile number so we can check your live parcel tracking.',
     dynamicAction: 'order_status_lookup',
     enabled: true,
     priority: 2,
@@ -126,13 +126,13 @@ export const DEFAULT_WHATSAPP_RULES: Omit<IWhatsAppRule, '_id'>[] = [
     keywords: ['bank', 'jazzcash', 'easypaisa', 'payment', 'account', 'advance', '2'],
     replyMessage:
       '💳 *Pak-o-Drive Payment Accounts*\n\n' +
-      '📦 *Cash On Delivery (COD):* Aap parcel milne par rider ko cash de sakte hain.\n\n' +
+      '📦 *Cash On Delivery (COD):* Pay in cash upon receiving your parcel at your doorstep.\n\n' +
       '📲 *Online Payment (JazzCash / EasyPaisa / Bank Transfer):*\n' +
       '• *Bank Name:* Meezan Bank\n' +
       '• *Account Title:* PAKODRIVE OFFICIAL\n' +
       '• *Account Number:* 0101-0203040506\n' +
       '• *JazzCash / EasyPaisa:* 0318-5205667 (Title: Pak-o-Drive)\n\n' +
-      'Payment karne ke baad screenshot isi chat par send karein.',
+      'After completing your transfer, please share a screenshot of the receipt in this chat.',
     dynamicAction: 'bank_details',
     enabled: true,
     priority: 3,
@@ -143,10 +143,10 @@ export const DEFAULT_WHATSAPP_RULES: Omit<IWhatsAppRule, '_id'>[] = [
     keywords: ['return', 'refund', 'exchange', 'wapsi', 'change', 'faulty', 'defect', 'kharab', '3'],
     replyMessage:
       '🛡️ *7-Day Return & Easy Replacement Policy*\n\n' +
-      'Pak-o-Drive par har product par 100% peace-of-mind guarantee milti hai:\n\n' +
-      '1. Agar product damaged ya wrong receive ho, tou 7 din ke andar replacement free of cost hoti hai.\n' +
-      '2. Baraye meharbani parcel unboxing ki short video ya photo isi chat par share karein.\n\n' +
-      'Hamari support team 1-2 hours mein aapka issue resolve karegi.',
+      'Pak-o-Drive provides a 100% peace-of-mind guarantee on every order:\n\n' +
+      '1. If a product is delivered damaged or incorrect, we provide a free replacement within 7 days.\n' +
+      '2. Please share a brief unboxing video or photo in this chat.\n\n' +
+      'Our customer support team will review and resolve your request within 1-2 hours.',
     dynamicAction: 'returns_policy',
     enabled: true,
     priority: 4,
@@ -167,8 +167,8 @@ export const DEFAULT_WHATSAPP_RULES: Omit<IWhatsAppRule, '_id'>[] = [
     ],
     replyMessage:
       '👨‍💼 *Live Support Agent Handoff*\n\n' +
-      'Aapka message hamare customer support agent ko forward kar diya gaya hai.\n\n' +
-      'Hamara support team member thori hi der mein aapse isi chat par rabta karega. Shukriya!',
+      'Your message has been forwarded to our customer support team.\n\n' +
+      'A support specialist will assist you in this chat shortly. Thank you for reaching out!',
     dynamicAction: 'agent_handoff',
     enabled: true,
     priority: 5,

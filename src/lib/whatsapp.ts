@@ -27,15 +27,15 @@ export function generateOrderConfirmationWhatsAppLink(order: IOrder): string {
     .join('\n');
 
   const text = encodeURIComponent(
-    `السلام علیکم ${order.customerDetails.name} صاحب!\n\n` +
-    `Aapka *${SITE_NAME}* par Cash On Delivery order receive ho gaya hai.\n\n` +
+    `Hello ${order.customerDetails.name}!\n\n` +
+    `Thank you for shopping with *${SITE_NAME}*. We have received your Cash on Delivery (COD) order.\n\n` +
     `*Order ID:* #${order._id?.toString().substring(18).toUpperCase()}\n` +
     `*Items:*\n${itemsText}\n\n` +
-    `*Total Bill:* Rs. ${order.totalAmount.toLocaleString()} (Free Delivery)\n` +
-    `*Address:* ${order.customerDetails.address}, ${order.customerDetails.city}\n\n` +
-    `📦 *Parcel dispatch karne ke liye reply karein:*\n` +
-    `👉 "CONFIRM" likh kar send karein taake parcel aaj hi dispatch ho sake.\n\n` +
-    `Shukriya, ${SITE_NAME} Team.`
+    `*Total Bill:* Rs. ${order.totalAmount.toLocaleString()} (Free Nationwide Delivery)\n` +
+    `*Delivery Address:* ${order.customerDetails.address}, ${order.customerDetails.city}\n\n` +
+    `📦 *Order Confirmation:*\n` +
+    `Please reply with *"CONFIRM"* to fast-track your dispatch today.\n\n` +
+    `Best regards,\n*${SITE_NAME} Team*`
   );
 
   return `https://wa.me/${phone}?text=${text}`;
@@ -53,14 +53,14 @@ export function generateDispatchTrackingWhatsAppLink(
   const trackingUrl = getCourierTrackingUrl(courierName, trackingNumber);
 
   const text = encodeURIComponent(
-    `السلام علیکم ${order.customerDetails.name}!\n\n` +
-    `🎉 Mubarak ho! Aapka *${SITE_NAME}* order dispatch ho chuka hai.\n\n` +
+    `Hello ${order.customerDetails.name}!\n\n` +
+    `Great news! Your *${SITE_NAME}* order has been dispatched.\n\n` +
     `*Courier:* ${courierName}\n` +
     `*Tracking / CN Number:* ${trackingNumber}\n` +
     `*Total COD Amount:* Rs. ${order.totalAmount.toLocaleString()}\n\n` +
-    `🚚 *Live Parcel Tracking Link:*\n${trackingUrl}\n\n` +
-    `Courier rider delivery se pehle aapko call karega. Baraye meharbani cash ready rakhein.\n\n` +
-    `Kisi bhi maslay ki soorat me hamare WhatsApp Helpline par rabta karein.`
+    `🚚 *Live Parcel Tracking:*\n${trackingUrl}\n\n` +
+    `The courier delivery rider will contact you prior to delivery. Please keep the exact cash amount ready.\n\n` +
+    `If you have any questions, feel free to reply directly to our WhatsApp Helpline.`
   );
 
   return `https://wa.me/${phone}?text=${text}`;
@@ -78,12 +78,12 @@ export function generateAbandonedCartRecoveryWhatsAppLink(
   const formattedPhone = formatWhatsAppPhone(phone);
 
   const text = encodeURIComponent(
-    `السلام علیکم ${customerName || 'Dear Customer'}!\n\n` +
-    `Aapka *${SITE_NAME}* cart checkout ke liye tayyar hai (Total: Rs. ${cartTotal.toLocaleString()}).\n\n` +
-    `🔥 *Special Offer:* Abhi order complete karne par *10% OFF* hasil karein!\n` +
-    `👉 Promo Code: *PAKO10*\n\n` +
-    `Yahan click karke apna order complete karein:\n${checkoutUrl}\n\n` +
-    `Nationwide Cash On Delivery & 7-Day Replacement Guarantee available.`
+    `Hello ${customerName || 'Valued Customer'}!\n\n` +
+    `You left items in your shopping cart at *${SITE_NAME}* (Total: Rs. ${cartTotal.toLocaleString()}).\n\n` +
+    `🔥 *Exclusive Offer:* Complete your order now and enjoy an extra *10% OFF*!\n` +
+    `👉 Use Promo Code: *PAKO10*\n\n` +
+    `Click here to complete your checkout:\n${checkoutUrl}\n\n` +
+    `Nationwide Cash on Delivery & 7-Day Replacement Guarantee included.`
   );
 
   return `https://wa.me/${formattedPhone}?text=${text}`;

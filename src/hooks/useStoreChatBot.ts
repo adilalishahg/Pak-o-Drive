@@ -9,23 +9,24 @@ export type { ChatProduct, ChatMessage };
 
 const STORAGE_KEY = 'pakodrive_chat_history_v1';
 const SESSION_ID_KEY = 'pakodrive_chat_session_id';
+const POPOVER_DISMISSED_KEY = 'pakodrive_chat_popover_dismissed';
 
 const INITIAL_GREETING: ChatMessage = {
   id: 'welcome_1',
   sender: 'bot',
   text:
-    'وعلیکم السلام! *Pak-o-Drive Support* mein khush-amdeed 🛒✨\n\n' +
-    'Main Ali hoon, aapka personal automotive sales & support assistant. Main aapki kia madad kar sakta hoon?',
+    'Hello! Welcome to *Pak-o-Drive Support* 🛒✨\n\n' +
+    "I'm Ali, your personal automotive sales & support assistant. How can I help you today?",
   timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
   source: 'welcome',
 };
 
 export const QUICK_ACTIONS = [
-  { id: 'track', label: '📦 Track My Order', query: 'Mera order status kya hai?' },
-  { id: 'payment', label: '💳 Payment Accounts', query: 'JazzCash / Bank Details' },
-  { id: 'returns', label: '🛡️ 7-Day Warranty', query: 'Return aur replacement policy kya hai?' },
-  { id: 'deals', label: '🔥 Top Trending Deals', query: 'Top trending car accessories dikhayein' },
-  { id: 'agent', label: '👨‍💼 Human Agent', query: 'Mujhe human agent se live baat karni hai' },
+  { id: 'track', label: '📦 Track My Order', query: 'What is my order status?' },
+  { id: 'payment', label: '💳 Payment Accounts', query: 'JazzCash / EasyPaisa / Bank Transfer details' },
+  { id: 'returns', label: '🛡️ 7-Day Warranty', query: 'What is your return and replacement policy?' },
+  { id: 'deals', label: '🔥 Top Trending Deals', query: 'Show me top trending car accessories' },
+  { id: 'agent', label: '👨‍💼 Human Agent', query: 'I want to speak with a human support agent' },
 ];
 
 import { isBlogPath } from '@/lib/constants';
@@ -76,11 +77,20 @@ export function useStoreChatBot() {
     const sId = getSessionId();
     setShortCode('W' + sId.slice(-4).toUpperCase());
 
-    const badgeTimer = setTimeout(() => {
-      setShowPromptBadge(true);
-    }, 4000);
+    const isDismissed = typeof window !== 'undefined' && localStorage.getItem(POPOVER_DISMISSED_KEY) === 'true';
 
-    return () => clearTimeout(badgeTimer);
+    let badgeTimer: NodeJS.Timeout | null = null;
+    if (!isDismissed) {
+      badgeTimer = setTimeout(() => {
+        if (typeof window !== 'undefined' && localStorage.getItem(POPOVER_DISMISSED_KEY) !== 'true') {
+          setShowPromptBadge(true);
+        }
+      }, 4000);
+    }
+
+    return () => {
+      if (badgeTimer) clearTimeout(badgeTimer);
+    };
   }, [getSessionId]);
 
   // Save to sessionStorage
@@ -161,8 +171,29 @@ export function useStoreChatBot() {
     return () => clearInterval(interval);
   }, [isOpen, isMounted, getSessionId]);
 
+  const dismissPromptBadge = useCallback(() => {
+    setShowPromptBadge(false);
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem(POPOVER_DISMISSED_KEY, 'true');
+      } catch {}
+    }
+  }, []);
+
   const toggleChat = useCallback(() => {
-    setIsOpen((prev) => !prev);
+    setIsOpen((prev) => {
+      const next = !prev;
+      if (next) {
+        setUnreadCount(0);
+        setShowPromptBadge(false);
+        if (typeof window !== 'undefined') {
+          try {
+            localStorage.setItem(POPOVER_DISMISSED_KEY, 'true');
+          } catch {}
+        }
+      }
+      return next;
+    });
   }, []);
 
   const openWhatsAppDirect = useCallback(
@@ -216,7 +247,7 @@ export function useStoreChatBot() {
         const botReply: ChatMessage = {
           id: data.messageId || ('bot_' + Date.now()),
           sender: data.source === 'agent' ? 'agent' : 'bot',
-          text: data.reply || 'Jee bilkul, main aapki mazeed kia madad kar sakta hoon?',
+          text: data.reply || 'Sure! How else may I assist you today?',
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
           source: data.source,
           products: data.products,
@@ -232,7 +263,7 @@ export function useStoreChatBot() {
         const fallbackReply: ChatMessage = {
           id: 'bot_' + Date.now(),
           sender: 'bot',
-          text: 'Aapka message receive ho gaya hai. Mazeed fori rabtay ke liye aap WhatsApp button par click karke direct hum se rabta kar sakte hain.',
+          text: 'Your message has been received. For immediate assistance, you can also connect with our live team directly via WhatsApp.',
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
           source: 'fallback',
         };
@@ -266,7 +297,7 @@ export function useStoreChatBot() {
         lastTriggeredQueryRef.current = { query: queryItem, timestamp: now };
 
         setTimeout(() => {
-          sendMessage(`Salam! Mujhe website par "${queryItem}" nahi mili. Please apne warehouse inventory se check kar ke batayein.`);
+          sendMessage(`Hello! I could not find "${queryItem}" on the website. Could you please check your warehouse stock for this item?`);
         }, 300);
       }
     };
@@ -304,6 +335,7 @@ export function useStoreChatBot() {
     isMounted,
     showPromptBadge,
     setShowPromptBadge,
+    dismissPromptBadge,
     messagesEndRef,
     isProductPage,
     whatsappNumber,

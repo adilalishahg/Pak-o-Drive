@@ -3,6 +3,7 @@
 import React, { useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import { useStoreChatBot } from '@/hooks/useStoreChatBot';
+import { useScrollToTop } from '@/hooks/useScrollToTop';
 import { ChatHeader } from '@/components/chat/ChatHeader';
 import { ChatSuggestions } from '@/components/chat/ChatSuggestions';
 import { ChatMessageItem } from '@/components/chat/ChatMessageItem';
@@ -22,12 +23,15 @@ export const StoreChatWidget: React.FC = () => {
     isMounted,
     showPromptBadge,
     setShowPromptBadge,
+    dismissPromptBadge,
     messagesEndRef,
     isProductPage,
     openWhatsAppDirect,
     isAgentLive,
     shortCode,
   } = useStoreChatBot();
+
+  const { showScrollTop, scrollToTop } = useScrollToTop(280);
 
   // Lock background scroll on mobile when chat is open
   useEffect(() => {
@@ -209,22 +213,63 @@ export const StoreChatWidget: React.FC = () => {
         </div>
       )}
 
-      {/* 2. Floating Launcher Trigger Button */}
+      {/* 2. Scroll to Top Floating Button (Positioned Directly Above Chat Launcher) */}
+      {showScrollTop && !isOpen && (
+        <button
+          onClick={scrollToTop}
+          className="scroll-to-top-btn"
+          aria-label="Scroll to top"
+          title="Back to top"
+          style={{
+            width: '44px',
+            height: '44px',
+            borderRadius: '50%',
+            background: 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)',
+            color: '#ffffff',
+            border: '1px solid rgba(255, 255, 255, 0.2)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            cursor: 'pointer',
+            boxShadow: '0 6px 20px rgba(15, 23, 42, 0.35)',
+            marginBottom: '10px',
+            marginRight: '7px',
+            transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+            zIndex: 99999,
+          }}
+        >
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M12 19V5M5 12l7-7 7 7" />
+          </svg>
+        </button>
+      )}
+
+      {/* 3. Floating Launcher Trigger Button */}
       <div className="chat-launcher-container" style={{ position: 'relative' }}>
         {/* Prompt Notification Bubble */}
         {showPromptBadge && !isOpen && (
           <div
+            className="chat-prompt-popover"
             style={{
               position: 'absolute',
-              bottom: '70px',
-              right: '0px',
+              bottom: '6px',
+              right: '72px',
               background: '#ffffff',
               padding: '10px 14px',
               borderRadius: '16px',
-              boxShadow: '0 10px 30px rgba(0,0,0,0.15), 0 0 0 1px rgba(0,0,0,0.05)',
+              boxShadow: '0 10px 30px rgba(0,0,0,0.15), 0 0 0 1px rgba(0,0,0,0.06)',
               display: 'flex',
               alignItems: 'center',
-              gap: '8px',
+              gap: '10px',
               whiteSpace: 'nowrap',
               animation: 'chatBadgeBounce 3s infinite ease-in-out',
               zIndex: 99999,
@@ -238,32 +283,51 @@ export const StoreChatWidget: React.FC = () => {
                 className="leading-normal font-semibold"
                 style={{ fontSize: '12.5px', color: '#0f172a', margin: 0 }}
               >
-                Help chahiye? Hum hazir hain!
+                Need help? We're online!
               </p>
               <p
                 className="leading-normal"
                 style={{ fontSize: '10.5px', color: '#64748b', margin: 0 }}
               >
-                Order status ya koi bhi sawal poochiye
+                Ask about order status or any questions
               </p>
             </div>
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                setShowPromptBadge(false);
+                dismissPromptBadge();
               }}
               style={{
                 background: 'transparent',
                 border: 'none',
                 color: '#94a3b8',
                 cursor: 'pointer',
-                padding: '2px',
-                fontSize: '12px',
+                padding: '2px 4px',
+                fontSize: '13px',
+                lineHeight: 1,
+                borderRadius: '4px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
               }}
               aria-label="Dismiss tooltip"
             >
               ✕
             </button>
+            {/* Popover right arrow pointer */}
+            <div
+              style={{
+                position: 'absolute',
+                right: '-5px',
+                top: '50%',
+                transform: 'translateY(-50%) rotate(45deg)',
+                width: '10px',
+                height: '10px',
+                background: '#ffffff',
+                borderRight: '1px solid rgba(0,0,0,0.06)',
+                borderTop: '1px solid rgba(0,0,0,0.06)',
+              }}
+            />
           </div>
         )}
 
@@ -430,6 +494,38 @@ export const StoreChatWidget: React.FC = () => {
         @keyframes dotBlink {
           0%, 80%, 100% { opacity: 0.2; transform: scale(0.8); }
           40% { opacity: 1; transform: scale(1.2); }
+        }
+
+        .scroll-to-top-btn {
+          animation: scrollTopFadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        .scroll-to-top-btn:hover {
+          transform: translateY(-3px) scale(1.05) !important;
+          box-shadow: 0 10px 24px rgba(15, 23, 42, 0.45) !important;
+          background: linear-gradient(135deg, #334155 0%, #0f172a 100%) !important;
+        }
+
+        .scroll-to-top-btn:active {
+          transform: translateY(-1px) scale(0.96) !important;
+        }
+
+        @keyframes scrollTopFadeIn {
+          from {
+            opacity: 0;
+            transform: translateY(12px) scale(0.8);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+          }
+        }
+
+        @media (max-width: 480px) {
+          .chat-prompt-popover {
+            max-width: calc(100vw - 110px);
+            white-space: normal !important;
+          }
         }
       `}</style>
     </div>

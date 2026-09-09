@@ -38,7 +38,7 @@ export function formatOrderWhatsAppMessage(order: any): string {
   const customer = order.customerDetails || {};
 
   return (
-    `🛒 *NAYA ORDER RECEIVE HUA HAI!* 🚀\n` +
+    `🛒 *NEW ORDER RECEIVED!* 🚀\n` +
     `━━━━━━━━━━━━━━━━━━━━━\n` +
     `📋 *Order ID:* #${shortId}\n` +
     `💰 *Total Amount:* Rs. ${total.toLocaleString()} (Cash On Delivery)\n` +

@@ -308,11 +308,11 @@ export function useCheckout() {
         : '';
 
     const text = encodeURIComponent(
-      `السلام علیکم! Mujhe Pak-o-Drive se Cash On Delivery par order confirm karna hai:\n\n` +
+      `Hello Pak-o-Drive! I would like to place an order via Cash On Delivery:\n\n` +
         `📦 *Order Items:*\n${itemsSummary}\n\n` +
         `💰 *Total Amount:* Rs. ${cartTotal.toLocaleString()} (Cash On Delivery - Free Delivery)` +
         `${customerSection}\n\n` +
-        `Baraye meharbani mera order confirm karein aur dispatch date bata dein. Shukriya!`
+        `Please confirm my order and share the dispatch date. Thank you!`
     );
 
     window.open(`https://wa.me/${whatsappNumber.replace('+', '')}?text=${text}`, '_blank');

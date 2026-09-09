@@ -351,14 +351,14 @@ class WhatsAppBotManager {
             .join('\n');
 
           reply =
-            `السلام علیکم ${order.customerDetails.name || ''}!\n\n` +
-            `Aapka order record mil gaya hai:\n\n` +
+            `Hello ${order.customerDetails.name || 'Valued Customer'}!\n\n` +
+            `We found your order record:\n\n` +
             `📋 *Order ID:* #${shortId}\n` +
             `📦 *Status:* *${order.status}*\n` +
             `💰 *Total Amount:* Rs. ${order.totalAmount?.toLocaleString()} (COD)\n` +
             (order.trackingNumber ? `🚚 *Courier Tracking:* ${order.courierName || 'Courier'} (CN: ${order.trackingNumber})\n` : '') +
             `\n*Items:*\n${itemsSummary}\n\n` +
-            `Kisi bhi mazeed maloomat ke liye hum se rabta karein.`;
+            `For any additional assistance, please reply to this chat.`;
         }
       } catch (err) {
         console.error('Error looking up order for WhatsApp reply:', err);
