@@ -5,6 +5,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import Link from 'next/link';
 import { useAdminAiCopilot } from '@/hooks/useAdminAiCopilot';
+import { VisionProductProposalCard } from '@/components/admin/ai-copilot/VisionProductProposalCard';
 
 export default function AdminAiCopilotPage() {
   const {
@@ -488,84 +489,12 @@ export default function AdminAiCopilotPage() {
                         {/* Action Proposal & Confirmation Cards */}
                         {m.actionRequired && pendingAction?.id === m.actionRequired.id && (
                           m.actionRequired.type === 'publish_vision_product' ? (
-                            <div className="mt-3 p-3 bg-white border border-success-subtle rounded-3 text-dark shadow-sm">
-                              <div className="d-flex align-items-center justify-content-between gap-2 mb-2">
-                                <div className="d-flex align-items-center gap-2 text-success fw-bold">
-                                  <i className="fas fa-camera fs-5" />
-                                  <span style={{ fontSize: '13px' }}>{m.actionRequired.title}</span>
-                                </div>
-                                <span className="badge bg-success text-white px-2 py-1" style={{ fontSize: '11px' }}>
-                                  Vision Auto-Listing
-                                </span>
-                              </div>
-
-                              {/* Studio Preview Dual Layer Presentation (Rule 3) */}
-                              {m.actionRequired.payload?.params?.images?.[0] && (
-                                <div
-                                  className="rounded-3 overflow-hidden mb-2.5 border position-relative"
-                                  style={{ height: '160px', backgroundColor: '#f8fafc' }}
-                                >
-                                  <img
-                                    src={m.actionRequired.payload.params.images[0]}
-                                    alt="Studio Preview Ambient"
-                                    className="w-100 h-100 position-absolute"
-                                    style={{ filter: 'blur(16px)', opacity: 0.35, objectFit: 'cover' }}
-                                  />
-                                  <img
-                                    src={m.actionRequired.payload.params.images[0]}
-                                    alt="Studio Preview Sharp"
-                                    className="w-100 h-100 position-relative"
-                                    style={{ objectFit: 'contain', padding: '6px' }}
-                                  />
-                                </div>
-                              )}
-
-                              {/* Benchmark & Margin Comparison Grid */}
-                              <div className="d-flex flex-wrap gap-2 mb-3">
-                                <div className="p-2 rounded bg-light border flex-grow-1" style={{ minWidth: '120px' }}>
-                                  <div className="text-muted" style={{ fontSize: '10px' }}>Suggested Selling Price</div>
-                                  <div className="fw-bold text-success" style={{ fontSize: '14px' }}>
-                                    PKR {m.actionRequired.payload?.params?.price?.toLocaleString() || '0'}
-                                  </div>
-                                </div>
-                                <div className="p-2 rounded bg-light border flex-grow-1" style={{ minWidth: '120px' }}>
-                                  <div className="text-muted" style={{ fontSize: '10px' }}>
-                                    Competitor ({m.actionRequired.payload?.params?.competitorSource || 'Market'})
-                                  </div>
-                                  <div className="text-danger text-decoration-line-through fw-semibold" style={{ fontSize: '13px' }}>
-                                    PKR {m.actionRequired.payload?.params?.competitorPrice?.toLocaleString() || '0'}
-                                  </div>
-                                </div>
-                                <div className="p-2 rounded bg-light border flex-grow-1" style={{ minWidth: '120px' }}>
-                                  <div className="text-muted" style={{ fontSize: '10px' }}>Est. Margin & Stock</div>
-                                  <div className="fw-bold text-dark" style={{ fontSize: '13px' }}>
-                                    +{m.actionRequired.payload?.params?.profitMarginPercentage || 85}% • {m.actionRequired.payload?.params?.stock || 20} units
-                                  </div>
-                                </div>
-                              </div>
-
-                              <div className="d-flex align-items-center gap-2">
-                                <button
-                                  type="button"
-                                  disabled={loading}
-                                  onClick={() => confirmPendingAction(m.actionRequired)}
-                                  className="btn btn-sm btn-success d-flex align-items-center gap-1.5 px-3 py-1.5 fw-semibold"
-                                  style={{ borderRadius: '8px', fontSize: '12px' }}
-                                >
-                                  <i className="fas fa-check" />
-                                  <span>✅ Approve & Publish Live</span>
-                                </button>
-                                <button
-                                  type="button"
-                                  disabled={loading}
-                                  onClick={cancelPendingAction}
-                                  className="btn btn-sm btn-outline-secondary px-3 py-1.5"
-                                  style={{ borderRadius: '8px', fontSize: '12px' }}
-                                >
-                                  <span>Cancel</span>
-                                </button>
-                              </div>
-                            </div>
+                            <VisionProductProposalCard
+                              action={m.actionRequired}
+                              isThinking={loading}
+                              onConfirm={confirmPendingAction}
+                              onCancel={cancelPendingAction}
+                            />
                           ) : m.actionRequired.type === 'create_bundle' ? (
                             <div className="mt-3 p-3 bg-white border border-primary-subtle rounded-3 text-dark shadow-sm">
                               <div className="d-flex align-items-center justify-content-between gap-2 mb-2">

@@ -92,10 +92,11 @@ export async function POST(req: NextRequest) {
             operation: 'publish_vision_product',
             params: {
               ...analysis,
+              userUploadedImage: image,
               stock: displayStock,
               profitMarginPercentage: analysis.profitMarginPercent,
               competitorSource: analysis.competitorStore,
-              images: [analysis.studioImage],
+              images: [image || analysis.studioImage],
             },
           },
         },

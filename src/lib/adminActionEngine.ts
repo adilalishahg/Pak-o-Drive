@@ -1233,12 +1233,38 @@ Garmiyo me AC efficiency, sun protection aur cooling accessories ki demand sab s
       subcategory = '',
       description,
       studioImage,
+      userUploadedImage,
       specs,
       seoTitle,
       seoDescription,
       seoKeywords,
       stock = 25,
     } = params;
+
+    let finalImageUrl = studioImage || 'https://res.cloudinary.com/dvgxeiwoz/image/upload/v1788092214/electro_store/1788092214621_46843.webp';
+
+    if (userUploadedImage && typeof userUploadedImage === 'string') {
+      if (userUploadedImage.startsWith('data:image')) {
+        try {
+          const { v2: cloudinary } = await import('cloudinary');
+          cloudinary.config({
+            cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+            api_key: process.env.CLOUDINARY_API_KEY,
+            api_secret: process.env.CLOUDINARY_API_SECRET,
+          });
+          const uploadRes = await cloudinary.uploader.upload(userUploadedImage, {
+            folder: 'pakodrive_products',
+          });
+          if (uploadRes?.secure_url) {
+            finalImageUrl = uploadRes.secure_url;
+          }
+        } catch (uploadErr: any) {
+          console.warn('[Cloudinary upload fallback]:', uploadErr?.message);
+        }
+      } else if (userUploadedImage.startsWith('http')) {
+        finalImageUrl = userUploadedImage;
+      }
+    }
 
     const slug = name
       .toLowerCase()
@@ -1254,10 +1280,8 @@ Garmiyo me AC efficiency, sun protection aur cooling accessories ki demand sab s
       category: category || 'Car Gadgets',
       subcategory: subcategory || '',
       description: description || `${name} — Premium automotive accessory with Cash On Delivery across Pakistan.`,
-      image: studioImage || 'https://res.cloudinary.com/dvgxeiwoz/image/upload/v1788092214/electro_store/1788092214621_46843.webp',
-      images: [
-        studioImage || 'https://res.cloudinary.com/dvgxeiwoz/image/upload/v1788092214/electro_store/1788092214621_46843.webp',
-      ],
+      image: finalImageUrl,
+      images: [finalImageUrl],
       specifications: specs || {},
       seoTitle: seoTitle || `${name} Price in Pakistan | Pak-o-Drive`,
       seoDescription: seoDescription || `Buy ${name} online in Pakistan at best price. Cash on delivery.`,
