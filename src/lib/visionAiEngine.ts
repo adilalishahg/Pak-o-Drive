@@ -64,6 +64,11 @@ ${optionalNotes ? `Admin Notes / User Context: "${optionalNotes}"` : ''}
 
 CRITICAL RULES FOR RECOGNITION & METADATA:
 1. READ ALL VISIBLE TEXT, BRAND NAMES, AND LABELS on the product, bottle, can, jar, or box:
+   - Car Perfumes & Air Fresheners:
+     * If the item is a rotating ring, double ring, solar ball, helicopter, or dashboard fragrance diffuser (especially in gold, silver, red, or black), it is: "Solar Powered Double Ring Rotating Car Dashboard Perfume (Gold/Black)".
+     * If you see "Areon", "Little Trees", "Godrej", "California Scents", "Poppy", name it accurately.
+     * Category MUST BE: "Car Perfumes & Fresheners" or "Car Accessories".
+     * Subcategory: "Solar Diffusers" or "Air Fresheners".
    - Car Care, Waxes, and Polishes:
      * If the text says "Cosmic" or shows a yellow can with an applicator sponge, it is: "Cosmic Original Car Polish & Paste Wax (Yellow Can) with Sponge".
      * If you see "7CF", "Turtle Wax", "Flamingo", "Tonyin", "Kangaroo", "Soft99", name it with its exact brand, product line, and volume (e.g. 200g, 500ml).
@@ -72,41 +77,43 @@ CRITICAL RULES FOR RECOGNITION & METADATA:
      * E.g. H4, H7, H11, LED Headlights, COB DRLs, T10 RGB Remote Bulbs, Acrylic Ambient Strip.
      * Category MUST BE: "LED Lights & Bulbs".
    - Automotive Gadgets:
-     * E.g. Wireless Car Vacuum Cleaner, Solar Dual-Ring Rotating Perfume, 4K Dash Camera, Digital Tire Air Pump, Bluetooth FM Transmitter, OBD2 Scanner.
+     * E.g. Wireless Car Vacuum Cleaner, 4K Dash Camera, Digital Tire Air Pump, Bluetooth FM Transmitter, OBD2 Scanner.
      * Category MUST BE: "Car Gadgets".
    - Car Accessories:
      * E.g. Memory Foam Neck Rest, Steering Wheel Cover, Magnetic Phone Holder, Trunk Organizer.
      * Category: "Interior Accessories" or "Exterior Accessories".
 
-2. NEVER use generic names like "Universal Automotive Smart Car Accessory" or "Car Gadget" if the item can be specifically recognized. ALWAYS use the exact product title with brand and key feature.
+2. NEVER use generic names like "Universal Automotive Smart Car Accessory" or "Car Gadget" if the item can be specifically recognized. ALWAYS use the exact product title with brand, color/finish, and key feature.
 
 3. Benchmark Pakistani Competitor Pricing accurately (PKR):
+   - For Solar Perfumes / Double Ring Aromas: Suggested retail PKR 899 - 1,199. Competitor (Daraz / Sehgal Motors) PKR 1,350 - 1,550. Wholesale cost in Rawalpindi Saddar / Karachi is ~PKR 380 - 450.
    - For Cosmic Car Wax: Suggested retail is PKR 850 - 1,150. Competitor (Daraz / Sehgal Motors) is PKR 1,200 - 1,450. Wholesale cost in Rawalpindi Sultan Ka Khoo / Karachi is ~PKR 450 - 550.
    - For LED Headlights: Suggested retail ~PKR 2,499 - 3,999.
-   - For Solar Perfumes: Suggested retail ~PKR 899 - 1,299.
    - For Tire Inflators: Suggested retail ~PKR 3,499 - 4,999.
 
 4. Output ONLY a raw valid JSON object (no markdown, no backticks):
 {
-  "name": "Exact Full Product Name (e.g. Cosmic Original Car Wax Paste & Polish with Sponge)",
-  "category": "Car Care & Detailing | LED Lights & Bulbs | Car Gadgets | Interior Accessories | Exterior Accessories",
-  "subcategory": "Waxes & Polishes | Headlights | Ambient Lighting | Cleaning Tools",
-  "price": 950,
-  "originalPrice": 1350,
-  "competitorPrice": 1250,
+  "name": "Exact Full Product Name (e.g. Solar Powered Double Ring Rotating Car Dashboard Perfume - Gold)",
+  "category": "Car Perfumes & Fresheners | Car Care & Detailing | LED Lights & Bulbs | Car Gadgets | Interior Accessories | Exterior Accessories",
+  "subcategory": "Solar Diffusers | Waxes & Polishes | Headlights | Ambient Lighting | Cleaning Tools",
+  "price": 899,
+  "originalPrice": 1450,
+  "competitorPrice": 1299,
   "competitorStore": "Sehgal Motors / Daraz",
-  "profitMarginPercent": 85,
-  "wholesaleCost": 500,
-  "stock": 25,
-  "description": "Engaging description with bullet points of features, how to apply/install, compatibility (Civic, Corolla, Alto, Yaris, Sportage), and fast Cash on Delivery in Rawalpindi, Islamabad & nationwide.",
-  "seoTitle": "Cosmic Car Wax Original in Pakistan | Best Price Pak-o-Drive",
-  "seoDescription": "Buy authentic Cosmic Car Polish & Paste Wax online in Pakistan at lowest price. High gloss protection with Cash on Delivery nationwide.",
-  "seoKeywords": "cosmic car wax, car polish pakistan, car detailing rawalpindi, auto accessories islamabad, pakodrive cod",
+  "profitMarginPercent": 95,
+  "wholesaleCost": 450,
+  "stock": 30,
+  "description": "Engaging description with bullet points of features, solar rotation mechanism, aroma ring details, how to mount on dashboard (Civic, Corolla, Alto, Yaris, Sportage), and fast Cash on Delivery in Rawalpindi, Islamabad & nationwide.",
+  "seoTitle": "Solar Rotating Car Perfume Air Freshener in Pakistan | Pak-o-Drive",
+  "seoDescription": "Buy Solar Powered Double Ring Rotating Car Perfume Air Freshener for Dashboard in Pakistan. 360 kinetic rotation, soothing cologne aroma. Cash on Delivery nationwide.",
+  "seoKeywords": "solar car perfume, double ring car freshener, car dashboard perfume pakistan, solar rotating air freshener, buy car perfume cod",
   "specs": {
-    "Brand": "Cosmic",
-    "Product Type": "Paste Wax / Polish",
-    "Application": "Applicator Sponge Included",
-    "Compatibility": "All Cars & Paint Colors",
+    "Material": "Aerospace Grade Zinc Alloy & ABS",
+    "Mechanism": "Solar Powered 360° Kinetic Double Ring Rotation",
+    "Power Source": "Direct Sunlight (Zero Battery Required)",
+    "Scent": "Refreshing Cologne Solid Ring Included",
+    "Placement": "Car Dashboard (Anti-Slip Pad Included)",
+    "Compatibility": "Universal (All Cars)",
     "Warranty": "7 Days Check Warranty"
   }
 }
@@ -206,8 +213,38 @@ Follow Pakistani automotive market rates. Output ONLY JSON matching:
   }
 
   // 3. Dynamic context-aware fallback (NEVER generic "Universal Smart Car Accessory")
+  const isPerfume = /perfume|freshener|scent|aroma|diffuser|solar|ring|dashboar/i.test(optionalNotes);
   const isWax = /wax|polish|cosmic|shampoo|compound|shine/i.test(optionalNotes);
   const isLight = /led|light|bulb|drl|headlight|beam/i.test(optionalNotes);
+
+  if (isPerfume) {
+    return {
+      name: 'Solar Powered Double Ring Rotating Car Dashboard Perfume (Gold Edition)',
+      category: 'Car Perfumes & Fresheners',
+      subcategory: 'Solar Diffusers',
+      price: 899,
+      originalPrice: 1450,
+      competitorPrice: 1299,
+      competitorStore: 'Daraz / Sehgal Motors',
+      profitMarginPercent: 95,
+      wholesaleCost: 450,
+      stock: 30,
+      description: 'Solar-powered 360-degree kinetic rotating double ring car perfume for dashboard. Requires no battery or electricity—rotates automatically in sunlight while dispersing soothing cologne aroma. High-grade zinc alloy body with anti-slip dashboard pad.',
+      seoTitle: 'Solar Rotating Car Perfume Air Freshener in Pakistan | Pak-o-Drive',
+      seoDescription: 'Buy Solar Powered Double Ring Rotating Car Perfume Air Freshener for Dashboard in Pakistan. 360 kinetic rotation, soothing aroma. Cash on Delivery nationwide.',
+      seoKeywords: 'solar car perfume, double ring car perfume, car dashboard air freshener, solar rotating aroma pakistan, buy car perfume cod',
+      studioImage: 'https://res.cloudinary.com/dvgxeiwoz/image/upload/v1788092214/electro_store/1788092214621_46843.webp',
+      specs: {
+        'Material': 'Aerospace Grade Zinc Alloy & ABS',
+        'Mechanism': 'Solar Powered 360° Kinetic Double Ring Rotation',
+        'Power Source': 'Direct Sunlight (Zero Battery Required)',
+        'Scent': 'Refreshing Cologne Solid Ring Included',
+        'Placement': 'Car Dashboard (Anti-Slip Pad Included)',
+        'Compatibility': 'Universal (All Cars: Civic, Corolla, Alto, Yaris, Sportage, etc.)',
+        'Warranty': '7 Days Check Warranty',
+      },
+    };
+  }
 
   if (isWax) {
     return {

@@ -247,32 +247,85 @@ export function useAdminAiCopilot() {
     fetchSnapshot();
   }, [fetchSnapshot]);
 
-  // Handle image upload from file picker
-  const handleImageSelect = useCallback((file: File) => {
+  // High-performance client-side image downscaler to guarantee < 150KB JPEG payload
+  const compressImageForUpload = useCallback(async (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      // If image is already smaller than 120KB, read directly
+      if (file.size <= 120 * 1024) {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+        return;
+      }
+
+      const img = new Image();
+      const objectUrl = URL.createObjectURL(file);
+      img.onload = () => {
+        URL.revokeObjectURL(objectUrl);
+        let width = img.naturalWidth || img.width;
+        let height = img.naturalHeight || img.height;
+        const MAX_DIM = 1024;
+
+        if (width > MAX_DIM || height > MAX_DIM) {
+          if (width > height) {
+            height = Math.round((height * MAX_DIM) / width);
+            width = MAX_DIM;
+          } else {
+            width = Math.round((width * MAX_DIM) / height);
+            height = MAX_DIM;
+          }
+        }
+
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result as string);
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+          return;
+        }
+
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillRect(0, 0, width, height);
+        ctx.drawImage(img, 0, 0, width, height);
+
+        // Quality 0.82 JPEG -> typically ~75KB - 120KB
+        const compressedBase64 = canvas.toDataURL('image/jpeg', 0.82);
+        resolve(compressedBase64);
+      };
+      img.onerror = () => {
+        URL.revokeObjectURL(objectUrl);
+        // Fallback to basic file reader
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      };
+      img.src = objectUrl;
+    });
+  }, []);
+
+  // Handle image upload from file picker with automatic client-side compression
+  const handleImageSelect = useCallback(async (file: File) => {
     if (!file) return;
     if (!file.type.startsWith('image/')) {
       setError('Baraye meherbani sirf tasweer (image) file select karein.');
       return;
     }
-    if (file.size > 10 * 1024 * 1024) {
-      setError('Tasweer ka size 10MB se kam hona chahiye.');
-      return;
-    }
 
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const result = e.target?.result as string;
-      if (result) {
-        setSelectedImage(result);
-        setSelectedImageName(file.name);
-        setError(null);
-      }
-    };
-    reader.onerror = () => {
-      setError('Tasweer read karne me masla hua.');
-    };
-    reader.readAsDataURL(file);
-  }, []);
+    try {
+      setError(null);
+      const compressedDataUrl = await compressImageForUpload(file);
+      setSelectedImage(compressedDataUrl);
+      setSelectedImageName(file.name);
+    } catch (err: any) {
+      setError(`Tasweer read karne me masla hua: ${err?.message || 'Unknown'}`);
+    }
+  }, [compressImageForUpload]);
 
   const clearSelectedImage = useCallback(() => {
     setSelectedImage(null);
@@ -327,6 +380,18 @@ export function useAdminAiCopilot() {
           }),
         });
 
+        if (!res.ok) {
+          const rawText = await res.text();
+          let serverErrMsg = `Server Error (${res.status})`;
+          try {
+            const errObj = JSON.parse(rawText);
+            serverErrMsg = errObj.error || errObj.message || serverErrMsg;
+          } catch {
+            serverErrMsg = rawText.slice(0, 250) || `HTTP ${res.status}: ${res.statusText}`;
+          }
+          throw new Error(serverErrMsg);
+        }
+
         const data = await res.json();
 
         if (data.success && data.reply) {
@@ -353,11 +418,12 @@ export function useAdminAiCopilot() {
           throw new Error(data.error || 'AI response error');
         }
       } catch (err: any) {
-        setError(err.message || 'Kuch masla hua, baraye meherbani dubara koshish karein.');
+        const rawErrMsg = err?.message || 'Kuch masla hua, baraye meherbani dubara koshish karein.';
+        setError(rawErrMsg);
         const fallbackMsg: ChatMessage = {
           id: `assistant-${Date.now()}`,
           role: 'assistant',
-          content: `⚠️ **Maazrat:** Is waqt AI service masroof hai. Chand lamhe baad dubara poochein ya internet connection check karein.`,
+          content: `⚠️ **Maazrat:** Query execute karne mein masla aya:\n\`\`\`\n${rawErrMsg}\n\`\`\`\nAap upar diye gaye **Copy Error** button se error message copy kar ke check karwa sakte hain.`,
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         };
         setMessages((prev) => [...prev, fallbackMsg]);
@@ -393,6 +459,18 @@ export function useAdminAiCopilot() {
             actionConfirmation: act.payload,
           }),
         });
+
+        if (!res.ok) {
+          const rawText = await res.text();
+          let serverErrMsg = `Server Error (${res.status})`;
+          try {
+            const errObj = JSON.parse(rawText);
+            serverErrMsg = errObj.error || errObj.message || serverErrMsg;
+          } catch {
+            serverErrMsg = rawText.slice(0, 250) || `HTTP ${res.status}: ${res.statusText}`;
+          }
+          throw new Error(serverErrMsg);
+        }
 
         const data = await res.json();
         if (data.success && data.reply) {

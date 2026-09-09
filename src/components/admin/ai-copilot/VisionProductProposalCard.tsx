@@ -12,6 +12,7 @@ interface VisionProductProposalCardProps {
 }
 
 const CATEGORIES = [
+  'Car Perfumes & Fresheners',
   'Car Care & Detailing',
   'LED Lights & Bulbs',
   'Car Gadgets',
@@ -28,10 +29,13 @@ export const VisionProductProposalCard: React.FC<VisionProductProposalCardProps>
   const params = action.payload?.params || {};
 
   const [name, setName] = useState<string>(params.name || '');
-  const [price, setPrice] = useState<number>(Number(params.price) || 950);
-  const [competitorPrice, setCompetitorPrice] = useState<number>(Number(params.competitorPrice) || 1250);
-  const [category, setCategory] = useState<string>(params.category || 'Car Care & Detailing');
+  const [price, setPrice] = useState<number>(Number(params.price) || 899);
+  const [competitorPrice, setCompetitorPrice] = useState<number>(Number(params.competitorPrice) || 1299);
+  const [category, setCategory] = useState<string>(params.category || 'Car Perfumes & Fresheners');
   const [stock, setStock] = useState<number>(Number(params.stock) || 25);
+  const [description, setDescription] = useState<string>(params.description || '');
+  const [seoTitle, setSeoTitle] = useState<string>(params.seoTitle || '');
+  const [seoKeywords, setSeoKeywords] = useState<string>(params.seoKeywords || '');
   const [isEditing, setIsEditing] = useState<boolean>(false);
 
   const wholesale = params.wholesaleCost || Math.round(price * 0.45);
@@ -52,6 +56,9 @@ export const VisionProductProposalCard: React.FC<VisionProductProposalCardProps>
           competitorPrice: Number(competitorPrice),
           category,
           stock: Number(stock),
+          description: description || params.description,
+          seoTitle: seoTitle || params.seoTitle,
+          seoKeywords: seoKeywords || params.seoKeywords,
           profitMarginPercentage: marginPercent,
         },
       },
@@ -167,6 +174,48 @@ export const VisionProductProposalCard: React.FC<VisionProductProposalCardProps>
                 className="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-amber-300 focus:border-emerald-500 focus:outline-none"
               />
             </div>
+          </div>
+
+          {/* SEO Title */}
+          <div>
+            <label className="block text-slate-400 text-[10px] font-semibold mb-1">
+              Google SEO Meta Title:
+            </label>
+            <input
+              type="text"
+              value={seoTitle}
+              onChange={(e) => setSeoTitle(e.target.value)}
+              className="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 focus:border-emerald-500 focus:outline-none"
+              placeholder="e.g. Solar Rotating Car Perfume in Pakistan | Pak-o-Drive"
+            />
+          </div>
+
+          {/* SEO Keywords */}
+          <div>
+            <label className="block text-slate-400 text-[10px] font-semibold mb-1">
+              SEO Keywords (Comma Separated):
+            </label>
+            <input
+              type="text"
+              value={seoKeywords}
+              onChange={(e) => setSeoKeywords(e.target.value)}
+              className="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 focus:border-emerald-500 focus:outline-none"
+              placeholder="e.g. solar car perfume, car freshener, dashboard aroma, cod"
+            />
+          </div>
+
+          {/* Description */}
+          <div>
+            <label className="block text-slate-400 text-[10px] font-semibold mb-1">
+              Product Description:
+            </label>
+            <textarea
+              rows={2}
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              className="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 focus:border-emerald-500 focus:outline-none resize-none"
+              placeholder="Product features, compatibility, Cash on Delivery details..."
+            />
           </div>
         </div>
       ) : (

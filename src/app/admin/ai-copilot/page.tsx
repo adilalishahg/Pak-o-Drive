@@ -81,10 +81,18 @@ export default function AdminAiCopilotPage() {
     sendMessage(prompt, targetSeoUrl.trim() || undefined, competitorUrl.trim() || undefined);
   };
 
+  const [copiedError, setCopiedError] = useState<boolean>(false);
+
   const handleCopy = (content: string, id: string) => {
     navigator.clipboard.writeText(content);
     setCopiedId(id);
     setTimeout(() => setCopiedId(null), 2000);
+  };
+
+  const handleCopyError = (errText: string) => {
+    navigator.clipboard.writeText(errText);
+    setCopiedError(true);
+    setTimeout(() => setCopiedError(false), 2500);
   };
 
   return (
@@ -726,9 +734,19 @@ export default function AdminAiCopilotPage() {
 
             {/* Error Banner */}
             {error && (
-              <div className="px-3 py-1.5 bg-danger-subtle border-top border-danger-subtle text-danger small d-flex align-items-center justify-content-between">
-                <span>{error}</span>
-                <button type="button" className="btn-close btn-close-sm" onClick={() => {}} />
+              <div className="px-3 py-2 bg-danger-subtle border-top border-danger-subtle text-danger small d-flex align-items-center justify-content-between gap-3 shadow-sm">
+                <div className="d-flex align-items-center gap-2 text-break font-monospace" style={{ fontSize: '11px' }}>
+                  <i className="fas fa-circle-exclamation text-danger" />
+                  <span>{error}</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => handleCopyError(error)}
+                  className="btn btn-sm btn-outline-danger d-flex align-items-center gap-1 flex-shrink-0"
+                  style={{ fontSize: '11px', fontWeight: 600, padding: '3px 10px' }}
+                >
+                  {copiedError ? '✓ Copied!' : '📋 Copy Error'}
+                </button>
               </div>
             )}
 

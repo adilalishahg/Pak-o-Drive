@@ -4,6 +4,38 @@ This file serves as persistent dynamic memory across coding agent sessions. Ever
 
 ---
 
+### 2026-09-09 — AutoStore Category Catalog 2-Second Auto-Advance with Native Smooth Snap & Gesture Pause
+- **📌 Issue**: User requested that the Category Strip catalog (the horizontal cards showing "CAR ACCESSORIES", "CAR CARE & WAX", etc. with the brand orange band) automatically advance every 2 seconds with a smooth, pleasing animation.
+- **🔍 Root Cause & Failed Attempts**:
+  - `HomeCleanCategoryStrip.tsx` previously only supported manual arrow clicks and touch swiping, remaining stationary on screen without auto-advance.
+  - Naive `setInterval` implementations fight user touch gestures, cause sudden burst scrolls when switching browser tabs, or fail to gracefully loop back when reaching the end of the scroll track.
+- **🛠️ Verified Code Fix**:
+  1. In `src/components/home/HomeCleanCategoryStrip.tsx`:
+     - Built an intelligent auto-advance engine running every `2000ms` (`stepForward`).
+     - Calculates precise card width + gap (`firstCard.offsetWidth + 14`), advancing 1 card smoothly (`scrollBy({ left: cardStep, behavior: 'smooth' })`).
+     - Snaps magnetically to `scrollSnapAlign: 'start'` with hardware-accelerated smooth scrolling.
+     - When reaching the end (`scrollLeft >= maxScroll - 15`), gracefully loops back to the beginning (`scrollTo({ left: 0, behavior: 'smooth' })`).
+     - Implemented **Smart Gesture Pause**: pauses immediately on mouse hover (`onMouseEnter`) and mobile touch (`onTouchStart`); automatically schedules a gentle resume after 2s on `onMouseLeave` / `onTouchEnd`.
+     - Integrated `document.visibilitychange` lifecycle listener to pause timers when the browser tab is hidden, preventing ghost animation bursts.
+     - Upgraded arrow navigation to pause auto-scroll during manual clicks and smoothly resume after 2.5s.
+  2. Verified via `pnpm tsc --noEmit` (0 errors).
+
+### 2026-09-09 — 120fps Mobile Direct Touch Tracking & Infinite Non-Blocking Wrapping for Hero Slider
+- **📌 Issue**: On mobile devices, swiping the home page hero slider with a finger felt unresponsive and laggy, and when swiping past the last slide to the 1st slide, swiping again got completely stuck (*"last k bd jb 1st ata ha tou phr finger sy udr b struck ho jata ha"*).
+- **🔍 Root Cause & Failed Attempts**:
+  1. In `src/lib/smooothy.ts`, active dragging applied a heavy lerp factor (`0.12`) to `currentX`, causing the slide track to lag 88% behind the finger instead of tracking 1:1 in real time.
+  2. The infinite wrap reset in `render()` was gated behind `!this.isDragging && Math.abs(diff) < 0.15`. Because lerp interpolation approaches zero asymptotically, if the user swiped repeatedly or touched the screen before reaching < 0.15px, the reset never executed.
+  3. Consequently, `currentIndex` remained at boundary index 4 (the clone of slide 0). Subsequent swipes to the left were clamped to `Math.min(slides.length - 1, ...)` (4), hitting a hard boundary wall and permanently trapping the slider.
+  4. In `src/components/home/HomeCleanWhiteLayout.tsx`, the slider engine defaulted to `'classic'` instead of `'smooothy'`, which lacked 1:1 touch dragging altogether.
+- **🛠️ Verified Code Fix**:
+  1. Re-engineered `src/lib/smooothy.ts`:
+     - **Direct 1:1 Hardware Tracking**: Replaced lerp lag during active touch with instant, GPU-accelerated `translate3d(Xpx, 0, 0)` tracking the finger with zero latency.
+     - **Dynamic In-Flight Drag Wrapping**: When dragging past clone boundaries (`currentX < -(N + 1) * W` or `currentX > 0`), the position dynamically wraps by $\pm N \times W$ on the fly with 0 layout shift. The user can drag infinitely in either direction without ever hitting a wall.
+     - **Flick & Velocity Snapping**: Detects flick gestures (`|velocity| > 0.25px/ms`) and applies Apple-standard `cubic-bezier(0.22, 1, 0.36, 1)` easing.
+     - **Instant Boundary Normalization**: On `transitionend` (and immediately on touch-down via computed matrix inspection), clone indices ($N+1$ or $0$) instantly normalize to real slide positions ($1$ or $N$) without animation.
+  2. Updated `src/components/home/HomeCleanWhiteLayout.tsx` to default to `'smooothy'`.
+  3. Verified with `pnpm tsc --noEmit` (0 errors).
+
 ### 2026-09-09 — Vision AI "Snap & Auto-List" Gemini 3.6 Migration, Jimp Compression & Interactive Editable Proposal Card
 - **📌 Issue**: User uploaded a photo of "Cosmic Car Wax" (yellow tin with sponge) in the Admin AI Copilot to add a product, but the AI misidentified it and defaulted to a generic placeholder title (*"Universal Automotive Smart Car Accessory"*, category *"Car Gadgets"*, price PKR 1,499) with read-only buttons that prevented editing details before publishing.
 - **🔍 Root Cause & Failed Attempts**:

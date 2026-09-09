@@ -56,6 +56,7 @@ export function AdminAiDrawer() {
   } = useAdminAiCopilot();
 
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [copiedError, setCopiedError] = useState<boolean>(false);
   const [isExpanded, setIsExpanded] = useState<boolean>(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -63,6 +64,12 @@ export function AdminAiDrawer() {
     navigator.clipboard.writeText(text);
     setCopiedId(id);
     setTimeout(() => setCopiedId(null), 2000);
+  };
+
+  const handleCopyError = (errText: string) => {
+    navigator.clipboard.writeText(errText);
+    setCopiedError(true);
+    setTimeout(() => setCopiedError(false), 2500);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -532,9 +539,18 @@ export function AdminAiDrawer() {
           )}
 
           {error && (
-            <div className="p-3 bg-rose-500/10 border border-rose-500/30 rounded-xl text-rose-300 text-xs flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-rose-500 flex-shrink-0" />
-              <span className="leading-normal py-0.5">{error}</span>
+            <div className="p-3 bg-rose-500/10 border border-rose-500/30 rounded-xl text-rose-300 text-xs flex items-center justify-between gap-3 shadow-lg">
+              <div className="flex items-center gap-2 min-w-0">
+                <span className="w-2 h-2 rounded-full bg-rose-500 flex-shrink-0 animate-pulse" />
+                <span className="leading-normal py-0.5 font-mono text-[11px] break-all">{error}</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => handleCopyError(error)}
+                className="flex items-center gap-1 text-[11px] font-bold bg-rose-950/80 hover:bg-rose-900 border border-rose-500/40 text-rose-200 px-2.5 py-1.5 rounded-lg transition-colors flex-shrink-0 cursor-pointer shadow-sm active:scale-95"
+              >
+                {copiedError ? '✓ Copied!' : '📋 Copy Error'}
+              </button>
             </div>
           )}
 
