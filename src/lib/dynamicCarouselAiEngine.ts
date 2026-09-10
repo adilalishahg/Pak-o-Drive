@@ -240,11 +240,24 @@ function extractJsonFromText(text: string | null | undefined): any {
 }
 
 /**
+ * Strips markdown asterisks (* and **), hashes, backticks, and leading bullets/dashes
+ */
+function cleanSlideText(text?: any): string {
+  if (!text || typeof text !== 'string') return '';
+  return text
+    .replace(/[*#`~]/g, '') // Strip markdown asterisks, hashes, backticks, tildes
+    .replace(/^[•●\-\*\>\s]+/, '') // Strip redundant leading bullets, dashes, asterisks
+    .replace(/[•●]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+/**
  * Validate and sanitize generated slides into standard CarouselDeck format
  */
 function sanitizeGeneratedDeck(raw: any, track: TechTrack): CarouselDeck {
   const defaultTrack = TECH_TRACKS[track];
-  const topic = (raw?.topic && typeof raw.topic === 'string' && raw.topic.trim()) || defaultTrack.title;
+  const topic = cleanSlideText(raw?.topic) || defaultTrack.title;
   let caption = (raw?.caption && typeof raw.caption === 'string' && raw.caption.trim()) || '';
 
   // Ensure high-reach hashtags in caption
@@ -265,9 +278,9 @@ function sanitizeGeneratedDeck(raw: any, track: TechTrack): CarouselDeck {
   sanitizedSlides.push({
     isCover: true,
     slideType: 'cover',
-    tag: firstSlide?.tag || defaultTrack.title.toUpperCase(),
-    headline: firstSlide?.headline || topic,
-    subheadline: firstSlide?.subheadline || 'Swipe to explore the complete visual breakdown',
+    tag: cleanSlideText(firstSlide?.tag) || defaultTrack.title.toUpperCase(),
+    headline: cleanSlideText(firstSlide?.headline) || topic,
+    subheadline: cleanSlideText(firstSlide?.subheadline) || 'Swipe to explore the complete visual breakdown',
     footer: 'SWIPE TO LEARN ->',
   });
 
@@ -282,11 +295,11 @@ function sanitizeGeneratedDeck(raw: any, track: TechTrack): CarouselDeck {
       sanitizedSlides.push({
         isSummary: true,
         slideType: 'outro',
-        tag: s.tag || 'SUMMARY & ACTION',
-        headline: s.headline || 'Key Takeaways & Next Steps',
-        subheadline: s.subheadline || 'Implement these architectural principles in your production systems.',
+        tag: cleanSlideText(s.tag) || 'SUMMARY & ACTION',
+        headline: cleanSlideText(s.headline) || 'Key Takeaways & Next Steps',
+        subheadline: cleanSlideText(s.subheadline) || 'Implement these architectural principles in your production systems.',
         points: Array.isArray(s.points) && s.points.length > 0
-          ? s.points.slice(0, 4)
+          ? s.points.slice(0, 4).map(cleanSlideText).filter(Boolean)
           : [
               'Design for resilient failure boundaries.',
               'Profile memory and database bottlenecks before optimizing.',
@@ -300,14 +313,14 @@ function sanitizeGeneratedDeck(raw: any, track: TechTrack): CarouselDeck {
     const slideType = s.slideType || (i % 2 === 0 ? 'stat_card' : 'intro');
     const slide: CarouselSlide = {
       slideType,
-      tag: s.tag || `0${i} / ${defaultTrack.focusKeywords[i % defaultTrack.focusKeywords.length] || 'SYSTEM DESIGN'}`,
-      headline: s.headline || `Key Architectural Insight ${i}`,
-      subheadline: s.subheadline || '',
+      tag: cleanSlideText(s.tag) || `0${i} / ${defaultTrack.focusKeywords[i % defaultTrack.focusKeywords.length] || 'SYSTEM DESIGN'}`,
+      headline: cleanSlideText(s.headline) || `Key Architectural Insight ${i}`,
+      subheadline: cleanSlideText(s.subheadline) || '',
       footer: s.footer || 'Swipe to continue ->',
     };
 
     if (Array.isArray(s.points) && s.points.length > 0) {
-      slide.points = s.points.slice(0, 4);
+      slide.points = s.points.slice(0, 4).map(cleanSlideText).filter(Boolean);
     } else if (slideType === 'intro') {
       slide.points = [
         `Tight coupling across ${defaultTrack.title} creates cascading failure loops under production load.`,
@@ -318,19 +331,20 @@ function sanitizeGeneratedDeck(raw: any, track: TechTrack): CarouselDeck {
 
     if (s.cardContent && typeof s.cardContent === 'object') {
       const rawLines = Array.isArray(s.cardContent.bodyLines) ? s.cardContent.bodyLines : [];
-      const bodyLines = rawLines.length >= 2
-        ? rawLines.slice(0, 3)
+      const cleanedLines = rawLines.map(cleanSlideText).filter(Boolean);
+      const bodyLines = cleanedLines.length >= 2
+        ? cleanedLines.slice(0, 3)
         : [
-            rawLines[0] || 'Services publish lightweight domain events to an asynchronous message backbone.',
+            cleanedLines[0] || 'Services publish lightweight domain events to an asynchronous message backbone.',
             'Decoupled consumer workers handle processing independently, isolating failures under high concurrency.',
           ];
 
       slide.cardContent = {
-        badge: s.cardContent.badge || 'ARCHITECTURE',
+        badge: cleanSlideText(s.cardContent.badge) || 'ARCHITECTURE',
         tagline: s.cardContent.tagline || 'Deep Dive /',
-        title: s.cardContent.title || s.headline,
-        subtitle: s.cardContent.subtitle,
-        highlightText: s.cardContent.highlightText || 'Zero-downtime, strict fault isolation, and resilient degradation.',
+        title: cleanSlideText(s.cardContent.title) || slide.headline,
+        subtitle: cleanSlideText(s.cardContent.subtitle),
+        highlightText: cleanSlideText(s.cardContent.highlightText) || 'Zero-downtime, strict fault isolation, and resilient degradation.',
         bodyLines,
       };
     } else if (slideType === 'stat_card') {
@@ -351,7 +365,7 @@ function sanitizeGeneratedDeck(raw: any, track: TechTrack): CarouselDeck {
     }
 
     if (s.takeawayQuote && typeof s.takeawayQuote === 'string') {
-      slide.takeawayQuote = s.takeawayQuote;
+      slide.takeawayQuote = cleanSlideText(s.takeawayQuote);
     }
 
     sanitizedSlides.push(slide);
@@ -496,12 +510,13 @@ Schema definition:
   ]
 }
 
-CRITICAL ANTI-DUPLICATION RULES:
+CRITICAL ANTI-DUPLICATION & FORMATTING RULES:
 1. OUTPUT PURE JSON ONLY. No markdown wrapper outside the JSON. No commentary before or after.
 2. ABSOLUTELY FORBIDDEN: You must NEVER generate a post on or related to any of the following previously published topics:
 ${formattedBannedList}
 3. If your candidate topic touches the same concept or domain as any topic in the list above, choose a completely different, fresh 2026 engineering topic instead.
-4. Every slide headline must be impactful and concise (fits comfortably on 1080x1350 slide canvas).`;
+4. Every slide headline must be impactful and concise (fits comfortably on 1080x1350 slide canvas).
+5. ZERO MARKDOWN FORMATTING IN SLIDE STRINGS: NEVER use asterisks (* or **), backticks, hashes, or bullet characters (•, -) inside JSON strings for headline, title, bodyLines, points, highlightText, or takeawayQuote. Use pure clean plain English words only.`;
 
     const userMessage = `Generate a fresh, cutting-edge LinkedIn carousel deck on: "${trackInfo.title}".
 Keywords: ${trackInfo.focusKeywords.join(', ')}.

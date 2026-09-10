@@ -2,18 +2,22 @@ import fs from 'fs';
 import path from 'path';
 
 /**
- * Sanitizes input string for standard PDF font rendering (ASCII only, no unmapped Unicode glyphs)
+ * Sanitizes input string for standard PDF font rendering (ASCII only, no unmapped Unicode glyphs).
+ * Strips markdown asterisks (* and **), backticks, hashes, and redundant leading bullets/dashes.
  */
 export function cleanAscii(str?: string): string {
   if (!str) return '';
   return str
     .replace(/[➔➜➝]/g, '->')
-    .replace(/[•●]/g, '-')
     .replace(/[⚡★☆]/g, '>')
+    .replace(/[*#`~]/g, '') // Strip all markdown asterisks (steric), hashes, backticks, tildes
+    .replace(/^[•●\-\*\>\s]+/, '') // Strip redundant leading bullets, dashes, asterisks
+    .replace(/[•●]/g, ' ') // Mid-sentence bullets replaced with space
     .replace(/[^\x00-\x7F]/g, ' ')
-    .replace(/\s+/g, ' ')
+    .replace(/[ \t]+/g, ' ')
     .trim();
 }
+
 
 /**
  * Helper to wrap text into multiple lines given max characters per line
