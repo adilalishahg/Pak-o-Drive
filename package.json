@@ -13,7 +13,11 @@
     "desktop:dist": "npm --prefix desktop run dist",
     "bot": "node src/worker/bot.mjs",
     "post:linkedin": "npx tsx scripts/post-to-linkedin.ts",
-    "linkedin:post": "npx tsx scripts/post-to-linkedin.ts"
+    "linkedin:post": "npx tsx scripts/post-to-linkedin.ts",
+    "test:carousel": "npx tsx scripts/test-carousel-pdf.ts",
+    "carousel:test": "npx tsx scripts/test-carousel-pdf.ts",
+    "post:instagram": "npx tsx scripts/post-to-instagram.ts",
+    "instagram:post": "npx tsx scripts/post-to-instagram.ts"
   },
   "dependencies": {
     "@fortawesome/fontawesome-free": "^7.2.0",

@@ -58,24 +58,7 @@ export async function renderSlobodanCarouselPdf(
       color: bgDeep,
     });
 
-    // 1.5 Ambient 3D Graphic Blend on All Slides
-    if (embeddedCoverImage) {
-      page.drawImage(embeddedCoverImage, {
-        x: 0,
-        y: 0,
-        width: SLIDE_WIDTH,
-        height: SLIDE_HEIGHT,
-        opacity: isFirst ? 0.20 : 0.12,
-      });
-      page.drawRectangle({
-        x: 0,
-        y: 0,
-        width: SLIDE_WIDTH,
-        height: SLIDE_HEIGHT,
-        color: bgDeep,
-        opacity: isFirst ? 0.45 : 0.65,
-      });
-    }
+
 
     // 2. Subtle Blueprint Grid Dots
     for (let gx = 60; gx < SLIDE_WIDTH; gx += 80) {

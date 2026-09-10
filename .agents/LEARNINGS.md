@@ -4,6 +4,162 @@ This file serves as persistent dynamic memory across coding agent sessions. Ever
 
 ---
 
+### 2026-09-10 — LinkedIn PDF Header Clearance & Diagram Box Centering
+- **📌 Issue**:
+  1. On Slide 2 (Intro Slide), the category pill `THE CORE BOTTLENECK` was suffocating only 16px below the AI circle, and the headline was practically colliding with the tag text.
+  2. On Slide 4 (Diagram Slide), all diagram nodes (tasks, central event bus, outcomes) were squished into the top 200px of an 800px card, leaving >550px of empty void in the lower portion of the box.
+- **🔍 Root Cause**:
+  1. `tagY` in `introSlide.ts` was calculated relative to icon center (`iconY - 58`) without accounting for circle radius (42px), leaving only 16px of clearance. `headFit.startY` was placed at `tagY - 32`, causing ascender collision with the tag.
+  2. `diagramSlide.ts` positioned nodes starting from `cardY + cardH - 100` rather than centering relative to `cardY + cardH / 2`.
+- **🛠️ Verified Code Fix**:
+  1. **Page 2 Header Breathing Room (`introSlide.ts`)**:
+     - Positioned AI circle at `Y = 1220` with radius 36.
+     - Placed category tag pill at `Y = 1106` with **42px clean clearance below circle bottom**.
+     - Placed headline at `startY = pillY - 45` with a generous **45px gap**, and subheadline with a **26px gap**.
+  2. **Slide 4 Mathematical Diagram Centering (`diagramSlide.ts`)**:
+     - Aligned all diagram nodes (left producers, central event bus hub, right outcomes) relative to `boxCenterY = cardY + cardH / 2`.
+     - Added blueprint header tag at top of card (`[ DECOUPLED EVENT STREAMING ARCHITECTURE ]`) and flow throughput indicator at bottom (`[ PRODUCER SERVICES ] -> [ ASYNC BROKER ] -> [ CONSUMER WORKERS ]`).
+     - Added connecting directional arrows (`->`) and centered takeaway quote banner.
+  3. Verified generation via `pnpm test:carousel` (519ms) and `pnpm tsc --noEmit` (0 errors).
+
+---
+
+### 2026-09-10 — LinkedIn PDF Micro-Spacing & Baseline Alignment: Header Gaps, Tag Margins & Bullet Alignment
+- **📌 Issue**:
+  1. On Slide 2 (Intro Slide), the top header elements (AI circle, category tag, headline, and subheadline) were suffocating with tight gaps (~14-35px). Inside each card, the tag pill (`FAILURE MODE 01`) was pinned directly against the top border (12px gap), and the bullet dot was vertically centered in the box instead of aligning with the first line of text.
+  2. On Slide 3 (Modular 3-Box), badges in Box 1 (`PRODUCTION METRIC`), Box 2 (`⚡ ARCHITECTURAL MECHANICS`), and Box 3 (`💎 PRINCIPAL ARCHITECT RULE`) were sitting flush against top borders (13-15px margin).
+- **🔍 Root Cause**:
+  1. Y coordinates for tags inside cards lacked an explicit top padding offset (`boxY + cardH - 24 - tagH`).
+  2. `dotCenterY` in `introSlide.ts` used `boxY + cardH / 2 - 10`, centering the bullet in the card rather than computing `textStartY + 8` to align with the first text line.
+  3. Header elements in `introSlide.ts` used arbitrary tight offsets rather than design system tokens.
+- **🛠️ Verified Code Fix**:
+  1. **Header Breathing Room (`introSlide.ts`)**:
+     - Positioned AI icon at `Y = 1220`, category tag at `Y = 1165` (55px clearance), headline at `Y = 1133` (32px gap), and subheadline with 18px gap.
+  2. **Card Internal Padding & Bullet Baseline Alignment**:
+     - Applied generous 24px top padding for all tag pills across cards (`tagBoxY = boxY + cardH - 24 - tagH`).
+     - Aligned bullet dot directly with the first line of text (`bulletDotY = textStartY + 8`).
+     - Set card height to 190px and card gap to 35-45px with 80px safe margin above the footer.
+  3. **Modular Box Internal Spacing (`statCardSlide.ts`)**:
+     - Box 1: Added 24px top margin above `PRODUCTION METRIC` badge and 44px gap before title.
+     - Box 2: Added 24px top margin above `⚡ ARCHITECTURAL MECHANICS` and 22px gap between the 3 bullet items with aligned dots (`bulletY + 7`).
+     - Box 3: Added 22px top margin above `💎 PRINCIPAL ARCHITECT RULE` and centered quote statement at `box3Y + 75`.
+  4. Verified via `pnpm test:carousel` (526ms) and `pnpm tsc --noEmit` (0 errors).
+
+---
+
+### 2026-09-10 — LinkedIn PDF Spacing Polish: Intro Cards & Stat Slide 3-Tile Modular Expansion
+- **📌 Issue**:
+  1. On Slide 2 (Intro Slide), 3 bullet cards were cramped together at the top (100px height with 20px gap), leaving a massive >400px empty black void at the bottom of the slide.
+  2. On Slide 3 (Stat Card), a giant single 920px tall card was rendered, but text only occupied the top 250px, leaving 70% of the card interior as a huge empty dark box.
+- **🔍 Root Cause**:
+  1. In `introSlide.ts`, card heights were calculated strictly from line count (`Math.max(84, 28 + lineCount * 36)`) with a fixed 20px gap, failing to distribute across the 750px vertical canvas.
+  2. In `statCardSlide.ts`, `cardH` stretched from `lowestY` to `cardBottom` (920px tall) regardless of content length, while text lacked supporting architectural mechanics and golden rule banners.
+- **🛠️ Verified Code Fix**:
+  1. **Even Vertical Distribution (`introSlide.ts`)**:
+     - Distributed cards dynamically across the available 720px vertical space (`cardH: 180-210px`, `cardGap: 35-40px`).
+     - Added dedicated `FAILURE MODE 01/02/03` pill tags inside each card.
+     - Enlarged typography to **28px** with 40px line height and 14px glowing cyan bullet dots, completely eliminating the bottom void.
+  2. **3-Tile Modular Glassmorphic Layout (`statCardSlide.ts`)**:
+     - Converted the monolithic box into 3 distinct, purpose-built tiles:
+       - **Tile 1: Hero Metric & Focus Tile** (270px) with badge, 38px title, divider, and 28px bold purple highlight statement.
+       - **Tile 2: Architectural Mechanics & Deep Dive** (370px) with cyan tag and 3 detailed production points with glowing bullet rings.
+       - **Tile 3: Golden Architectural Rule Banner** (135px) with `💎 PRINCIPAL ARCHITECT RULE` tag and centered 22px bold cyan takeaway quote.
+  3. Verified generation via `pnpm test:carousel` (518ms, 153 KB) and `pnpm tsc --noEmit` (0 errors).
+
+---
+
+### 2026-09-10 — LinkedIn Cover Centered Authority Redesign & Local Carousel Test Script (`pnpm test:carousel`)
+- **📌 Issue**:
+  1. User observed that on Slide 1 (Cover), conflicting images were crowding the canvas and requested: *"start waly page pr just title and follow wla ho center me ho clear pta chaly"*.
+  2. The topic graphic needed to appear in its own dedicated, non-overlapping visual frame on content slides without mixing with text.
+  3. Testing required deploying or running live on LinkedIn; user requested a dedicated local test script to generate and preview carousel PDFs locally.
+- **🔍 Root Cause**:
+  1. `coverSlide.ts` retained a large 3D graphic frame in the center while pushing author branding to a small 65px header at the top right.
+  2. `introSlide.ts` and `diagramSlide.ts` lacked a dedicated container for topic graphics.
+  3. No standalone test script existed without importing database models.
+- **🛠️ Verified Code Fix**:
+  1. **Centered Cover Slide Layout (`coverSlide.ts`)**:
+     - Removed all conflicting image/blueprint frames from the cover slide.
+     - Headline (56px bold white) and Subheadline (26px light cyan) centered in the upper third.
+     - Dedicated **Creator Authority Spotlight Card** (840x340px) centered in the middle containing:
+       - 76px diameter Avatar circle with "SA" monogram.
+       - "Syed Adil Ali" in 34px bold white.
+       - "@Syed Adil Ali • Cloud Systems & Full-Stack" in 18px neon cyan.
+       - High-contrast 260x54px "+ Follow" button in bold neon cyan.
+     - Bottom centered "SWIPE TO EXPLORE ➔" action pill.
+  2. **Dedicated Visual Frames on Content Slides**:
+     - Updated `introSlide.ts` to display `embeddedCoverImage` in its own 260px framed container with bullet point cards positioned cleanly below it.
+     - Updated `diagramSlide.ts` to display `embeddedCoverImage` or native architecture nodes with zero text overlap.
+  3. **Standalone Local Test Script & HTML Previewer**:
+     - Created `scripts/test-carousel-pdf.ts` with zero database dependencies (using `getTopicImage`).
+     - Registered `"test:carousel"` and `"carousel:test"` in `package.json`.
+     - Automatically generates `public/test-carousel.pdf`, `public/active-carousel.pdf`, and `public/carousel-preview.html`.
+     - Verified with `pnpm test:carousel` (executes in 966ms, outputs 152 KB PDF) and `pnpm tsc --noEmit` (0 errors).
+
+---
+
+### 2026-09-10 — LinkedIn PDF Visual Overhaul: Watermark Ghosting, Blank Slide Fix & Mobile Typography Scaling
+- **📌 Issue**:
+  1. On Slide 1 (Cover), the background graphic `microservices.jpg` was rendered behind the text with text burned into the image ("MICROSERVICES vs MODULAR MONOLITH"), clashing with the actual topic title ("Event-Driven Resilience"). Double bottom swipe CTA button collision (`SWIPE TO LEARN ➔` pill at y=110 directly over `Swipe to continue ➔` at y=55).
+  2. On Slide 2 (Intro), the slide was ~80% blank void with only headline and no bullet points when AI omitted the `points: []` array.
+  3. On Slide 3 (Stat Card), the card was stretched 890px tall while text only occupied ~200px at the top, leaving a huge empty dark box. Fonts were tiny (highlightText: 24px, bodyLines: 22px), hard to read on mobile.
+- **🔍 Root Cause**:
+  1. `utils.ts` and `socialAutoPostService.ts` hardcoded `microservices.jpg` as the global fallback image regardless of topic.
+  2. `engine.ts` applied a faint version of this image across *every single slide* in the PDF at `opacity: 0.12`, creating ghosting/text-mixing behind white text.
+  3. `introSlide.ts` only rendered bullets if `slide.points && slide.points.length > 0`. When AI omitted points under token pressure, the slide remained empty.
+  4. Card heights were fixed or excessively tall relative to sparse text, and typography sizes (20-24px) were too small for mobile feeds without zooming.
+- **🛠️ Verified Code Fix**:
+  1. **Clean Canvas & Watermark Removal**: Removed the background image overlay loop in `engine.ts` so slides render on a pristine, deep midnight background (`#070B14`) with zero ghosting.
+  2. **Topic-Specific Graphic Detection**: Updated `getTopicImage()` to only load `microservices.jpg` if the topic explicitly mentions microservices/monoliths; otherwise, `coverSlide.ts` dynamically renders a native high-aesthetic vector tech blueprint with grid lines, topic badge, and 3 metric tiles (Reliability 99.99%, Latency <15ms, Fault Isolation: Strict).
+  3. **Guaranteed Content Fallbacks**: Added rich architectural breakdown fallbacks in `introSlide.ts` and `dynamicCarouselAiEngine.ts` sanitizer, ensuring slides 2 and 3 always render full, educational content even if AI outputs empty arrays.
+  4. **Enlarged High-Legibility Typography**: Boosted font sizes across all renderers: Title to 36-38px, Highlight text to 28-30px, Body lines to 25-26px with 34-36px line height, and takeaway quotes to 22px.
+  5. **Unified Action CTA**: Consolidated the dual conflicting swipe buttons on the cover slide into a single high-contrast pill (`SWIPE TO EXPLORE ->`, 22px bold, cyan border).
+  6. Verified compilation via `npx tsx scripts/test-pdf-render.ts` and `pnpm tsc --noEmit` (0 errors).
+
+---
+
+### 2026-09-10 — Instagram Carousel Visual Typography Polish, Overlap Elimination & 3-Box Modular Layout
+- **📌 Issue**:
+  1. On Slide 1 (Cover), the category pill badge ("⚡ 2026 EDITION") was vertically overlapping into the primary hook title ("3 AI Websites That Feel Illegal To Know in 2026").
+  2. Subtitle and bullet text on mobile screens were small (20-22px) and faint, straining readability on small smartphone screens.
+  3. On Slide 2-4 (Tool slides), text wrapped prematurely at 32-34 characters, leaving a large empty void on the right side and >300px of dead blank black space at the bottom of the card.
+- **🔍 Root Cause**:
+  1. In `instagramSlideRenderer.ts`, `catPillTop` was placed at 200 with pill bottom at 246, while the 64px font baseline was placed at 295/320 without sufficient clearance for ascenders, causing visual overlap.
+  2. Text sizes were set to 20-24px, which translates to only ~6-7pt equivalent on a 1080x1350 canvas on mobile.
+  3. A single monolithic 990px card was used for variable-height tool text with narrow wrapping (34 characters), resulting in large empty areas.
+- **🛠️ Verified Code Fix**:
+  1. **Clearance & Breathing Room**: Placed category pill at `catPillTop = 195` (height 44, ending at 239) and moved title down to `curY = 340` (80px clearance), eliminating any possible overlap.
+  2. **Enlarged High-Legibility Typography**: Boosted subtitle to 32px (`#E2E8F0`), Replaces body to 28px (`#CBD5E1`), Superpower body to 32px Bold (`#FFFFFF`), and Pro Tip to 28px (`#7DD3FC`).
+  3. **3-Box Modular Architecture**: Replaced the single giant card on tool slides with 3 distinct, beautifully rounded glassmorphic tiles:
+     - Tile 1 (❌ REPLACES): 215px height, subtle red outline (`rgba(239, 68, 68, 0.35)`).
+     - Tile 2 (⚡ SUPERPOWER): 295px height hero card, glowing neon accent outline (`stroke="${accentColor}" stroke-width="2"`), bold 32px white text.
+     - Tile 3 (💡 PRO TIP): 235px height, sky blue tint (`rgba(56, 189, 248, 0.35)`).
+  4. Expanded text wrapping to 40-44 characters, perfectly filling 840px usable width with balanced 40px padding and zero edge overflow.
+  5. Verified generated images (`slide_1_cover.jpg`, `slide_2_tool1.jpg`, `slide_5_cta.jpg`) and confirmed `pnpm tsc --noEmit` passes with 0 errors.
+
+---
+
+### 2026-09-10 — Meta Graph API Instagram Auto-Post Dispatcher & CLI Automation (`pnpm post:instagram`)
+- **📌 Issue**: User requested automated viral posting on their Instagram creator account (`@digitalinspirer`), including Meta Developer App setup, Graph API long-lived token integration, and a 1-click CLI command (`pnpm post:instagram`) matching the existing `post:linkedin` workflow.
+- **🔍 Root Cause & Failed Attempts**:
+  1. Initial Facebook App was created under "Consumer/Gaming" type where Meta restricts business and publishing scopes (`instagram_basic`, `instagram_content_publish`, `pages_read_engagement`).
+  2. Temporary session tokens expired within 1 hour.
+  3. Instagram Graph API requires public HTTPS media URLs for container creation and doesn't accept local raw buffers without hosting.
+  4. When publishing multi-slide carousels, calling `media_publish` immediately after creating the parent carousel container triggered `"Failed to publish carousel: Media ID is not available"` because Meta's backend takes 2-4 seconds to bundle child slides.
+- **🛠️ Verified Code Fix**:
+  1. Created Business type Meta App (`DigitalInspirars`) linked to Facebook Page (`Digital Inspirar`, ID: `1384265771427492`) and Instagram account (`digitalinspirer`, ID: `17841478206570162`).
+  2. Configured persistent 60-day token with full publication scopes in `.env` (`INSTAGRAM_ACCESS_TOKEN`, `INSTAGRAM_ACCOUNT_ID`).
+  3. Built `src/models/InstagramPostLog.ts` for topic deduplication and analytics tracking in MongoDB.
+  4. Built `src/lib/instagramSlideRenderer.ts` using `sharp` to render 1080x1350 (4:5) dark-mode tech carousel slides. Implemented dynamic coordinate layout to guarantee zero text overflow, line wrapping (`wrapText`), and bounded cards.
+  5. Upgraded `src/lib/instagramAutoPostService.ts` to generate 5-slide swipeable decks (Cover -> Tool 1 -> Tool 2 -> Tool 3 -> CTA).
+  6. Added Meta container status polling loop (`fields=status_code,status`) waiting until `status_code === 'FINISHED'` before calling `media_publish`, resolving `"Media ID is not available"`.
+  7. Built `scripts/post-to-instagram.ts` and registered `"post:instagram"` / `"instagram:post"` in `package.json`.
+  8. Integrated `executeAutoInstagramPost` into master cron endpoint `src/app/api/cron/daily-master/route.ts`. Updated `vercel.json` schedule to `30 15 * * *` (15:30 UTC / 11:30 AM EST / 8:30 PM PKT) targeting peak daytime social media traffic across the United States and Europe.
+  9. Optimized Gemini prompt and SEO hashtags in `src/lib/instagramAutoPostService.ts` for Tier-1 US/UK tech audiences (`#siliconvalley #futureofwork #saas #remotework #buildinpublic #aitools #techstartups`).
+  10. Tested live execution: Successfully published live swipeable carousels to `@digitalinspirer` (`https://www.instagram.com/p/DdG36Oflw5b/`) with 0 compile errors (`pnpm tsc --noEmit`).
+
+---
+
 ### 2026-09-10 — LinkedIn Document Carousel PDF Text Wrapping, Intro Content Collision & Cover Slide Author Branding Polish
 - **📌 Issue**:
   1. In the LinkedIn carousel intro slide (Slide 2), the subheadline (*"JetBrains latest survey reveals..."*) was directly colliding and overlapping into the first bullet point card.

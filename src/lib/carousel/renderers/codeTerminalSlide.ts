@@ -83,16 +83,16 @@ export function renderCodeTerminalSlide(ctx: SlideRenderContext): void {
 
   // Title (Wrapped)
   if (cardContent.title) {
-    const titleLines = wrapTextByWidth(cleanAscii(cardContent.title), fontBold, 32, maxInnerW);
+    const titleLines = wrapTextByWidth(cleanAscii(cardContent.title), fontBold, 36, maxInnerW);
     for (const line of titleLines) {
       page.drawText(line, {
         x: 110,
         y: currY,
-        size: 32,
+        size: 36,
         font: fontBold,
         color: textWhite,
       });
-      currY -= 40;
+      currY -= 44;
     }
     currY -= 6;
   }
@@ -104,39 +104,39 @@ export function renderCodeTerminalSlide(ctx: SlideRenderContext): void {
     thickness: 1,
     color: rgb(0.15, 0.22, 0.35),
   });
-  currY -= 30;
+  currY -= 32;
 
   // Highlight Text (Wrapped)
   if (cardContent.highlightText) {
-    const hlLines = wrapTextByWidth(cleanAscii(cardContent.highlightText), fontBold, 24, maxInnerW);
+    const hlLines = wrapTextByWidth(cleanAscii(cardContent.highlightText), fontBold, 28, maxInnerW);
     for (const line of hlLines) {
       page.drawText(line, {
         x: 110,
         y: currY,
-        size: 24,
+        size: 28,
         font: fontBold,
         color: vibrantPurple,
       });
-      currY -= 30;
+      currY -= 36;
     }
-    currY -= 10;
+    currY -= 12;
   }
 
   // Body Lines (Wrapped)
   if (cardContent.bodyLines && cardContent.bodyLines.length > 0) {
     for (const bl of cardContent.bodyLines) {
-      const wrapped = wrapTextByWidth(cleanAscii(bl), fontRegular, 22, maxInnerW);
+      const wrapped = wrapTextByWidth(cleanAscii(bl), fontRegular, 25, maxInnerW);
       for (const line of wrapped) {
         page.drawText(line, {
           x: 110,
           y: currY,
-          size: 22,
+          size: 25,
           font: fontRegular,
           color: textLight,
         });
-        currY -= 28;
+        currY -= 34;
       }
-      currY -= 6;
+      currY -= 8;
     }
   }
 

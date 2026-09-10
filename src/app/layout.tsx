@@ -45,7 +45,10 @@ const SITE_DESC =
   'Pak-o-Drive (Pak Drive) — Pakistan\'s #1 trusted online automotive accessories, viral car gadgets, LED lights & car care store. Free Nationwide Delivery on 2+ products & Cash On Delivery (COD).';
 
 export async function generateMetadata(): Promise<Metadata> {
-  const envUrl = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '');
+  const envUrl = (
+    process.env.NEXT_SITE_URL ||
+    process.env.NEXT_PUBLIC_SITE_URL
+  )?.replace(/\/$/, '');
   const activeSiteUrl = envUrl && !envUrl.includes('localhost') && !envUrl.includes('127.0.0.1')
     ? envUrl
     : (process.env.VERCEL_PROJECT_PRODUCTION_URL

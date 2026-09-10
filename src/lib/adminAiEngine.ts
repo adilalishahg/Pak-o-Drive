@@ -191,7 +191,7 @@ export async function auditLivePageSeo(urlOrPath: string = '/'): Promise<{
   issues: string[];
   recommendations: string[];
 }> {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+  const baseUrl = process.env.NEXT_SITE_URL || process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
   let targetUrl = urlOrPath.trim();
   if (!targetUrl.startsWith('http://') && !targetUrl.startsWith('https://')) {
     targetUrl = `${baseUrl.replace(/\/$/, '')}/${targetUrl.replace(/^\//, '')}`;

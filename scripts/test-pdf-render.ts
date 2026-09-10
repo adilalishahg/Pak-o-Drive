@@ -2,10 +2,10 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 import fs from 'fs';
-import { CURATED_DECKS, renderSlobodanCarouselPdf } from '../src/lib/carouselGenerator';
-import { generateTechGraphic } from '../src/lib/socialAutoPostService';
 
 async function main() {
+  const { CURATED_DECKS, renderSlobodanCarouselPdf } = await import('../src/lib/carouselGenerator');
+  const { generateTechGraphic } = await import('../src/lib/socialAutoPostService');
   const deck = CURATED_DECKS[1]; // Rendering Strategies
   console.log(`Testing Deck 1: "${deck.topic}" (${deck.slides.length} slides)`);
   const graphic = await generateTechGraphic(deck.topic);

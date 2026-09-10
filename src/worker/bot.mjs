@@ -19,7 +19,7 @@ if (MONGODB_URI && !MONGODB_URI.includes('/ecommerceStore') && !MONGODB_URI.incl
 }
 const AUTH_DIR = path.join(process.cwd(), '.whatsapp_auth');
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || process.env.Gemini_API_KEY || '';
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://pakodrive.pk';
+const SITE_URL = process.env.NEXT_SITE_URL || process.env.NEXT_PUBLIC_SITE_URL || 'https://pakodrive.pk';
 const EXCLUDED_NUMBERS = (process.env.WHATSAPP_EXCLUDED_NUMBERS || '')
   .split(',')
   .map((n) => n.trim().replace(/[^0-9]/g, ''))

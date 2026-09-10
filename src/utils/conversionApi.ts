@@ -122,8 +122,8 @@ export async function fireTikTokConversionEvent(payload: OrderConversionPayload)
         user_agent:   payload.userAgent|| undefined,
       },
       page: {
-        url:      `${process.env.NEXT_PUBLIC_SITE_URL || ''}/order-confirmation/${payload.orderId}`,
-        referrer: process.env.NEXT_PUBLIC_SITE_URL || '',
+        url:      `${(process.env.NEXT_SITE_URL || process.env.NEXT_PUBLIC_SITE_URL || '')}/order-confirmation/${payload.orderId}`,
+        referrer: process.env.NEXT_SITE_URL || process.env.NEXT_PUBLIC_SITE_URL || '',
       },
     },
     properties: {

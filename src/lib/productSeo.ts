@@ -4,7 +4,10 @@ import { getCachedProduct, getCachedSiteInfo } from './cache';
 import { generateAutoProductSeo, generateExpandedKeywords } from './productSeoGenerator';
 
 export function getStaticSiteUrl(): string {
-  const envUrl = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '');
+  const envUrl = (
+    process.env.NEXT_SITE_URL ||
+    process.env.NEXT_PUBLIC_SITE_URL
+  )?.replace(/\/$/, '');
   if (envUrl && !envUrl.includes('localhost') && !envUrl.includes('127.0.0.1')) {
     return envUrl;
   }

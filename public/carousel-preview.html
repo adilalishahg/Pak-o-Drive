@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LinkedIn Carousel PDF Preview | Pak-o-Drive</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: #030712;
+      color: #F8FAFC;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+    header {
+      width: 100%;
+      background: #0B132B;
+      border-bottom: 1px solid rgba(0, 245, 212, 0.2);
+      padding: 16px 24px;
+      box-sizing: border-box;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    h1 {
+      margin: 0;
+      font-size: 20px;
+      color: #00F5D4;
+    }
+    .meta {
+      font-size: 14px;
+      color: #94A3B8;
+    }
+    .badge {
+      background: rgba(0, 245, 212, 0.15);
+      border: 1px solid #00F5D4;
+      color: #00F5D4;
+      padding: 4px 12px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .container {
+      margin: 24px auto;
+      width: 90%;
+      max-width: 900px;
+      height: 85vh;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid #1E293B;
+      background: #070B14;
+    }
+    iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>⚡ LinkedIn Document Carousel Preview</h1>
+      <div class="meta">Event-Driven Resilience: The 2026 Blueprint for Unbreakable Cloud Systems • 5 Slides • 153.4 KB</div>
+    </div>
+    <span class="badge">Author: Syed Adil Ali</span>
+  </header>
+  <div class="container">
+    <iframe src="/test-carousel.pdf#toolbar=0&view=Fit" type="application/pdf"></iframe>
+  </div>
+</body>
+</html>

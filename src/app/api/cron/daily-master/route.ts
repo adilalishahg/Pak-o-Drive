@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { executeAutoBlogPost } from '@/lib/autoBlogService';
 import { executeAutoLinkedInPost } from '@/lib/socialAutoPostService';
+import { executeAutoInstagramPost } from '@/lib/instagramAutoPostService';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60; // Max allowed serverless duration on Vercel
@@ -55,7 +56,7 @@ async function handleMasterCron(request: Request) {
 
   // 2. Run LinkedIn Auto-Post Engine
   try {
-    console.log('🚀 [MasterCron] 2/2: Executing LinkedIn Tech Carousel Auto-Post...');
+    console.log('🚀 [MasterCron] 2/3: Executing LinkedIn Tech Carousel Auto-Post...');
     const socialRes = await executeAutoLinkedInPost();
     results.social = {
       success: socialRes.success,
@@ -69,10 +70,27 @@ async function handleMasterCron(request: Request) {
     results.social = { success: false, error: err.message || 'LinkedIn task error' };
   }
 
+  // 3. Run Instagram Auto-Post Engine
+  try {
+    console.log('📱 [MasterCron] 3/3: Executing Instagram Tech Carousel Auto-Post...');
+    const igRes = await executeAutoInstagramPost({ source: 'cron' });
+    results.instagram = {
+      success: igRes.success,
+      topic: igRes.topic,
+      postId: igRes.postId,
+      permalink: igRes.permalink,
+      isCarousel: igRes.isCarousel,
+      error: igRes.error,
+    };
+  } catch (err: any) {
+    console.error('❌ [MasterCron] Instagram task failed:', err);
+    results.instagram = { success: false, error: err.message || 'Instagram task error' };
+  }
+
   const durationMs = Date.now() - startTime;
 
   return NextResponse.json({
-    success: results.blog?.success || results.social?.success,
+    success: results.blog?.success || results.social?.success || results.instagram?.success,
     timestamp: new Date().toISOString(),
     durationMs,
     results,

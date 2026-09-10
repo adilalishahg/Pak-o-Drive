@@ -3,7 +3,10 @@ import { getCachedAllProducts, getCachedSiteInfo } from '../../../../lib/cache';
 
 export async function GET() {
   try {
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '') || 'https://www.pakodrive.pk';
+    const siteUrl = (
+      process.env.NEXT_SITE_URL ||
+      process.env.NEXT_PUBLIC_SITE_URL
+    )?.replace(/\/$/, '') || 'https://www.pakodrive.pk';
     const [products, siteInfo] = await Promise.all([
       getCachedAllProducts(),
       getCachedSiteInfo(),

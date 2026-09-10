@@ -308,16 +308,41 @@ function sanitizeGeneratedDeck(raw: any, track: TechTrack): CarouselDeck {
 
     if (Array.isArray(s.points) && s.points.length > 0) {
       slide.points = s.points.slice(0, 4);
+    } else if (slideType === 'intro') {
+      slide.points = [
+        `Tight coupling across ${defaultTrack.title} creates cascading failure loops under production load.`,
+        'Synchronous request-reply chains amplify tail latency and exhaust thread connection pools.',
+        'Unmonitored state mutations without strict transaction boundaries risk silent data corruption.',
+      ];
     }
 
     if (s.cardContent && typeof s.cardContent === 'object') {
+      const rawLines = Array.isArray(s.cardContent.bodyLines) ? s.cardContent.bodyLines : [];
+      const bodyLines = rawLines.length >= 2
+        ? rawLines.slice(0, 3)
+        : [
+            rawLines[0] || 'Services publish lightweight domain events to an asynchronous message backbone.',
+            'Decoupled consumer workers handle processing independently, isolating failures under high concurrency.',
+          ];
+
       slide.cardContent = {
         badge: s.cardContent.badge || 'ARCHITECTURE',
         tagline: s.cardContent.tagline || 'Deep Dive /',
         title: s.cardContent.title || s.headline,
         subtitle: s.cardContent.subtitle,
-        highlightText: s.cardContent.highlightText,
-        bodyLines: Array.isArray(s.cardContent.bodyLines) ? s.cardContent.bodyLines : undefined,
+        highlightText: s.cardContent.highlightText || 'Zero-downtime, strict fault isolation, and resilient degradation.',
+        bodyLines,
+      };
+    } else if (slideType === 'stat_card') {
+      slide.cardContent = {
+        badge: 'ARCHITECTURE',
+        tagline: 'Deep Dive /',
+        title: slide.headline,
+        highlightText: 'Zero-downtime, strict fault isolation, and resilient degradation.',
+        bodyLines: [
+          'Services publish lightweight domain events to an asynchronous message backbone.',
+          'Decoupled consumer workers handle processing independently, isolating failures under high concurrency.',
+        ],
       };
     }
 
@@ -409,9 +434,9 @@ Schema definition:
       "headline": "Why traditional patterns fall short",
       "subheadline": "Real-world engineering bottlenecks in production",
       "points": [
-        "Concise technical point 1",
-        "Concise technical point 2",
-        "Concise technical point 3"
+        "Concrete architectural failure mode 1 explaining why traditional systems fail under peak load.",
+        "Concrete architectural failure mode 2 explaining latency spikes, thread pool exhaustion, or memory leaks.",
+        "Concrete architectural failure mode 3 explaining data consistency or distributed state hazards."
       ]
     },
     {
@@ -421,10 +446,10 @@ Schema definition:
       "cardContent": {
         "badge": "PRODUCTION METRIC",
         "title": "Clear system title",
-        "highlightText": "Big prominent stat or focal statement",
+        "highlightText": "Big prominent stat or focal statement (e.g. 'Reduce MTTR by 40% with event sourcing')",
         "bodyLines": [
-          "Short concise sentence explaining the solution.",
-          "Another concise sentence with concrete advice."
+          "Services publish lightweight domain events to an asynchronous message broker rather than invoking RPCs.",
+          "Decoupled consumer workers process events independently, isolating faults and scaling horizontally."
         ]
       },
       "takeawayQuote": "\\"Direct quotation or rule of thumb\\""

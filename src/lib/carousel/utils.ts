@@ -41,7 +41,7 @@ export function wrapTextLines(text: string, maxChars: number): string[] {
 export function getTopicImage(topic: string): Buffer | null {
   try {
     const topicLower = topic.toLowerCase();
-    let fileName = 'microservices.jpg';
+    let fileName: string | null = null;
     if (
       topicLower.includes('render') ||
       topicLower.includes('ssr') ||
@@ -65,7 +65,17 @@ export function getTopicImage(topic: string): Buffer | null {
       topicLower.includes('component')
     ) {
       fileName = 'react19.jpg';
+    } else if (
+      topicLower.includes('microservice') ||
+      topicLower.includes('monolith')
+    ) {
+      fileName = 'microservices.jpg';
     }
+
+    if (!fileName) {
+      return null;
+    }
+
     const fullPath = path.join(process.cwd(), 'public/img/tech-carousel', fileName);
     if (fs.existsSync(fullPath)) {
       return fs.readFileSync(fullPath);

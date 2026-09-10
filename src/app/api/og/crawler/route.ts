@@ -22,7 +22,7 @@ export const runtime = 'nodejs';
 export async function GET(req: NextRequest) {
   const { searchParams, origin } = new URL(req.url);
   const targetPath = req.headers.get('x-og-target-path') || searchParams.get('path') || '/';
-  const siteUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_SITE_URL || origin || 'https://www.pakodrive.pk';
+  const siteUrl = process.env.NEXT_SITE_URL || process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_SITE_URL || origin || 'https://www.pakodrive.pk';
 
   let title = "Pak-o-Drive™ (PakDrive) | Pakistan's #1 Car Accessories Store";
   let description = "Shop viral car accessories, LED headlights, ambient lighting & detailing products online in Pakistan with fast Cash on Delivery nationwide.";

@@ -101,7 +101,7 @@ export async function generateTechGraphic(topic: string): Promise<Buffer | null>
     const fs = await import('fs');
     const path = await import('path');
     const topicLower = topic.toLowerCase();
-    let fileName = 'microservices.jpg';
+    let fileName: string | null = null;
     if (
       topicLower.includes('render') ||
       topicLower.includes('ssr') ||
@@ -125,6 +125,15 @@ export async function generateTechGraphic(topic: string): Promise<Buffer | null>
       topicLower.includes('component')
     ) {
       fileName = 'react19.jpg';
+    } else if (
+      topicLower.includes('microservice') ||
+      topicLower.includes('monolith')
+    ) {
+      fileName = 'microservices.jpg';
+    }
+
+    if (!fileName) {
+      return null;
     }
 
     const localPath = path.join(process.cwd(), 'public/img/tech-carousel', fileName);
