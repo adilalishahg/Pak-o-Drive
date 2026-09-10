@@ -93,7 +93,7 @@ CRITICAL RULES FOR RECOGNITION & METADATA:
 
 4. Output ONLY a raw valid JSON object (no markdown, no backticks):
 {
-  "name": "Exact Full Product Name (e.g. Solar Powered Double Ring Rotating Car Dashboard Perfume - Gold)",
+  "name": "Exact Full Product Name (between 25-55 characters, e.g. Solar Powered Double Ring Rotating Car Dashboard Perfume - Gold)",
   "category": "Car Perfumes & Fresheners | Car Care & Detailing | LED Lights & Bulbs | Car Gadgets | Interior Accessories | Exterior Accessories",
   "subcategory": "Solar Diffusers | Waxes & Polishes | Headlights | Ambient Lighting | Cleaning Tools",
   "price": 899,
@@ -103,10 +103,10 @@ CRITICAL RULES FOR RECOGNITION & METADATA:
   "profitMarginPercent": 95,
   "wholesaleCost": 450,
   "stock": 30,
-  "description": "Engaging description with bullet points of features, solar rotation mechanism, aroma ring details, how to mount on dashboard (Civic, Corolla, Alto, Yaris, Sportage), and fast Cash on Delivery in Rawalpindi, Islamabad & nationwide.",
-  "seoTitle": "Solar Rotating Car Perfume Air Freshener in Pakistan | Pak-o-Drive",
-  "seoDescription": "Buy Solar Powered Double Ring Rotating Car Perfume Air Freshener for Dashboard in Pakistan. 360 kinetic rotation, soothing cologne aroma. Cash on Delivery nationwide.",
-  "seoKeywords": "solar car perfume, double ring car freshener, car dashboard perfume pakistan, solar rotating air freshener, buy car perfume cod",
+  "description": "POV: The viral upgrade your car dashboard deserves! Experience continuous aroma with 360 kinetic solar rotation.\\n\\n🔥 Why Buy From Us?\\n✅ 100% Original Premium Quality Guaranteed\\n⚡ Fast Cash on Delivery (COD) Across Pakistan\\n📦 Secure Protective Box Packaging\\n⭐ 7-Day Replacement Warranty\\n🛒 Order now with Cash on Delivery nationwide!\\n\\n#tiktokmademebuyit #viral #caraccessories #pakodrive",
+  "seoTitle": "High-CTR SEO Title (between 48-62 characters, e.g. Solar Rotating Car Perfume in Pakistan | Pak-o-Drive)",
+  "seoDescription": "Compelling SERP Description (between 135-165 characters, e.g. Buy authentic Solar Double Ring Rotating Car Perfume in Pakistan at best price. 360 rotation, cologne fragrance, Cash on Delivery nationwide.)",
+  "seoKeywords": "solar car perfume, double ring car freshener, car dashboard perfume pakistan, solar rotating air freshener, buy car perfume cod, car accessories pakistan",
   "specs": {
     "Material": "Aerospace Grade Zinc Alloy & ABS",
     "Mechanism": "Solar Powered 360° Kinetic Double Ring Rotation",

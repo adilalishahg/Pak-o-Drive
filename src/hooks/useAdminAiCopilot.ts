@@ -332,6 +332,86 @@ export function useAdminAiCopilot() {
     setSelectedImageName(null);
   }, []);
 
+  // Confirms and executes an action that required explicit admin permission
+  const confirmPendingAction = useCallback(
+    async (actionToConfirm?: AdminActionRequired) => {
+      const act = actionToConfirm || pendingAction;
+      if (!act || isThinking) return;
+
+      setIsThinking(true);
+      setPendingAction(null);
+
+      const userConfirmMsg: ChatMessage = {
+        id: `user-${Date.now()}`,
+        role: 'user',
+        content: `✅ Confirmed: ${act.title}`,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      };
+      setMessages((prev) => [...prev, userConfirmMsg]);
+
+      try {
+        const res = await fetch('/api/admin/ai-copilot', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            actionConfirmation: act.payload,
+          }),
+        });
+
+        if (!res.ok) {
+          const rawText = await res.text();
+          let serverErrMsg = `Server Error (${res.status})`;
+          try {
+            const errObj = JSON.parse(rawText);
+            serverErrMsg = errObj.error || errObj.message || serverErrMsg;
+          } catch {
+            serverErrMsg = rawText.slice(0, 250) || `HTTP ${res.status}: ${res.statusText}`;
+          }
+          throw new Error(serverErrMsg);
+        }
+
+        const data = await res.json();
+        if (data.success && data.reply) {
+          const aiMsg: ChatMessage = {
+            id: `assistant-${Date.now()}`,
+            role: 'assistant',
+            content: data.reply,
+            actionExecuted: data.actionExecuted,
+            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          };
+          setMessages((prev) => [...prev, aiMsg]);
+          fetchSnapshot();
+        } else {
+          throw new Error(data.error || 'Action execution failed');
+        }
+      } catch (err: any) {
+        setError(err.message || 'Action execute karne me masla pesh aya.');
+        const fallbackMsg: ChatMessage = {
+          id: `assistant-${Date.now()}`,
+          role: 'assistant',
+          content: `❌ **Error:** Action mukammal nahi ho saka: ${err.message}`,
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        };
+        setMessages((prev) => [...prev, fallbackMsg]);
+      } finally {
+        setIsThinking(false);
+      }
+    },
+    [pendingAction, isThinking, fetchSnapshot]
+  );
+
+  // Cancels pending safety action
+  const cancelPendingAction = useCallback(() => {
+    setPendingAction(null);
+    const cancelMsg: ChatMessage = {
+      id: `assistant-${Date.now()}`,
+      role: 'assistant',
+      content: `🚫 **Action Cancelled:** Karwayi rok di gayi hai. Database mein koi tabdeeli nahi ki gayi.`,
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    };
+    setMessages((prev) => [...prev, cancelMsg]);
+  }, []);
+
   // Send message with optional SEO URL or Competitor URL or Attached Image
   const sendMessage = useCallback(
     async (customText?: string, targetSeoUrl?: string, customCompetitorUrl?: string) => {
@@ -341,6 +421,23 @@ export function useAdminAiCopilot() {
 
       // Need either text or image
       if ((!query && !currentImage) || isThinking) return;
+
+      // Conversational affirmation/cancellation for pending safety verification cards
+      if (pendingAction && query) {
+        const lower = query.toLowerCase().trim();
+        const isAffirmative = /^(yes|haan|ji|ha|y|ok|okay|confirm|kar do|kardo|kr do|theek hai|thik hai|proceed|approve|update karo|update kardo|yes update|update)$/i.test(lower);
+        const isNegative = /^(no|nahi|na|cancel|rok do|mat karo|don't|dont|stop)$/i.test(lower);
+
+        if (isAffirmative) {
+          setInput('');
+          await confirmPendingAction(pendingAction);
+          return;
+        } else if (isNegative) {
+          setInput('');
+          cancelPendingAction();
+          return;
+        }
+      }
 
       setError(null);
       const userMsg: ChatMessage = {
@@ -431,88 +528,8 @@ export function useAdminAiCopilot() {
         setIsThinking(false);
       }
     },
-    [input, isThinking, messages, competitorUrl, selectedImage, selectedImageName, fetchSnapshot]
+    [input, isThinking, messages, competitorUrl, selectedImage, selectedImageName, fetchSnapshot, pendingAction, confirmPendingAction, cancelPendingAction]
   );
-
-  // Confirms and executes an action that required explicit admin permission
-  const confirmPendingAction = useCallback(
-    async (actionToConfirm?: AdminActionRequired) => {
-      const act = actionToConfirm || pendingAction;
-      if (!act || isThinking) return;
-
-      setIsThinking(true);
-      setPendingAction(null);
-
-      const userConfirmMsg: ChatMessage = {
-        id: `user-${Date.now()}`,
-        role: 'user',
-        content: `✅ Confirmed: ${act.title}`,
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      };
-      setMessages((prev) => [...prev, userConfirmMsg]);
-
-      try {
-        const res = await fetch('/api/admin/ai-copilot', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            actionConfirmation: act.payload,
-          }),
-        });
-
-        if (!res.ok) {
-          const rawText = await res.text();
-          let serverErrMsg = `Server Error (${res.status})`;
-          try {
-            const errObj = JSON.parse(rawText);
-            serverErrMsg = errObj.error || errObj.message || serverErrMsg;
-          } catch {
-            serverErrMsg = rawText.slice(0, 250) || `HTTP ${res.status}: ${res.statusText}`;
-          }
-          throw new Error(serverErrMsg);
-        }
-
-        const data = await res.json();
-        if (data.success && data.reply) {
-          const aiMsg: ChatMessage = {
-            id: `assistant-${Date.now()}`,
-            role: 'assistant',
-            content: data.reply,
-            actionExecuted: data.actionExecuted,
-            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-          };
-          setMessages((prev) => [...prev, aiMsg]);
-          fetchSnapshot();
-        } else {
-          throw new Error(data.error || 'Action execution failed');
-        }
-      } catch (err: any) {
-        setError(err.message || 'Action execute karne me masla pesh aya.');
-        const fallbackMsg: ChatMessage = {
-          id: `assistant-${Date.now()}`,
-          role: 'assistant',
-          content: `❌ **Error:** Action mukammal nahi ho saka: ${err.message}`,
-          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        };
-        setMessages((prev) => [...prev, fallbackMsg]);
-      } finally {
-        setIsThinking(false);
-      }
-    },
-    [pendingAction, isThinking, fetchSnapshot]
-  );
-
-  // Cancels pending safety action
-  const cancelPendingAction = useCallback(() => {
-    setPendingAction(null);
-    const cancelMsg: ChatMessage = {
-      id: `assistant-${Date.now()}`,
-      role: 'assistant',
-      content: `🚫 **Action Cancelled:** Deletion rok di gayi hai. Database me koi tabdeeli nahi hui.`,
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-    };
-    setMessages((prev) => [...prev, cancelMsg]);
-  }, []);
 
   const analyzeCompetitor = useCallback(
     async (urlToAnalyze?: string) => {

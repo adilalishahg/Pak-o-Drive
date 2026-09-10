@@ -46,6 +46,7 @@ export default function ProductSEOOptimizer(props: ProductSEOOptimizerProps) {
     applyBulletDescriptionFix,
     applySEOAutoGenerator,
     applyTikTokAdSuite,
+    aiSeoLoading,
   } = useProductSeoOptimizer(props);
 
   return (
@@ -372,14 +373,22 @@ export default function ProductSEOOptimizer(props: ProductSEOOptimizerProps) {
             <button
               type="button"
               onClick={applySEOAutoGenerator}
-              disabled={!name.trim()}
+              disabled={!name.trim() || aiSeoLoading}
               className="btn btn-outline-primary btn-sm rounded-pill text-start py-2.5 px-3 d-flex align-items-center justify-content-between border border-primary border-opacity-20 hover:bg-primary hover:text-white group transition-all w-100"
             >
               <div className="d-flex align-items-center gap-2">
-                <i className="fas fa-search-plus text-primary group-hover:text-white" />
+                {aiSeoLoading ? (
+                  <span className="spinner-border spinner-border-sm text-primary group-hover:text-white" role="status" aria-hidden="true" />
+                ) : (
+                  <i className="fas fa-magic text-primary group-hover:text-white" />
+                )}
                 <div className="text-start">
-                  <span className="fw-bold d-block text-[11px] leading-tight">Auto-Generate SEO Tags</span>
-                  <span className="text-[9.5px] text-muted group-hover:text-white group-hover:text-opacity-80 block mt-0.5">Fills SEO Title & Meta Description automatically</span>
+                  <span className="fw-bold d-block text-[11px] leading-tight">
+                    {aiSeoLoading ? 'AI Generating Optimal SEO Tags...' : 'Auto-Generate SEO Tags (AI Powered ⚡)'}
+                  </span>
+                  <span className="text-[9.5px] text-muted group-hover:text-white group-hover:text-opacity-80 block mt-0.5">
+                    Generates Google-ranking SEO Title, SERP Description & 30+ buyer keywords with AI
+                  </span>
                 </div>
               </div>
               <i className="fas fa-chevron-right text-muted group-hover:text-white text-[10px]" />

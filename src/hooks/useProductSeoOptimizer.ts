@@ -66,9 +66,9 @@ export function useProductSeoOptimizer({
     const seoRules = [
       {
         id: 'title_length',
-        label: 'Name length is optimal (10-50 chars)',
-        pass: titleLength >= 10 && titleLength <= 50,
-        penaltyMsg: `Current: ${titleLength} chars. Keep it between 10-50 characters so it is clean and readable.`,
+        label: 'Name length is optimal (10-65 chars)',
+        pass: titleLength >= 10 && titleLength <= 65,
+        penaltyMsg: `Current: ${titleLength} chars. Keep it between 10-65 characters so it is clean and readable.`,
         pts: 4,
       },
       {
@@ -94,14 +94,14 @@ export function useProductSeoOptimizer({
       },
       {
         id: 'seo_config_title',
-        label: 'SEO custom meta title defined (50-60 chars)',
+        label: 'SEO custom meta title defined (45-65 chars)',
         pass: seoTitle.trim().length >= 45 && seoTitle.trim().length <= 65,
         penaltyMsg: `Current: ${seoTitle.trim().length} chars. Customize for search engine highlights.`,
         pts: 3,
       },
       {
         id: 'seo_config_desc',
-        label: 'SEO custom meta description defined (140-160 chars)',
+        label: 'SEO custom meta description defined (130-175 chars)',
         pass: seoDescription.trim().length >= 130 && seoDescription.trim().length <= 175,
         penaltyMsg: `Current: ${seoDescription.trim().length} chars. Needs structured summary with keywords.`,
         pts: 3,
@@ -119,24 +119,24 @@ export function useProductSeoOptimizer({
     const tiktokRules = [
       {
         id: 'has_video',
-        label: 'Product video uploaded (Critical for TikTok Ads)',
+        label: 'Product video uploaded (Optional, for TikTok Video Ads)',
         pass: hasVideo,
         penaltyMsg: 'Upload a product video. Videos get 300% more engagements on TikTok.',
-        pts: 10,
+        pts: 6,
       },
       {
         id: 'has_tiktok_hooks',
-        label: 'Viral hook keywords in description',
+        label: 'Viral hook keywords in description (viral, unboxing, POV)',
         pass: hasTikTokHooks,
         penaltyMsg: "Add hook terms like 'Viral', 'Unboxing', 'Must Buy', or 'POV review' to spark interest.",
-        pts: 5,
+        pts: 7,
       },
       {
         id: 'has_hashtags',
         label: 'Short hashtags in description (#tiktokmademebuyit)',
         pass: hasHashtags,
         penaltyMsg: 'Append search hashtags like #tiktokmademebuyit to description.',
-        pts: 5,
+        pts: 7,
       },
     ];
 
@@ -311,9 +311,40 @@ export function useProductSeoOptimizer({
     setDescription(cleanDesc);
   };
 
-  const applySEOAutoGenerator = () => {
-    if (!name.trim()) return;
+  const [aiSeoLoading, setAiSeoLoading] = useState(false);
 
+  const applySEOAutoGenerator = async () => {
+    if (!name.trim()) return;
+    setAiSeoLoading(true);
+
+    try {
+      const res = await fetch('/api/admin/products/ai-seo', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: name.trim(),
+          price: price ? Number(price) : undefined,
+          category,
+          description,
+          brand: 'Pak-o-Drive',
+        }),
+      });
+
+      const json = await res.json();
+      if (json.success && json.data) {
+        if (json.data.seoTitle) setSeoTitle(json.data.seoTitle);
+        if (json.data.seoDescription) setSeoDescription(json.data.seoDescription);
+        if (json.data.seoKeywords) setSeoKeywords(json.data.seoKeywords);
+        setAiSeoLoading(false);
+        return;
+      }
+    } catch (err) {
+      console.warn('AI SEO API call error, falling back to local heuristic:', err);
+    } finally {
+      setAiSeoLoading(false);
+    }
+
+    // Heuristic fallback if AI is offline
     let generatedTitle = `${name} | Best Price in Pakistan`;
     if (price && Number(price) > 0) {
       generatedTitle = `${name} - Rs. ${Number(price).toLocaleString()} | Original`;
@@ -359,5 +390,6 @@ export function useProductSeoOptimizer({
     applyBulletDescriptionFix,
     applySEOAutoGenerator,
     applyTikTokAdSuite,
+    aiSeoLoading,
   };
 }

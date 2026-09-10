@@ -198,25 +198,32 @@ export async function detectActionWithAI(userQuery: string): Promise<any | null>
     };
   }
 
-  // 13. Order status update: e.g. "order id 1 ka status complete kra do", "order #123 delivered kar do"
+  // 13. Order status update: e.g. "order id 1 ka status complete kra do", "order #123 delivered kar do", "is order ko delivered kar do"
   if (
     /(status|mark|update|kar do|kardo|kra do|krwa do|karwa do|kardein|karde|karo)\s+.*?(delivered|complete|completed|done|finish|shipped|processing|cancelled|pending)/i.test(lower) ||
-    /(order|orders)\s+(?:id\s+|no\s+|number\s+|#)?([a-f0-9]+|\d+)\s+.*?(status|delivered|complete|completed|done|finish|shipped|processing|cancelled|pending|kar do|kardo|kra do)/i.test(lower)
+    /(order|orders)\s+(?:id\s+|no\s+|number\s+|#)?([a-f0-9]+|\d+)\s+.*?(status|delivered|complete|completed|done|finish|shipped|processing|cancelled|pending|kar do|kardo|kra do)/i.test(lower) ||
+    /(?:is|iss|ye|this)\s+order\s+.*?(status|delivered|complete|completed|done|finish|shipped|processing|cancelled|pending|update|kar do|kardo|kra do)/i.test(lower)
   ) {
-    const statusMatch = normalizeOrderStatus(lower);
-    const idMatch =
-      userQuery.match(/order\s+(?:id\s+|no\s+|number\s+|#)?([a-f0-9]{4,24}|\d{1,8})/i)?.[1] ||
-      userQuery.match(/#([a-f0-9]{4,24}|\d{1,8})/i)?.[1] ||
-      userQuery.match(/([a-f0-9]{24}|\d{3,8})/i)?.[1] ||
-      '';
-    if (statusMatch) {
-      return {
-        isAction: true,
-        operation: 'update_order_status',
-        params: { identifier: idMatch, newStatus: statusMatch },
-        isDestructive: false,
-      };
+    const statusMatch = normalizeOrderStatus(lower) || 'Delivered';
+    const isExplicitBulk = /(tamam|all|sab|sary|saray)\s+orders/i.test(lower) || /orders\s+(tamam|all|sab|sary|saray)/i.test(lower);
+
+    let idMatch = '';
+    if (isExplicitBulk) {
+      idMatch = 'all_pending';
+    } else {
+      idMatch =
+        userQuery.match(/order\s+(?:id\s+|no\s+|number\s+|#)?([a-f0-9]{4,24}|\d{1,8})/i)?.[1] ||
+        userQuery.match(/#([a-f0-9]{4,24}|\d{1,8})/i)?.[1] ||
+        userQuery.match(/([a-f0-9]{24}|\d{3,8})/i)?.[1] ||
+        'latest';
     }
+
+    return {
+      isAction: true,
+      operation: 'update_order_status',
+      params: { identifier: idMatch, newStatus: statusMatch },
+      isDestructive: true,
+    };
   }
 
   // 14. Delete orders bulk
@@ -258,7 +265,7 @@ You are an intent classification parser for the Pak-o-Drive E-commerce Admin Pan
 Analyze if the user prompt is instructing to modify, update, delete, or create data in the database (Orders, Products, Categories, Promotions, Blogs, WhatsApp digest, COD risk, Courier dispatch, Ad scripts, Reviews, Flash sales).
 
 Valid operations:
-1. "update_order_status": params: { identifier: string (order sequence like "1", short hex like "#774526" or "774526", customer name, or "all_pending"), newStatus: "Pending"|"Processing"|"On the Way"|"Shipped"|"Delivered"|"Cancelled" } (Note: If user says "order id 1" or "order 1", identifier MUST be "1". If user says "complete" or "done", newStatus MUST be "Delivered".)
+1. "update_order_status": params: { identifier: string (order sequence like "1", short hex like "#774526" or "774526", customer name, or "latest". STRICT SAFETY: NEVER use bulk or "all_pending" unless the user explicitly says "tamam orders", "all orders", or "sab orders". If user says "is order" or "ye order" or no ID is given, identifier MUST be "latest"), newStatus: "Pending"|"Processing"|"On the Way"|"Shipped"|"Delivered"|"Cancelled" } (Note: If user says "order id 1" or "order 1", identifier MUST be "1". If user says "complete" or "done", newStatus MUST be "Delivered".)
 2. "update_order_details": params: { identifier: string, address?: string, phone?: string, trackingNumber?: string, courierName?: string }
 3. "delete_order": params: { identifier: string }
 4. "delete_orders_bulk": params: { status?: string, dateBefore?: string, dateAfter?: string, deleteAll?: boolean }
@@ -323,7 +330,7 @@ export async function executeAdminAction(
   // 1. ORDER ACTIONS
   // ----------------------------------------------------
   if (operation === 'update_order_status') {
-    const { identifier, newStatus } = params;
+    const { identifier, newStatus, orderId } = params;
     const targetStatus = normalizeOrderStatus(newStatus);
     if (!targetStatus) {
       return {
@@ -348,6 +355,34 @@ export async function executeAdminAction(
         return {
           handled: true,
           reply: `ℹ️ Diye gaye bulk criteria ke mutabiq koi order nahi mila.`,
+        };
+      }
+
+      // Mandatory Safety Confirmation for Bulk Updates
+      if (!confirmed) {
+        const previewList = matchedOrders
+          .slice(0, 5)
+          .map((o: any) => `#${o._id.toString().slice(-6).toUpperCase()} (${o.customerDetails?.name || 'Customer'} - PKR ${(o.totalAmount || 0).toLocaleString()})`)
+          .join(', ');
+        const extraText = matchedOrders.length > 5 ? ` aur ${matchedOrders.length - 5} mazeed...` : '';
+
+        return {
+          handled: true,
+          reply: `⚠️ **Bulk Order Verification Zaroori Hai!**\n\nAap **${matchedOrders.length} orders** ka status badal kar **"${targetStatus}"** karne lage hain.\n\n- **Preview Orders:** ${previewList}${extraText}\n\nKia aap waqai in tamam ${matchedOrders.length} orders ko update karna chahte hain? Tasdeeq ke liye neeche **"✅ Yes, Update Status"** button dabayein ya chat mein **"Yes"** likhein.`,
+          actionRequired: {
+            id: `act_${Date.now()}`,
+            type: 'update_order_status',
+            title: `Bulk Update: ${matchedOrders.length} Orders to ${targetStatus}`,
+            description: `Tamam ${matchedOrders.length} matching orders ko ${targetStatus} mark karna`,
+            count: matchedOrders.length,
+            payload: {
+              operation: 'update_order_status',
+              params: {
+                identifier: trimmedId,
+                newStatus: targetStatus,
+              },
+            },
+          },
         };
       }
 
@@ -382,14 +417,21 @@ export async function executeAdminAction(
     // -------------------------------------------------------------
     let targetOrder: any = null;
 
+    // 0. Direct Mongo ID passed from confirmation payload
+    if (orderId && mongoose.Types.ObjectId.isValid(orderId)) {
+      targetOrder = await Order.findById(orderId).lean();
+    }
+
     // 1. 1-Based Index lookup (e.g. "1", "2", "order 1", "order #1", "pehla order")
-    const indexMatch = trimmedId.match(/^(?:order\s*)?(?:#|id\s*)?(\d{1,2})$/i);
-    if (indexMatch) {
-      const idxNum = parseInt(indexMatch[1], 10);
-      if (idxNum >= 1 && idxNum <= 30) {
-        const recentOrders = await Order.find().sort({ createdAt: -1 }).limit(idxNum).lean();
-        if (recentOrders.length >= idxNum) {
-          targetOrder = recentOrders[idxNum - 1];
+    if (!targetOrder) {
+      const indexMatch = trimmedId.match(/^(?:order\s*)?(?:#|id\s*)?(\d{1,2})$/i);
+      if (indexMatch) {
+        const idxNum = parseInt(indexMatch[1], 10);
+        if (idxNum >= 1 && idxNum <= 30) {
+          const recentOrders = await Order.find().sort({ createdAt: -1 }).limit(idxNum).lean();
+          if (recentOrders.length >= idxNum) {
+            targetOrder = recentOrders[idxNum - 1];
+          }
         }
       }
     }
@@ -429,7 +471,7 @@ export async function executeAdminAction(
     }
 
     // 5. Customer Name or City or Tracking Number lookup
-    if (!targetOrder && trimmedId.length >= 2 && !/^\d+$/.test(trimmedId)) {
+    if (!targetOrder && trimmedId.length >= 2 && !/^\d+$/.test(trimmedId) && trimmedId !== 'latest') {
       targetOrder = await Order.findOne({
         $or: [
           { trackingNumber: trimmedId },
@@ -452,7 +494,49 @@ export async function executeAdminAction(
       };
     }
 
-    // Update ONLY this single order
+    const shortId = targetOrder._id.toString().slice(-6).toUpperCase();
+    const custName = targetOrder.customerDetails?.name || 'Customer';
+    const custPhone = targetOrder.customerDetails?.phone || 'N/A';
+    const custCity = targetOrder.customerDetails?.city || 'Pakistan';
+    const amountStr = (targetOrder.totalAmount || 0).toLocaleString();
+    const currentStatus = targetOrder.status || 'Pending';
+    const itemsCount = targetOrder.items?.length || 1;
+    const firstItemTitle = targetOrder.items?.[0]?.title || 'Auto Accessory';
+
+    // If order is already in the requested status
+    if (currentStatus === targetStatus) {
+      return {
+        handled: true,
+        reply: `ℹ️ Order **#${shortId}** (${custName} - ${custCity}) ka status pehle se hi **"${targetStatus}"** hai. Koi tabdeeli ki zaroorat nahi thi.`,
+      };
+    }
+
+    // -------------------------------------------------------------
+    // MANDATORY SINGLE ORDER VERIFICATION GATE
+    // -------------------------------------------------------------
+    if (!confirmed) {
+      return {
+        handled: true,
+        reply: `⚠️ **Verification Zaroori Hai!**\n\nAap ne order status update karne ki hidayat di hai. Baraye meherbani tasdeeq karein ke details durust hain:\n\n- 🧾 **Order ID:** #${shortId} *(Mongo: ${targetOrder._id})*\n- 👤 **Customer:** ${custName} (${custCity})\n- 📞 **Phone:** ${custPhone}\n- 📦 **Products:** ${itemsCount} item(s) (${firstItemTitle})\n- 💰 **Total Amount:** PKR ${amountStr}\n- 🔄 **Status Change:** \`${currentStatus}\` ➔ **\`${targetStatus}\`**\n\nKia aap waqai is order ka status **"${targetStatus}"** karna chahte hain? Tasdeeq ke liye neeche **"✅ Yes, Update Status"** dabayein ya chat mein **"Yes"** likhein.`,
+        actionRequired: {
+          id: `act_${Date.now()}`,
+          type: 'update_order_status',
+          title: `Update Order #${shortId} to ${targetStatus}`,
+          description: `${custName} (${custCity}) • PKR ${amountStr} • ${currentStatus} ➔ ${targetStatus}`,
+          count: 1,
+          payload: {
+            operation: 'update_order_status',
+            params: {
+              orderId: targetOrder._id.toString(),
+              identifier: targetOrder._id.toString(),
+              newStatus: targetStatus,
+            },
+          },
+        },
+      };
+    }
+
+    // Update ONLY this single confirmed order
     await Order.updateOne(
       { _id: targetOrder._id },
       {
@@ -466,11 +550,6 @@ export async function executeAdminAction(
         },
       }
     );
-
-    const shortId = targetOrder._id.toString().slice(-6).toUpperCase();
-    const custName = targetOrder.customerDetails?.name || 'Customer';
-    const custCity = targetOrder.customerDetails?.city || 'Pakistan';
-    const amountStr = (targetOrder.totalAmount || 0).toLocaleString();
 
     return {
       handled: true,
@@ -1272,6 +1351,32 @@ Garmiyo me AC efficiency, sun protection aur cooling accessories ki demand sab s
       .replace(/\s+/g, '-')
       .slice(0, 60) + `-${Date.now().toString().slice(-4)}`;
 
+    let finalDescription = description || `${name} — Premium automotive accessory with Cash On Delivery across Pakistan.`;
+    const descLower = finalDescription.toLowerCase();
+
+    // Ensure high-converting emojis, CTA, and TikTok tags are present
+    if (!descLower.includes('why buy from us') && !descLower.includes('premium quality guaranteed')) {
+      finalDescription += `\n\n🔥 Why Buy From Us?\n✅ 100% Original Premium Quality Guaranteed\n⚡ Fast Cash on Delivery (COD) Nationwide Across Pakistan\n📦 Secure Protective Packaging with Quick Dispatch\n⭐ 7-Day Replacement Warranty for Peace of Mind\n🛒 Order now via Cash on Delivery!\n\n#tiktokmademebuyit #viral #caraccessories #pakodrive`;
+    }
+
+    // Ensure seoTitle is optimal (45-65 chars)
+    let finalSeoTitle = seoTitle || `${name} Price in Pakistan | Pak-o-Drive`;
+    if (finalSeoTitle.length < 45) {
+      finalSeoTitle = `${name} | Buy Online in Pakistan - Pak-o-Drive`;
+    }
+    if (finalSeoTitle.length > 65) {
+      finalSeoTitle = finalSeoTitle.substring(0, 62) + '...';
+    }
+
+    // Ensure seoDescription is optimal (130-175 chars)
+    let finalSeoDesc = seoDescription || `Buy ${name} online in Pakistan at best discounted price. 100% original quality, fast courier shipping & easy returns at Pak-o-Drive.`;
+    if (finalSeoDesc.length < 130) {
+      finalSeoDesc = `Buy ${name} online in Pakistan at best price. 100% authentic quality, Cash on Delivery nationwide (Karachi, Lahore, Islamabad) & warranty at Pak-o-Drive.`;
+    }
+    if (finalSeoDesc.length > 175) {
+      finalSeoDesc = finalSeoDesc.substring(0, 170) + '...';
+    }
+
     const newProduct = new Product({
       name,
       slug,
@@ -1279,12 +1384,12 @@ Garmiyo me AC efficiency, sun protection aur cooling accessories ki demand sab s
       originalPrice: originalPrice || Math.round(price * 1.25),
       category: category || 'Car Gadgets',
       subcategory: subcategory || '',
-      description: description || `${name} — Premium automotive accessory with Cash On Delivery across Pakistan.`,
+      description: finalDescription,
       image: finalImageUrl,
       images: [finalImageUrl],
       specifications: specs || {},
-      seoTitle: seoTitle || `${name} Price in Pakistan | Pak-o-Drive`,
-      seoDescription: seoDescription || `Buy ${name} online in Pakistan at best price. Cash on delivery.`,
+      seoTitle: finalSeoTitle,
+      seoDescription: finalSeoDesc,
       seoKeywords: seoKeywords || 'car accessories, pakodrive, gadgets',
       isFeatured: true,
       isNewArrival: true,

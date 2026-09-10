@@ -647,6 +647,42 @@ export default function AdminAiCopilotPage() {
                                 </button>
                               </div>
                             </div>
+                          ) : m.actionRequired.type === 'update_order_status' ? (
+                            <div className="mt-3 p-3 bg-white border border-success-subtle rounded-3 text-dark shadow-sm">
+                              <div className="d-flex align-items-center justify-content-between gap-2 mb-2">
+                                <div className="d-flex align-items-center gap-2 text-success fw-bold">
+                                  <i className="fas fa-clipboard-check fs-5" />
+                                  <span style={{ fontSize: '13px' }}>{m.actionRequired.title}</span>
+                                </div>
+                                <span className="badge bg-success text-white px-2 py-1" style={{ fontSize: '11px' }}>
+                                  {m.actionRequired.count > 1 ? `${m.actionRequired.count} Orders` : 'Order Verification'}
+                                </span>
+                              </div>
+                              <p className="small mb-3 text-secondary" style={{ fontSize: '12.5px', lineHeight: '1.45' }}>
+                                {m.actionRequired.description}
+                              </p>
+                              <div className="d-flex align-items-center gap-2">
+                                <button
+                                  type="button"
+                                  disabled={loading}
+                                  onClick={() => confirmPendingAction(m.actionRequired)}
+                                  className="btn btn-sm btn-success d-flex align-items-center gap-1.5 px-3 py-1.5 fw-semibold"
+                                  style={{ borderRadius: '8px', fontSize: '12px' }}
+                                >
+                                  <i className="fas fa-check" />
+                                  <span>✅ Yes, Update Status</span>
+                                </button>
+                                <button
+                                  type="button"
+                                  disabled={loading}
+                                  onClick={cancelPendingAction}
+                                  className="btn btn-sm btn-outline-secondary px-3 py-1.5"
+                                  style={{ borderRadius: '8px', fontSize: '12px' }}
+                                >
+                                  <span>Cancel</span>
+                                </button>
+                              </div>
+                            </div>
                           ) : (
                             <div className="mt-3 p-3 bg-danger-subtle border border-danger-subtle rounded-3 text-dark shadow-sm">
                               <div className="d-flex align-items-center justify-content-between gap-2 mb-2">

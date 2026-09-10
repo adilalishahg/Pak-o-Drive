@@ -40,23 +40,41 @@ export async function GET(request: Request) {
 
     if (search && search.trim()) {
       const cleanSearch = search.trim();
-      const tokens = expandSearchQuery(cleanSearch);
-      if (tokens.length > 0) {
+      const rawWords = cleanSearch.toLowerCase().replace(/[^\w\s]/g, ' ').split(/\s+/).filter(Boolean);
+
+      let searchConditions: any[] = [];
+
+      if (rawWords.length >= 2) {
+        // Multi-word search (e.g. "Side mirror"): Require all words so unrelated items (like tape) don't match
+        const allTokensConditions = rawWords.map((w) => ({
+          $or: [
+            { name: { $regex: `\\b${w}`, $options: 'i' } },
+            { description: { $regex: `\\b${w}`, $options: 'i' } },
+            { seoKeywords: { $regex: w, $options: 'i' } },
+          ],
+        }));
+
+        searchConditions = [
+          { $and: allTokensConditions },
+          { name: { $regex: cleanSearch, $options: 'i' } },
+          { seoKeywords: { $regex: cleanSearch, $options: 'i' } },
+        ];
+      } else {
+        const tokens = expandSearchQuery(cleanSearch);
         const regexList = tokens.map((t) => new RegExp(t, 'i'));
-        const searchConditions = [
+        searchConditions = [
           { name: { $in: regexList } },
           { description: { $in: regexList } },
           { category: { $in: regexList } },
           { subcategory: { $in: regexList } },
         ];
-        if (query.$or) {
-          query.$and = [{ $or: query.$or }, { $or: searchConditions }];
-          delete query.$or;
-        } else {
-          query.$or = searchConditions;
-        }
+      }
+
+      if (query.$or) {
+        query.$and = [{ $or: query.$or }, { $or: searchConditions }];
+        delete query.$or;
       } else {
-        query.name = { $regex: cleanSearch, $options: 'i' };
+        query.$or = searchConditions;
       }
     }
 
@@ -88,7 +106,7 @@ export async function GET(request: Request) {
 
     const skip = (page - 1) * limit;
 
-    const [totalProducts, products] = await Promise.all([
+    let [totalProducts, products] = await Promise.all([
       Product.countDocuments(query),
       Product.find(query)
         .sort({ createdAt: -1 })
@@ -96,6 +114,18 @@ export async function GET(request: Request) {
         .limit(limit)
         .lean(),
     ]);
+
+    if (search && search.trim() && products.length > 1) {
+      const qLower = search.toLowerCase().trim();
+      products.sort((a: any, b: any) => {
+        const aName = (a.name || '').toLowerCase();
+        const bName = (b.name || '').toLowerCase();
+        const aExact = aName.includes(qLower) ? 1 : 0;
+        const bExact = bName.includes(qLower) ? 1 : 0;
+        if (aExact !== bExact) return bExact - aExact;
+        return 0;
+      });
+    }
 
     return NextResponse.json({ 
       success: true, 

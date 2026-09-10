@@ -4,6 +4,114 @@ This file serves as persistent dynamic memory across coding agent sessions. Ever
 
 ---
 
+### 2026-09-10 — Vercel Build Resolution: Missing `sharp` Dependency for Instagram Slide Renderer
+- **📌 Issue**:
+  Vercel production build failed with:
+  `Error: Module not found: Can't resolve 'sharp' in './src/lib/instagramSlideRenderer.ts'`
+  Import trace: `./src/lib/instagramSlideRenderer.ts` -> `./src/lib/instagramAutoPostService.ts` -> `./src/app/api/cron/daily-master/route.ts`.
+- **🔍 Root Cause**:
+  `src/lib/instagramSlideRenderer.ts` imports `sharp` to convert generated SVGs into high-res JPEG buffers (`sharp(Buffer.from(fullSvg)).jpeg(...).toBuffer()`). However, `sharp` was not recorded in `package.json` `dependencies`.
+- **🛠️ Verified Code Fix**:
+  1. Ran `pnpm add sharp`, adding `"sharp": "^0.35.4"` directly to `dependencies` in `package.json` and updating `pnpm-lock.yaml`.
+  2. Verified Next.js Turbopack build succeeds with zero module resolution errors.
+
+---
+
+### 2026-09-10 — AI Copilot Order Status Mandatory Verification Gate & Precision Intent Detection
+- **📌 Issue**:
+  1. Admin asked AI Copilot to update **one specific order's** status but the AI updated **all orders** at once instead of the targeted order.
+  2. No verification/confirmation step existed for order status updates — the AI directly executed destructive mutations without admin approval.
+  3. LLM fallback prompt allowed `all_pending` as default identifier, causing accidental bulk updates.
+- **🔍 Root Cause**:
+  1. `detectActionWithAI()` regex did not differentiate between explicit bulk commands ("tamam orders") vs single order commands ("is order ka status update karo"). Default `idMatch` was empty string which triggered the fallback "pick latest pending order" logic silently.
+  2. `executeAdminAction()` for `update_order_status` had **no `confirmed` safety gate** — it directly ran `Order.updateOne()` / `Order.updateMany()` without requiring admin verification.
+  3. LLM prompt listed `all_pending` as a valid identifier option without strict safety constraints.
+- **🛠️ Verified Code Fix**:
+  1. **Intent Detection Hardening** (`detectActionWithAI()`):
+     - Added `is|iss|ye|this order` pattern recognition for contextual single-order commands.
+     - Default `idMatch` changed from `''` to `'latest'` to always target the most recent single order.
+     - Explicit bulk detection requires `tamam|all|sab|sary + orders` explicitly.
+     - Marked `isDestructive: true` to trigger confirmation flow.
+  2. **Mandatory Verification Gate** (`executeAdminAction()`):
+     - **Single Order**: Shows full order preview card (Order ID, Customer Name, Phone, City, Products, Amount, Current Status → New Status) and requires explicit `✅ Yes, Update Status` button click or chat "Yes/Haan/Ji/Confirm".
+     - **Bulk Orders**: Shows preview of up to 5 orders with counts and requires explicit confirmation before any `updateMany()` call.
+     - Direct `orderId` pass-through from confirmation payload ensures exact order targeting on re-execution.
+     - Added duplicate-status check: if order already has the requested status, returns informational message without re-updating.
+  3. **LLM Prompt Safety** (Secondary AI fallback):
+     - Replaced `all_pending` default with `latest` and added `STRICT SAFETY: NEVER use bulk unless user explicitly says "tamam orders"` instruction.
+  4. **Conversational Confirmation in Chat** (`useAdminAiCopilot.ts`):
+     - `sendMessage()` now intercepts "Yes/Haan/Ji/OK/Confirm" and "No/Nahi/Cancel" when a `pendingAction` verification card is active, auto-confirming or cancelling without needing button click.
+  5. **Dedicated UI Card** (`page.tsx`):
+     - Added green `update_order_status` verification card with `✅ Yes, Update Status` and `Cancel` buttons.
+  6. Verified with `pnpm tsc --noEmit` passing with 0 errors.
+
+### 2026-09-10 — Precision Search Relevance Scoring & Multi-Tier AI Recovery Flow
+- **📌 Issue**:
+  1. Searching for `"Side mirror"` in the search modal returned `3M Heavy Duty Double Sided Foam Tape` at #1 above actual side mirrors (`Suzuki Mehran Replacement Side Door Mirror Pair/Single`) because `some()` matched the substring `"side"` in `"Double Sided"`.
+  2. Search lacked match-weighting and relevance sorting, so products were returned in arbitrary database insertion order.
+- **🔍 Root Cause**:
+  1. `searchInMemoryCatalog()` in `src/app/api/search/suggestions/route.ts` used `expandedWords.some(w => item.searchKeywords.includes(w))`. If any single word matched a substring in an unrelated product title, it returned `true` with the same weight as a 100% exact phrase match.
+  2. Products were sliced directly without relevance scoring.
+  3. `/api/products/route.ts` used `{ name: { $in: regexList } }` which performed an `OR` query across words, matching tape for any query containing "side".
+- **🛠️ Verified Code Fix**:
+  1. **Relevance Scoring Engine (`/api/search/suggestions/route.ts`)**:
+     - Exact phrase match in title: `+10,000 pts`.
+     - Exact phrase in keywords: `+4,000 pts`.
+     - Synonym phrase match: `+3,000 pts`.
+     - Whole-word regex match (`\bword\b`) in title: `+1,000 pts/word`.
+     - Substring match: `+400 pts`.
+  2. **Multi-Word Precision Noise Filter**:
+     - When user query has $\ge 2$ words (e.g. `"Side mirror"`), if any product matches with $\ge 70\%$ coverage or score $\ge 3,000$, weak partial matches (e.g. matching only 1 word like "side" for tape) are **strictly excluded**.
+     - Tested on real DB: `"Side mirror"` now returns **only** the 2 Suzuki Mehran Side Door Mirrors with 0 noise.
+  3. **Tiered Architecture (Exact DB Query First ➔ AI Semantic Recovery Second)**:
+     - Tier 1: Fast zero-token in-memory DB relevance query (sub-1ms).
+     - Tier 2: If Tier 1 returns 0 matches (typos or natural language queries like "cheez chipkane wala"), `resolveIntentWithAI()` invokes `callMultiProviderAI` (Gemini with multi-provider failover) to semantically identify the exact matching product IDs from catalog.
+  4. **Shop Route Alignment (`/api/products/route.ts`)**:
+     - Multi-word queries now require all tokens (`$and`) and sort products by exact phrase relevance before pagination.
+  5. Verified with `pnpm tsc --noEmit` passing with 0 errors.
+
+---
+
+### 2026-09-10 — AI SEO Auto-Generator & Vision AI Product Audit Alignment
+- **📌 Issue**:
+  1. Products added via the AI Copilot Agent (Vision AI) showed low audit scores in the product editor for TikTok, Meta Ads, and Google SEO because the generated descriptions lacked viral hooks, hashtags, and buying emojis.
+  2. In the manual Product Form SEO Optimizer, the "Auto-Generate SEO Tags" button only generated basic hardcoded string templates rather than invoking real Multi-Provider AI (Gemini / OpenAI).
+  3. The title length audit rule strictly capped titles at 50 characters, penalizing legitimate descriptive automotive product names (e.g. 55-65 characters).
+- **🔍 Root Cause**:
+  1. `analyzeProductImageWithAI()` prompt in `src/lib/visionAiEngine.ts` did not instruct the vision model to include TikTok hashtags (`#tiktokmademebuyit`), viral hooks (`POV:`, `viral`), or emojis (`🔥`, `⚡`, `✅`, `🛒`).
+  2. `useProductSeoOptimizer.ts` had a local `applySEOAutoGenerator()` method that bypassed `/api/admin/products/ai-seo`.
+  3. `useProductSeoOptimizer.ts` evaluated `titleLength <= 50`, while SERP standard titles are up to 60-70 characters.
+- **🛠️ Verified Code Fix**:
+  1. **Connected Real AI SEO Generator**: Updated `applySEOAutoGenerator()` in `useProductSeoOptimizer.ts` to call `/api/admin/products/ai-seo` with loading spinner and AI badge in `ProductSEOOptimizer.tsx`.
+  2. **Audit Rule Realism**: Adjusted title length check to `10 <= length <= 65` and rebalanced TikTok video vs copy hook points in `useProductSeoOptimizer.ts`.
+  3. **Vision AI & Publish Auto-Enrichment**:
+     - Updated `analyzeProductImageWithAI` schema in `visionAiEngine.ts` to output structured descriptions with emojis, viral tags, and exact SEO character counts.
+     - Auto-enriched `finalDescription`, `finalSeoTitle`, and `finalSeoDesc` in `publish_vision_product` in `adminActionEngine.ts` to guarantee 90%+ audit scores out of the box.
+  4. Verified with `pnpm tsc --noEmit` passing with 0 errors.
+
+---
+
+### 2026-09-10 — Complete Markdown Asterisk (Steric) Elimination in Carousel PDF Slides
+- **📌 Issue**:
+  1. AI-generated slides (specifically Slide 3 `stat_card` body lines, bullet points, and highlight statements) printed literal markdown bold/bullet asterisks like `• * * Perception Layer**: Observes system state...` and `• * * Planning Module**: Decomposes complex tasks...`.
+  2. The raw asterisks (`*`, `**`) were rendered directly into the PDF text because PDF TrueType canvas fonts have no built-in markdown parser, clashing with the glowing cyan bullet dots drawn by the renderer.
+- **🔍 Root Cause**:
+  1. `cleanAscii(str)` in `src/lib/carousel/utils.ts` only stripped non-ASCII glyphs (`[^\x00-\x7F]`) and converted `•` to `-`. Asterisk `*` is ASCII `0x2A`, so it was passed straight through to font rendering.
+  2. `sanitizeGeneratedDeck()` in `src/lib/dynamicCarouselAiEngine.ts` passed raw LLM strings into `bodyLines` and `points` without stripping markdown asterisks, hashes, backticks, or leading bullets.
+- **🛠️ Verified Code Fix**:
+  1. **Sanitizer Defense (`src/lib/carousel/utils.ts`)**:
+     - Updated `cleanAscii()` with `.replace(/[*#`~]/g, '')` to globally strip all markdown asterisks, hashes, backticks, and tildes.
+     - Added `.replace(/^[•●\-\*\>\s]+/, '')` to eliminate redundant leading bullets, dashes, or asterisks that would duplicate canvas-rendered bullet icons.
+     - Replaced stray mid-sentence bullets with spaces and maintained proper whitespace and newline handling.
+  2. **AI Engine Pre-Sanitization & Prompt Hardening (`src/lib/dynamicCarouselAiEngine.ts`)**:
+     - Added `cleanSlideText()` helper and sanitized `topic`, `headline`, `subheadline`, `tag`, `points`, `cardContent.title`, `cardContent.highlightText`, `cardContent.bodyLines`, and `takeawayQuote`.
+     - Added Rule 5 to the system prompt: `ZERO MARKDOWN FORMATTING IN SLIDE STRINGS: NEVER use asterisks (* or **), backticks, hashes, or bullet characters inside JSON strings`.
+  3. **Verification**:
+     - Ran `pnpm test:carousel` (compiled in 528ms) with 0 asterisks.
+     - Ran `pnpm tsc --noEmit` passing with 0 errors.
+
+---
+
 ### 2026-09-10 — LinkedIn PDF Header Clearance & Diagram Box Centering
 - **📌 Issue**:
   1. On Slide 2 (Intro Slide), the category pill `THE CORE BOTTLENECK` was suffocating only 16px below the AI circle, and the headline was practically colliding with the tag text.
