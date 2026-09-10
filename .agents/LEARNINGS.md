@@ -4,6 +4,50 @@ This file serves as persistent dynamic memory across coding agent sessions. Ever
 
 ---
 
+### 2026-09-10 — LinkedIn Document Carousel PDF Text Wrapping, Intro Content Collision & Cover Slide Author Branding Polish
+- **📌 Issue**:
+  1. In the LinkedIn carousel intro slide (Slide 2), the subheadline (*"JetBrains latest survey reveals..."*) was directly colliding and overlapping into the first bullet point card.
+  2. In stat cards and edge architecture slides, long body lines (`cardContent.bodyLines`) overflowed past the right edge of the card and screen, and centered takeaway quotes (`slide.takeawayQuote`) overflowed past both left and right edges due to single-line rendering with negative X coordinates.
+  3. User requested author username/name (*"Syed Adil Ali"*) and a prominent `+ Follow` button on the first (cover) slide.
+- **🔍 Root Cause & Failed Attempts**:
+  1. `introSlide.ts` used a hardcoded start coordinate `let pY = SLIDE_HEIGHT - 740` for bullet point cards, ignoring the variable height of the headline and subheadline above it. Bullet points also lacked width-constrained line wrapping.
+  2. `statCardSlide.ts` and `codeTerminalSlide.ts` rendered `bodyLines` via single-line `page.drawText()`. `takeawayQuote` was rendered using `x = SLIDE_WIDTH / 2 - qW / 2` with raw string width; when quote width exceeded canvas width (1080px), `x` became negative and clipped on both sides.
+  3. `coverSlide.ts` previously only rendered a headline and fallback title, lacking author branding and follow call-to-action.
+- **🛠️ Verified Code Fix**:
+  1. **Exact Font-Width Text Wrapping (`src/lib/carousel/utils.ts`)**:
+     - Built `wrapTextByWidth()` measuring actual font pixel metrics (`font.widthOfTextAtSize`).
+     - Built `drawWrappedText()` and `drawTakeawayQuote()` to guarantee safe multi-line centered rendering (`maxWidth: 880px`, `x >= 100px`, never negative, 0 boundary clipping).
+  2. **Cover Slide Author Header Bar (`src/lib/carousel/renderers/coverSlide.ts`)**:
+     - Added top branding bar with glowing `SA` avatar circle, `Syed Adil Ali` bold text, `@Syed Adil Ali` handle, and a high-contrast Neon Cyan `+ Follow` pill button.
+     - Dynamically constrained headline, subheadline, and responsive 3D graphic frame.
+  3. **Intro Slide Dynamic Flow & Wrapped Bullets (`src/lib/carousel/renderers/introSlide.ts`)**:
+     - Moved icon higher up (`SLIDE_HEIGHT - 230`).
+     - Positioned bullet cards dynamically starting from `(subFit ? subFit.bottomY : headFit.bottomY) - 35`.
+     - Wrapped each bullet point text inside card (`maxWidth: 780px`) with dynamic card height calculation, eliminating all content overlap.
+  4. **Stat Card, Code Terminal, Diagram & Chart Bounded Rendering (`renderers/*.ts` & `engine.ts`)**:
+     - Wrapped `title`, `highlightText`, and `bodyLines` within card limits (`maxWidth: 840px`).
+     - Replaced raw quote rendering with `drawTakeawayQuote()`.
+     - Added boundary guards for terminal code lines and chart labels.
+  5. Verified with `pnpm tsc --noEmit` (0 errors) and confirmed end-to-end PDF generation via test runner.
+
+---
+
+### 2026-09-09 — Mobile Chat Popover Width Collapse & Vertical Squishing Fix
+- **📌 Issue**: On mobile screens, the chat popover (*"Need help? We're online!"*) collapsed into an ugly, narrow vertical tower spanning 10 lines of text with the close button misaligned in the center.
+- **🔍 Root Cause & Failed Attempts**:
+  1. The mobile CSS media query `@media (max-width: 480px)` had `white-space: normal !important;` on `.chat-prompt-popover`.
+  2. Because `.chat-prompt-popover` had `position: absolute; right: 68px;` inside a flex container without an explicit width, the browser's CSS shrink-to-fit algorithm collapsed the element to the preferred minimum width (the single longest word, ~70px).
+  3. Every word wrapped onto its own line (`"Need" / "help?" / "We're" / "online!" / "Ask" / "about" ...`), creating a tall, distorted box.
+- **🛠️ Verified Code Fix**:
+  1. **Strict Horizontal Pill (`src/components/common/StoreChatWidget.tsx`)**:
+     - Set `width: 'max-content'`, `maxWidth: 'calc(100vw - 90px)'`, and `whiteSpace: 'nowrap'` on `.chat-prompt-popover`.
+     - In `@media (max-width: 480px)`, replaced `white-space: normal` with `white-space: nowrap !important;` and compact `padding: 7px 10px !important; right: 66px !important;`.
+     - Streamlined the mobile copy to 2 clean lines:
+       - Line 1: `Need help? We're online!` (12px bold)
+       - Line 2: `Track orders or ask anything` (10px muted)
+     - Height is capped at a sleek ~38px, perfectly proportioned to the left of the launcher without any vertical wrapping or obstruction.
+  2. Verified with `pnpm tsc --noEmit` (0 compilation errors).
+
 ### 2026-09-09 — Persistent Chat Popover Dismissal & Non-Overlapping Scroll-To-Top Floating Button
 - **📌 Issue**:
   1. The chat teaser popover badge (*"Need help? We're online!"*) reappeared every time the user visited or refreshed the website, even if they had previously dismissed it. User requested that if dismissed once on a device, it should never show up again.

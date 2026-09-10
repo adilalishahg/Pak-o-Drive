@@ -1,7 +1,7 @@
 import { rgb } from 'pdf-lib';
 import type { SlideRenderContext } from '../types';
 import { SLIDE_WIDTH, SLIDE_HEIGHT, neonCyan, textWhite, textLight } from '../constants';
-import { cleanAscii } from '../utils';
+import { cleanAscii, drawFittedHeadline, drawFittedSubheadline } from '../utils';
 
 export function renderOutroSlide(ctx: SlideRenderContext): void {
   const { page, fonts, slide, slideIndex, totalSlides } = ctx;
@@ -39,26 +39,31 @@ export function renderOutroSlide(ctx: SlideRenderContext): void {
     color: textWhite,
   });
 
-  // 3. Headline & Subheadline
-  const hClean = cleanAscii(slide.headline || 'Found this breakdown valuable?');
-  page.drawText(hClean, {
-    x: 70,
-    y: SLIDE_HEIGHT - 175,
-    size: 52,
-    font: fontBold,
+  // 3. Headline & Subheadline (Fitted to prevent horizontal clipping)
+  const headFit = drawFittedHeadline(page, fontBold, slide.headline || 'Found this breakdown valuable?', {
+    startY: SLIDE_HEIGHT - 165,
+    maxWidth: 940,
+    maxFontSize: 46,
+    minFontSize: 28,
+    align: 'left',
+    leftMargin: 70,
     color: textWhite,
   });
 
-  const sClean = cleanAscii(
-    slide.subheadline || 'Save this cheat sheet and follow for weekly production architectures.'
+  const subFit = drawFittedSubheadline(
+    page,
+    fontRegular,
+    slide.subheadline || 'Save this cheat sheet and follow for weekly production architectures.',
+    {
+      startY: headFit.bottomY - 14,
+      maxWidth: 940,
+      maxFontSize: 22,
+      minFontSize: 16,
+      align: 'left',
+      leftMargin: 70,
+      color: textLight,
+    }
   );
-  page.drawText(sClean, {
-    x: 70,
-    y: SLIDE_HEIGHT - 225,
-    size: 24,
-    font: fontRegular,
-    color: textLight,
-  });
 
   // 4. Large Framed Profile Card (Cyan Border)
   const cardY = 160;

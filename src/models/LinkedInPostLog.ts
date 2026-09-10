@@ -8,7 +8,7 @@ export interface ILinkedInPostLog extends Document {
   caption: string;
   slidesCount: number;
   postId?: string;
-  source: 'cron' | 'admin-manual';
+  source: 'cron' | 'admin-manual' | 'cli-script';
   isCarousel: boolean;
   status: 'published' | 'failed';
   error?: string;
@@ -55,7 +55,7 @@ const LinkedInPostLogSchema = new Schema<ILinkedInPostLog>(
     },
     source: {
       type: String,
-      enum: ['cron', 'admin-manual'],
+      enum: ['cron', 'admin-manual', 'cli-script'],
       default: 'cron',
       index: true,
     },

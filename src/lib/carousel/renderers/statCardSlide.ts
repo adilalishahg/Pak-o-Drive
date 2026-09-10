@@ -1,37 +1,43 @@
 import { rgb } from 'pdf-lib';
 import type { SlideRenderContext } from '../types';
 import { SLIDE_WIDTH, SLIDE_HEIGHT, cardBg, cardBorder, electricBlue, vibrantPurple, textWhite, textLight } from '../constants';
-import { cleanAscii, drawFittedHeadline, drawFittedSubheadline } from '../utils';
+import { cleanAscii, drawFittedHeadline, drawFittedSubheadline, wrapTextByWidth, drawTakeawayQuote } from '../utils';
 
 export function renderStatCardSlide(ctx: SlideRenderContext): void {
   const { page, fonts, slide } = ctx;
   const { fontBold, fontRegular } = fonts;
 
-  // Headline
+  // 1. Headline
   const headFit = drawFittedHeadline(page, fontBold, slide.headline, {
-    startY: SLIDE_HEIGHT - 170,
+    startY: SLIDE_HEIGHT - 165,
     maxWidth: 920,
-    maxFontSize: 46,
+    maxFontSize: 44,
     minFontSize: 28,
     align: 'center',
     color: textWhite,
   });
 
-  // Subheadline
+  // 2. Subheadline
+  let lowestY = headFit.bottomY;
   if (slide.subheadline) {
-    drawFittedSubheadline(page, fontRegular, slide.subheadline, {
-      startY: headFit.bottomY - 15,
+    const subFit = drawFittedSubheadline(page, fontRegular, slide.subheadline, {
+      startY: headFit.bottomY - 14,
       maxWidth: 920,
-      maxFontSize: 24,
-      minFontSize: 18,
+      maxFontSize: 22,
+      minFontSize: 16,
       align: 'center',
       color: textLight,
     });
+    lowestY = subFit.bottomY;
   }
 
-  // Card Outer Frame
-  const cardY = 320;
-  const cardH = 740;
+  // 3. Dynamic Card Frame Calculation
+  const hasQuote = Boolean(slide.takeawayQuote);
+  const cardBottom = hasQuote ? 210 : 130;
+  const cardTop = lowestY - 25;
+  const cardH = Math.max(380, cardTop - cardBottom);
+  const cardY = cardBottom;
+
   page.drawRectangle({
     x: 70,
     y: cardY,
@@ -43,90 +49,117 @@ export function renderStatCardSlide(ctx: SlideRenderContext): void {
   });
 
   const cardContent = slide.cardContent;
+  const maxInnerW = 840;
+
   if (cardContent) {
+    let currY = cardY + cardH - 50;
+
+    // Badge
     if (cardContent.badge) {
       page.drawText(cleanAscii(cardContent.badge), {
         x: 120,
-        y: cardY + cardH - 65,
-        size: 28,
+        y: currY,
+        size: 24,
         font: fontBold,
         color: textWhite,
       });
+      currY -= 32;
     }
 
+    // Tagline
     if (cardContent.tagline) {
       page.drawText(cleanAscii(cardContent.tagline), {
         x: 120,
-        y: cardY + cardH - 120,
-        size: 20,
+        y: currY,
+        size: 18,
         font: fontRegular,
         color: electricBlue,
       });
+      currY -= 28;
     }
 
+    // Title (Wrapped to prevent overflow)
     if (cardContent.title) {
-      page.drawText(cleanAscii(cardContent.title), {
-        x: 120,
-        y: cardY + cardH - 165,
-        size: 38,
-        font: fontBold,
-        color: textWhite,
-      });
-    }
-
-    if (cardContent.subtitle) {
-      page.drawText(cleanAscii(cardContent.subtitle), {
-        x: 120,
-        y: cardY + cardH - 205,
-        size: 22,
-        font: fontRegular,
-        color: textLight,
-      });
-    }
-
-    // Divider
-    page.drawLine({
-      start: { x: 120, y: cardY + cardH - 245 },
-      end: { x: 960, y: cardY + cardH - 245 },
-      thickness: 1,
-      color: rgb(0.15, 0.22, 0.35),
-    });
-
-    if (cardContent.highlightText) {
-      page.drawText(cleanAscii(cardContent.highlightText), {
-        x: 120,
-        y: cardY + cardH - 300,
-        size: 28,
-        font: fontBold,
-        color: vibrantPurple,
-      });
-    }
-
-    if (cardContent.bodyLines) {
-      let lY = cardY + cardH - 350;
-      for (const line of cardContent.bodyLines) {
-        page.drawText(cleanAscii(line), {
+      const titleLines = wrapTextByWidth(cleanAscii(cardContent.title), fontBold, 34, maxInnerW);
+      for (const line of titleLines) {
+        page.drawText(line, {
           x: 120,
-          y: lY,
-          size: 24,
+          y: currY,
+          size: 34,
+          font: fontBold,
+          color: textWhite,
+        });
+        currY -= 42;
+      }
+      currY -= 6;
+    }
+
+    // Subtitle (Wrapped to prevent overflow)
+    if (cardContent.subtitle) {
+      const subLines = wrapTextByWidth(cleanAscii(cardContent.subtitle), fontRegular, 20, maxInnerW);
+      for (const line of subLines) {
+        page.drawText(line, {
+          x: 120,
+          y: currY,
+          size: 20,
           font: fontRegular,
           color: textLight,
         });
-        lY -= 40;
+        currY -= 26;
+      }
+      currY -= 6;
+    }
+
+    // Divider Line
+    page.drawLine({
+      start: { x: 120, y: currY },
+      end: { x: 960, y: currY },
+      thickness: 1,
+      color: rgb(0.15, 0.22, 0.35),
+    });
+    currY -= 32;
+
+    // Highlight Statement (Wrapped with high contrast accent)
+    if (cardContent.highlightText) {
+      const hlLines = wrapTextByWidth(cleanAscii(cardContent.highlightText), fontBold, 25, maxInnerW);
+      for (const line of hlLines) {
+        page.drawText(line, {
+          x: 120,
+          y: currY,
+          size: 25,
+          font: fontBold,
+          color: vibrantPurple,
+        });
+        currY -= 32;
+      }
+      currY -= 12;
+    }
+
+    // Body Lines (Multi-line wrapped strictly within card boundary)
+    if (cardContent.bodyLines && cardContent.bodyLines.length > 0) {
+      for (const rawLine of cardContent.bodyLines) {
+        const wrapped = wrapTextByWidth(cleanAscii(rawLine), fontRegular, 22, maxInnerW);
+        for (const line of wrapped) {
+          page.drawText(line, {
+            x: 120,
+            y: currY,
+            size: 22,
+            font: fontRegular,
+            color: textLight,
+          });
+          currY -= 30;
+        }
+        currY -= 8;
       }
     }
   }
 
-  // Bottom Takeaway Quote
+  // 4. Bottom Takeaway Quote (Safely wrapped and centered within bounds)
   if (slide.takeawayQuote) {
-    const qClean = cleanAscii(slide.takeawayQuote);
-    const qW = fontRegular.widthOfTextAtSize(qClean, 24);
-    page.drawText(qClean, {
-      x: SLIDE_WIDTH / 2 - qW / 2,
-      y: 240,
-      size: 24,
-      font: fontRegular,
-      color: textLight,
+    drawTakeawayQuote(page, fontRegular, slide.takeawayQuote, {
+      startY: 175,
+      maxWidth: 880,
+      fontSize: 20,
     });
   }
 }

@@ -1,37 +1,43 @@
 import { rgb } from 'pdf-lib';
 import type { SlideRenderContext } from '../types';
 import { SLIDE_WIDTH, SLIDE_HEIGHT, cardBg, cardBorder, neonCyan, electricBlue, vibrantPurple, textWhite, textLight } from '../constants';
-import { cleanAscii, drawFittedHeadline, drawFittedSubheadline } from '../utils';
+import { cleanAscii, drawFittedHeadline, drawFittedSubheadline, drawTakeawayQuote } from '../utils';
 
 export function renderDiagramSlide(ctx: SlideRenderContext): void {
   const { page, fonts, slide } = ctx;
   const { fontBold, fontRegular } = fonts;
 
-  // Headline
+  // 1. Headline
   const headFit = drawFittedHeadline(page, fontBold, slide.headline, {
-    startY: SLIDE_HEIGHT - 170,
+    startY: SLIDE_HEIGHT - 165,
     maxWidth: 920,
-    maxFontSize: 46,
+    maxFontSize: 44,
     minFontSize: 28,
     align: 'center',
     color: textWhite,
   });
 
-  // Subheadline
+  // 2. Subheadline
+  let lowestY = headFit.bottomY;
   if (slide.subheadline) {
-    drawFittedSubheadline(page, fontRegular, slide.subheadline, {
-      startY: headFit.bottomY - 15,
+    const subFit = drawFittedSubheadline(page, fontRegular, slide.subheadline, {
+      startY: headFit.bottomY - 14,
       maxWidth: 920,
-      maxFontSize: 24,
-      minFontSize: 18,
+      maxFontSize: 22,
+      minFontSize: 16,
       align: 'center',
       color: textLight,
     });
+    lowestY = subFit.bottomY;
   }
 
-  // Diagram Card Frame
-  const cardY = 320;
-  const cardH = 740;
+  // 3. Dynamic Card Frame Calculation
+  const hasQuote = Boolean(slide.takeawayQuote);
+  const cardBottom = hasQuote ? 210 : 130;
+  const cardTop = lowestY - 25;
+  const cardH = Math.max(420, cardTop - cardBottom);
+  const cardY = cardBottom;
+
   page.drawRectangle({
     x: 70,
     y: cardY,
@@ -45,7 +51,7 @@ export function renderDiagramSlide(ctx: SlideRenderContext): void {
   const diagram = slide.diagramData;
   if (diagram) {
     // Left Tasks List
-    let lY = cardY + cardH - 120;
+    let lY = cardY + cardH - 100;
     for (const t of diagram.leftTasks) {
       const tClean = cleanAscii(t);
       page.drawRectangle({
@@ -57,20 +63,27 @@ export function renderDiagramSlide(ctx: SlideRenderContext): void {
         borderColor: cardBorder,
         borderWidth: 1.5,
       });
+
+      // Fit text size cleanly inside 290px available box width
+      let fSize = 19;
+      while (fSize > 13 && fontRegular.widthOfTextAtSize(tClean, fSize) > 285) {
+        fSize -= 1;
+      }
+
       page.drawText(tClean, {
         x: 125,
         y: lY + 18,
-        size: 20,
+        size: fSize,
         font: fontRegular,
         color: textWhite,
       });
-      lY -= 76;
+      lY -= 72;
     }
 
     // Center Node 1: User / You
     page.drawRectangle({
       x: 460,
-      y: cardY + cardH - 220,
+      y: cardY + cardH - 180,
       width: 160,
       height: 80,
       color: electricBlue,
@@ -79,15 +92,15 @@ export function renderDiagramSlide(ctx: SlideRenderContext): void {
     });
     page.drawText('YOU', {
       x: 510,
-      y: cardY + cardH - 175,
+      y: cardY + cardH - 135,
       size: 26,
       font: fontBold,
       color: textWhite,
     });
     page.drawText('Decide & Delegate', {
       x: 470,
-      y: cardY + cardH - 205,
-      size: 16,
+      y: cardY + cardH - 165,
+      size: 15,
       font: fontRegular,
       color: textWhite,
     });
@@ -95,14 +108,14 @@ export function renderDiagramSlide(ctx: SlideRenderContext): void {
     // Arrow down
     page.drawText('|', {
       x: 535,
-      y: cardY + cardH - 250,
+      y: cardY + cardH - 208,
       size: 24,
       font: fontBold,
       color: neonCyan,
     });
     page.drawText('v', {
       x: 533,
-      y: cardY + cardH - 275,
+      y: cardY + cardH - 232,
       size: 24,
       font: fontBold,
       color: neonCyan,
@@ -111,7 +124,7 @@ export function renderDiagramSlide(ctx: SlideRenderContext): void {
     // Center Node 2: AI Autonomous Agent
     page.drawRectangle({
       x: 460,
-      y: cardY + cardH - 400,
+      y: cardY + cardH - 345,
       width: 160,
       height: 80,
       color: vibrantPurple,
@@ -120,21 +133,21 @@ export function renderDiagramSlide(ctx: SlideRenderContext): void {
     });
     page.drawText('AI AGENT', {
       x: 485,
-      y: cardY + cardH - 355,
+      y: cardY + cardH - 300,
       size: 24,
       font: fontBold,
       color: textWhite,
     });
     page.drawText('Execute & Verify', {
       x: 475,
-      y: cardY + cardH - 385,
-      size: 16,
+      y: cardY + cardH - 330,
+      size: 15,
       font: fontRegular,
       color: textWhite,
     });
 
     // Right Outcomes List
-    let rY = cardY + cardH - 120;
+    let rY = cardY + cardH - 100;
     for (const o of diagram.rightOutcomes) {
       const oClean = cleanAscii(o);
       page.drawRectangle({
@@ -146,27 +159,29 @@ export function renderDiagramSlide(ctx: SlideRenderContext): void {
         borderColor: neonCyan,
         borderWidth: 1.5,
       });
+
+      let fSize = 19;
+      while (fSize > 13 && fontBold.widthOfTextAtSize(oClean, fSize) > 285) {
+        fSize -= 1;
+      }
+
       page.drawText(oClean, {
         x: 675,
         y: rY + 18,
-        size: 20,
+        size: fSize,
         font: fontBold,
         color: neonCyan,
       });
-      rY -= 76;
+      rY -= 72;
     }
   }
 
-  // Bottom Takeaway Quote
+  // 4. Bottom Takeaway Quote
   if (slide.takeawayQuote) {
-    const qClean = cleanAscii(slide.takeawayQuote);
-    const qW = fontRegular.widthOfTextAtSize(qClean, 24);
-    page.drawText(qClean, {
-      x: SLIDE_WIDTH / 2 - qW / 2,
-      y: 240,
-      size: 24,
-      font: fontRegular,
-      color: textLight,
+    drawTakeawayQuote(page, fontRegular, slide.takeawayQuote, {
+      startY: 175,
+      maxWidth: 880,
+      fontSize: 20,
     });
   }
 }

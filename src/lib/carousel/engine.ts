@@ -123,11 +123,15 @@ export async function renderSlobodanCarouselPdf(
       const footerLabel = rawFooter && !rawFooter.toLowerCase().includes('pakodrive')
         ? rawFooter
         : 'Swipe to continue ->';
-      const fW = fontBold.widthOfTextAtSize(footerLabel, 22);
+      let footerSize = 22;
+      while (footerSize > 14 && fontBold.widthOfTextAtSize(footerLabel, footerSize) > 900) {
+        footerSize -= 1;
+      }
+      const fW = fontBold.widthOfTextAtSize(footerLabel, footerSize);
       page.drawText(footerLabel, {
         x: SLIDE_WIDTH / 2 - fW / 2,
         y: 50,
-        size: 22,
+        size: footerSize,
         font: fontBold,
         color: textMuted,
       });

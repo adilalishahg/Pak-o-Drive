@@ -497,7 +497,7 @@ export async function ensurePostHashtagsWithAI(caption: string, topic: string): 
 export interface AutoLinkedInPostOptions {
   preferredDeckIndex?: number;
   track?: TechTrack | 'auto';
-  source?: 'cron' | 'admin-manual';
+  source?: 'cron' | 'admin-manual' | 'cli-script';
   forceDynamic?: boolean;
 }
 

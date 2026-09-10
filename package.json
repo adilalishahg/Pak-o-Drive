@@ -11,7 +11,9 @@
     "desktop:build": "npm --prefix desktop run build",
     "desktop:dev": "npm --prefix desktop run start",
     "desktop:dist": "npm --prefix desktop run dist",
-    "bot": "node src/worker/bot.mjs"
+    "bot": "node src/worker/bot.mjs",
+    "post:linkedin": "npx tsx scripts/post-to-linkedin.ts",
+    "linkedin:post": "npx tsx scripts/post-to-linkedin.ts"
   },
   "dependencies": {
     "@fortawesome/fontawesome-free": "^7.2.0",

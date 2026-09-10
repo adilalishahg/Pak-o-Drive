@@ -78,7 +78,7 @@ export function getTopicImage(topic: string): Buffer | null {
 
 import { rgb } from 'pdf-lib';
 import type { PDFPage, PDFFont, RGB } from 'pdf-lib';
-import { SLIDE_WIDTH } from './constants';
+import { SLIDE_WIDTH, textLight } from './constants';
 
 export interface FittedTextResult {
   lines: string[];
@@ -253,3 +253,161 @@ export function drawFittedSubheadline(
     bottomY: currentY,
   };
 }
+
+/**
+ * Wraps text strictly according to exact measured font width.
+ * Prevents any text from exceeding maxWidth. Handles newlines cleanly.
+ */
+export function wrapTextByWidth(
+  text: string,
+  font: PDFFont,
+  fontSize: number,
+  maxWidth: number
+): string[] {
+  if (!text) return [];
+  const clean = cleanAscii(text);
+  const paragraphs = clean.split('\n');
+  const resultLines: string[] = [];
+
+  for (const para of paragraphs) {
+    const words = para.split(/\s+/).filter(Boolean);
+    if (words.length === 0) continue;
+
+    let currentLine = '';
+    for (const word of words) {
+      const candidate = currentLine ? `${currentLine} ${word}` : word;
+      const width = font.widthOfTextAtSize(candidate, fontSize);
+
+      if (width <= maxWidth) {
+        currentLine = candidate;
+      } else {
+        if (currentLine) {
+          resultLines.push(currentLine);
+          // Check if word itself exceeds maxWidth
+          if (font.widthOfTextAtSize(word, fontSize) > maxWidth) {
+            let chunk = '';
+            for (const char of word) {
+              if (font.widthOfTextAtSize(chunk + char, fontSize) <= maxWidth) {
+                chunk += char;
+              } else {
+                if (chunk) resultLines.push(chunk);
+                chunk = char;
+              }
+            }
+            currentLine = chunk;
+          } else {
+            currentLine = word;
+          }
+        } else {
+          // Single word longer than line
+          let chunk = '';
+          for (const char of word) {
+            if (font.widthOfTextAtSize(chunk + char, fontSize) <= maxWidth) {
+              chunk += char;
+            } else {
+              if (chunk) resultLines.push(chunk);
+              chunk = char;
+            }
+          }
+          currentLine = chunk;
+        }
+      }
+    }
+    if (currentLine) {
+      resultLines.push(currentLine);
+    }
+  }
+
+  return resultLines;
+}
+
+/**
+ * Draws wrapped multi-line text cleanly with guaranteed boundary safety.
+ */
+export function drawWrappedText(
+  page: PDFPage,
+  font: PDFFont,
+  text: string,
+  options: {
+    x?: number;
+    startY: number;
+    maxWidth: number;
+    fontSize: number;
+    lineHeight?: number;
+    color?: RGB;
+    align?: 'left' | 'center';
+    maxLines?: number;
+  }
+): { bottomY: number; lines: string[]; totalHeight: number } {
+  const {
+    startY,
+    maxWidth,
+    fontSize,
+    lineHeight = Math.round(fontSize * 1.35),
+    color = textLight,
+    align = 'left',
+    maxLines,
+  } = options;
+
+  let lines = wrapTextByWidth(text, font, fontSize, maxWidth);
+  if (maxLines && lines.length > maxLines) {
+    lines = lines.slice(0, maxLines);
+  }
+
+  let currentY = startY;
+  const leftX = options.x ?? (align === 'center' ? (SLIDE_WIDTH - maxWidth) / 2 : 70);
+
+  for (const line of lines) {
+    const lineW = font.widthOfTextAtSize(line, fontSize);
+    const drawX = align === 'center'
+      ? leftX + Math.max(0, (maxWidth - lineW) / 2)
+      : leftX;
+
+    page.drawText(line, {
+      x: drawX,
+      y: currentY,
+      size: fontSize,
+      font,
+      color,
+    });
+    currentY -= lineHeight;
+  }
+
+  return {
+    bottomY: currentY,
+    lines,
+    totalHeight: lines.length * lineHeight,
+  };
+}
+
+/**
+ * Safely renders a takeaway quote at the bottom of a slide without clipping.
+ */
+export function drawTakeawayQuote(
+  page: PDFPage,
+  fontRegular: PDFFont,
+  quote: string,
+  options: {
+    startY?: number;
+    maxWidth?: number;
+    fontSize?: number;
+    color?: RGB;
+  } = {}
+): { bottomY: number } {
+  const startY = options.startY ?? 230;
+  const maxWidth = options.maxWidth ?? 880;
+  const fontSize = options.fontSize ?? 20;
+  const color = options.color ?? textLight;
+
+  return drawWrappedText(page, fontRegular, quote, {
+    x: (SLIDE_WIDTH - maxWidth) / 2,
+    startY,
+    maxWidth,
+    fontSize,
+    lineHeight: Math.round(fontSize * 1.35),
+    align: 'center',
+    color,
+    maxLines: 3,
+  });
+}
+
