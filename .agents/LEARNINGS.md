@@ -4,6 +4,20 @@ This file serves as persistent dynamic memory across coding agent sessions. Ever
 
 ---
 
+### 2026-09-11 — Next.js Vercel Turbopack/Webpack Bundling Fix for @ffmpeg-installer & @ffprobe-installer
+- **📌 Issue**:
+  Vercel deployment failed with module resolution error:
+  `./node_modules/.pnpm/@ffmpeg-installer+ffmpeg@1.1.0/node_modules/@ffmpeg-installer/ffmpeg/index.js:40:19`
+  `Error: Module not found: Can't resolve <dynamic> (require(topLevelPackage))`
+- **🔍 Root Cause**:
+  `@ffmpeg-installer/ffmpeg` and `@ffprobe-installer/ffprobe` contain dynamic `require()` calls and platform binary executables (`.exe` / native binaries). When imported statically in `videoCompiler.ts` and `voiceEngine.ts`, Next.js Webpack and Turbopack attempt to trace and bundle these binaries during the Next.js production build, resulting in dynamic module resolution failure.
+- **🛠️ Verified Code Fix**:
+  1. **External Packages Configuration**: Added `@ffmpeg-installer/ffmpeg` and `@ffprobe-installer/ffprobe` to `serverExternalPackages` in `next.config.ts`.
+  2. **Safe Dynamic Runtime Require**: Updated `getFfmpegPath()` in `src/lib/cinematicVideo/videoCompiler.ts` and `getFfprobePath()` in `src/lib/cinematicVideo/voiceEngine.ts` to use lazy dynamic execution (`eval('require')`) with graceful fallback, preventing bundlers from analyzing internal package binaries during build.
+  3. **Build Verification**: Ran `pnpm build` locally — all 129 static and dynamic routes compiled successfully with 0 errors. Pushed commit to `main`.
+
+---
+
 ### 2026-09-11 — LinkedIn Autonomous Post GitHub Action 504 Gateway Timeout Resolution
 - **📌 Issue**:
   GitHub Action `Daily LinkedIn Autonomous Post #9` failed with exit code 1: `LinkedIn auto-post request failed with status 504` after 1m 7s of execution on Vercel deployment.
