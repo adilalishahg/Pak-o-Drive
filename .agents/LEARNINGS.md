@@ -4,6 +4,46 @@ This file serves as persistent dynamic memory across coding agent sessions. Ever
 
 ---
 
+### 2026-09-11 — Autonomous Instagram Reel Cron Pipeline & Meta Graph API Dispatch
+- **📌 Issue**:
+  User requested automated daily cron scheduling for the Cinematic AI Reels so videos are generated and published directly to Instagram alongside existing carousels, with on-demand Admin Copilot trigger support.
+- **🔍 Root Cause**:
+  Instagram posting cron previously only published swipeable carousels (`media_type: 'CAROUSEL'`). Publishing 9:16 vertical video Reels required uploading the rendered MP4 to a public HTTPS CDN, dispatching `media_type: 'REELS'` to the Meta Graph API container endpoint, polling processing status until `FINISHED`, and publishing the container ID with MongoDB logging.
+- **🛠️ Verified Code Fix**:
+  1. **Built `src/lib/instagramReelPostService.ts`**:
+     - `uploadVideoToCdn`: Multi-tier video hosting (Cloudinary `resource_type: 'video'` with automatic fallback to public CDN `uguu.se`).
+     - `generateReelCaption`: AI viral caption generation with hooks, bullet points, DM comment triggers, and trending hashtags.
+     - `executeAutoInstagramReelPost`: Autonomous pipeline executing `generateCinematicVideo()` -> CDN upload -> Meta Graph API Reel container creation -> polling queue -> publishing live -> MongoDB `InstagramPostLog` logging.
+  2. **Dedicated API Cron Endpoint (`src/app/api/cron/auto-instagram-reel/route.ts`)**: Supports secure `CRON_SECRET` authorization and custom tool overrides with 300s timeout ceiling.
+  3. **GitHub Actions Scheduled Workflow (`.github/workflows/daily-instagram-reel.yml`)**: Schedules daily reel generation and publishing at 06:00 PM PKT (13:00 UTC, peak Reels discovery time) with `workflow_dispatch` 1-click manual trigger.
+  4. **Admin AI Copilot & CLI Integration**:
+     - Updated `src/lib/cronStatusEngine.ts` and `src/lib/adminActionEngine.ts` to monitor Reel health and execute on-demand (`"Instagram reel chalao"`).
+     - Added `pnpm post:reel` and `pnpm instagram:reel` in `package.json`.
+  5. **Compiler Verification**: `npx tsc --noEmit` passed with 0 errors.
+
+---
+
+### 2026-09-11 — Cinematic Deep-Dive AI Video Engine (Modular Architecture + Real Presenter + Interactive UI)
+- **📌 Issue**:
+  User requested a cinematic AI reel engine focusing on a deep-dive of a single breakthrough tool (e.g. Supabase AI, Bolt.new, v0) instead of a generic multi-tool list. Requirements included a real character/presenter narrating with neural voice, simulated browser search and interactive dashboard canvas with glowing cursor hover effects, dynamic AI script generation (no static text), strict separation of concerns (`interfaces`, `constants`, `logic`, `ui`), and preservation of the previous multi-tool video generator.
+- **🔍 Root Cause**:
+  Existing `scripts/generate-ai-reel.ts` was a monolithic multi-tool speed-run format. Creating a narrative deep-dive required distinct UI visual templates (Presenter Hook HUD, Browser Search Typing, Live Canvas Hover Card, Old vs New Comparison, Presenter Outro CTA) and a modular library architecture under `src/lib/cinematicVideo/`.
+- **🛠️ Verified Code Fix**:
+  1. **Strict Modular Architecture (`src/lib/cinematicVideo/`)**:
+     - `types.ts`: Defined `DeepDiveToolScript`, `CinematicScene`, `PresenterProfile`, `VideoCompilationResult`.
+     - `constants.ts`: Design tokens (#00F5D4, #38BDF8), default presenter config, curated seed tools.
+     - `aiScriptEngine.ts`: Dynamic AI script generation via `callMultiProviderAI` (Gemini 2.5 Flash / Groq / Fallback) producing structured 5-scene JSON.
+     - `voiceEngine.ts`: Edge-TTS neural speech synthesis (`en-US-ChristopherNeural`) with `ffprobe` duration measurement.
+     - `uiRenderers.ts`: High-retention 1080x1920 Sharp/SVG renderers featuring presenter avatar HUD, simulated browser search bar typing with glowing cursor click, IDE interactive hover card with code canvas, before/after comparison split, and pulsating CTA card.
+     - `videoCompiler.ts`: Headless FFmpeg pipeline assembling synced clips into master `public/cinematic-reel.mp4` and generating browser test preview `public/cinematic-preview.html`.
+     - `index.ts`: Master facade orchestrating `generateCinematicVideo()`.
+  2. **Dedicated CLI Script & Package Runner**: Added `scripts/generate-cinematic-reel.ts` and registered `video:cinematic` / `cinematic:generate` in `package.json` while keeping `video:reel` intact.
+  3. **Compiler & Video Verification**:
+     - `npx tsc --noEmit` passed with 0 errors.
+     - Executed `npx tsx scripts/generate-cinematic-reel.ts`: successfully generated 59.5s high-resolution 1080x1920 MP4 (2.08 MB) for Supabase AI with complete voice and interactive hover visuals.
+
+---
+
 ### 2026-09-11 — 100% Free Autonomous AI Video Reel Generator (Edge-TTS + Sharp + FFmpeg)
 - **📌 Issue**:
   User requested a free AI video generator matching the aesthetic standard of automated carousels to produce high-retention 9:16 vertical videos (Reels/Shorts/TikTok) with zero paid API subscriptions.

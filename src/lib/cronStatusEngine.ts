@@ -8,7 +8,7 @@ import { executeAutoBlogPost } from './autoBlogService';
 
 export interface CronChannelStatus {
   name: string;
-  key: 'instagram' | 'linkedin' | 'blog';
+  key: 'instagram' | 'instagram_reel' | 'linkedin' | 'blog';
   status: 'healthy' | 'error' | 'idle';
   lastRunDate: Date | null;
   lastRunFormatted: string;
@@ -24,6 +24,7 @@ export interface CronSystemSnapshot {
   timestamp: string;
   overallHealth: '🟢 All Crons Operational' | '🟡 Attention Needed' | '🔴 Errors Detected';
   instagram: CronChannelStatus;
+  reel: CronChannelStatus;
   linkedin: CronChannelStatus;
   blog: CronChannelStatus;
   recentIssuesCount: number;
@@ -76,21 +77,25 @@ function getNextBlogSlot(): string {
 export async function getCronStatusSnapshot(): Promise<CronSystemSnapshot> {
   await dbConnect();
 
-  const [igLogs, liLogs, blogs] = await Promise.all([
-    InstagramPostLog.find().sort({ createdAt: -1 }).limit(3).lean().catch(() => []),
+  const [igLogs, reelLogs, liLogs, blogs] = await Promise.all([
+    InstagramPostLog.find({ mediaType: { $ne: 'REEL' } }).sort({ createdAt: -1 }).limit(3).lean().catch(() => []),
+    InstagramPostLog.find({ mediaType: 'REEL' }).sort({ createdAt: -1 }).limit(3).lean().catch(() => []),
     LinkedInPostLog.find().sort({ createdAt: -1 }).limit(3).lean().catch(() => []),
     BlogPost.find().sort({ createdAt: -1 }).limit(3).select('title slug createdAt views isPublished category').lean().catch(() => []),
   ]);
 
   const latestIg: any = igLogs[0] || null;
+  const latestReel: any = reelLogs[0] || null;
   const latestLi: any = liLogs[0] || null;
   const latestBlog: any = blogs[0] || null;
 
   const igFailed = igLogs.some((l: any) => l.status === 'failed');
+  const reelFailed = reelLogs.some((l: any) => l.status === 'failed');
   const liFailed = liLogs.some((l: any) => l.status === 'failed');
 
   let issuesCount = 0;
   if (igFailed) issuesCount++;
+  if (reelFailed) issuesCount++;
   if (liFailed) issuesCount++;
 
   const instagram: CronChannelStatus = {
@@ -105,6 +110,20 @@ export async function getCronStatusSnapshot(): Promise<CronSystemSnapshot> {
     lastError: latestIg?.status === 'failed' ? latestIg?.error : undefined,
     scheduleDescription: 'Daily 2x: 10:00 AM PKT & 07:00 PM PKT (GitHub Actions Cron)',
     nextScheduledSlot: getNextSocialSlot(),
+  };
+
+  const reel: CronChannelStatus = {
+    name: 'Instagram Cinematic AI Reel Auto-Post',
+    key: 'instagram_reel',
+    status: latestReel?.status === 'published' ? 'healthy' : latestReel?.status === 'failed' ? 'error' : 'idle',
+    lastRunDate: latestReel?.createdAt || null,
+    lastRunFormatted: formatPktDate(latestReel?.createdAt),
+    lastTopicOrTitle: latestReel?.topic || 'N/A',
+    postIdOrSlug: latestReel?.postId || undefined,
+    permalink: latestReel?.permalink || undefined,
+    lastError: latestReel?.status === 'failed' ? latestReel?.error : undefined,
+    scheduleDescription: 'Daily 1x: 06:00 PM PKT (GitHub Actions Cron)',
+    nextScheduledSlot: 'Today at 06:00 PM PKT',
   };
 
   const linkedin: CronChannelStatus = {
@@ -135,7 +154,7 @@ export async function getCronStatusSnapshot(): Promise<CronSystemSnapshot> {
   };
 
   const overallHealth =
-    issuesCount === 0 && latestIg && latestLi
+    issuesCount === 0 && (latestIg || latestReel) && latestLi
       ? '🟢 All Crons Operational'
       : issuesCount > 0
       ? '🟡 Attention Needed'
@@ -145,6 +164,7 @@ export async function getCronStatusSnapshot(): Promise<CronSystemSnapshot> {
     timestamp: formatPktDate(new Date()),
     overallHealth,
     instagram,
+    reel,
     linkedin,
     blog,
     recentIssuesCount: issuesCount,
@@ -155,9 +175,10 @@ export async function getCronStatusSnapshot(): Promise<CronSystemSnapshot> {
  * Formats a rich executive Markdown report for the Admin AI Copilot
  */
 export function formatCronStatusMarkdown(snapshot: CronSystemSnapshot): string {
-  const { instagram, linkedin, blog, overallHealth } = snapshot;
+  const { instagram, reel, linkedin, blog, overallHealth } = snapshot;
 
   const igBadge = instagram.status === 'healthy' ? '🟢 Published' : instagram.status === 'error' ? '🔴 Failed' : '⚪ Idle';
+  const reelBadge = reel.status === 'healthy' ? '🟢 Published' : reel.status === 'error' ? '🔴 Failed' : '⚪ Idle';
   const liBadge = linkedin.status === 'healthy' ? '🟢 Published' : linkedin.status === 'error' ? '🔴 Failed' : '⚪ Idle';
   const blogBadge = blog.status === 'healthy' ? '🟢 Active' : '⚪ Idle';
 
@@ -178,7 +199,19 @@ ${instagram.lastError ? `⚠️ **Diagnostic Alert:** Last failure error: \`${in
 
 ---
 
-### 💼 2. LinkedIn Autonomous Technical Carousel Engine
+### 🎬 2. Instagram Cinematic AI Reel Engine
+- **Status:** ${reelBadge}
+- **Last Published Reel:** *"${reel.lastTopicOrTitle}"*
+- **Last Run Time:** \`${reel.lastRunFormatted}\`
+${reel.postIdOrSlug ? `- **Post ID:** \`${reel.postIdOrSlug}\`` : ''}
+${reel.permalink ? `- **Live Reel Link:** [View Instagram Reel](${reel.permalink})` : ''}
+- **Next Scheduled Slot:** **${reel.nextScheduledSlot}**
+- **Schedule:** ${reel.scheduleDescription}
+${reel.lastError ? `⚠️ **Diagnostic Alert:** Last failure error: \`${reel.lastError}\`` : ''}
+
+---
+
+### 💼 3. LinkedIn Autonomous Technical Carousel Engine
 - **Status:** ${liBadge}
 - **Last Published Topic:** *"${linkedin.lastTopicOrTitle}"*
 - **Last Run Time:** \`${linkedin.lastRunFormatted}\`
@@ -189,7 +222,7 @@ ${linkedin.lastError ? `⚠️ **Diagnostic Alert:** Last failure error: \`${lin
 
 ---
 
-### ✍️ 3. Autonomous AI Auto-Blogger Engine
+### ✍️ 4. Autonomous AI Auto-Blogger Engine
 - **Status:** ${blogBadge}
 - **Last Published Article:** *"${blog.lastTopicOrTitle}"*
 - **Last Run Time:** \`${blog.lastRunFormatted}\`
@@ -201,19 +234,38 @@ ${blog.postIdOrSlug ? `- **Live Article URL:** [Read Blog Article](${blog.postId
 
 ⚡ **1-Click On-Demand Actions:**
 Aap kisi bhi waqt chat me kahain tou AI Agent foran trigger kar dega:
+- *"Instagram reel chalao"* ➔ Foran cinematic AI reel generate & post karega
 - *"Instagram cron chalao"* ➔ Foran 5-slide carousel publish karega
 - *"LinkedIn cron chalao"* ➔ Foran technical tech carousel publish karega
 - *"Blog cron chalao"* ➔ Foran naya SEO blog generate karega
-- *"Tamam crons chalao"* ➔ Teeno crons ko aik sath trigger karega`;
+- *"Tamam crons chalao"* ➔ Sab crons ko aik sath trigger karega`;
 }
 
 /**
  * Trigger an autonomous cron job on-demand with safe error isolation
  */
 export async function triggerCronOnDemand(
-  target: 'instagram' | 'linkedin' | 'blog' | 'all'
+  target: 'instagram' | 'instagram_reel' | 'linkedin' | 'blog' | 'all'
 ): Promise<{ success: boolean; message: string; details?: any }> {
   try {
+    if (target === 'instagram_reel') {
+      console.log('🎬 [CopilotCron] On-demand Instagram Reel trigger initiated...');
+      const { executeAutoInstagramReelPost } = await import('./instagramReelPostService');
+      const result = await executeAutoInstagramReelPost({ source: 'admin-manual' });
+      if (!result.success) {
+        return {
+          success: false,
+          message: `❌ **Instagram Reel Failed:** ${result.error || 'Unknown error occurred during video generation/dispatch'}`,
+          details: result,
+        };
+      }
+      return {
+        success: true,
+        message: `🎉 **Instagram Cinematic AI Reel Live!**\n\n- 🎬 **Tool:** "${result.toolName}"\n- ⏱️ **Duration:** ${result.durationSeconds?.toFixed(1)}s\n- 🆔 **Post ID:** \`${result.postId}\`\n${result.permalink ? `- 🌐 **Live Link:** [View on Instagram](${result.permalink})` : ''}`,
+        details: result,
+      };
+    }
+
     if (target === 'instagram') {
       console.log('📱 [CopilotCron] On-demand Instagram trigger initiated...');
       const result = await executeAutoInstagramPost({ source: 'admin-manual' });

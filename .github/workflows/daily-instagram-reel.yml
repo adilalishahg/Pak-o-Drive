@@ -1,0 +1,59 @@
+name: Daily Instagram Cinematic AI Reel Post
+
+on:
+  schedule:
+    # 13:00 UTC = 06:00 PM PKT (Prime evening Reels discovery peak)
+    - cron: '0 13 * * *'
+  workflow_dispatch:
+    inputs:
+      tool:
+        description: 'Specific Tool Name (optional, leave blank for autonomous AI selection)'
+        required: false
+        default: ''
+
+jobs:
+  publish_instagram_reel:
+    name: Generate & Publish Cinematic AI Reel to Instagram
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      - name: Install Dependencies
+        run: pnpm install --no-frozen-lockfile
+
+      - name: Install System FFmpeg
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y ffmpeg
+
+      - name: Generate & Publish Cinematic Reel
+        env:
+          INSTAGRAM_ACCOUNT_ID: ${{ secrets.INSTAGRAM_ACCOUNT_ID }}
+          INSTAGRAM_ACCESS_TOKEN: ${{ secrets.INSTAGRAM_ACCESS_TOKEN }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          MONGODB_URI: ${{ secrets.MONGODB_URI }}
+          CLOUDINARY_CLOUD_NAME: ${{ secrets.CLOUDINARY_CLOUD_NAME }}
+          CLOUDINARY_API_KEY: ${{ secrets.CLOUDINARY_API_KEY }}
+          CLOUDINARY_API_SECRET: ${{ secrets.CLOUDINARY_API_SECRET }}
+        run: |
+          TOOL_ARG="${{ github.event.inputs.tool }}"
+          if [ -n "$TOOL_ARG" ]; then
+            echo "🎬 Running targeted reel generation for: $TOOL_ARG"
+            pnpm tsx scripts/post-to-instagram-reel.ts "$TOOL_ARG"
+          else
+            echo "🎬 Running autonomous AI reel generation..."
+            pnpm tsx scripts/post-to-instagram-reel.ts
+          fi

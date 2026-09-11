@@ -29,6 +29,7 @@ desktop/node_modules/
 # Local uploads & assets
 /public/uploads/
 /public/reel_workspace/
+temp_cinematic_reel/
 *.tmp
 *.temp
 

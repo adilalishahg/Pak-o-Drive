@@ -19,7 +19,11 @@
     "post:instagram": "npx tsx scripts/post-to-instagram.ts",
     "instagram:post": "npx tsx scripts/post-to-instagram.ts",
     "video:reel": "npx tsx scripts/generate-ai-reel.ts",
-    "reel:generate": "npx tsx scripts/generate-ai-reel.ts"
+    "reel:generate": "npx tsx scripts/generate-ai-reel.ts",
+    "video:cinematic": "npx tsx scripts/generate-cinematic-reel.ts",
+    "cinematic:generate": "npx tsx scripts/generate-cinematic-reel.ts",
+    "post:reel": "npx tsx scripts/post-to-instagram-reel.ts",
+    "instagram:reel": "npx tsx scripts/post-to-instagram-reel.ts"
   },
   "dependencies": {
     "@fortawesome/fontawesome-free": "^7.2.0",

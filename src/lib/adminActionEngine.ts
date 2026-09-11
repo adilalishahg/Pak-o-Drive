@@ -216,13 +216,15 @@ export async function detectActionWithAI(userQuery: string): Promise<any | null>
     };
   }
 
-  // 12.6. Autonomous Cron On-Demand Trigger: e.g. "instagram cron chalao", "post to instagram", "run cron", "insta pe post dalo", "linkedin cron chala do"
+  // 12.6. Autonomous Cron On-Demand Trigger: e.g. "instagram reel chalao", "instagram cron chalao", "post to instagram", "run cron", "insta pe post dalo", "linkedin cron chala do"
   if (
-    (/(chalao|chala do|chala dei|run|trigger|execute|post dalo|post karo|publish karo|start karo)/i.test(lower) && /(cron|crone|instagram|insta|linkedin|blog|daily master)/i.test(lower)) ||
-    (/(cron|crone)\s+(run|trigger|chalao|execute|start)/i.test(lower))
+    (/(chalao|chala do|chala dei|run|trigger|execute|post dalo|post karo|publish karo|start karo)/i.test(lower) && /(cron|crone|instagram|insta|reel|video|linkedin|blog|daily master)/i.test(lower)) ||
+    (/(cron|crone)\s+(run|trigger|chalao|execute|start)/i.test(lower)) ||
+    (/(reel|cinematic video)\s+(post|chalao|publish|run)/i.test(lower))
   ) {
-    let target: 'instagram' | 'linkedin' | 'blog' | 'all' = 'instagram';
-    if (/linkedin/i.test(lower)) target = 'linkedin';
+    let target: 'instagram' | 'instagram_reel' | 'linkedin' | 'blog' | 'all' = 'instagram';
+    if (/(reel|video|cinematic)/i.test(lower)) target = 'instagram_reel';
+    else if (/linkedin/i.test(lower)) target = 'linkedin';
     else if (/blog/i.test(lower)) target = 'blog';
     else if (/(tamam|all|sab|master|daily master)/i.test(lower)) target = 'all';
 
@@ -380,15 +382,17 @@ export async function executeAdminAction(
   }
 
   if (operation === 'trigger_cron') {
-    const target = (params?.target || 'instagram') as 'instagram' | 'linkedin' | 'blog' | 'all';
+    const target = (params?.target || 'instagram') as 'instagram' | 'instagram_reel' | 'linkedin' | 'blog' | 'all';
     const targetLabel =
-      target === 'instagram'
+      target === 'instagram_reel'
+        ? 'Instagram Cinematic AI Reel'
+        : target === 'instagram'
         ? 'Instagram Tech Carousel'
         : target === 'linkedin'
         ? 'LinkedIn Tech Post'
         : target === 'blog'
         ? 'Autonomous AI SEO Blog'
-        : 'All 3 Autonomous Crons (Master)';
+        : 'All Autonomous Crons (Master)';
 
     if (!confirmed && !params?.force) {
       return {
