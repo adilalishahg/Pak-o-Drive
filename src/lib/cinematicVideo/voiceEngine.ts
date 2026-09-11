@@ -5,15 +5,20 @@
  */
 import { MsEdgeTTS, OUTPUT_FORMAT } from 'msedge-tts';
 import { execSync } from 'child_process';
-import ffprobeStatic from '@ffprobe-installer/ffprobe';
 import fs from 'fs';
 import path from 'path';
 import { DEFAULT_PRESENTER } from './constants';
 import { CinematicScene } from './types';
 
 function getFfprobePath(): string {
-  if (ffprobeStatic?.path && fs.existsSync(ffprobeStatic.path)) {
-    return ffprobeStatic.path;
+  try {
+    // Dynamic runtime resolution prevents bundlers (Webpack/Turbopack) from attempting to resolve binary executables
+    const ffprobeInstaller = (eval('require'))('@ffprobe-installer/ffprobe');
+    if (ffprobeInstaller?.path && fs.existsSync(ffprobeInstaller.path)) {
+      return ffprobeInstaller.path;
+    }
+  } catch {
+    // Fallback to system ffprobe binary
   }
   return 'ffprobe';
 }

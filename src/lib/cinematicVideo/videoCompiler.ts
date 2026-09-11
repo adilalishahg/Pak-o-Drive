@@ -3,15 +3,20 @@
  * Uses FFmpeg to assemble scene frames and neural audio into high-quality 1080x1920 MP4
  */
 import { execSync } from 'child_process';
-import ffmpegStatic from '@ffmpeg-installer/ffmpeg';
 import fs from 'fs';
 import path from 'path';
 import { VIDEO_CONFIG } from './constants';
 import { CinematicScene, DeepDiveToolScript, VideoCompilationResult } from './types';
 
 function getFfmpegPath(): string {
-  if (ffmpegStatic?.path && fs.existsSync(ffmpegStatic.path)) {
-    return ffmpegStatic.path;
+  try {
+    // Dynamic runtime resolution prevents bundlers (Webpack/Turbopack) from attempting to resolve binary executables
+    const ffmpegInstaller = (eval('require'))('@ffmpeg-installer/ffmpeg');
+    if (ffmpegInstaller?.path && fs.existsSync(ffmpegInstaller.path)) {
+      return ffmpegInstaller.path;
+    }
+  } catch {
+    // Fallback to system ffmpeg binary
   }
   return 'ffmpeg';
 }
