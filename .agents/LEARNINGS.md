@@ -4,6 +4,30 @@ This file serves as persistent dynamic memory across coding agent sessions. Ever
 
 ---
 
+### 2026-09-11 — Instagram Carousel Auto-Post Concurrency Optimization & Execution Speedup
+- **📌 Issue**:
+  Instagram scheduled post failed during morning cron (05:00 UTC) with timeout / failure on Vercel endpoint, whereas LinkedIn auto-post succeeded. User noted no post appeared on Instagram since yesterday while LinkedIn was published 3 hours prior.
+- **🔍 Root Cause**:
+  In `src/lib/instagramAutoPostService.ts`, 5 carousel slides were rendered, uploaded to CDN, and submitted to Meta Graph API media container endpoint in sequential `for` loops. The full sequence (5 renders + 5 uploads + 5 container calls + queue polling + publish) took ~115 seconds, exceeding Vercel Serverless Function execution timeout limits (10s-15s Hobby, 60s Pro).
+- **🛠️ Verified Code Fix**:
+  1. **Parallel Concurrency (`src/lib/instagramAutoPostService.ts`)**: Replaced sequential loops with `Promise.all` for simultaneous JPEG rendering, CDN uploading, and Meta item container creation.
+  2. **Verified Live Dispatch**: Executed post dispatcher; successfully published 5-slide carousel post (*"How Developers Build Apps 10x Faster Using AI in 2026"*, ID: `18018465410928147`, URL: `https://www.instagram.com/p/DdJdtEMjGVV/`).
+  3. **Compiler Verification**: Verified `npx tsc --noEmit` passed with 0 errors.
+
+---
+
+### 2026-09-10 — Autonomous Instagram Multi-Channel Auto-Post Workflow & Cron Setup
+- **📌 Issue**:
+  User requested automated Instagram post scheduling along with LinkedIn. LinkedIn and Blog had GitHub Actions workflows, but Instagram was only executable via `/api/cron/daily-master` or CLI without a dedicated GitHub workflow or standalone cron endpoint.
+- **🔍 Root Cause**:
+  Instagram posting engine (`executeAutoInstagramPost`) was present in `src/lib/instagramAutoPostService.ts`, but lacked a dedicated serverless cron endpoint (`/api/cron/auto-instagram`) and a standalone GitHub Actions workflow (`daily-instagram-post.yml`).
+- **🛠️ Verified Code Fix**:
+  1. **Dedicated Cron Endpoint**: Created [`src/app/api/cron/auto-instagram/route.ts`](file:///d:/proj/Pak-o-Drive/src/app/api/cron/auto-instagram/route.ts) with `maxDuration = 60` and `CRON_SECRET` authorization.
+  2. **GitHub Actions Workflow**: Created [`daily-instagram-post.yml`](file:///d:/proj/Pak-o-Drive/.github/workflows/daily-instagram-post.yml) scheduled for `0 5,14 * * *` (10:00 AM & 07:00 PM PKT).
+  3. **Compiler Verification**: `pnpm tsc --noEmit` passed with 0 errors.
+
+---
+
 ### 2026-09-10 — Vercel Build Resolution: Missing `sharp` Dependency for Instagram Slide Renderer
 - **📌 Issue**:
   Vercel production build failed with:

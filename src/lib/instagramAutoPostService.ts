@@ -330,35 +330,37 @@ export async function executeAutoInstagramPost(options?: {
     },
   ];
 
-  // 4. Render & Upload Slides to CDN
-  console.log('📤 [InstagramAutoPost] Uploading 5 slides to high-speed CDN...');
-  const slideUrls: string[] = [];
-  for (let i = 0; i < slidesData.length; i++) {
-    const buffer = await renderInstagramSlideJpeg(slidesData[i]);
-    const cdnUrl = await uploadSlideToCdn(buffer, i + 1);
-    slideUrls.push(cdnUrl);
-    console.log(`✓ [InstagramAutoPost] Slide ${i + 1}/5 uploaded: ${cdnUrl}`);
-  }
+  // 4. Render & Upload Slides Concurrently to CDN
+  console.log('📤 [InstagramAutoPost] Rendering & uploading 5 slides concurrently to CDN...');
+  const slideUrls = await Promise.all(
+    slidesData.map(async (slide, idx) => {
+      const buffer = await renderInstagramSlideJpeg(slide);
+      const cdnUrl = await uploadSlideToCdn(buffer, idx + 1);
+      console.log(`✓ [InstagramAutoPost] Slide ${idx + 1}/${slidesData.length} uploaded: ${cdnUrl}`);
+      return cdnUrl;
+    })
+  );
 
-  // 5. Step 1: Create Item Containers for each slide
-  console.log('📦 [InstagramAutoPost] Creating Meta carousel item containers...');
-  const itemContainerIds: string[] = [];
-  for (let i = 0; i < slideUrls.length; i++) {
-    const res = await fetch(`https://graph.facebook.com/v20.0/${igUserId}/media`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        image_url: slideUrls[i],
-        is_carousel_item: true,
-        access_token: accessToken,
-      }),
-    });
-    const data = await res.json();
-    if (!res.ok || data.error || !data.id) {
-      throw new Error(`Failed to create carousel item ${i + 1}: ` + (data.error?.message || 'Unknown error'));
-    }
-    itemContainerIds.push(data.id);
-  }
+  // 5. Step 1: Create Item Containers Concurrently for each slide
+  console.log('📦 [InstagramAutoPost] Creating Meta carousel item containers concurrently...');
+  const itemContainerIds = await Promise.all(
+    slideUrls.map(async (url, idx) => {
+      const res = await fetch(`https://graph.facebook.com/v20.0/${igUserId}/media`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          image_url: url,
+          is_carousel_item: true,
+          access_token: accessToken,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok || data.error || !data.id) {
+        throw new Error(`Failed to create carousel item ${idx + 1}: ` + (data.error?.message || 'Unknown error'));
+      }
+      return data.id as string;
+    })
+  );
   console.log(`✓ [InstagramAutoPost] Created ${itemContainerIds.length} carousel item containers`);
 
   // 6. Step 2: Create Parent Carousel Container
