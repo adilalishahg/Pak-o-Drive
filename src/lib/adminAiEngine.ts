@@ -4,6 +4,7 @@ import Order from '../models/Order';
 import Category from '../models/Category';
 import SiteInfo from '../models/SiteInfo';
 import { callMultiProviderAI } from './multiAiEngine';
+import { getCronStatusSnapshot } from './cronStatusEngine';
 
 export interface AdminStoreSummary {
   totalProducts: number;
@@ -529,9 +530,28 @@ export async function generateAdminAiExecutiveResponse(
     competitorData = await scrapeCompetitorPage(detectedCompetitorUrl);
   }
 
+  // Dynamic Autonomous Cron Snapshot if user asks about crons, auto-posts, schedules
+  let cronSnapshot: any = null;
+  const isCronQuery = /(cron|crone|instagram|insta|linkedin|blog|auto post|schedule|scheduler|workflow|chala|run|publish)/i.test(userQuery);
+  if (isCronQuery) {
+    cronSnapshot = await getCronStatusSnapshot();
+  }
+
   const regionalKnowledge = getRegionalMarketKnowledge();
 
   const dynamicContext = `
+${cronSnapshot ? `
+### 🤖 REAL-TIME AUTONOMOUS CRONS & SOCIAL DISPATCH SNAPSHOT:
+- Overall System Health: ${cronSnapshot.overallHealth} (Checked at: ${cronSnapshot.timestamp})
+- 📱 Instagram Tech Carousel: Status: ${cronSnapshot.instagram.status.toUpperCase()} | Last Run: ${cronSnapshot.instagram.lastRunFormatted} | Last Topic: "${cronSnapshot.instagram.lastTopicOrTitle}" | Live URL: ${cronSnapshot.instagram.permalink || 'N/A'} | Post ID: ${cronSnapshot.instagram.postIdOrSlug || 'N/A'} | Next Slot: ${cronSnapshot.instagram.nextScheduledSlot} ${cronSnapshot.instagram.lastError ? `| Error: ${cronSnapshot.instagram.lastError}` : ''}
+- 💼 LinkedIn Tech Post: Status: ${cronSnapshot.linkedin.status.toUpperCase()} | Last Run: ${cronSnapshot.linkedin.lastRunFormatted} | Last Topic: "${cronSnapshot.linkedin.lastTopicOrTitle}" | Post ID: ${cronSnapshot.linkedin.postIdOrSlug || 'N/A'} | Next Slot: ${cronSnapshot.linkedin.nextScheduledSlot} ${cronSnapshot.linkedin.lastError ? `| Error: ${cronSnapshot.linkedin.lastError}` : ''}
+- ✍️ Auto-Blogger: Status: ${cronSnapshot.blog.status.toUpperCase()} | Last Article: "${cronSnapshot.blog.lastTopicOrTitle}" | Last Run: ${cronSnapshot.blog.lastRunFormatted} | Next Slot: ${cronSnapshot.blog.nextScheduledSlot}
+
+CRON INSTRUCTIONS:
+- Answer with high precision about whether the crons ran, exact timestamps in PKT, published topics, live links, and next scheduled slots.
+- If any cron experienced an issue, explain the cause clearly and offer actionable guidance.
+- Remind the admin that they can trigger any cron on-demand right here by telling you (e.g. "Instagram cron chalao", "LinkedIn cron chalao", "Tamam crons chalao").
+` : ''}
 ${searchResults && (searchResults.products.length > 0 || searchResults.orders.length > 0) ? `
 ### DYNAMIC STORE SEARCH RESULTS FOR CURRENT QUERY:
 - Matched Products: ${JSON.stringify(searchResults.products, null, 2)}

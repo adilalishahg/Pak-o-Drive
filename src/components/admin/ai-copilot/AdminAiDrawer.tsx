@@ -458,6 +458,40 @@ export function AdminAiDrawer() {
                           </button>
                         </div>
                       </div>
+                    ) : msg.actionRequired.type === 'trigger_cron' ? (
+                      <div className="mt-3 p-3 bg-cyan-950/80 border border-cyan-500/40 rounded-xl text-slate-100 shadow-lg">
+                        <div className="flex items-center justify-between gap-2 mb-1.5">
+                          <div className="flex items-center gap-2 text-cyan-400 font-bold text-xs">
+                            <Bot className="w-4 h-4 flex-shrink-0" />
+                            <span className="leading-normal">{msg.actionRequired.title}</span>
+                          </div>
+                          <span className="text-[10px] font-bold bg-cyan-600/40 text-cyan-200 px-2 py-0.5 rounded-full border border-cyan-500/30 flex-shrink-0">
+                            Autonomous Cron
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-slate-300 mb-3 leading-relaxed">
+                          {msg.actionRequired.description}
+                        </p>
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            disabled={isThinking}
+                            onClick={() => confirmPendingAction(msg.actionRequired)}
+                            className="px-3 py-1.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white font-semibold text-xs flex items-center gap-1.5 transition-all shadow-md active:scale-95 disabled:opacity-50"
+                          >
+                            <Check className="w-3.5 h-3.5" />
+                            <span>🚀 Yes, Run Cron Now</span>
+                          </button>
+                          <button
+                            type="button"
+                            disabled={isThinking}
+                            onClick={cancelPendingAction}
+                            className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs border border-slate-700 transition-all active:scale-95 disabled:opacity-50"
+                          >
+                            <span>Cancel</span>
+                          </button>
+                        </div>
+                      </div>
                     ) : (
                       <div className="mt-3 p-3 bg-rose-950/80 border border-rose-500/40 rounded-xl text-slate-100 shadow-lg">
                         <div className="flex items-center justify-between gap-2 mb-1.5">

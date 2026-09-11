@@ -503,6 +503,42 @@ export default function AdminAiCopilotPage() {
                               onConfirm={confirmPendingAction}
                               onCancel={cancelPendingAction}
                             />
+                          ) : m.actionRequired.type === 'trigger_cron' ? (
+                            <div className="mt-3 p-3 bg-white border border-info-subtle rounded-3 text-dark shadow-sm">
+                              <div className="d-flex align-items-center justify-content-between gap-2 mb-2">
+                                <div className="d-flex align-items-center gap-2 text-info-emphasis fw-bold">
+                                  <i className="fas fa-robot fs-5 text-info" />
+                                  <span style={{ fontSize: '13px' }}>{m.actionRequired.title}</span>
+                                </div>
+                                <span className="badge bg-info text-white px-2 py-1" style={{ fontSize: '11px' }}>
+                                  Autonomous Dispatch
+                                </span>
+                              </div>
+                              <p className="small mb-3 text-secondary" style={{ fontSize: '12px', lineHeight: '1.4' }}>
+                                {m.actionRequired.description}
+                              </p>
+                              <div className="d-flex align-items-center gap-2">
+                                <button
+                                  type="button"
+                                  disabled={loading}
+                                  onClick={() => confirmPendingAction(m.actionRequired)}
+                                  className="btn btn-sm btn-info text-white d-flex align-items-center gap-1.5 px-3 py-1.5 fw-semibold shadow-sm"
+                                  style={{ borderRadius: '8px', fontSize: '12px' }}
+                                >
+                                  <i className="fas fa-play" />
+                                  <span>🚀 Yes, Run Cron Now</span>
+                                </button>
+                                <button
+                                  type="button"
+                                  disabled={loading}
+                                  onClick={cancelPendingAction}
+                                  className="btn btn-sm btn-outline-secondary px-3 py-1.5"
+                                  style={{ borderRadius: '8px', fontSize: '12px' }}
+                                >
+                                  <span>Cancel</span>
+                                </button>
+                              </div>
+                            </div>
                           ) : m.actionRequired.type === 'create_bundle' ? (
                             <div className="mt-3 p-3 bg-white border border-primary-subtle rounded-3 text-dark shadow-sm">
                               <div className="d-flex align-items-center justify-content-between gap-2 mb-2">

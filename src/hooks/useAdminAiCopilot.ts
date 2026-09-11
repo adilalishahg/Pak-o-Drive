@@ -27,6 +27,16 @@ export interface PromptCategory {
 
 export const COPILOT_PROMPT_CATEGORIES: PromptCategory[] = [
   {
+    category: 'Autonomous Crons & Social Dispatch',
+    icon: '🤖',
+    prompts: [
+      'Tamam scheduled crons ka status aur live health check karo',
+      'Instagram cron status check karo aur dekho chala ya nahi',
+      'Instagram tech carousel cron foran chalao',
+      'LinkedIn autonomous post cron trigger karo',
+    ],
+  },
+  {
     category: 'Viral Ads & TikTok Scripts',
     icon: '🎬',
     prompts: [
@@ -425,7 +435,7 @@ export function useAdminAiCopilot() {
       // Conversational affirmation/cancellation for pending safety verification cards
       if (pendingAction && query) {
         const lower = query.toLowerCase().trim();
-        const isAffirmative = /^(yes|haan|ji|ha|y|ok|okay|confirm|kar do|kardo|kr do|theek hai|thik hai|proceed|approve|update karo|update kardo|yes update|update)$/i.test(lower);
+        const isAffirmative = /^(yes|haan|ji|ha|y|ok|okay|confirm|kar do|kardo|kr do|theek hai|thik hai|proceed|approve|update karo|update kardo|yes update|update|chalao|run|start|trigger|execute|foran chalao)$/i.test(lower);
         const isNegative = /^(no|nahi|na|cancel|rok do|mat karo|don't|dont|stop)$/i.test(lower);
 
         if (isAffirmative) {

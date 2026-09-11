@@ -4,6 +4,23 @@ This file serves as persistent dynamic memory across coding agent sessions. Ever
 
 ---
 
+### 2026-09-11 — Admin AI Copilot Autonomous Cron Monitor & On-Demand Dispatch Engine
+- **📌 Issue**:
+  Admin requested that the AI Copilot inside the Admin Dashboard should be able to answer any question related to scheduled crons, verify whether they ran or failed, diagnose any errors, and trigger/run them on-demand directly from the chat.
+- **🔍 Root Cause**:
+  Admin Copilot previously only monitored e-commerce metrics (orders, stock, revenue, competitor pricing) and had no visibility into `InstagramPostLog`, `LinkedInPostLog`, or `BlogPost` execution status, nor any action handlers to trigger background cron services.
+- **🛠️ Verified Code Fix**:
+  1. **Built `src/lib/cronStatusEngine.ts`**:
+     - `getCronStatusSnapshot()`: Queries real-time DB logs across Instagram, LinkedIn, and AI Blog, calculating PKT timestamps, live URLs, error diagnostics, and upcoming cron schedule slots.
+     - `formatCronStatusMarkdown()`: Generates rich, formatted executive health cards with badges and links.
+     - `triggerCronOnDemand()`: Safely dispatches `executeAutoInstagramPost`, `executeAutoLinkedInPost`, or `executeAutoBlogPost` on-demand with error isolation.
+  2. **Fast-Path & Execution (`src/lib/adminActionEngine.ts`)**: Added `check_cron_status` and `trigger_cron` operations with interactive confirmation card support.
+  3. **Executive Copilot Context (`src/lib/adminAiEngine.ts`)**: Injected real-time cron status directly into LLM dynamic context whenever user mentions crons or social posting.
+  4. **Interactive UI Card**: Rendered `trigger_cron` card with `🚀 Yes, Run Cron Now` button and verbal affirmation support (`chalao`, `run`) in `useAdminAiCopilot.ts`, `AdminAiDrawer.tsx`, and `page.tsx`.
+  5. **Compiler Verification**: Verified `npx tsc --noEmit` passed with 0 errors.
+
+---
+
 ### 2026-09-11 — Instagram Carousel Auto-Post Concurrency Optimization & Execution Speedup
 - **📌 Issue**:
   Instagram scheduled post failed during morning cron (05:00 UTC) with timeout / failure on Vercel endpoint, whereas LinkedIn auto-post succeeded. User noted no post appeared on Instagram since yesterday while LinkedIn was published 3 hours prior.

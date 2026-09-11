@@ -9,6 +9,11 @@ import CampaignOffer from '../models/CampaignOffer';
 import { callMultiProviderAI } from './multiAiEngine';
 import { generateAutoProductSeo } from './productSeoGenerator';
 import mongoose from 'mongoose';
+import {
+  getCronStatusSnapshot,
+  formatCronStatusMarkdown,
+  triggerCronOnDemand,
+} from './cronStatusEngine';
 
 export interface AdminActionRequired {
   id: string;
@@ -198,6 +203,37 @@ export async function detectActionWithAI(userQuery: string): Promise<any | null>
     };
   }
 
+  // 12.5. Autonomous Cron Monitor & Verification: e.g. "cron status", "crone check", "cron chala ya nahi", "instagram cron", "crons"
+  if (
+    /(cron status|check cron|cron check|crons status|crons check|cron chala|cron chala ya nahi|cron ka kya bana|cron verify|cron diagnostics|auto post status|crone status|crone check|crone chala|crone verify)/i.test(lower) ||
+    (/(cron|crone)/i.test(lower) && /(status|check|verify|batao|btaye|btado|kya hua|chala|run|report|halat|issue|fail)/i.test(lower))
+  ) {
+    return {
+      isAction: true,
+      operation: 'check_cron_status',
+      params: {},
+      isDestructive: false,
+    };
+  }
+
+  // 12.6. Autonomous Cron On-Demand Trigger: e.g. "instagram cron chalao", "post to instagram", "run cron", "insta pe post dalo", "linkedin cron chala do"
+  if (
+    (/(chalao|chala do|chala dei|run|trigger|execute|post dalo|post karo|publish karo|start karo)/i.test(lower) && /(cron|crone|instagram|insta|linkedin|blog|daily master)/i.test(lower)) ||
+    (/(cron|crone)\s+(run|trigger|chalao|execute|start)/i.test(lower))
+  ) {
+    let target: 'instagram' | 'linkedin' | 'blog' | 'all' = 'instagram';
+    if (/linkedin/i.test(lower)) target = 'linkedin';
+    else if (/blog/i.test(lower)) target = 'blog';
+    else if (/(tamam|all|sab|master|daily master)/i.test(lower)) target = 'all';
+
+    return {
+      isAction: true,
+      operation: 'trigger_cron',
+      params: { target },
+      isDestructive: false,
+    };
+  }
+
   // 13. Order status update: e.g. "order id 1 ka status complete kra do", "order #123 delivered kar do", "is order ko delivered kar do"
   if (
     /(status|mark|update|kar do|kardo|kra do|krwa do|karwa do|kardein|karde|karo)\s+.*?(delivered|complete|completed|done|finish|shipped|processing|cancelled|pending)/i.test(lower) ||
@@ -325,6 +361,64 @@ export async function executeAdminAction(
 ): Promise<AdminActionResult> {
   await dbConnect();
   const { operation, params } = actionIntent;
+
+  // ----------------------------------------------------
+  // 0. CRON MONITORING & ON-DEMAND EXECUTION ACTIONS
+  // ----------------------------------------------------
+  if (operation === 'check_cron_status') {
+    const snapshot = await getCronStatusSnapshot();
+    const markdownReport = formatCronStatusMarkdown(snapshot);
+    return {
+      handled: true,
+      reply: markdownReport,
+      actionExecuted: {
+        type: 'check_cron_status',
+        description: `Verified autonomous cron status: ${snapshot.overallHealth}`,
+        details: snapshot,
+      },
+    };
+  }
+
+  if (operation === 'trigger_cron') {
+    const target = (params?.target || 'instagram') as 'instagram' | 'linkedin' | 'blog' | 'all';
+    const targetLabel =
+      target === 'instagram'
+        ? 'Instagram Tech Carousel'
+        : target === 'linkedin'
+        ? 'LinkedIn Tech Post'
+        : target === 'blog'
+        ? 'Autonomous AI SEO Blog'
+        : 'All 3 Autonomous Crons (Master)';
+
+    if (!confirmed && !params?.force) {
+      return {
+        handled: true,
+        reply: `⚠️ **Autonomous Cron Run Confirmation:**\n\nAap ne **${targetLabel}** ko on-demand chalane ki hidayat di hai:\n\n- 🎯 **Target Engine:** ${targetLabel}\n- ⚙️ **Process:** Real-time AI content generation & live social publishing\n- 🛡️ **Anti-Duplication:** Active (pehle se published topics skip honge)\n\nKia aap waqai is cron ko foran chalana chahte hain? Tasdeeq ke liye neeche **"🚀 Yes, Run Cron Now"** dabayein ya chat mein **"Yes / Chalao"** likhein.`,
+        actionRequired: {
+          id: `act_${Date.now()}`,
+          type: 'trigger_cron',
+          title: `Run ${targetLabel} Now`,
+          description: `Generates and dispatches live content immediately for ${targetLabel}`,
+          count: 1,
+          payload: {
+            operation: 'trigger_cron',
+            params: { target, force: true },
+          },
+        },
+      };
+    }
+
+    const result = await triggerCronOnDemand(target);
+    return {
+      handled: true,
+      reply: result.message,
+      actionExecuted: {
+        type: 'trigger_cron',
+        description: `Triggered ${targetLabel} on-demand`,
+        details: result.details,
+      },
+    };
+  }
 
   // ----------------------------------------------------
   // 1. ORDER ACTIONS
