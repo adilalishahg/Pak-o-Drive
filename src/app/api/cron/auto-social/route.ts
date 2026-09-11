@@ -3,8 +3,8 @@ import { executeAutoLinkedInPost, generateLinkedInTechPost, ensurePostHashtagsWi
 import { CURATED_DECKS, renderSlobodanCarouselPdf } from '@/lib/carouselGenerator';
 
 export const dynamic = 'force-dynamic';
-export const maxDuration = 60; // 60s timeout for AI generation and API dispatch
-// Cache-bust: 2026-09-08T22:15:00Z - Verified AI hashtags & Slobodan 4:5 carousel upgrade
+export const maxDuration = 300; // 300s (5m) timeout for AI generation, PDF compilation, and LinkedIn API dispatch
+// Cache-bust: 2026-09-11T23:30:00Z - 504 Gateway Timeout fix: expanded maxDuration to 300s + AI latency optimization
 
 export async function GET(request: Request) {
   return handleSocialPost(request);
@@ -15,6 +15,7 @@ export async function POST(request: Request) {
 }
 
 async function handleSocialPost(request: Request) {
+  const startTime = Date.now();
   const { searchParams } = new URL(request.url);
   const authHeader = request.headers.get('authorization');
   const secret = searchParams.get('secret') || (authHeader ? authHeader.replace('Bearer ', '').trim() : '');
@@ -45,6 +46,7 @@ async function handleSocialPost(request: Request) {
       pdfSize: pdfBuffer.length,
       pdfUrl: '/active-carousel.pdf',
       postContent,
+      durationMs: Date.now() - startTime,
     });
   }
 
@@ -56,10 +58,11 @@ async function handleSocialPost(request: Request) {
       mode: 'preview',
       topic: post.topic,
       content: post.content,
+      durationMs: Date.now() - startTime,
     });
   }
 
-  // 2. Full Execution: Generate + Publish to LinkedIn
+  // 3. Full Execution: Generate + Publish to LinkedIn
   const result = await executeAutoLinkedInPost();
 
   if (!result.success) {
@@ -69,6 +72,7 @@ async function handleSocialPost(request: Request) {
         error: result.error,
         topic: result.topic,
         generatedContent: result.content,
+        durationMs: Date.now() - startTime,
       },
       { status: 500 }
     );
@@ -80,5 +84,6 @@ async function handleSocialPost(request: Request) {
     topic: result.topic,
     postId: result.postId,
     content: result.content,
+    durationMs: Date.now() - startTime,
   });
 }

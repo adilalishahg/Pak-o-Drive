@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { executeAutoInstagramPost } from '@/lib/instagramAutoPostService';
 
 export const dynamic = 'force-dynamic';
-export const maxDuration = 60; // 60s timeout for slide rendering, CDN upload and Meta API dispatch
+export const maxDuration = 300; // 300s timeout for slide rendering, CDN upload and Meta API dispatch
 
 export async function GET(request: Request) {
   return handleInstagramPost(request);

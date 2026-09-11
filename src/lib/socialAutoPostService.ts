@@ -160,7 +160,7 @@ export async function generateTechGraphic(topic: string): Promise<Buffer | null>
     const url = `https://image.pollinations.ai/prompt/${prompt}?width=1080&height=1080&nologo=true`;
 
     console.log(`🎨 [AutoSocial] Generating 3D dark tech graphic for: "${topic}"...`);
-    const res = await fetch(url, { signal: AbortSignal.timeout(15000) });
+    const res = await fetch(url, { signal: AbortSignal.timeout(4000) });
     if (res.ok) {
       const arrayBuf = await res.arrayBuffer();
       const buffer = Buffer.from(arrayBuf);
@@ -470,7 +470,7 @@ export function ensurePostHashtags(caption: string, topic: string): string {
 }
 
 /**
- * Ensures post text has clean formatting with AI-curated hashtags placed at the bottom
+ * Ensures post text has clean formatting with hashtags attached
  */
 export async function ensurePostHashtagsWithAI(caption: string, topic: string): Promise<string> {
   let cleaned = caption
@@ -479,25 +479,13 @@ export async function ensurePostHashtagsWithAI(caption: string, topic: string): 
     .replace(/pakodrive\.pk/gi, '')
     .trim();
 
-  // Check if first 3 lines already contain hashtags
-  const firstThreeLines = cleaned.split('\n').slice(0, 3).join(' ');
-  const hasTagsNearTop = /#[A-Za-z0-9_]+/.test(firstThreeLines);
-
-  if (hasTagsNearTop) {
+  // If caption already contains hashtags anywhere in the text, preserve them without extra AI latency
+  if (cleaned.includes('#')) {
     return cleaned;
   }
 
-  // Generate high-impact topic tags
-  const tags = await generateAIHashtags(topic, cleaned);
-
-  // Insert tags right after the opening hook line (line 1)
-  const lines = cleaned.split('\n');
-  if (lines.length > 1) {
-    lines.splice(1, 0, tags);
-    return lines.join('\n');
-  }
-
-  return `${cleaned}\n${tags}`;
+  // Instant fallback: append curated domain hashtags without blocking on an additional slow AI call
+  return ensurePostHashtags(cleaned, topic);
 }
 
 /**
@@ -619,7 +607,7 @@ export async function executeAutoLinkedInPost(
     // Fallback: If document carousel dispatch failed, try generating 3D graphic
     if (!publishRes || !publishRes.success) {
       console.log('🔄 [AutoSocial] Document carousel dispatch failed, falling back to 3D graphic...');
-      const fallbackGraphic = await generateTechGraphic(chosenDeck.topic);
+      const fallbackGraphic = coverGraphic || (await generateTechGraphic(chosenDeck.topic));
       if (fallbackGraphic) {
         publishRes = await publishToLinkedIn(postCaption, {
           type: 'image',

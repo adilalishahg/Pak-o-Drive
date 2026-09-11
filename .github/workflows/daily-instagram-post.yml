@@ -27,19 +27,35 @@ jobs:
           CRON_SECRET="${{ secrets.CRON_SECRET }}"
           echo "Triggering Instagram Auto-Post at: ${SITE_URL}/api/cron/auto-instagram"
 
-          RESPONSE=$(curl -s -w "\nHTTP_STATUS:%{http_code}" -X POST "${SITE_URL}/api/cron/auto-instagram" \
-            -H "Content-Type: application/json" \
-            -H "Authorization: Bearer ${CRON_SECRET}")
+          MAX_ATTEMPTS=2
+          ATTEMPT=1
+          SUCCESS=0
 
-          HTTP_BODY=$(echo "$RESPONSE" | sed -e 's/HTTP_STATUS\:.*//g')
-          HTTP_STATUS=$(echo "$RESPONSE" | tr -d '\n' | sed -e 's/.*HTTP_STATUS://')
+          while [ $ATTEMPT -le $MAX_ATTEMPTS ]; do
+            echo "--- Attempt $ATTEMPT of $MAX_ATTEMPTS ---"
+            RESPONSE=$(curl -s -w "\nHTTP_STATUS:%{http_code}" --max-time 180 -X POST "${SITE_URL}/api/cron/auto-instagram" \
+              -H "Content-Type: application/json" \
+              -H "Authorization: Bearer ${CRON_SECRET}")
 
-          echo "Response Status: $HTTP_STATUS"
-          echo "Response Body:"
-          echo "$HTTP_BODY"
+            HTTP_BODY=$(echo "$RESPONSE" | sed -e 's/HTTP_STATUS\:.*//g')
+            HTTP_STATUS=$(echo "$RESPONSE" | tr -d '\n' | sed -e 's/.*HTTP_STATUS://')
 
-          if [ "$HTTP_STATUS" -ne 200 ]; then
-            echo "::error::Instagram auto-post request failed with status $HTTP_STATUS"
+            echo "Response Status: $HTTP_STATUS"
+            echo "Response Body:"
+            echo "$HTTP_BODY"
+
+            if [ "$HTTP_STATUS" -eq 200 ]; then
+              SUCCESS=1
+              break
+            fi
+
+            echo "Attempt $ATTEMPT returned status $HTTP_STATUS. Retrying in 10 seconds..."
+            sleep 10
+            ATTEMPT=$((ATTEMPT + 1))
+          done
+
+          if [ $SUCCESS -ne 1 ]; then
+            echo "::error::Instagram auto-post request failed after $MAX_ATTEMPTS attempts with status $HTTP_STATUS"
             exit 1
           fi
 

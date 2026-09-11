@@ -4,6 +4,23 @@ This file serves as persistent dynamic memory across coding agent sessions. Ever
 
 ---
 
+### 2026-09-11 — LinkedIn Autonomous Post GitHub Action 504 Gateway Timeout Resolution
+- **📌 Issue**:
+  GitHub Action `Daily LinkedIn Autonomous Post #9` failed with exit code 1: `LinkedIn auto-post request failed with status 504` after 1m 7s of execution on Vercel deployment.
+- **🔍 Root Cause**:
+  1. `src/app/api/cron/auto-social/route.ts` was constrained to `maxDuration = 60`, which triggered a Vercel serverless edge gateway timeout (HTTP 504) whenever AI deck generation, image synthesis, and LinkedIn CDN document uploading took >60s.
+  2. `ensurePostHashtagsWithAI` checked only the top 3 lines of the generated caption for hashtags, causing an unnecessary secondary multi-provider AI waterfall call that added 10-15s of latency on every request.
+  3. `generateTechGraphic` had a 15-second timeout on external AI image generation, stalling requests when images lagged.
+  4. `.github/workflows/daily-linkedin-post.yml` had no retry mechanism and lacked `--max-time 180`, immediately failing on any single transient edge lag.
+- **🛠️ Verified Code Fix**:
+  1. **Route Timeout Expanded**: Updated `maxDuration` to `300` seconds in `src/app/api/cron/auto-social/route.ts` and `src/app/api/cron/auto-instagram/route.ts` with `durationMs` latency metrics.
+  2. **Eliminated Redundant AI Call**: Updated `ensurePostHashtagsWithAI` to instantly check full caption content and use fast domain fallback without executing a redundant AI generation pass.
+  3. **Tighter Pollinations Timeout**: Reduced `generateTechGraphic` timeout from 15s to 4s, falling back gracefully to native high-res vector covers.
+  4. **GitHub Actions Resilience**: Updated `.github/workflows/daily-linkedin-post.yml` and `daily-instagram-post.yml` with a 2-attempt retry loop, 10s backoff, and `--max-time 180`.
+  5. **Compiler Verification**: `pnpm tsc --noEmit` passed with 0 errors.
+
+---
+
 ### 2026-09-11 — Autonomous Instagram Reel Cron Pipeline & Meta Graph API Dispatch
 - **📌 Issue**:
   User requested automated daily cron scheduling for the Cinematic AI Reels so videos are generated and published directly to Instagram alongside existing carousels, with on-demand Admin Copilot trigger support.
