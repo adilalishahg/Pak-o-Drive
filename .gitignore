@@ -28,6 +28,7 @@ desktop/node_modules/
 
 # Local uploads & assets
 /public/uploads/
+/public/reel_workspace/
 *.tmp
 *.temp
 

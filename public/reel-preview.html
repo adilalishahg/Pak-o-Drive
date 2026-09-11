@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Autonomous AI Reel Player • @digitalinspirer</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-950 text-white min-h-screen flex flex-col items-center justify-center p-4">
+  <div class="max-w-md w-full bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl">
+    <div class="flex items-center justify-between mb-4">
+      <div>
+        <span class="text-xs font-bold text-teal-400 uppercase tracking-wider">AI Vertical Video</span>
+        <h1 class="text-lg font-extrabold text-white">Generated Instagram Reel</h1>
+      </div>
+      <span class="bg-teal-500/20 text-teal-300 text-xs px-3 py-1 rounded-full font-bold border border-teal-500/30">1080x1920</span>
+    </div>
+
+    <!-- Video Player Container (9:16 Aspect Ratio) -->
+    <div class="relative w-full aspect-[9/16] rounded-2xl overflow-hidden bg-black shadow-inner border border-white/10">
+      <video class="w-full h-full object-cover" controls autoplay loop playsinline>
+        <source src="/generated-reel.mp4" type="video/mp4">
+        Your browser does not support video playback.
+      </video>
+    </div>
+
+    <div class="mt-4 pt-4 border-t border-slate-800 flex items-center justify-between text-xs text-slate-400">
+      <span>File: <b>generated-reel.mp4</b> (1.23 MB)</span>
+      <a href="/generated-reel.mp4" download class="bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold px-3 py-1.5 rounded-lg transition-all">
+        Download MP4
+      </a>
+    </div>
+  </div>
+</body>
+</html>
