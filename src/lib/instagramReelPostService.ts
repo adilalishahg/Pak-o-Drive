@@ -11,6 +11,7 @@ import { generateViralMotionReel } from './viralMotionReelEngine';
 import { ReelCategory } from './reelCategoryLibrary';
 import { publishInstagramStory } from './instagramStoryPostService';
 import { callMultiProviderAI } from './multiAiEngine';
+import { getUkTimeInfo, getRandomUkLocation } from './ukScheduleHelper';
 
 export interface InstagramReelResult {
   success: boolean;
@@ -25,7 +26,7 @@ export interface InstagramReelResult {
 }
 
 /**
- * Generates high-converting viral caption optimized for UK & Global Reach
+ * Generates high-converting viral caption optimized for UK/Global Reach & Pak-o-Drive Dual Monetization
  */
 export async function generateViralUkCaption(title: string): Promise<string> {
   return `${title.toUpperCase()} ⚡
@@ -33,14 +34,25 @@ export async function generateViralUkCaption(title: string): Promise<string> {
 Most people quit right before everything is about to change. 
 Stay focused. Keep building in silence.
 
-Save this for the days you feel like giving up 📌
+Save this for the days you need a reminder 📌
 
-Drop a "🔥" in the comments if you are committed to winning this year.
-
-Follow @digitalinspirer for daily drive & high-performance mindset.
+Drop a "🔥" in the comments if you are on your grind today.
 
 ━━━━━━━━━━━━━━━━━
-#reelsuk #londoncars #mindsetquotes #supercarsuk #darkaesthetic #reelsinstagram #viralreels #automotive #nightdrive #luxurylifestyle #carsofinstagram #successmindset #explorepage #millionairemindset`;
+🇬🇧 UK & Global (Digital & Affiliate):
+✨ 4K Luxury Car Wallpapers & Presets 👉 Link in Bio
+🛒 Trending Car Interior Styling on Amazon UK 👉 Link in Bio
+
+🇵🇰 Pakistan (Physical Stock):
+🚗 Cash on Delivery (COD) All Over Pakistan
+📦 Tap Link in Bio or WhatsApp: +92 318 5205667
+
+━━━━━━━━━━━━━━━━━
+Follow @digitalinspirer & @pakodrive.official for daily drive & automotive luxury.
+
+📍 London, United Kingdom
+
+#ukcarscene #supercarsoflondon #londoncars #uknightdrive #birminghamcars #carcultureuk #supercarsuk #luxurycarslondon #britishautomotive #reelsuk #pakwheels #pakodrive #darkaesthetic #automotive #nightdrive #carsofinstagram #explorepage #reelsviral`;
 }
 
 /**
@@ -147,9 +159,11 @@ export async function executeAutoInstagramReelPost(options?: {
   shareToStory?: boolean;
   quoteLines?: string[];
   sourceVideoPath?: string;
+  ukTargeting?: boolean;
 }): Promise<InstagramReelResult> {
   const source = options?.source || 'cli-script';
   const reelType = options?.reelType || 'viral-motion';
+  const ukTargeting = options?.ukTargeting !== false;
   const igUserId = process.env.INSTAGRAM_ACCOUNT_ID;
   const accessToken = process.env.INSTAGRAM_ACCESS_TOKEN;
 
@@ -205,21 +219,48 @@ export async function executeAutoInstagramReelPost(options?: {
   console.log('☁️ [InstagramReelService] Step 2: Uploading video to CDN for Meta ingestion...');
   const publicVideoUrl = await uploadVideoToCdn(videoPath);
 
+  // Check UK Peak Hour status
+  const ukTimeInfo = getUkTimeInfo();
+  console.log(`🇬🇧 [InstagramReelService] Algorithmic Timing Status: UK Time: ${ukTimeInfo.ukTimeString} | PKT: ${ukTimeInfo.pktTimeString}`);
+  console.log(`⏰ [InstagramReelService] Peak Window Status: ${ukTimeInfo.formattedCountdown}`);
+
   // Step 4: Create Instagram Reel Media Container
   console.log('📦 [InstagramReelService] Step 4: Creating Instagram Reel container in Meta Graph API...');
-  const containerRes = await fetch(`https://graph.facebook.com/v20.0/${igUserId}/media`, {
+  
+  const ukLocation = getRandomUkLocation();
+  const containerPayload: Record<string, any> = {
+    media_type: 'REELS',
+    video_url: publicVideoUrl,
+    caption,
+    share_to_feed: true,
+    access_token: accessToken,
+  };
+
+  if (ukTargeting) {
+    console.log(`📍 [InstagramReelService] Tagging UK Location: ${ukLocation.name} (Place ID: ${ukLocation.id})`);
+    containerPayload.location_id = ukLocation.id;
+  }
+
+  let containerRes = await fetch(`https://graph.facebook.com/v20.0/${igUserId}/media`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      media_type: 'REELS',
-      video_url: publicVideoUrl,
-      caption,
-      share_to_feed: true,
-      access_token: accessToken,
-    }),
+    body: JSON.stringify(containerPayload),
   });
 
-  const containerData = await containerRes.json();
+  let containerData = await containerRes.json();
+
+  // Gracefully retry without location_id if Meta API rejects place ID
+  if (!containerRes.ok && containerPayload.location_id) {
+    console.warn(`⚠️ [InstagramReelService] Location ID error (${containerData.error?.message}). Retrying container creation with caption-only geo-tagging...`);
+    delete containerPayload.location_id;
+    containerRes = await fetch(`https://graph.facebook.com/v20.0/${igUserId}/media`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(containerPayload),
+    });
+    containerData = await containerRes.json();
+  }
+
   if (!containerRes.ok || containerData.error || !containerData.id) {
     throw new Error('Failed to create Instagram Reel container: ' + (containerData.error?.message || JSON.stringify(containerData)));
   }

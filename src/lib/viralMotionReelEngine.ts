@@ -66,44 +66,48 @@ export async function generateViralAiContent(selectedCategory?: ReelCategory): P
   const category = selectedCategory || getActiveReelCategory();
   const catConfig = CATEGORIES_CONFIG[category];
 
-  const prompt = `You are the creative mastermind behind viral dark aesthetic mindset & lifestyle Instagram Reels (e.g. @digitalinspirer, @wealth, @thegentlemansrule).
-Generate 1 completely fresh, high-retention on-screen quote and viral caption optimized for UK, US, and international Instagram audiences.
+  const prompt = `You are the creative mastermind behind viral dark aesthetic automotive & mindset Instagram Reels for Pak-o-Drive (e.g. @digitalinspirer, @pakodrive.official, @pakwheels).
+Generate 1 completely fresh, high-retention on-screen quote and viral caption designed to captivate car enthusiasts and convert them into customers for Pak-o-Drive (Pakistan's premium car accessories & styling store with Cash on Delivery).
 
 Visual Background Theme for this Reel: "${catConfig.name}"
 Category Tone & Concepts: ${catConfig.themePrompt}
 Category Suggested Tags: ${catConfig.suggestedTags.join(', ')}
 
 Requirements:
-1. quoteLines: 3 to 4 short, punchy lines designed for vertical 9:16 text overlay (under 6 words per line). Must match the visual mood of ${catConfig.name} (e.g. stoic, ambitious, impossible mindset, consistency, or quiet discipline).
+1. quoteLines: 3 to 4 short, punchy lines designed for vertical 9:16 text overlay (under 6 words per line). Must match the visual mood of ${catConfig.name} (e.g. stoic, ambitious, impossible mindset, consistency, or quiet discipline) in pure British/American English.
 2. title: An intense 2-4 word hook title in ALL CAPS (e.g. "MOVE IN SILENCE", "THE UNSEEN GRIND", "ABOVE THE NOISE").
-3. caption: A viral caption structure:
+3. caption: A viral conversion caption structure:
    - First line: Thumb-stopping hook in ALL CAPS with lightning emoji.
    - 2-3 lines of deep, inspiring wisdom connecting the visual (${catConfig.name}) with ambition.
    - Save trigger: "Save this for the days you need a reminder 📌"
    - Comment question: "Drop a '🔥' in the comments if you agree."
-   - Profile follow tag: "Follow @digitalinspirer for daily drive & high-performance mindset."
-4. hashtags: 15-20 trending UK & global tags (#reelsuk, #londoncars, #mindsetquotes, #darkaesthetic, #reelsinstagram, #viralreels, #explorepage, plus category tags like ${catConfig.suggestedTags.slice(0, 4).join(', ')}).
+   - Dual Monetization Call to Action (UK/Global Digital & Affiliate + Pakistan COD):
+     "🇬🇧 UK & Global (Digital & Affiliate):\n✨ 4K Luxury Car Wallpapers & Presets 👉 Link in Bio\n🛒 Trending Car Interior Styling on Amazon UK 👉 Link in Bio\n\n🇵🇰 Pakistan (Physical Stock):\n🚗 Cash on Delivery (COD) All Over Pakistan\n📦 Tap Link in Bio or WhatsApp: +92 318 5205667"
+   - Profile follow tag: "Follow @digitalinspirer & @pakodrive.official for daily drive & automotive luxury."
+   - Geo-tag line: "📍 London, United Kingdom"
+4. hashtags: 15-20 trending UK & global automotive tags combined with Pakistan (#ukcarscene, #supercarsoflondon, #londoncars, #uknightdrive, #birminghamcars, #carcultureuk, #supercarsuk, #reelsuk, #pakwheels, #pakodrive, #darkaesthetic, #nightdrive, #reelsviral, plus category tags like ${catConfig.suggestedTags.slice(0, 3).join(', ')}).
 
 Output ONLY valid JSON with no markdown backticks:
 {
   "title": "...",
   "quoteLines": ["...", "...", "..."],
   "caption": "...",
-  "hashtags": ["#reelsuk", "..."],
+  "hashtags": ["#ukcarscene", "#londoncars", "..."],
   "theme": "${category}"
 }`;
 
   try {
     const aiRes = await callMultiProviderAI('You are a viral Instagram growth director.', prompt);
     if (aiRes && typeof aiRes.text === 'string') {
-      const cleaned = aiRes.text.replace(/```json/g, '').replace(/```/g, '').trim();
+      const jsonMatch = aiRes.text.match(/\{[\s\S]*\}/);
+      const cleaned = jsonMatch ? jsonMatch[0] : aiRes.text.replace(/```json/g, '').replace(/```/g, '').trim();
       const parsed = JSON.parse(cleaned);
       if (parsed.quoteLines && Array.isArray(parsed.quoteLines) && parsed.quoteLines.length > 0) {
         return {
           title: parsed.title || parsed.quoteLines[0],
           quoteLines: parsed.quoteLines,
-          caption: parsed.caption || `${parsed.title} ⚡\n\nSave this for when you need a reminder 📌\n\n#reelsuk #mindsetquotes #viralreels`,
-          hashtags: parsed.hashtags || ['#reelsuk', '#londoncars', '#mindsetquotes', '#darkaesthetic', '#viralreels', ...catConfig.suggestedTags],
+          caption: parsed.caption || `${parsed.title} ⚡\n\nSave this for when you need a reminder 📌\n\n#ukcarscene #londoncars #mindsetquotes #viralreels`,
+          hashtags: parsed.hashtags || ['#ukcarscene', '#supercarsoflondon', '#londoncars', '#uknightdrive', '#carcultureuk', '#reelsuk', '#pakwheels', '#pakodrive', ...catConfig.suggestedTags],
           theme: category,
           category,
         };
@@ -113,37 +117,40 @@ Output ONLY valid JSON with no markdown backticks:
     console.warn(`⚠️ [ViralMotionReel] AI generation fallback: ${err.message}`);
   }
 
+  // Dual Monetization CTA snippet
+  const dualCta = `━━━━━━━━━━━━━━━━━\n🇬🇧 UK & Global (Digital & Affiliate):\n✨ 4K Luxury Car Wallpapers & Presets 👉 Link in Bio\n🛒 Trending Car Interior Styling on Amazon UK 👉 Link in Bio\n\n🇵🇰 Pakistan (Physical Stock):\n🚗 Cash on Delivery (COD) All Over Pakistan\n📦 Tap Link in Bio or WhatsApp: +92 318 5205667\n\n━━━━━━━━━━━━━━━━━\nFollow @digitalinspirer & @pakodrive.official for daily drive & automotive luxury.\n\n📍 London, United Kingdom`;
+
   // Curated category fallbacks
   const fallbacks: Record<ReelCategory, { title: string; quoteLines: string[]; caption: string }> = {
     nature: {
       title: 'BE UNTOUCHED',
       quoteLines: ['Rooted like mountains.', 'Untouched by storms.', '', 'Grow in silence.'],
-      caption: `BE UNTOUCHED ⚡\n\nThe storm only affects what is shallow. When your roots are deep, turbulence cannot move you.\n\nSave this for the days you need a reminder 📌\n\nDrop a "🔥" if you agree.\n\nFollow @digitalinspirer for daily discipline.`,
+      caption: `BE UNTOUCHED ⚡\n\nThe storm only affects what is shallow. When your roots are deep, turbulence cannot move you.\n\nSave this for the days you need a reminder 📌\n\nDrop a "🔥" if you agree.\n\n${dualCta}`,
     },
     roads: {
       title: 'MOVE IN SILENCE',
       quoteLines: ['Speed means nothing', 'if you are in the wrong lane.', '', 'Focus on direction.', 'Let results speak.'],
-      caption: `MOVE IN SILENCE ⚡\n\nMost people tell everyone what they are going to do.\nThe top 1% just execute and let the scoreboard do the talking.\n\nSave this for the days you need a reminder 📌\n\nDrop a "🔥" if you agree.\n\nFollow @digitalinspirer for daily drive.`,
+      caption: `MOVE IN SILENCE ⚡\n\nMost people tell everyone what they are going to do.\nThe top 1% just execute and let the scoreboard do the talking.\n\nSave this for the days you need a reminder 📌\n\nDrop a "🔥" if you agree.\n\n${dualCta}`,
     },
     beach: {
       title: 'RELENTLESS WAVES',
       quoteLines: ['The ocean never rushes,', 'yet it carves continents.', '', 'Relentless consistency.'],
-      caption: `RELENTLESS WAVES ⚡\n\nPatience and consistency outperform intensity every single time. Keep showing up every day.\n\nSave this for when you need a reminder 📌\n\nDrop a "🔥" in the comments.\n\nFollow @digitalinspirer for high-performance mindset.`,
+      caption: `RELENTLESS WAVES ⚡\n\nPatience and consistency outperform intensity every single time. Keep showing up every day.\n\nSave this for when you need a reminder 📌\n\nDrop a "🔥" in the comments.\n\n${dualCta}`,
     },
     buildings: {
       title: 'BUILD YOUR EMPIRE',
       quoteLines: ['From the ground, they see limits.', 'From the summit, you see empires.', '', 'Keep building.'],
-      caption: `BUILD YOUR EMPIRE ⚡\n\nDon't let people with small visions talk you out of your big dreams. Keep building block by block.\n\nSave this for when you need a reminder 📌\n\nDrop a "🔥" if you agree.\n\nFollow @digitalinspirer for daily drive.`,
+      caption: `BUILD YOUR EMPIRE ⚡\n\nDon't let people with small visions talk you out of your big dreams. Keep building block by block.\n\nSave this for when you need a reminder 📌\n\nDrop a "🔥" if you agree.\n\n${dualCta}`,
     },
     sky: {
       title: 'ABOVE THE NOISE',
       quoteLines: ['Fly above the storm.', 'The turbulence below', 'is temporary.', '', 'Stay high.'],
-      caption: `ABOVE THE NOISE ⚡\n\nWhen you elevate your standards, small minds and daily drama can no longer reach you.\n\nSave this for when you need a reminder 📌\n\nDrop a "🔥" in the comments.\n\nFollow @digitalinspirer for high-altitude mindset.`,
+      caption: `ABOVE THE NOISE ⚡\n\nWhen you elevate your standards, small minds and daily drama can no longer reach you.\n\nSave this for when you need a reminder 📌\n\nDrop a "🔥" in the comments.\n\n${dualCta}`,
     },
     rain: {
       title: 'CLARITY IN THE STORM',
       quoteLines: ['Comfort kills ambition.', 'Find your clarity', 'in the storm.', '', 'Keep moving.'],
-      caption: `CLARITY IN THE STORM ⚡\n\nHard times reveal who you really are. Embrace the pressure; that's where diamonds are formed.\n\nSave this for when you need a reminder 📌\n\nDrop a "🔥" if you agree.\n\nFollow @digitalinspirer for daily drive.`,
+      caption: `CLARITY IN THE STORM ⚡\n\nHard times reveal who you really are. Embrace the pressure; that's where diamonds are formed.\n\nSave this for when you need a reminder 📌\n\nDrop a "🔥" if you agree.\n\n${dualCta}`,
     },
   };
 
@@ -152,7 +159,7 @@ Output ONLY valid JSON with no markdown backticks:
     title: fb.title,
     quoteLines: fb.quoteLines,
     caption: fb.caption,
-    hashtags: ['#reelsuk', '#londoncars', '#mindsetquotes', '#darkaesthetic', '#viralreels', ...catConfig.suggestedTags],
+    hashtags: ['#ukcarscene', '#supercarsoflondon', '#londoncars', '#uknightdrive', '#birminghamcars', '#carcultureuk', '#supercarsuk', '#reelsuk', '#pakwheels', '#pakodrive', '#darkaesthetic', '#nightdrive', ...catConfig.suggestedTags],
     theme: category,
     category,
   };

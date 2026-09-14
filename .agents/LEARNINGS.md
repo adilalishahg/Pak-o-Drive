@@ -2,7 +2,21 @@
 
 This file serves as persistent dynamic memory across coding agent sessions. Every core standard, architectural decision, and verified bug resolution must be preserved below.
 
-### 2026-09-14 — Viral Real-Motion Instagram Reels Pipeline & Awesome Free LLM Integration
+### 2026-09-14 — UK Algorithmic Reach Optimization & Dual-Monetization Architecture
+- **📌 Issue**:
+  User requested dual-market monetization: targeting high-value UK/Global audience on Instagram Reels for affiliate commissions, theme-page growth, and digital product sales (presets, wallpapers), while maintaining local Pakistani sales (physical inventory with Cash on Delivery / COD).
+- **🔍 Root Cause**:
+  Posting with local Pakistani time, local tags, and no location tagging confines Meta's algorithm to local regional distribution. Capturing high-RPM UK viewers requires algorithmic alignment across 4 pillars: peak UK posting time (18:00–22:30 GMT / 23:00–03:30 PKT), UK location tagging (`London, United Kingdom`, `Manchester`, `Mayfair`), UK automotive tags (`#ukcarscene`, `#supercarsoflondon`, `#londoncars`), and pure English visual messaging with dual-intent bio/caption conversion hooks.
+- **🛠️ Verified Code Fix**:
+  1. **UK Timezone Engine (`src/lib/ukScheduleHelper.ts`)**: Built `getUkTimeInfo()` to calculate live UK peak status (18:00 - 22:30 GMT) vs Pakistan time (PKT), countdown timers, and Facebook Place IDs for UK luxury destinations.
+  2. **Geo-Location Container Injection (`src/lib/instagramReelPostService.ts`)**: Attached rotating UK `location_id` into Meta Graph API reel media container with automatic graceful fallback if account permissions reject place tags.
+  3. **Dual Monetization Caption Structure**: AI prompt updated to generate English stoic hooks, UK car culture tags, and dual CTAs: (A) UK/Global digital wallpapers & presets (Gumroad) and Amazon UK links, (B) Pakistan COD via WhatsApp.
+  4. **CLI Timing Runner**: Enhanced `scripts/post-to-instagram-reel.ts` with `--wait-uk` flag to automatically hold dispatch until the UK peak evening window.
+  5. **Verification**: Executed `npx tsx scripts/test-ai-viral-content.ts` confirming dual-market caption and UK tags. Passed `pnpm tsc --noEmit` and `graft build` with 0 errors.
+
+---
+
+
 - **📌 Issue**:
   User requested real moving video (e.g. night supercar, rain headlights, driving highway footage) instead of still photos with pan-zoom, matching the exact format of their top viral Instagram reels (@digitalinspirer), and asked about leveraging `awesome-free-llm-apis` in Pak-o-Drive.
 - **🔍 Root Cause**:
