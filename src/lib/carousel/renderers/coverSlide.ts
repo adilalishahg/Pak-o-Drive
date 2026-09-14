@@ -165,7 +165,7 @@ export function renderCoverSlide(ctx: SlideRenderContext): void {
   });
 
   // 6. Unified High-Contrast Bottom Action Pill
-  const swipeText = 'SWIPE TO EXPLORE ➔';
+  const swipeText = cleanAscii('SWIPE TO EXPLORE ->');
   const swipeW = fontBold.widthOfTextAtSize(swipeText, 22) + 64;
   const swipeH = 54;
   const swipeX = SLIDE_WIDTH / 2 - swipeW / 2;
@@ -189,7 +189,7 @@ export function renderCoverSlide(ctx: SlideRenderContext): void {
   });
 
   // Subtle Sub-Hint
-  const hintText = 'Swipe left for complete architectural breakdown ➔';
+  const hintText = cleanAscii('Swipe left for complete architectural breakdown ->');
   const hintW = fontRegular.widthOfTextAtSize(hintText, 16);
   page.drawText(hintText, {
     x: SLIDE_WIDTH / 2 - hintW / 2,

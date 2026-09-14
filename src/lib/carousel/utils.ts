@@ -8,8 +8,8 @@ import path from 'path';
 export function cleanAscii(str?: string): string {
   if (!str) return '';
   return str
-    .replace(/[➔➜➝]/g, '->')
-    .replace(/[⚡★☆]/g, '>')
+    .replace(/[➔➜➝→➤►]/g, '->')
+    .replace(/[⚡★☆💎📌✨🔥]/g, ' ')
     .replace(/[*#`~]/g, '') // Strip all markdown asterisks (steric), hashes, backticks, tildes
     .replace(/^[•●\-\*\>\s]+/, '') // Strip redundant leading bullets, dashes, asterisks
     .replace(/[•●]/g, ' ') // Mid-sentence bullets replaced with space

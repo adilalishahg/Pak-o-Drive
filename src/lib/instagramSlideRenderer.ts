@@ -1,4 +1,5 @@
 import sharp from 'sharp';
+import { INTER_BOLD_BASE64, INTER_REGULAR_BASE64 } from './fonts/fontBase64';
 
 export interface CarouselSlideData {
   slideNumber: number;
@@ -22,7 +23,7 @@ const SLIDE_HEIGHT = 1350;
  * Escapes XML/SVG special characters
  */
 function escapeXml(unsafe: string): string {
-  return unsafe
+  return (unsafe || '')
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
@@ -31,10 +32,23 @@ function escapeXml(unsafe: string): string {
 }
 
 /**
+ * Strips unsupported Unicode emojis and unmapped glyphs that fail on headless Linux/SVG renderers
+ */
+function sanitizeSlideText(str: string): string {
+  if (!str) return '';
+  return str
+    .replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{1F900}-\u{1F9FF}\u{1F600}-\u{1F64F}\u{1F680}-\u{1F6FF}]/gu, '')
+    .replace(/[➔➜➝→]/g, '->')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+/**
  * Wraps text into lines that do not exceed maxCharsPerLine
  */
 function wrapText(text: string, maxCharsPerLine = 32): string[] {
-  const words = text.split(' ');
+  const clean = sanitizeSlideText(text);
+  const words = clean.split(' ');
   const lines: string[] = [];
   let currentLine = '';
 
@@ -62,14 +76,14 @@ export async function renderInstagramSlideJpeg(slide: CarouselSlideData): Promis
   const headerSvg = `
     <!-- Top Header Group -->
     <circle cx="108" cy="120" r="28" fill="#1E293B" stroke="${accentColor}" stroke-width="2" />
-    <text x="108" y="128" font-family="system-ui, -apple-system, sans-serif" font-size="20" font-weight="bold" fill="${accentColor}" text-anchor="middle">DI</text>
+    <text x="108" y="128" font-family="'Inter', sans-serif" font-size="20" font-weight="700" fill="${accentColor}" text-anchor="middle">DI</text>
     
-    <text x="152" y="118" font-family="system-ui, -apple-system, sans-serif" font-size="24" font-weight="bold" fill="#FFFFFF">digitalinspirer</text>
-    <text x="152" y="140" font-family="system-ui, -apple-system, sans-serif" font-size="16" fill="#94A3B8">Future AI &amp; Tech Tools</text>
+    <text x="152" y="118" font-family="'Inter', sans-serif" font-size="24" font-weight="700" fill="#FFFFFF">digitalinspirer</text>
+    <text x="152" y="140" font-family="'Inter', sans-serif" font-size="16" font-weight="400" fill="#94A3B8">Future AI &amp; Tech Tools</text>
 
     <!-- Top Badge Pill -->
     <rect x="760" y="100" width="240" height="42" rx="21" fill="rgba(255, 255, 255, 0.08)" stroke="${accentColor}" stroke-width="1.5" />
-    <text x="880" y="127" font-family="system-ui, -apple-system, sans-serif" font-size="16" font-weight="bold" fill="${accentColor}" text-anchor="middle">${escapeXml(slide.badge)}</text>
+    <text x="880" y="127" font-family="'Inter', sans-serif" font-size="16" font-weight="700" fill="${accentColor}" text-anchor="middle">${escapeXml(sanitizeSlideText(slide.badge))}</text>
   `;
 
   // ── 2. Bottom Footer Bar (Fixed Y: 1220 to 1290) ───────────────────
@@ -85,9 +99,9 @@ export async function renderInstagramSlideJpeg(slide: CarouselSlideData): Promis
   const footerSvg = `
     <!-- Bottom Footer Group -->
     <line x1="80" y1="1210" x2="1000" y2="1210" stroke="rgba(255,255,255,0.1)" stroke-width="1" />
-    <text x="80" y="1265" font-family="system-ui, -apple-system, sans-serif" font-size="18" font-weight="600" fill="#64748B">Slide ${slide.slideNumber} of ${slide.totalSlides}</text>
+    <text x="80" y="1265" font-family="'Inter', sans-serif" font-size="18" font-weight="700" fill="#64748B">Slide ${slide.slideNumber} of ${slide.totalSlides}</text>
     ${dotsSvg}
-    <text x="1000" y="1265" font-family="system-ui, -apple-system, sans-serif" font-size="18" font-weight="bold" fill="${accentColor}" text-anchor="end">${isCta ? 'Drop a Comment 👇' : 'Swipe Next ➔'}</text>
+    <text x="1000" y="1265" font-family="'Inter', sans-serif" font-size="18" font-weight="700" fill="${accentColor}" text-anchor="end">${isCta ? 'Drop a Comment' : 'Swipe Next ->'}</text>
   `;
 
   // ── 3. Body Content (Safe Vertical Area: Y 190 to 1180) ────────────
@@ -96,32 +110,32 @@ export async function renderInstagramSlideJpeg(slide: CarouselSlideData): Promis
   if (isCover) {
     // ── COVER SLIDE ────────────────────────────────────────────────
     const titleLines = wrapText(slide.title, 20);
-    const subtitleLines = wrapText(slide.subtitle || 'Save this before it gets taken down ⚡', 30);
+    const subtitleLines = wrapText(slide.subtitle || 'Save this before it gets taken down', 30);
 
     // 1. Category Pill (Y: 195 to 239)
     const catPillTop = 195;
     const catPillSvg = `
-      <rect x="80" y="${catPillTop}" width="240" height="44" rx="12" fill="${accentColor}" opacity="0.18" stroke="${accentColor}" stroke-width="1.5" />
-      <text x="100" y="${catPillTop + 29}" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="19" font-weight="900" fill="${accentColor}" letter-spacing="0.5">⚡ 2026 EDITION</text>
+      <rect x="80" y="${catPillTop}" width="200" height="44" rx="12" fill="${accentColor}" opacity="0.18" stroke="${accentColor}" stroke-width="1.5" />
+      <text x="100" y="${catPillTop + 29}" font-family="'Inter', sans-serif" font-size="19" font-weight="700" fill="${accentColor}" letter-spacing="0.5">2026 EDITION</text>
     `;
 
-    // 2. Title Lines (Start with generous 50px clearance at Y = 340)
+    // 2. Title Lines (Start with generous clearance at Y = 340)
     let curY = 340;
     const titleLineHeight = 78;
     const titleTextSvg = titleLines
       .map((line, idx) => {
         const lineY = curY + idx * titleLineHeight;
-        return `<text x="80" y="${lineY}" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="64" font-weight="900" fill="#FFFFFF" letter-spacing="-1">${escapeXml(line)}</text>`;
+        return `<text x="80" y="${lineY}" font-family="'Inter', sans-serif" font-size="64" font-weight="700" fill="#FFFFFF" letter-spacing="-1">${escapeXml(line)}</text>`;
       })
       .join('');
     curY += titleLines.length * titleLineHeight + 20;
 
-    // 3. Subtitle Lines (Crisp 32px font with high contrast)
+    // 3. Subtitle Lines (Crisp font with high contrast)
     const subLineHeight = 46;
     const subtitleTextSvg = subtitleLines
       .map((line, idx) => {
         const lineY = curY + idx * subLineHeight;
-        return `<text x="80" y="${lineY}" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="32" font-weight="600" fill="#E2E8F0">${escapeXml(line)}</text>`;
+        return `<text x="80" y="${lineY}" font-family="'Inter', sans-serif" font-size="32" font-weight="400" fill="#E2E8F0">${escapeXml(line)}</text>`;
       })
       .join('');
     curY += subtitleLines.length * subLineHeight + 40;
@@ -134,20 +148,23 @@ export async function renderInstagramSlideJpeg(slide: CarouselSlideData): Promis
       
       <!-- Card Header Tag -->
       <rect x="120" y="${cardTop + 35}" width="280" height="42" rx="10" fill="rgba(56, 189, 248, 0.18)" stroke="#38BDF8" stroke-width="1.2" />
-      <text x="138" y="${cardTop + 62}" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="16" font-weight="800" fill="#38BDF8" letter-spacing="1">WHAT'S INSIDE THIS GUIDE</text>
+      <text x="138" y="${cardTop + 62}" font-family="'Inter', sans-serif" font-size="16" font-weight="700" fill="#38BDF8" letter-spacing="1">WHAT&apos;S INSIDE THIS GUIDE</text>
       
       <!-- Bullet 1 -->
-      <text x="120" y="${cardTop + 135}" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="28" font-weight="700" fill="#FFFFFF">📌 3 Secret AI Websites saving you 20+ hrs/wk</text>
+      <circle cx="128" cy="${cardTop + 128}" r="5" fill="${accentColor}" />
+      <text x="148" y="${cardTop + 135}" font-family="'Inter', sans-serif" font-size="28" font-weight="700" fill="#FFFFFF">3 Secret AI Websites saving you 20+ hrs/wk</text>
       
       <!-- Bullet 2 -->
-      <text x="120" y="${cardTop + 205}" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="28" font-weight="700" fill="#FFFFFF">⚡ Tested for speed, quality &amp; 100% free access</text>
+      <circle cx="128" cy="${cardTop + 198}" r="5" fill="${accentColor}" />
+      <text x="148" y="${cardTop + 205}" font-family="'Inter', sans-serif" font-size="28" font-weight="700" fill="#FFFFFF">Tested for speed, quality &amp; 100% free access</text>
       
       <!-- Bullet 3 -->
-      <text x="120" y="${cardTop + 275}" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="28" font-weight="700" fill="#FFFFFF">🌐 Direct links &amp; secret promo codes included</text>
+      <circle cx="128" cy="${cardTop + 268}" r="5" fill="${accentColor}" />
+      <text x="148" y="${cardTop + 275}" font-family="'Inter', sans-serif" font-size="28" font-weight="700" fill="#FFFFFF">Direct links &amp; secret promo codes included</text>
 
       <!-- Bottom Hint -->
       <line x1="120" y1="${cardTop + 325}" x2="960" y2="${cardTop + 325}" stroke="rgba(255,255,255,0.10)" stroke-width="1" />
-      <text x="120" y="${cardTop + 375}" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="24" font-weight="800" fill="${accentColor}">Swipe left to discover Tool #1 ➔</text>
+      <text x="120" y="${cardTop + 375}" font-family="'Inter', sans-serif" font-size="24" font-weight="700" fill="${accentColor}">Swipe left to discover Tool #1 -></text>
     `;
 
     bodySvg = catPillSvg + titleTextSvg + subtitleTextSvg + cardSvg;
@@ -160,7 +177,7 @@ export async function renderInstagramSlideJpeg(slide: CarouselSlideData): Promis
     const ctaTextSvg = ctaLines
       .map((line, idx) => {
         const lineY = ctaStart + idx * 48;
-        return `<text x="540" y="${lineY}" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="30" font-weight="700" fill="#FFFFFF" text-anchor="middle">${escapeXml(line)}</text>`;
+        return `<text x="540" y="${lineY}" font-family="'Inter', sans-serif" font-size="30" font-weight="700" fill="#FFFFFF" text-anchor="middle">${escapeXml(line)}</text>`;
       })
       .join('');
 
@@ -172,29 +189,29 @@ export async function renderInstagramSlideJpeg(slide: CarouselSlideData): Promis
     bodySvg = `
       <!-- Top Badge -->
       <rect x="430" y="210" width="220" height="46" rx="23" fill="rgba(250, 204, 21, 0.18)" stroke="#FACC15" stroke-width="1.5" />
-      <text x="540" y="240" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="18" font-weight="900" fill="#FACC15" text-anchor="middle" letter-spacing="1">FINAL STEP</text>
+      <text x="540" y="240" font-family="'Inter', sans-serif" font-size="18" font-weight="700" fill="#FACC15" text-anchor="middle" letter-spacing="1">FINAL STEP</text>
 
       <!-- Main Headline -->
-      <text x="540" y="330" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="56" font-weight="900" fill="#FFFFFF" text-anchor="middle">WANT THE DIRECT LINKS?</text>
-      <text x="540" y="380" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="28" font-weight="600" fill="#94A3B8" text-anchor="middle">Don't waste time searching on Google</text>
+      <text x="540" y="330" font-family="'Inter', sans-serif" font-size="56" font-weight="700" fill="#FFFFFF" text-anchor="middle">WANT THE DIRECT LINKS?</text>
+      <text x="540" y="380" font-family="'Inter', sans-serif" font-size="28" font-weight="400" fill="#94A3B8" text-anchor="middle">Don&apos;t waste time searching on Google</text>
 
       <!-- Center Glow Card -->
       <rect x="80" y="440" width="920" height="${cardHeight}" rx="28" fill="rgba(15, 23, 42, 0.90)" stroke="${accentColor}" stroke-width="2" />
       
       <rect x="410" y="480" width="260" height="46" rx="23" fill="${accentColor}" opacity="0.18" stroke="${accentColor}" stroke-width="1.5" />
-      <text x="540" y="511" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="18" font-weight="900" fill="${accentColor}" text-anchor="middle" letter-spacing="1">🤖 INSTANT DM BOT</text>
+      <text x="540" y="511" font-family="'Inter', sans-serif" font-size="18" font-weight="700" fill="${accentColor}" text-anchor="middle" letter-spacing="1">INSTANT DM BOT</text>
 
       <!-- Instruction Highlight Box -->
       <rect x="180" y="550" width="720" height="60" rx="16" fill="rgba(255, 255, 255, 0.08)" stroke="rgba(255,255,255,0.15)" />
-      <text x="540" y="590" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="28" font-weight="900" fill="#FACC15" text-anchor="middle">👇 COMMENT &quot;TOOL&quot; BELOW 👇</text>
+      <text x="540" y="590" font-family="'Inter', sans-serif" font-size="28" font-weight="700" fill="#FACC15" text-anchor="middle">COMMENT &quot;TOOL&quot; BELOW</text>
 
       ${ctaTextSvg}
 
       <line x1="140" y1="${divY}" x2="940" y2="${divY}" stroke="rgba(255,255,255,0.12)" stroke-width="1" />
-      <text x="540" y="${iconsY}" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="28" font-weight="700" fill="#E2E8F0" text-anchor="middle">❤️ Like  •  💬 Comment &quot;TOOL&quot;  •  🔖 Save</text>
+      <text x="540" y="${iconsY}" font-family="'Inter', sans-serif" font-size="26" font-weight="700" fill="#E2E8F0" text-anchor="middle">Like  [+]  Comment &quot;TOOL&quot;  [+]  Save</text>
 
       <!-- Bottom Follow Handle -->
-      <text x="540" y="${followY}" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="28" font-weight="800" fill="#94A3B8" text-anchor="middle">Follow <tspan fill="${accentColor}">@digitalinspirer</tspan> for daily secret AI websites</text>
+      <text x="540" y="${followY}" font-family="'Inter', sans-serif" font-size="26" font-weight="700" fill="#94A3B8" text-anchor="middle">Follow <tspan fill="${accentColor}">@digitalinspirer</tspan> for daily secret AI websites</text>
     `;
 
   } else {
@@ -205,8 +222,8 @@ export async function renderInstagramSlideJpeg(slide: CarouselSlideData): Promis
 
     // 1. Tool Header (Y: 190 to 315)
     const headerSvg = `
-      <text x="80" y="248" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="64" font-weight="900" fill="#FFFFFF">${escapeXml(slide.toolName || slide.title)}</text>
-      <text x="80" y="294" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="28" font-weight="700" fill="${accentColor}">${escapeXml(slide.subtitle || 'Autonomous AI Software')}</text>
+      <text x="80" y="248" font-family="'Inter', sans-serif" font-size="64" font-weight="700" fill="#FFFFFF">${escapeXml(sanitizeSlideText(slide.toolName || slide.title))}</text>
+      <text x="80" y="294" font-family="'Inter', sans-serif" font-size="28" font-weight="700" fill="${accentColor}">${escapeXml(sanitizeSlideText(slide.subtitle || 'Autonomous AI Software'))}</text>
     `;
 
     // 2. Three Dedicated Feature Tiles (Y: 335 to 1175 = 840px total height)
@@ -217,14 +234,15 @@ export async function renderInstagramSlideJpeg(slide: CarouselSlideData): Promis
       .slice(0, 3)
       .map((line, idx) => {
         const lineY = box1Top + 105 + idx * 40;
-        return `<text x="120" y="${lineY}" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="28" font-weight="500" fill="#CBD5E1">${escapeXml(line)}</text>`;
+        return `<text x="120" y="${lineY}" font-family="'Inter', sans-serif" font-size="28" font-weight="400" fill="#CBD5E1">${escapeXml(line)}</text>`;
       })
       .join('');
 
     const box1Svg = `
       <rect x="80" y="${box1Top}" width="920" height="${box1Height}" rx="22" fill="rgba(15, 23, 42, 0.75)" stroke="rgba(239, 68, 68, 0.35)" stroke-width="1.5" />
-      <rect x="120" y="${box1Top + 24}" width="180" height="38" rx="10" fill="rgba(239, 68, 68, 0.20)" stroke="#EF4444" stroke-width="1.5" />
-      <text x="138" y="${box1Top + 50}" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="16" font-weight="900" fill="#F87171" letter-spacing="0.5">❌ REPLACES</text>
+      <rect x="120" y="${box1Top + 24}" width="160" height="38" rx="10" fill="rgba(239, 68, 68, 0.20)" stroke="#EF4444" stroke-width="1.5" />
+      <circle cx="138" cy="${box1Top + 43}" r="4" fill="#F87171" />
+      <text x="152" y="${box1Top + 50}" font-family="'Inter', sans-serif" font-size="16" font-weight="700" fill="#F87171" letter-spacing="0.5">REPLACES</text>
       ${box1TextSvg}
     `;
 
@@ -235,14 +253,15 @@ export async function renderInstagramSlideJpeg(slide: CarouselSlideData): Promis
       .slice(0, 4)
       .map((line, idx) => {
         const lineY = box2Top + 110 + idx * 44;
-        return `<text x="120" y="${lineY}" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="32" font-weight="700" fill="#FFFFFF">${escapeXml(line)}</text>`;
+        return `<text x="120" y="${lineY}" font-family="'Inter', sans-serif" font-size="32" font-weight="700" fill="#FFFFFF">${escapeXml(line)}</text>`;
       })
       .join('');
 
     const box2Svg = `
       <rect x="80" y="${box2Top}" width="920" height="${box2Height}" rx="22" fill="rgba(15, 23, 42, 0.90)" stroke="${accentColor}" stroke-width="2" />
-      <rect x="120" y="${box2Top + 26}" width="200" height="40" rx="10" fill="${accentColor}" opacity="0.22" stroke="${accentColor}" stroke-width="1.5" />
-      <text x="138" y="${box2Top + 53}" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="17" font-weight="900" fill="${accentColor}" letter-spacing="0.5">⚡ SUPERPOWER</text>
+      <rect x="120" y="${box2Top + 26}" width="190" height="40" rx="10" fill="${accentColor}" opacity="0.22" stroke="${accentColor}" stroke-width="1.5" />
+      <circle cx="138" cy="${box2Top + 46}" r="4" fill="${accentColor}" />
+      <text x="152" y="${box2Top + 53}" font-family="'Inter', sans-serif" font-size="17" font-weight="700" fill="${accentColor}" letter-spacing="0.5">SUPERPOWER</text>
       ${box2TextSvg}
     `;
 
@@ -253,24 +272,43 @@ export async function renderInstagramSlideJpeg(slide: CarouselSlideData): Promis
       .slice(0, 3)
       .map((line, idx) => {
         const lineY = box3Top + 105 + idx * 40;
-        return `<text x="120" y="${lineY}" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="28" font-weight="600" fill="#7DD3FC">${escapeXml(line)}</text>`;
+        return `<text x="120" y="${lineY}" font-family="'Inter', sans-serif" font-size="28" font-weight="400" fill="#7DD3FC">${escapeXml(line)}</text>`;
       })
       .join('');
 
     const box3Svg = `
       <rect x="80" y="${box3Top}" width="920" height="${box3Height}" rx="22" fill="rgba(15, 23, 42, 0.75)" stroke="rgba(56, 189, 248, 0.35)" stroke-width="1.5" />
-      <rect x="120" y="${box3Top + 24}" width="160" height="38" rx="10" fill="rgba(56, 189, 248, 0.20)" stroke="#38BDF8" stroke-width="1.5" />
-      <text x="138" y="${box3Top + 50}" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="16" font-weight="900" fill="#38BDF8" letter-spacing="0.5">💡 PRO TIP</text>
+      <rect x="120" y="${box3Top + 24}" width="150" height="38" rx="10" fill="rgba(56, 189, 248, 0.20)" stroke="#38BDF8" stroke-width="1.5" />
+      <circle cx="138" cy="${box3Top + 43}" r="4" fill="#38BDF8" />
+      <text x="152" y="${box3Top + 50}" font-family="'Inter', sans-serif" font-size="16" font-weight="700" fill="#38BDF8" letter-spacing="0.5">PRO TIP</text>
       ${box3TextSvg}
     `;
 
     bodySvg = headerSvg + box1Svg + box2Svg + box3Svg;
   }
 
-  // ── 4. Full High-Res SVG Frame ──────────────────────────────────
+  // ── 4. Full High-Res SVG Frame with Embedded TTF Font ───────────
   const fullSvg = `
     <svg width="${SLIDE_WIDTH}" height="${SLIDE_HEIGHT}" viewBox="0 0 ${SLIDE_WIDTH} ${SLIDE_HEIGHT}" xmlns="http://www.w3.org/2000/svg">
       <defs>
+        <style>
+          @font-face {
+            font-family: 'Inter';
+            font-weight: 700;
+            font-style: normal;
+            src: url('data:font/ttf;base64,${INTER_BOLD_BASE64}') format('truetype');
+          }
+          @font-face {
+            font-family: 'Inter';
+            font-weight: 400;
+            font-style: normal;
+            src: url('data:font/ttf;base64,${INTER_REGULAR_BASE64}') format('truetype');
+          }
+          text {
+            font-family: 'Inter', -apple-system, sans-serif;
+          }
+        </style>
+
         <!-- Luxury Dark Gradient Background -->
         <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
           <stop offset="0%" stop-color="#070A11" />

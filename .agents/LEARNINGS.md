@@ -4,6 +4,22 @@ This file serves as persistent dynamic memory across coding agent sessions. Ever
 
 ---
 
+### 2026-09-14 — Instagram Carousel & PDF Document Missing Font Glyphs (Tofu Boxes) Resolution
+- **📌 Issue**:
+  Auto-posted Instagram carousel slides and carousel PDF documents displayed empty boxes/lines (tofu rectangles: `□□□□`) instead of text characters.
+- **🔍 Root Cause**:
+  1. On Vercel Linux / headless serverless containers, `sharp`/`librsvg` does not have access to client-side system fonts (`system-ui`, `-apple-system`, `Segoe UI`). Without an embedded `@font-face` inside SVG `<defs>`, `librsvg` failed font resolution and rendered every glyph as an empty rectangle box.
+  2. Emojis and unmapped Unicode symbols (`⚡`, `📌`, `💎`, `➔`, `•`) were placed directly in SVG and PDF text strings. TrueType fonts (like `Inter`) do not have color emoji glyphs, rendering boxes whenever an emoji appeared.
+  3. In `src/lib/carousel/renderers/coverSlide.ts` and `engine.ts`, `➔` and other symbols were drawn directly without passing through `cleanAscii`, causing missing glyph boxes in `active-carousel.pdf`.
+- **🛠️ Verified Code Fix**:
+  1. **Self-Contained TrueType Embedding**: Extracted `Inter-Bold` and `Inter-Regular` into `src/lib/fonts/fontBase64.ts` and embedded `@font-face` with base64 TrueType fonts directly inside the SVG `<defs><style>`, eliminating reliance on host OS fonts.
+  2. **Zero-Emoji Text Sanitizer & Vector Accents**: Added `sanitizeSlideText()` to strip unsupported emojis/symbols from AI responses and replaced all slide emojis with crisp SVG vector accents (colored circle dots, styled badges, and clean ASCII chevrons).
+  3. **PDF Carousel Glyph Normalization**: Updated `cleanAscii()` in `src/lib/carousel/utils.ts` and wrapped all footer and tag texts in `engine.ts`, `coverSlide.ts`, and `statCardSlide.ts` to convert `➔` to `->` and remove emoji characters.
+  4. **Bundling Tracing**: Added `outputFileTracingIncludes` for `src/lib/fonts` in `next.config.ts`.
+  5. **Verification**: Successfully generated and visually verified both Instagram slides and PDF carousel with `view_file`. Ran `pnpm tsc --noEmit` with 0 errors.
+
+---
+
 ### 2026-09-11 — Next.js Vercel Turbopack/Webpack Bundling Fix for @ffmpeg-installer & @ffprobe-installer
 - **📌 Issue**:
   Vercel deployment failed with module resolution error:

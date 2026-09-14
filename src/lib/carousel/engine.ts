@@ -1,7 +1,7 @@
 import { PDFDocument, rgb, type PDFImage } from 'pdf-lib';
 import type { CarouselDeck, SlideRenderContext } from './types';
 import { SLIDE_WIDTH, SLIDE_HEIGHT, bgDeep, vibrantPurple, electricBlue, textMuted } from './constants';
-import { getTopicImage } from './utils';
+import { getTopicImage, cleanAscii } from './utils';
 import { loadCarouselFonts } from './fonts';
 import { renderCoverSlide } from './renderers/coverSlide';
 import { renderIntroSlide } from './renderers/introSlide';
@@ -103,9 +103,11 @@ export async function renderSlobodanCarouselPdf(
       });
 
       const rawFooter = rawSlide.footer || '';
-      const footerLabel = rawFooter && !rawFooter.toLowerCase().includes('pakodrive')
-        ? rawFooter
-        : 'Swipe to continue ->';
+      const footerLabel = cleanAscii(
+        rawFooter && !rawFooter.toLowerCase().includes('pakodrive')
+          ? rawFooter
+          : 'Swipe to continue ->'
+      );
       let footerSize = 22;
       while (footerSize > 14 && fontBold.widthOfTextAtSize(footerLabel, footerSize) > 900) {
         footerSize -= 1;

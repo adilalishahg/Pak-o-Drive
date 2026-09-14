@@ -30,6 +30,12 @@ export async function loadCarouselFonts(pdfDoc: PDFDocument): Promise<FontBundle
         ? await pdfDoc.embedFont(fs.readFileSync(codePath))
         : fontBold;
       console.log('✓ [Carousel] Loaded Inter & FiraCode TrueType fonts into PDF');
+    } else {
+      const { INTER_BOLD_BASE64, INTER_REGULAR_BASE64 } = await import('../fonts/fontBase64');
+      fontBold = await pdfDoc.embedFont(Buffer.from(INTER_BOLD_BASE64, 'base64'));
+      fontRegular = await pdfDoc.embedFont(Buffer.from(INTER_REGULAR_BASE64, 'base64'));
+      fontCode = fontBold;
+      console.log('✓ [Carousel] Loaded Inter from embedded base64 into PDF');
     }
   } catch (fontErr) {
     console.warn('⚠️ Custom font embedding fallback to standard Helvetica:', fontErr);

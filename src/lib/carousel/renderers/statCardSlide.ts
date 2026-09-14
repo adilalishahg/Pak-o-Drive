@@ -137,7 +137,7 @@ export function renderStatCardSlide(ctx: SlideRenderContext): void {
   });
 
   // Tag Pill for Box 2 (Generous 24px padding from top)
-  const mechTag = '⚡ ARCHITECTURAL MECHANICS';
+  const mechTag = 'ARCHITECTURAL MECHANICS';
   const mW = fontBold.widthOfTextAtSize(mechTag, 14) + 24;
   const mechTagH = 26;
   const mechTagBoxY = box2Y + box2H - 24 - mechTagH;
@@ -220,7 +220,7 @@ export function renderStatCardSlide(ctx: SlideRenderContext): void {
   });
 
   // Tag inside banner (Generous 22px top margin)
-  const ruleTag = '💎 PRINCIPAL ARCHITECT RULE';
+  const ruleTag = 'PRINCIPAL ARCHITECT RULE';
   const rW = fontBold.widthOfTextAtSize(ruleTag, 13);
   page.drawText(ruleTag, {
     x: SLIDE_WIDTH / 2 - rW / 2,

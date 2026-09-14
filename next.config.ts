@@ -20,6 +20,9 @@ const nextConfig: NextConfig = {
     inlineCss: true,
     optimizePackageImports: ['canvas-confetti', 'lucide-react', 'recharts', 'bootstrap-icons'],
   },
+  outputFileTracingIncludes: {
+    '/api/**/*': ['./src/lib/fonts/**/*'],
+  },
   turbopack: {
     resolveAlias: {
       'core-js/stable': { browser: './src/lib/empty-polyfills.js' },
