@@ -7,6 +7,9 @@ import path from 'path';
 import dbConnect from '@/lib/mongodb';
 import InstagramPostLog from '@/models/InstagramPostLog';
 import { generateCinematicVideo, DeepDiveToolScript } from './cinematicVideo';
+import { generateViralMotionReel } from './viralMotionReelEngine';
+import { ReelCategory } from './reelCategoryLibrary';
+import { publishInstagramStory } from './instagramStoryPostService';
 import { callMultiProviderAI } from './multiAiEngine';
 
 export interface InstagramReelResult {
@@ -17,7 +20,27 @@ export interface InstagramReelResult {
   caption?: string;
   videoUrl?: string;
   durationSeconds?: number;
+  storyId?: string;
   error?: string;
+}
+
+/**
+ * Generates high-converting viral caption optimized for UK & Global Reach
+ */
+export async function generateViralUkCaption(title: string): Promise<string> {
+  return `${title.toUpperCase()} ⚡
+
+Most people quit right before everything is about to change. 
+Stay focused. Keep building in silence.
+
+Save this for the days you feel like giving up 📌
+
+Drop a "🔥" in the comments if you are committed to winning this year.
+
+Follow @digitalinspirer for daily drive & high-performance mindset.
+
+━━━━━━━━━━━━━━━━━
+#reelsuk #londoncars #mindsetquotes #supercarsuk #darkaesthetic #reelsinstagram #viralreels #automotive #nightdrive #luxurylifestyle #carsofinstagram #successmindset #explorepage #millionairemindset`;
 }
 
 /**
@@ -119,8 +142,14 @@ Top 1% developers are quietly using ${toolName} to 10x their workflow in 2026.
 export async function executeAutoInstagramReelPost(options?: {
   source?: 'cron' | 'admin-manual' | 'cli-script';
   customToolName?: string;
+  reelType?: 'viral-motion' | 'cinematic-ai';
+  category?: ReelCategory;
+  shareToStory?: boolean;
+  quoteLines?: string[];
+  sourceVideoPath?: string;
 }): Promise<InstagramReelResult> {
   const source = options?.source || 'cli-script';
+  const reelType = options?.reelType || 'viral-motion';
   const igUserId = process.env.INSTAGRAM_ACCOUNT_ID;
   const accessToken = process.env.INSTAGRAM_ACCESS_TOKEN;
 
@@ -134,29 +163,47 @@ export async function executeAutoInstagramReelPost(options?: {
     };
   }
 
-  console.log('🚀 [InstagramReelService] Initializing automated cinematic reel dispatcher...');
+  console.log(`🚀 [InstagramReelService] Initializing automated reel dispatcher (type: ${reelType})...`);
   console.log(`📱 [InstagramReelService] Target Instagram Account: ${igUserId}`);
 
-  // Step 1: Generate Cinematic Video (Script + Voice + UI Frames + FFmpeg)
-  console.log('🎬 [InstagramReelService] Step 1: Generating cinematic AI video...');
-  const videoResult = await generateCinematicVideo({
-    customToolName: options?.customToolName,
-  });
+  // Step 1: Generate Real Moving Video or Cinematic Video
+  let videoPath = '';
+  let videoDuration = 7.5;
+  let toolName = options?.customToolName || 'Viral Mindset Reel';
+  let caption = '';
 
-  if (!videoResult.success || !fs.existsSync(videoResult.videoPath)) {
-    throw new Error('Video generation failed or output file not found.');
+  if (reelType === 'viral-motion') {
+    console.log('🎬 [InstagramReelService] Step 1: Generating real-motion viral video with embedded TrueType...');
+    const motionResult = await generateViralMotionReel({
+      category: options?.category,
+      quoteLines: options?.quoteLines,
+      sourceVideoPath: options?.sourceVideoPath,
+    });
+    videoPath = motionResult.videoPath;
+    videoDuration = motionResult.durationSeconds;
+    toolName = motionResult.title;
+    caption = motionResult.caption || await generateViralUkCaption(toolName);
+  } else {
+    console.log('🎬 [InstagramReelService] Step 1: Generating cinematic AI video...');
+    const videoResult = await generateCinematicVideo({
+      customToolName: options?.customToolName,
+    });
+
+    if (!videoResult.success || !fs.existsSync(videoResult.videoPath)) {
+      throw new Error('Video generation failed or output file not found.');
+    }
+
+    videoPath = videoResult.videoPath;
+    videoDuration = videoResult.videoDurationSeconds;
+    toolName = videoResult.toolName;
+    caption = await generateReelCaption(toolName, 'Next-Gen Developer Superpower', 'Developer Tools');
   }
 
-  const toolName = videoResult.toolName;
-  console.log(`✓ [InstagramReelService] Video generated successfully for "${toolName}" (${videoResult.videoDurationSeconds.toFixed(1)}s)`);
+  console.log(`✓ [InstagramReelService] Video ready for "${toolName}" (${videoDuration.toFixed(1)}s)`);
 
   // Step 2: Upload Video to Public CDN
   console.log('☁️ [InstagramReelService] Step 2: Uploading video to CDN for Meta ingestion...');
-  const publicVideoUrl = await uploadVideoToCdn(videoResult.videoPath);
-
-  // Step 3: Generate Viral Caption
-  console.log('📝 [InstagramReelService] Step 3: Generating viral caption...');
-  const caption = await generateReelCaption(toolName, 'Next-Gen Developer Superpower', 'Developer Tools');
+  const publicVideoUrl = await uploadVideoToCdn(videoPath);
 
   // Step 4: Create Instagram Reel Media Container
   console.log('📦 [InstagramReelService] Step 4: Creating Instagram Reel container in Meta Graph API...');
@@ -264,6 +311,23 @@ export async function executeAutoInstagramReelPost(options?: {
     console.warn('⚠️ [InstagramReelService] MongoDB log warning:', err.message);
   }
 
+  // Step 9: Autonomous Share to Instagram Story
+  let storyId: string | undefined;
+  if (options?.shareToStory !== false) {
+    try {
+      console.log('📲 [InstagramReelService] Step 9: Auto-sharing Reel to Instagram Story...');
+      const storyRes = await publishInstagramStory(videoPath);
+      if (storyRes.success) {
+        storyId = storyRes.storyId;
+        console.log(`🎉 [InstagramReelService] Story shared successfully! Story ID: ${storyId}`);
+      } else {
+        console.warn(`⚠️ [InstagramReelService] Story auto-share skipped: ${storyRes.error}`);
+      }
+    } catch (storyErr: any) {
+      console.warn(`⚠️ [InstagramReelService] Story dispatch warning: ${storyErr.message}`);
+    }
+  }
+
   return {
     success: true,
     toolName,
@@ -271,6 +335,7 @@ export async function executeAutoInstagramReelPost(options?: {
     permalink,
     caption,
     videoUrl: publicVideoUrl,
-    durationSeconds: videoResult.videoDurationSeconds,
+    durationSeconds: videoDuration,
+    storyId,
   };
 }

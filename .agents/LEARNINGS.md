@@ -2,6 +2,19 @@
 
 This file serves as persistent dynamic memory across coding agent sessions. Every core standard, architectural decision, and verified bug resolution must be preserved below.
 
+### 2026-09-14 — Viral Real-Motion Instagram Reels Pipeline & Awesome Free LLM Integration
+- **📌 Issue**:
+  User requested real moving video (e.g. night supercar, rain headlights, driving highway footage) instead of still photos with pan-zoom, matching the exact format of their top viral Instagram reels (@digitalinspirer), and asked about leveraging `awesome-free-llm-apis` in Pak-o-Drive.
+- **🔍 Root Cause**:
+  Still image pan-and-zoom (Ken Burns effect) lacks authentic cinematic video motion (rain drops falling, headlights beaming, wheels rolling, highway traffic). Modern viral engagement requires genuine high-fps moving B-roll composited with crisp sans-serif typography, subtle dark color grade, and lofi audio.
+- **🛠️ Verified Code Fix**:
+  1. **Direct CDN B-roll Pipeline**: Integrated Coverr and Mixkit direct-stream CDNs for royalty-free moving footage (e.g. `nissan-300zx` dark rain headlights, high-speed sports car curves) without API key restrictions.
+  2. **FFmpeg 9:16 Video Compositing**: Built `scripts/build-viral-moving-reels.js` utilizing `scale=720:1280:force_original_aspect_ratio=increase,crop=720:1280,eq=brightness=-0.08:contrast=1.15:saturation=1.1`, overlaid crisp Sharp SVG typography with embedded `Inter-Bold` fonts, and synced with trending lofi audio.
+  3. **Multi-Video Previewer**: Updated `public/viral-reel-preview.html` with side-by-side comparison of real moving video reels and the user's #1 Instagram reel.
+  4. **Awesome Free LLM Architecture**: Evaluated `awesome-free-llm-apis` and architected zero-cost fallback tiers (Mistral AI, Cloudflare Workers AI Llama 3.3 70B) for `src/lib/multiAiEngine.ts`.
+  8. **Autonomous Instagram Story Publishing Pipeline**: Built `src/lib/instagramStoryPostService.ts` and integrated Step 9 into `executeAutoInstagramReelPost` to publish the Reel video directly to Instagram Stories (`media_type: 'STORIES'`). Documented Meta Graph API constraints (Meta strictly blocks interactive Poll/Quiz stickers via third-party API, reserving them for mobile app tap-to-vote, but standard full-bleed video Stories with DM reply triggers publish automatically).
+  9. **Verification**: Compiled with `pnpm tsc --noEmit` with 0 errors.
+
 ---
 
 ### 2026-09-14 — Instagram Carousel & PDF Document Missing Font Glyphs (Tofu Boxes) Resolution

@@ -24,12 +24,16 @@ async function handleInstagramReelPost(request: Request) {
   }
 
   const customTool = searchParams.get('tool') || undefined;
+  const reelType = (searchParams.get('type') as 'viral-motion' | 'cinematic-ai') || 'viral-motion';
+  const category = (searchParams.get('category') as any) || undefined;
 
   try {
-    console.log('🎬 [CronAutoInstagramReel] Triggering Cinematic AI Reel Auto-Post...');
+    console.log(`🎬 [CronAutoInstagramReel] Triggering Automated Reel (${reelType}, category: ${category || 'auto-day'})...`);
     const result = await executeAutoInstagramReelPost({
       source: 'cron',
       customToolName: customTool,
+      reelType,
+      category,
     });
 
     if (!result.success) {
