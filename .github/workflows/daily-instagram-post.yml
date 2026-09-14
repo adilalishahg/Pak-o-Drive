@@ -1,10 +1,10 @@
 name: Daily Instagram Autonomous Post
 
+# Automatic schedule paused to dedicate Instagram account strictly to viral automotive reels
+# on:
+#   schedule:
+#     - cron: '0 5,14 * * *'
 on:
-  schedule:
-    # 05:00 UTC = 10:00 AM PKT (Morning prime rush)
-    # 14:00 UTC = 07:00 PM PKT (Evening prime engagement)
-    - cron: '0 5,14 * * *'
   workflow_dispatch:
     inputs:
       reason:

@@ -70,21 +70,29 @@ async function handleMasterCron(request: Request) {
     results.social = { success: false, error: err.message || 'LinkedIn task error' };
   }
 
-  // 3. Run Instagram Auto-Post Engine
-  try {
-    console.log('📱 [MasterCron] 3/3: Executing Instagram Tech Carousel Auto-Post...');
-    const igRes = await executeAutoInstagramPost({ source: 'cron' });
+  // 3. Instagram Tech Carousel (Skipped to dedicate Instagram 100% to Viral Automotive Reels & Stories)
+  if (process.env.ENABLE_INSTAGRAM_TECH_CAROUSEL === 'true') {
+    try {
+      console.log('📱 [MasterCron] 3/3: Executing Instagram Tech Carousel Auto-Post...');
+      const igRes = await executeAutoInstagramPost({ source: 'cron' });
+      results.instagram = {
+        success: igRes.success,
+        topic: igRes.topic,
+        postId: igRes.postId,
+        permalink: igRes.permalink,
+        isCarousel: igRes.isCarousel,
+        error: igRes.error,
+      };
+    } catch (err: any) {
+      console.error('❌ [MasterCron] Instagram task failed:', err);
+      results.instagram = { success: false, error: err.message || 'Instagram task error' };
+    }
+  } else {
+    console.log('📱 [MasterCron] 3/3: Instagram Tech Carousel skipped — Account is dedicated 100% to Viral Automotive Reels.');
     results.instagram = {
-      success: igRes.success,
-      topic: igRes.topic,
-      postId: igRes.postId,
-      permalink: igRes.permalink,
-      isCarousel: igRes.isCarousel,
-      error: igRes.error,
+      skipped: true,
+      reason: 'Account dedicated 100% to Viral Automotive Reels & Stories for maximum reach.',
     };
-  } catch (err: any) {
-    console.error('❌ [MasterCron] Instagram task failed:', err);
-    results.instagram = { success: false, error: err.message || 'Instagram task error' };
   }
 
   const durationMs = Date.now() - startTime;
