@@ -22,6 +22,7 @@ export interface InstagramReelResult {
   videoUrl?: string;
   durationSeconds?: number;
   storyId?: string;
+  tikTokPublishId?: string;
   error?: string;
 }
 
@@ -369,6 +370,22 @@ export async function executeAutoInstagramReelPost(options?: {
     }
   }
 
+  // Step 10: Autonomous Dispatch to TikTok (Buffer / Native API)
+  let tikTokPublishId: string | undefined;
+  if (publicVideoUrl && caption) {
+    try {
+      const { publishToTikTok } = await import('./tiktokPostService');
+      console.log('🎵 [InstagramReelService] Step 10: Auto-publishing video to TikTok...');
+      const tikTokRes = await publishToTikTok(publicVideoUrl, caption);
+      if (tikTokRes.success) {
+        tikTokPublishId = tikTokRes.publishId;
+        console.log(`🎉 [InstagramReelService] TikTok Reel Published! Publish ID: ${tikTokPublishId}`);
+      }
+    } catch (tikTokErr: any) {
+      console.warn('⚠️ [InstagramReelService] TikTok dispatch skipped:', tikTokErr.message);
+    }
+  }
+
   return {
     success: true,
     toolName,
@@ -378,5 +395,6 @@ export async function executeAutoInstagramReelPost(options?: {
     videoUrl: publicVideoUrl,
     durationSeconds: videoDuration,
     storyId,
+    tikTokPublishId,
   };
 }

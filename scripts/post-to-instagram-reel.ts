@@ -42,6 +42,12 @@ async function main() {
       if (result.storyId) {
         console.log(`📲 Story ID: ${result.storyId}`);
       }
+
+      // Step 10 Status: TikTok Auto-Publish
+      if (result.tikTokPublishId) {
+        console.log(`🎉 TikTok Video Published! Publish ID: ${result.tikTokPublishId}`);
+      }
+
       console.log('----------------------------------------------------');
       process.exit(0);
     } else {

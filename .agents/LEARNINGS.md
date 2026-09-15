@@ -2,7 +2,59 @@
 
 This file serves as persistent dynamic memory across coding agent sessions. Every core standard, architectural decision, and verified bug resolution must be preserved below.
 
-### 2026-09-14 — UK Algorithmic Reach Optimization & Dual-Monetization Architecture
+### 2026-09-15 — Autonomous TikTok Auto-Post via Buffer GraphQL Engine (Zero Business Documents)
+- **📌 Issue**:
+  User attempted to set up a TikTok Business Account and Developer App to automate video posting alongside daily Instagram Reels, but became blocked by mandatory business verification documents (NTN/SECP company registration, bank statements) that cannot be skipped.
+- **🔍 Root Cause**:
+  TikTok Developer Portal enforces strict commercial business verification for direct Developer App Content Posting APIs, and TikTok mobile Business Accounts restrict commercial music libraries, crippling virality. Buffer (official TikTok enterprise partner) supports Personal/Creator accounts with instant 0-doc OAuth authorization, providing a unified GraphQL API (`createPost`) with 3,000 free requests/month and instant public live sharing (`mode: 'shareNow'`).
+- **🛠️ Verified Code Fix**:
+  1. **Dual-Engine TikTok Service (`src/lib/tiktokPostService.ts`)**: Implemented Buffer GraphQL mutation engine with automatic channel resolution (`pakodrive`, ID: `6aa929edea19ca0bde48964e`), caption truncation (2,000 chars), and asset video streaming, maintaining graceful fallback to native TikTok v2 API.
+  2. **GitHub Actions Workflow (`.github/workflows/daily-instagram-reel.yml`)**: Added `BUFFER_ACCESS_TOKEN` and `BUFFER_TIKTOK_CHANNEL_ID` secrets to environment injection.
+  3. **Local Environment Configuration**: Appended verified Buffer access tokens to local `.env`.
+  4. **Verification**: Executed live schema and GraphQL mutation test against Buffer endpoint confirming valid authentication, followed by `pnpm tsc --noEmit` and `graft build` passing with 0 errors.
+
+---
+
+### 2026-09-15 — Slobodan Gajić Standard LinkedIn Document Carousel PDF Engine
+- **📌 Issue**:
+  User reviewed sample PDFs (`pdf_samples`) from Slobodan Gajić (2M Web Studio) and noted the default vector `pdf-lib` renderer lacked visual richness, high-contrast typography, 3D artwork, and a personalized follow outro slide with author branding.
+- **🔍 Root Cause**:
+  Raw `pdf-lib` vector primitives (`page.drawRectangle`, `page.drawText`) lack support for modern CSS effects (radial background vignettes, glassmorphic card drop-shadows, monospace code window headers, and embedded high-res imagery). The viral LinkedIn sample PDFs are compiled from high-resolution (1080x1350, 4:5 portrait) pre-rendered image pages embedded directly via `pdfDoc.embedJpg()`.
+- **🛠️ Verified Code Fix**:
+  1. **SVG + Sharp + PDF-Lib Pipeline (`scripts/build-viral-carousel-deck.ts`)**: Built a modular, high-performance slide renderer creating 1080x1350 pixel-perfect SVG templates compiled through `sharp` to 95% quality JPEGs, then assembled into `public/active-carousel.pdf`.
+  2. **High-Authority Content & 3D Artwork**: Featured 3D isometric glassmorphism hero visuals, dual-column macOS code comparison windows (client waterfall vs async RSC), step-by-step pipeline flows, and production metrics.
+  3. **Personalized Authority Outro Slide**: Added author branding with Syed Adil Ali's verified profile picture (`public/img/avatar.jpg`), role, stack tags, 3 high-intent hook pills, dotted pointer arrow, and high-contrast glowing `+ Follow @Syed Adil Ali` CTA button with Repost/Save/Discuss engagement boxes.
+  4. **Live Gallery Previewer**: Updated `public/carousel-preview.html` with card-by-card mobile & desktop responsive visual inspector.
+  5. **Verification**: Checked all 8 slide renders, confirmed `pnpm tsc --noEmit` passed with 0 errors.
+
+---
+
+### 2026-09-14 — TikTok Content Posting API v2 Autonomous Multi-Platform Pipeline
+- **📌 Issue**:
+  User requested automated video publishing directly to their TikTok account via GitHub Actions, in parallel with the daily Instagram Reel release.
+- **🔍 Root Cause**:
+  Short-form video reach is maximized through simultaneous multi-platform distribution. TikTok requires integration with the TikTok Content Posting API v2 (`/v2/post/publish/video/init/` with `PULL_FROM_URL` mode), consuming public CDN video URLs and video metadata with `PUBLIC_TO_EVERYONE` privacy.
+- **🛠️ Verified Code Fix**:
+  1. **TikTok API Service (`src/lib/tiktokPostService.ts`)**: Built `publishToTikTok(videoUrl, caption)` utilizing TikTok Direct Post API v2 (`PULL_FROM_URL`) with graceful token verification.
+  2. **Unified Runner Dispatch (`scripts/post-to-instagram-reel.ts`)**: Added Step 10 to automatically trigger TikTok auto-publish immediately upon successful Cloudinary/CDN video upload.
+  3. **GitHub Action Secret Integration**: Added `TIKTOK_ACCESS_TOKEN` to `.github/workflows/daily-instagram-reel.yml`.
+  4. **Verification**: Compiled with `pnpm tsc --noEmit` and `graft build` with 0 errors.
+
+---
+
+
+- **📌 Issue**:
+  User identified that posting computer/tech infocards alongside automotive night-drive reels was causing niche confusion in Instagram's recommendation algorithm, diluting explore page velocity. User chose Option 2: dedicate the Instagram account 100% to viral automotive & aesthetic reels.
+- **🔍 Root Cause**:
+  Mixing disconnected topics (software/coding carousels vs supercar/drive aesthetic reels) divides follower retention. When tech followers skip car reels or vice versa, the initial sample engagement signal drops, hindering organic algorithmic distribution.
+- **🛠️ Verified Code Fix**:
+  1. **Disabled Auto-Tech Schedule**: Paused automatic schedule trigger in `.github/workflows/daily-instagram-post.yml` (while retaining `workflow_dispatch` for manual runs).
+  2. **Gated Vercel Master Cron**: Modified `src/app/api/cron/daily-master/route.ts` Step 3 to skip Instagram Tech Carousel unless `ENABLE_INSTAGRAM_TECH_CAROUSEL === 'true'`, preserving LinkedIn tech carousels and SEO blog generation while keeping Instagram 100% dedicated to viral reels.
+  3. **Verification**: Executed `pnpm tsc --noEmit` and `graft build` with 0 errors.
+
+---
+
+
 - **📌 Issue**:
   User requested dual-market monetization: targeting high-value UK/Global audience on Instagram Reels for affiliate commissions, theme-page growth, and digital product sales (presets, wallpapers), while maintaining local Pakistani sales (physical inventory with Cash on Delivery / COD).
 - **🔍 Root Cause**:

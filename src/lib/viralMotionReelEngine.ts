@@ -282,9 +282,19 @@ export async function generateViralMotionReel(options?: ViralMotionReelOptions):
     [bg][1:v]overlay=0:0[v]
   `.replace(/\s+/g, ' ').trim();
 
-  const cmd = `"${ffmpegBin}" -y -stream_loop -1 -i "${sourceVideo}" -i "${overlayPath}" -i "${audioFile}" -filter_complex "${filterComplex}" -map "[v]" -map 2:a -c:v libx264 -preset fast -crf 22 -pix_fmt yuv420p -c:a aac -b:a 192k -t ${duration} "${outputPath}"`;
+  const absSource = path.resolve(process.cwd(), sourceVideo);
+  const absAudio = path.resolve(process.cwd(), audioFile);
+  const absOverlay = path.resolve(process.cwd(), overlayPath);
+  const absOutput = path.resolve(process.cwd(), outputPath);
 
-  execSync(cmd, { stdio: 'ignore' });
+  const cmd = `"${ffmpegBin}" -y -stream_loop -1 -i "${absSource}" -i "${absOverlay}" -i "${absAudio}" -filter_complex "${filterComplex}" -map "[v]" -map 2:a -c:v libx264 -preset fast -crf 22 -pix_fmt yuv420p -c:a aac -b:a 192k -t ${duration} "${absOutput}"`;
+
+  try {
+    execSync(cmd, { stdio: 'pipe' });
+  } catch (renderErr: any) {
+    console.error('❌ [ViralMotionReel] FFmpeg Stderr:', renderErr.stderr?.toString() || renderErr.message);
+    throw renderErr;
+  }
 
   // Clean up temporary overlay
   try {
