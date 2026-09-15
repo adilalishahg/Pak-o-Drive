@@ -168,9 +168,7 @@ export function renderStatCardSlide(ctx: SlideRenderContext): void {
         'Strict message acknowledgments eliminate data loss during broker rebalancing.',
       ];
 
-  const effectiveBody = rawBody.length < 3
-    ? [...rawBody, 'Strict message acknowledgments eliminate data loss during broker rebalancing and auto-scaling.']
-    : rawBody;
+  const effectiveBody = rawBody;
 
   let bulletY = mechTagBoxY - 40;
   for (const rawLine of effectiveBody.slice(0, 3)) {
