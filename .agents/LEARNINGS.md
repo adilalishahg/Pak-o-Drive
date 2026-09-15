@@ -2,6 +2,19 @@
 
 This file serves as persistent dynamic memory across coding agent sessions. Every core standard, architectural decision, and verified bug resolution must be preserved below.
 
+### 2026-09-15 — LinkedIn Multi-Topic High-Fidelity Carousel Publishing & Authentic Studio Portrait Synchronization
+- **📌 Issue**:
+  User requested automated generation of fresh high-authority LinkedIn carousels on new engineering topics (Cloud Event-Driven Architecture, Agentic AI) with bespoke 3D imagery, strict typography boundary controls (preventing text overflow and ellipses), and persistent author branding using their authentic studio portrait.
+- **🔍 Root Cause**:
+  Hardcoded carousel generators lacked dynamic slide templates for varied engineering tracks (`cloud-architecture`, `agentic-ai`). SVG `<text>` elements do not auto-wrap and overflowed card borders when single-line string length exceeded bounding boxes. Additionally, author portrait references in `<defs>` required dedicated `<clipPath id="avatarCardClip">` mappings to ensure the user's authentic studio photo (`public/img/avatar.jpg`) renders within the circular cyan profile badge across all future deck generation runs.
+- **🛠️ Verified Code Fix**:
+  1. **Topic Deck Builders (`scripts/build-event-driven-deck.ts`, `scripts/build-agentic-ai-deck.ts`)**: Created 8-slide generator suites with AI-synthesized 3D hero covers, balanced multi-line headlines with 200px+ right-margin padding, and clean column grids eliminating overlap.
+  2. **Authentic Studio Portrait**: Persisted Syed Adil Ali's true executive portrait to `public/img/avatar.jpg` with circular clip paths and verified checkmarks on Slide 8.
+  3. **Automated LinkedIn Publishing**: Dispatched both decks to LinkedIn API (`urn:li:ugcPost:7505629115555741696`, `urn:li:ugcPost:7505640258437275650`), committed to git (`fa16a7d`), and pushed to GitHub `origin main` to trigger live Vercel deployment.
+  4. **Verification**: Checked all slide renders, confirmed `pnpm tsc --noEmit` and `graft build` passed with 0 errors.
+
+---
+
 ### 2026-09-15 — Autonomous TikTok Auto-Post via Buffer GraphQL Engine (Zero Business Documents)
 - **📌 Issue**:
   User attempted to set up a TikTok Business Account and Developer App to automate video posting alongside daily Instagram Reels, but became blocked by mandatory business verification documents (NTN/SECP company registration, bank statements) that cannot be skipped.
