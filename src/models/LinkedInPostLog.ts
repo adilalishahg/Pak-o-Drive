@@ -4,7 +4,7 @@ export interface ILinkedInPostLog extends Document {
   topic: string;
   topicNormalized?: string;
   keywords?: string[];
-  track: 'agentic-ai' | 'nextjs-react' | 'typescript' | 'cloud-architecture' | 'fullstack-performance';
+  track: 'agentic-ai' | 'nextjs-react' | 'typescript' | 'cloud-architecture' | 'fullstack-performance' | 'fullstack-architecture';
   caption: string;
   slidesCount: number;
   postId?: string;
@@ -37,7 +37,7 @@ const LinkedInPostLogSchema = new Schema<ILinkedInPostLog>(
     },
     track: {
       type: String,
-      enum: ['agentic-ai', 'nextjs-react', 'typescript', 'cloud-architecture', 'fullstack-performance'],
+      enum: ['agentic-ai', 'nextjs-react', 'typescript', 'cloud-architecture', 'fullstack-performance', 'fullstack-architecture'],
       default: 'agentic-ai',
       index: true,
     },

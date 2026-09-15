@@ -68,7 +68,7 @@ Swipe through the 8-slide visual masterclass below for the complete code compari
       topic,
       topicNormalized: topic.toLowerCase().trim(),
       keywords: ['nextjs', 'react', 'architecture', 'fullstack', 'performance'],
-      track: 'fullstack-architecture',
+      track: 'nextjs-react',
       caption,
       slidesCount: 8,
       postId: res.postId,
