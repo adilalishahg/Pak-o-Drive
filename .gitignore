@@ -32,6 +32,8 @@ desktop/node_modules/
 temp_cinematic_reel/
 *.tmp
 *.temp
+*.zip
+*.exe
 
 # Environment Variables & Secrets
 .env

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>LinkedIn Carousel Live Gallery | Event-Driven Architecture</title>
+  <title>LinkedIn Carousel Live Gallery | Agentic AI Architecture</title>
   <style>
     body {
       margin: 0;
@@ -41,140 +41,138 @@
       background: rgba(0, 245, 212, 0.15);
       border: 1px solid #00F5D4;
       color: #00F5D4;
-      padding: 4px 12px;
-      border-radius: 999px;
-      font-size: 13px;
+      padding: 4px 10px;
+      border-radius: 9999px;
+      font-size: 12px;
       font-weight: 700;
     }
-    .download-btn {
-      background: #00F5D4;
-      color: #030712;
-      font-weight: 800;
-      text-decoration: none;
-      padding: 8px 18px;
-      border-radius: 8px;
-      font-size: 14px;
-      transition: all 0.2s;
-    }
-    .download-btn:hover {
-      background: #38BDF8;
-      box-shadow: 0 0 15px rgba(0, 245, 212, 0.5);
-    }
-    .gallery-container {
-      width: 90%;
-      max-width: 1100px;
+    .meta-bar {
       display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 32px;
-      margin: 32px auto;
+      gap: 20px;
+      font-size: 14px;
+      color: #94A3B8;
     }
-    .slide-card {
+    .gallery {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+      gap: 32px;
+      max-width: 1600px;
       width: 100%;
-      max-width: 650px;
-      background: #070B14;
+      padding: 40px 24px;
+      box-sizing: border-box;
+    }
+    .card {
+      background: #0B1120;
       border: 1px solid #1E293B;
-      border-radius: 18px;
+      border-radius: 16px;
       overflow: hidden;
-      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.85);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
       transition: transform 0.2s, border-color 0.2s;
     }
-    .slide-card:hover {
-      border-color: #00F5D4;
+    .card:hover {
       transform: translateY(-4px);
+      border-color: #00F5D4;
     }
-    .slide-card img {
+    .card img {
       width: 100%;
       height: auto;
       display: block;
+      aspect-ratio: 4 / 5;
+      object-fit: cover;
     }
-    .slide-meta {
-      padding: 12px 18px;
+    .card-footer {
+      padding: 14px 20px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      background: #0B1120;
-      border-top: 1px solid #1E293B;
       font-size: 14px;
-      color: #94A3B8;
       font-weight: 600;
+      color: #94A3B8;
+      border-top: 1px solid #1E293B;
+    }
+    .slide-tag {
+      color: #00F5D4;
     }
   </style>
 </head>
 <body>
   <header>
-    <h1>🚀 LinkedIn Viral Carousel <span class="badge">Event-Driven Architecture</span></h1>
-    <div style="display: flex; gap: 16px; align-items: center;">
-      <span style="color: #94A3B8; font-size: 14px;">Why Top Teams Abandoned REST • 8 Slides</span>
-      <a href="/active-carousel.pdf" download="Event-Driven-Architecture-Masterclass.pdf" class="download-btn">⬇ Download PDF</a>
+    <h1>
+      <span>⚡</span> Autonomous AI Agents: Why Single Prompts Fail
+      <span class="badge">AGENTIC AI // 2026</span>
+    </h1>
+    <div class="meta-bar">
+      <span>👤 Author: <strong>Syed Adil Ali</strong></span>
+      <span>📄 8 Slides (1080x1350)</span>
+      <span>⚡ PDF: <strong>active-carousel.pdf</strong></span>
     </div>
   </header>
 
-  <div class="gallery-container">
+  <div class="gallery">
     
-    <div class="slide-card">
-      <div class="slide-meta">
-        <span>Slide 1 of 8</span>
-        <span style="color: #00F5D4;">1080 x 1350 (4:5 Portrait)</span>
+      <div class="card">
+        <img src="carousel-renders/agentic_slide_1.jpg" alt="Slide 1">
+        <div class="card-footer">
+          <span class="slide-tag">Slide 1 of 8</span>
+          <span>1080 × 1350 (4:5)</span>
+        </div>
       </div>
-      <img src="/carousel-renders/event_slide_1.jpg" alt="Slide 1" />
-    </div>
     
-    <div class="slide-card">
-      <div class="slide-meta">
-        <span>Slide 2 of 8</span>
-        <span style="color: #00F5D4;">1080 x 1350 (4:5 Portrait)</span>
+      <div class="card">
+        <img src="carousel-renders/agentic_slide_2.jpg" alt="Slide 2">
+        <div class="card-footer">
+          <span class="slide-tag">Slide 2 of 8</span>
+          <span>1080 × 1350 (4:5)</span>
+        </div>
       </div>
-      <img src="/carousel-renders/event_slide_2.jpg" alt="Slide 2" />
-    </div>
     
-    <div class="slide-card">
-      <div class="slide-meta">
-        <span>Slide 3 of 8</span>
-        <span style="color: #00F5D4;">1080 x 1350 (4:5 Portrait)</span>
+      <div class="card">
+        <img src="carousel-renders/agentic_slide_3.jpg" alt="Slide 3">
+        <div class="card-footer">
+          <span class="slide-tag">Slide 3 of 8</span>
+          <span>1080 × 1350 (4:5)</span>
+        </div>
       </div>
-      <img src="/carousel-renders/event_slide_3.jpg" alt="Slide 3" />
-    </div>
     
-    <div class="slide-card">
-      <div class="slide-meta">
-        <span>Slide 4 of 8</span>
-        <span style="color: #00F5D4;">1080 x 1350 (4:5 Portrait)</span>
+      <div class="card">
+        <img src="carousel-renders/agentic_slide_4.jpg" alt="Slide 4">
+        <div class="card-footer">
+          <span class="slide-tag">Slide 4 of 8</span>
+          <span>1080 × 1350 (4:5)</span>
+        </div>
       </div>
-      <img src="/carousel-renders/event_slide_4.jpg" alt="Slide 4" />
-    </div>
     
-    <div class="slide-card">
-      <div class="slide-meta">
-        <span>Slide 5 of 8</span>
-        <span style="color: #00F5D4;">1080 x 1350 (4:5 Portrait)</span>
+      <div class="card">
+        <img src="carousel-renders/agentic_slide_5.jpg" alt="Slide 5">
+        <div class="card-footer">
+          <span class="slide-tag">Slide 5 of 8</span>
+          <span>1080 × 1350 (4:5)</span>
+        </div>
       </div>
-      <img src="/carousel-renders/event_slide_5.jpg" alt="Slide 5" />
-    </div>
     
-    <div class="slide-card">
-      <div class="slide-meta">
-        <span>Slide 6 of 8</span>
-        <span style="color: #00F5D4;">1080 x 1350 (4:5 Portrait)</span>
+      <div class="card">
+        <img src="carousel-renders/agentic_slide_6.jpg" alt="Slide 6">
+        <div class="card-footer">
+          <span class="slide-tag">Slide 6 of 8</span>
+          <span>1080 × 1350 (4:5)</span>
+        </div>
       </div>
-      <img src="/carousel-renders/event_slide_6.jpg" alt="Slide 6" />
-    </div>
     
-    <div class="slide-card">
-      <div class="slide-meta">
-        <span>Slide 7 of 8</span>
-        <span style="color: #00F5D4;">1080 x 1350 (4:5 Portrait)</span>
+      <div class="card">
+        <img src="carousel-renders/agentic_slide_7.jpg" alt="Slide 7">
+        <div class="card-footer">
+          <span class="slide-tag">Slide 7 of 8</span>
+          <span>1080 × 1350 (4:5)</span>
+        </div>
       </div>
-      <img src="/carousel-renders/event_slide_7.jpg" alt="Slide 7" />
-    </div>
     
-    <div class="slide-card">
-      <div class="slide-meta">
-        <span>Slide 8 of 8</span>
-        <span style="color: #00F5D4;">1080 x 1350 (4:5 Portrait)</span>
+      <div class="card">
+        <img src="carousel-renders/agentic_slide_8.jpg" alt="Slide 8">
+        <div class="card-footer">
+          <span class="slide-tag">Slide 8 of 8</span>
+          <span>1080 × 1350 (4:5)</span>
+        </div>
       </div>
-      <img src="/carousel-renders/event_slide_8.jpg" alt="Slide 8" />
-    </div>
     
   </div>
 </body>
