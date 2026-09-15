@@ -2,6 +2,19 @@
 
 This file serves as persistent dynamic memory across coding agent sessions. Every core standard, architectural decision, and verified bug resolution must be preserved below.
 
+### 2026-09-15 — Mobile-First LinkedIn Carousel Overhaul: Slobodan Gajić Centered Hierarchy & Large Monospace Code Blocks
+- **📌 Issue**:
+  User provided mobile screenshots demonstrating that text descriptions and code blocks appeared too small, cramped, and faded on mobile screens, with tiny side-by-side boxes and poor readability compared to the viral PDF reference samples (`pdf_samples/`).
+- **🔍 Root Cause**:
+  Earlier templates used side-by-side vertical columns (width 450px) crammed with 14-16px code and descriptions, leaving excess negative space and tiny fonts on mobile smartphone displays. Sample reference PDFs (`1789200014139.pdf`, `1787212825082.pdf`) by Slobodan Gajić follow a centered visual hierarchy: centered bold headings (54px), centered descriptions (26px), full-width centered code windows (880px) with 24px monospace code and natural `<tspan>` syntax highlighting, generous 52px line heights, and circular profile portrait outro.
+- **🛠️ Verified Code Fix**:
+  1. **Centered Hierarchy & Spacing (`scripts/build-agentic-ai-deck.ts`)**: Migrated all slides to Slobodan's centered design language (`text-anchor="middle"`, `x="540"`, 54px bold titles, 26px high-contrast `#E2E8F0` subtitles, 28px italic bottom quotes).
+  2. **Large-Type Code Window (Slide 4)**: Replaced cramped 2-column layout with a single 880px wide macOS/Windows styled code terminal featuring 24px monospace code (`Fira Code`), `<tspan>` syntax coloring, line numbers, and a compiler status pill (`⚡ Zero Silent Regressions`).
+  3. **Visual Cards & Outro (Slide 2, 3, 5, 6, 7, 8)**: Built high-contrast cards with 22-24px descriptions, 80px+ metric callouts, and matched Slide 8 to Slobodan's exact outro with Syed Adil Ali's authentic circular photo (`public/img/avatar.jpg`).
+  4. **Live Verification & LinkedIn Publishing**: Re-rendered all 8 slides, verified visually against `pdf_samples/`, and published live to LinkedIn (`urn:li:ugcPost:7505671931946471425`). Passed `pnpm tsc --noEmit` and `graft build` with 0 errors.
+
+---
+
 ### 2026-09-15 — LinkedIn Multi-Topic High-Fidelity Carousel Publishing & Authentic Studio Portrait Synchronization
 - **📌 Issue**:
   User requested automated generation of fresh high-authority LinkedIn carousels on new engineering topics (Cloud Event-Driven Architecture, Agentic AI) with bespoke 3D imagery, strict typography boundary controls (preventing text overflow and ellipses), and persistent author branding using their authentic studio portrait.
