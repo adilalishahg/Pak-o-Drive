@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import os from 'os';
 import { execSync } from 'child_process';
 import sharp from 'sharp';
 import { callMultiProviderAI } from './multiAiEngine';
@@ -264,13 +265,19 @@ export async function generateViralMotionReel(options?: ViralMotionReelOptions):
     </svg>
   `;
 
-  const tempDir = path.resolve(process.cwd(), 'public/img/viral-reels/temp');
+  const tempDir = path.join(os.tmpdir(), 'viral_reels_temp');
   if (!fs.existsSync(tempDir)) {
-    fs.mkdirSync(tempDir, { recursive: true });
+    try {
+      fs.mkdirSync(tempDir, { recursive: true });
+    } catch {}
   }
 
   const overlayPath = path.join(tempDir, `overlay_${Date.now()}.png`);
-  await sharp(Buffer.from(overlaySvg)).png().toFile(overlayPath);
+  try {
+    await sharp(Buffer.from(overlaySvg)).png().toFile(overlayPath);
+  } catch (sharpErr: any) {
+    console.warn('⚠️ [ViralMotionReel] Sharp overlay render skipped:', sharpErr.message);
+  }
 
   const outputPath = options?.outputFilePath || path.join(tempDir, `viral_reel_${Date.now()}.mp4`);
   const ffmpegBin = getFfmpegPath();

@@ -3,6 +3,7 @@
  * Pak-o-Drive Reel Generator
  */
 import path from 'path';
+import os from 'os';
 import { PresenterProfile, RenderTheme } from './types';
 
 export const VIDEO_CONFIG = {
@@ -10,9 +11,9 @@ export const VIDEO_CONFIG = {
   height: 1920,
   fps: 30,
   aspectRatio: '9:16',
-  tempDir: path.join(process.cwd(), 'temp_cinematic_reel'),
-  outputVideoPath: path.join(process.cwd(), 'public', 'cinematic-reel.mp4'),
-  previewHtmlPath: path.join(process.cwd(), 'public', 'cinematic-preview.html'),
+  tempDir: path.join(os.tmpdir(), 'temp_cinematic_reel'),
+  outputVideoPath: path.join(os.tmpdir(), 'cinematic-reel.mp4'),
+  previewHtmlPath: path.join(os.tmpdir(), 'cinematic-preview.html'),
 };
 
 export const DEFAULT_PRESENTER: PresenterProfile = {
