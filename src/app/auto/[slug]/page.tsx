@@ -235,20 +235,14 @@ export default async function AutoGuideDetailPage({ params }: PageProps) {
               whatsappShareUrl={whatsappShareUrl}
             />
           </div>
-
-          {/* Viral Social Media Spotlight (Meta, TikTok & RWP/ISLB) */}
-          <ViralProductSpotlight
-            products={viralProducts}
-            cleanPhone={cleanPhone}
-          />
         </div>
       </header>
 
       {/* ── 2. Main 2-Column Editorial Grid ────────────────────── */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 sm:pt-10">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 xl:gap-14 items-start">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-10">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 xl:gap-14 items-start">
           {/* ── Left / Main Content Column (~68%) ────────────────── */}
-          <div className="lg:col-span-8 min-w-0 space-y-8">
+          <div className="lg:col-span-8 min-w-0 space-y-6 sm:space-y-8">
             {/* Panoramic Full-Bleed Cover Image with Dual-Layer Presentation (Rule 3) */}
             {post.coverImage && (
               <div className="relative w-full aspect-[16/9] sm:aspect-[21/9] rounded-2xl overflow-hidden shadow-lg border border-slate-200/90 bg-slate-950 group">
@@ -273,10 +267,37 @@ export default async function AutoGuideDetailPage({ params }: PageProps) {
               </div>
             )}
 
+            {/* Mobile-Only Collapsible Table of Contents (Top Placement) */}
+            {tocHeadings.length >= 2 && (
+              <div className="lg:hidden p-4 rounded-xl border border-slate-200 bg-slate-50/80 shadow-xs">
+                <details className="group">
+                  <summary className="flex items-center justify-between cursor-pointer list-none font-bold text-xs uppercase tracking-wider text-slate-800 select-none">
+                    <div className="flex items-center gap-2">
+                      <List className="w-4 h-4 text-rose-500" />
+                      <span>Table of Contents ({tocHeadings.length} Sections)</span>
+                    </div>
+                    <ChevronDown className="w-4 h-4 text-slate-400 group-open:rotate-180 transition-transform duration-200" />
+                  </summary>
+                  <nav className="mt-3 pt-3 border-t border-slate-200/80 space-y-2 text-xs text-slate-600">
+                    {tocHeadings.map((h, i) => (
+                      <a
+                        key={i}
+                        href={`#${h.id}`}
+                        className="block hover:text-rose-500 transition-colors text-decoration-none py-0.5 truncate"
+                      >
+                        <span className="text-rose-500 font-semibold mr-1.5">{i + 1}.</span>
+                        {h.title}
+                      </a>
+                    ))}
+                  </nav>
+                </details>
+              </div>
+            )}
+
             {/* Executive Briefing / Key Takeaways Callout */}
             {takeaways.length > 0 && (
-              <div className="p-6 rounded-xl bg-[#fafafa] border-l-4 border-rose-500 border-y border-r border-slate-200/70 shadow-xs">
-                <div className="flex items-center gap-2 text-slate-900 font-bold text-sm mb-3">
+              <div className="p-5 sm:p-6 rounded-xl bg-[#fafafa] border-l-4 border-rose-500 border-y border-r border-slate-200/70 shadow-xs">
+                <div className="flex items-center gap-2 text-slate-900 font-bold text-xs sm:text-sm mb-2.5 sm:mb-3">
                   <Sparkles className="w-4 h-4 text-rose-500" />
                   <span>Executive Briefing & Key Highlights</span>
                 </div>
@@ -290,6 +311,12 @@ export default async function AutoGuideDetailPage({ params }: PageProps) {
                 </ul>
               </div>
             )}
+
+            {/* Viral Social Media Spotlight */}
+            <ViralProductSpotlight
+              products={viralProducts}
+              cleanPhone={cleanPhone}
+            />
 
             {/* AdSense Top Slot */}
             <AdSenseSlot
