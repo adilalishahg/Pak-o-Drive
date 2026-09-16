@@ -15,6 +15,7 @@ import { HomeCampaignOfferBanner } from './HomeCampaignOfferBanner';
 import { HomeCleanCategoryStrip } from './HomeCleanCategoryStrip';
 import { Marquee } from '@/components/ui/Marquee';
 import { SpotlightCard } from '@/components/ui/SpotlightCard';
+import { Megaphone } from 'lucide-react';
 
 export interface HomeCleanWhiteLayoutProps {
   theme: SiteTheme;
@@ -61,8 +62,8 @@ export const HomeCleanWhiteLayout: React.FC<HomeCleanWhiteLayoutProps> = ({
         <div className="announcement-bar text-slate-800 text-center py-2 px-2 overflow-hidden text-xs sm:text-sm font-semibold border-b border-slate-200">
           <Marquee speed={30} gap="3rem" fadeEdges={false} pauseOnHover>
             <span className="announcement-inner d-inline-flex items-center gap-2">
-              <i className="fas fa-bullhorn" style={{ color: theme.primaryColor || '#ea580c' }} />
-              <span>{theme.announcementBarText}</span>
+              <Megaphone className="w-4 h-4 shrink-0" style={{ color: theme.primaryColor || '#ea580c' }} />
+              <span className="leading-normal py-0.5">{theme.announcementBarText}</span>
             </span>
           </Marquee>
         </div>

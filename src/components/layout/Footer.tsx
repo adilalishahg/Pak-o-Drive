@@ -19,9 +19,9 @@ export const Footer: React.FC = () => {
     return (
       <footer className="bg-slate-900 text-slate-300 border-t border-slate-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
             {/* Brand Information Column */}
-            <div>
+            <div className="lg:col-span-4">
               <Link href="/" className="d-inline-flex align-items-center mb-6 text-decoration-none">
                 {theme.svgLogo?.enabled !== false ? (
                   <PakODriveLogo height={Math.min(theme.svgLogo?.height || 36, 36)} />
@@ -40,33 +40,43 @@ export const Footer: React.FC = () => {
               <FooterContactGrid info={info} isCleanWhite={true} />
             </div>
 
-            {/* Information Links */}
-            <div>
-              <h3 className="text-white text-sm font-bold uppercase tracking-wider mb-6">Information</h3>
-              <ul className="space-y-3.5 text-xs sm:text-sm list-none p-0">
-                <li><Link href="/contact" className="text-slate-400 hover:text-white transition-colors text-decoration-none">Contact Us</Link></li>
-                <li><Link href="/about" className="text-slate-400 hover:text-white transition-colors text-decoration-none">About Us</Link></li>
-                <li><Link href="/track-order" className="text-slate-400 hover:text-white transition-colors text-decoration-none">Track Your Order</Link></li>
-                <li><Link href="/return-policy" className="text-slate-400 hover:text-white transition-colors text-decoration-none">Return Policy</Link></li>
-                <li><Link href="/shipping-policy" className="text-slate-400 hover:text-white transition-colors text-decoration-none">Shipping Info</Link></li>
-              </ul>
-            </div>
+            {/* 3 Navigation Columns on Mobile View (grid-cols-3) */}
+            <div className="lg:col-span-5 grid grid-cols-3 gap-2 sm:gap-6">
+              <div>
+                <h3 className="text-white text-xs sm:text-sm font-bold uppercase tracking-wider mb-4">Explore</h3>
+                <ul className="space-y-2 text-xs sm:text-sm list-none p-0">
+                  <li><Link href="/shop" className="text-slate-400 hover:text-white transition-colors text-decoration-none py-0.5 block leading-normal">Shop All</Link></li>
+                  <li><Link href="/track-order" className="text-slate-400 hover:text-white transition-colors text-decoration-none py-0.5 block leading-normal">Track Order</Link></li>
+                  <li><Link href="/blog" className="text-slate-400 hover:text-white transition-colors text-decoration-none py-0.5 block leading-normal">Auto Blog</Link></li>
+                  <li><Link href="/wishlist" className="text-slate-400 hover:text-white transition-colors text-decoration-none py-0.5 block leading-normal">Wishlist</Link></li>
+                </ul>
+              </div>
 
-            {/* Quick Links */}
-            <div>
-              <h3 className="text-white text-sm font-bold uppercase tracking-wider mb-6">Quick Links</h3>
-              <ul className="space-y-3.5 text-xs sm:text-sm list-none p-0">
-                <li><Link href="/shop" className="text-slate-400 hover:text-white transition-colors text-decoration-none">Shop Catalog</Link></li>
-                <li><Link href="/blog" className="text-slate-400 hover:text-white transition-colors text-decoration-none">Automotive Blog</Link></li>
-                <li><Link href="/cart" className="text-slate-400 hover:text-white transition-colors text-decoration-none">Shopping Cart</Link></li>
-                <li><Link href="/wishlist" className="text-slate-400 hover:text-white transition-colors text-decoration-none">My Wishlist</Link></li>
-                <li><Link href="/privacy-policy" className="text-slate-400 hover:text-white transition-colors text-decoration-none">Privacy Policy</Link></li>
-                <li><Link href="/terms" className="text-slate-400 hover:text-white transition-colors text-decoration-none">Terms of Service</Link></li>
-              </ul>
+              <div>
+                <h3 className="text-white text-xs sm:text-sm font-bold uppercase tracking-wider mb-4">Help &amp; Care</h3>
+                <ul className="space-y-2 text-xs sm:text-sm list-none p-0">
+                  <li><Link href="/contact" className="text-slate-400 hover:text-white transition-colors text-decoration-none py-0.5 block leading-normal">Contact Us</Link></li>
+                  <li><Link href="/about" className="text-slate-400 hover:text-white transition-colors text-decoration-none py-0.5 block leading-normal">About Us</Link></li>
+                  <li><Link href="/shipping-policy" className="text-slate-400 hover:text-white transition-colors text-decoration-none py-0.5 block leading-normal">COD Guide</Link></li>
+                  <li><Link href="/cart" className="text-slate-400 hover:text-white transition-colors text-decoration-none py-0.5 block leading-normal">My Cart</Link></li>
+                </ul>
+              </div>
+
+              <div>
+                <h3 className="text-white text-xs sm:text-sm font-bold uppercase tracking-wider mb-4">Policies</h3>
+                <ul className="space-y-2 text-xs sm:text-sm list-none p-0">
+                  <li><Link href="/return-policy" className="text-slate-400 hover:text-white transition-colors text-decoration-none py-0.5 block leading-normal">Returns</Link></li>
+                  <li><Link href="/shipping-policy" className="text-slate-400 hover:text-white transition-colors text-decoration-none py-0.5 block leading-normal">Shipping</Link></li>
+                  <li><Link href="/privacy-policy" className="text-slate-400 hover:text-white transition-colors text-decoration-none py-0.5 block leading-normal">Privacy</Link></li>
+                  <li><Link href="/terms" className="text-slate-400 hover:text-white transition-colors text-decoration-none py-0.5 block leading-normal">Terms</Link></li>
+                </ul>
+              </div>
             </div>
 
             {/* Newsletter Subscription */}
-            <FooterNewsletter isCleanWhite={true} />
+            <div className="lg:col-span-3">
+              <FooterNewsletter isCleanWhite={true} />
+            </div>
           </div>
 
           <div className="mt-16 pt-8 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4">
@@ -85,7 +95,8 @@ export const Footer: React.FC = () => {
     <footer className="container-fluid footer py-4 py-lg-5 wow fadeIn" data-wow-delay="0.2s" style={{ background: '#0f172a' }}>
       <div className="container py-2 py-lg-4">
         <div className="row g-3 g-md-4 py-2 py-lg-3">
-          <div className="col-12 col-md-6 col-lg-3">
+          {/* Column 1: Brand Info */}
+          <div className="col-12 col-md-12 col-lg-3 mb-2 mb-lg-0">
             <Link href="/" className="d-inline-flex align-items-center mb-2 text-decoration-none">
               <PakODriveLogo height={28} />
             </Link>
@@ -95,27 +106,36 @@ export const Footer: React.FC = () => {
             <FooterSocialLinks info={info} />
           </div>
 
-          <div className="col-6 col-md-3 col-lg-3">
-            <h5 className="text-white mb-2" style={{ fontWeight: 700, fontSize: '0.88rem', letterSpacing: '0.3px' }}>Explore</h5>
-            <ul className="list-unstyled mb-0 space-y-1" style={{ fontSize: '0.78rem' }}>
-              <li><Link href="/shop" className="text-slate-400 text-decoration-none hover:text-white py-0.5 d-inline-block">Shop All</Link></li>
-              <li><Link href="/track-order" className="text-slate-400 text-decoration-none hover:text-white py-0.5 d-inline-block">Track Order</Link></li>
-              <li><Link href="/contact" className="text-slate-400 text-decoration-none hover:text-white py-0.5 d-inline-block">Contact Us</Link></li>
-              <li><Link href="/about" className="text-slate-400 text-decoration-none hover:text-white py-0.5 d-inline-block">About Us</Link></li>
+          {/* 3 Columns on Mobile View (col-4 each = 3 columns side-by-side) */}
+          <div className="col-4 col-md-4 col-lg-2 px-1 px-sm-2">
+            <h5 className="text-white mb-2" style={{ fontWeight: 700, fontSize: '0.82rem', letterSpacing: '0.2px' }}>Explore</h5>
+            <ul className="list-unstyled mb-0 space-y-1" style={{ fontSize: '0.74rem' }}>
+              <li><Link href="/shop" className="text-slate-400 text-decoration-none hover:text-white py-0.5 d-inline-block leading-normal">Shop All</Link></li>
+              <li><Link href="/track-order" className="text-slate-400 text-decoration-none hover:text-white py-0.5 d-inline-block leading-normal">Track Order</Link></li>
+              <li><Link href="/about" className="text-slate-400 text-decoration-none hover:text-white py-0.5 d-inline-block leading-normal">About Us</Link></li>
             </ul>
           </div>
 
-          <div className="col-6 col-md-3 col-lg-3">
-            <h5 className="text-white mb-2" style={{ fontWeight: 700, fontSize: '0.88rem', letterSpacing: '0.3px' }}>Policies</h5>
-            <ul className="list-unstyled mb-0 space-y-1" style={{ fontSize: '0.78rem' }}>
-              <li><Link href="/return-policy" className="text-slate-400 text-decoration-none hover:text-white py-0.5 d-inline-block">Return & Warranty</Link></li>
-              <li><Link href="/shipping-policy" className="text-slate-400 text-decoration-none hover:text-white py-0.5 d-inline-block">Shipping & Delivery</Link></li>
-              <li><Link href="/privacy-policy" className="text-slate-400 text-decoration-none hover:text-white py-0.5 d-inline-block">Privacy Policy</Link></li>
-              <li><Link href="/terms" className="text-slate-400 text-decoration-none hover:text-white py-0.5 d-inline-block">Terms & Conditions</Link></li>
+          <div className="col-4 col-md-4 col-lg-2 px-1 px-sm-2">
+            <h5 className="text-white mb-2" style={{ fontWeight: 700, fontSize: '0.82rem', letterSpacing: '0.2px' }}>Policies</h5>
+            <ul className="list-unstyled mb-0 space-y-1" style={{ fontSize: '0.74rem' }}>
+              <li><Link href="/return-policy" className="text-slate-400 text-decoration-none hover:text-white py-0.5 d-inline-block leading-normal">Returns</Link></li>
+              <li><Link href="/shipping-policy" className="text-slate-400 text-decoration-none hover:text-white py-0.5 d-inline-block leading-normal">Shipping</Link></li>
+              <li><Link href="/terms" className="text-slate-400 text-decoration-none hover:text-white py-0.5 d-inline-block leading-normal">Terms</Link></li>
             </ul>
           </div>
 
-          <div className="col-12 col-md-6 col-lg-3">
+          <div className="col-4 col-md-4 col-lg-2 px-1 px-sm-2">
+            <h5 className="text-white mb-2" style={{ fontWeight: 700, fontSize: '0.82rem', letterSpacing: '0.2px' }}>Support</h5>
+            <ul className="list-unstyled mb-0 space-y-1" style={{ fontSize: '0.74rem' }}>
+              <li><Link href="/contact" className="text-slate-400 text-decoration-none hover:text-white py-0.5 d-inline-block leading-normal">Contact Us</Link></li>
+              <li><Link href="/privacy-policy" className="text-slate-400 text-decoration-none hover:text-white py-0.5 d-inline-block leading-normal">Privacy</Link></li>
+              <li><a href="https://wa.me/923185205667" target="_blank" rel="noopener noreferrer" className="text-slate-400 text-decoration-none hover:text-white py-0.5 d-inline-block leading-normal">WhatsApp</a></li>
+            </ul>
+          </div>
+
+          {/* Newsletter Column */}
+          <div className="col-12 col-md-12 col-lg-3 mt-3 mt-lg-0">
             <FooterNewsletter isCleanWhite={false} />
           </div>
         </div>

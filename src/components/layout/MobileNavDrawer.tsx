@@ -89,22 +89,24 @@ function MobileCategoryTreeItem({
             }}
             style={{
               border: 'none',
-              background: 'rgba(255, 255, 255, 0.08)',
-              color: '#ffffff',
-              borderRadius: '6px',
-              width: '24px',
-              height: '24px',
+              background: expanded ? 'rgba(255, 255, 255, 0.15)' : 'rgba(255, 255, 255, 0.08)',
+              color: expanded ? 'var(--pd-primary, #ea580c)' : '#ffffff',
+              borderRadius: '8px',
+              width: '34px',
+              height: '34px',
+              minWidth: '34px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               cursor: 'pointer',
+              transition: 'all 0.15s ease',
             }}
             aria-label={expanded ? 'Collapse subcategories' : 'Expand subcategories'}
           >
             <i
               className="fas fa-chevron-right"
               style={{
-                fontSize: '9px',
+                fontSize: '11px',
                 transition: 'transform 0.2s ease',
                 transform: expanded ? 'rotate(90deg)' : 'none',
               }}
@@ -140,6 +142,19 @@ export function MobileNavDrawer({
   cartCount,
   categoryTree,
 }: MobileNavDrawerProps) {
+  // Lock background scroll when drawer is open
+  React.useEffect(() => {
+    if (!open) return;
+    const origOverflow = document.body.style.overflow;
+    const origTouchAction = document.body.style.touchAction;
+    document.body.style.overflow = 'hidden';
+    document.body.style.touchAction = 'none';
+    return () => {
+      document.body.style.overflow = origOverflow;
+      document.body.style.touchAction = origTouchAction;
+    };
+  }, [open]);
+
   if (!open) return null;
 
   return (
@@ -169,14 +184,14 @@ export function MobileNavDrawer({
           width: '85%',
           maxWidth: '330px',
           height: '100dvh',
+          maxHeight: '100dvh',
           zIndex: 9999,
           background: '#0f172a',
           color: '#ffffff',
           boxShadow: '8px 0 32px rgba(0, 0, 0, 0.45)',
           display: 'flex',
           flexDirection: 'column',
-          overflowY: 'auto',
-          WebkitOverflowScrolling: 'touch',
+          overflow: 'hidden',
         }}
         aria-label="Mobile Navigation Sidebar"
       >
@@ -188,9 +203,8 @@ export function MobileNavDrawer({
             justifyContent: 'space-between',
             padding: '16px 18px',
             borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
-            position: 'sticky',
-            top: 0,
             background: '#0f172a',
+            flexShrink: 0,
             zIndex: 10,
           }}
         >
@@ -238,9 +252,27 @@ export function MobileNavDrawer({
           </button>
         </div>
 
-        {/* Drawer Content Body */}
-        <div style={{ padding: '16px 18px', flex: 1, display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          {/* Mobile Search Form */}
+        {/* Drawer Content Body with Touch Scrolling Container */}
+        <div
+          style={{
+            flex: '1 1 0%',
+            minHeight: 0,
+            overflowY: 'auto',
+            overflowX: 'hidden',
+            WebkitOverflowScrolling: 'touch',
+            overscrollBehaviorY: 'contain',
+            touchAction: 'pan-y',
+          }}
+        >
+          <div
+            style={{
+              padding: '16px 18px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '16px',
+            }}
+          >
+            {/* Mobile Search Form */}
           <form
             onSubmit={(e) => {
               onSearch(e);
@@ -382,14 +414,15 @@ export function MobileNavDrawer({
             </div>
           </div>
         </div>
+      </div>
 
         {/* Drawer Bottom Quick Action */}
         <div
           style={{
             padding: '14px 18px',
             borderTop: '1px solid rgba(255, 255, 255, 0.08)',
-            background: 'rgba(0, 0, 0, 0.25)',
-            marginTop: 'auto',
+            background: '#0b1120',
+            flexShrink: 0,
           }}
         >
           <a

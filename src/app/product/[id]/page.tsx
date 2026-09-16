@@ -62,24 +62,14 @@ export default async function ProductDetailPage({ params }: PageProps) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
       />
-      <style>{`
-        .pd-detail-page { background: #f4f4f4; min-height: 100vh; }
-        .pd-card { background: #fff; }
-        @media (max-width: 767px) {
-          .pd-detail-right { padding: 14px 14px 20px !important; }
-          .pd-detail-title { font-size: 1.1rem !important; }
-          .pd-detail-price-num { font-size: 1.5rem !important; }
-        }
-      `}</style>
-
-      <div className="pd-detail-page">
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 pb-16">
         {/* Presentational Breadcrumb */}
         <ProductBreadcrumb category={product.category} productName={product.name} />
 
         {/* Main Product Container */}
-        <div style={{ maxWidth: '1100px', margin: '12px auto 0', padding: '0' }}>
+        <div className="max-w-6xl mx-auto px-2 sm:px-4 pt-3">
           {/* Interactive Card containing gallery, options, actions, specs */}
-          <div className="pd-card">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200/80 dark:border-slate-800/80 overflow-hidden">
             {(product as any).isBundle ? (
               <BundleDetailInteractive product={product} campaignOffer={(product as any).campaignOffer} />
             ) : (

@@ -29,9 +29,14 @@ export interface ActiveOfferData {
   compactMobile?: boolean;
 }
 
+let cachedOfferData: ActiveOfferData | null = null;
+let offerPromise: Promise<ActiveOfferData | null> | null = null;
+let lastOfferFetch = 0;
+const OFFER_CACHE_TTL_MS = 60_000;
+
 export function useActiveCampaignOffer() {
-  const [offer, setOffer] = useState<ActiveOfferData | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [offer, setOffer] = useState<ActiveOfferData | null>(cachedOfferData);
+  const [loading, setLoading] = useState(!cachedOfferData);
   const [timeLeft, setTimeLeft] = useState<{ hours: number; minutes: number; seconds: number } | null>(null);
   const [isExpired, setIsExpired] = useState(false);
   const [bundleAdded, setBundleAdded] = useState(false);
@@ -46,20 +51,42 @@ export function useActiveCampaignOffer() {
 
   useEffect(() => {
     let isMounted = true;
-    (async () => {
-      try {
-        setLoading(true);
-        const res = await fetch('/api/campaign-offers/active');
-        const data = await res.json();
-        if (isMounted && data.success && data.data) {
-          setOffer(data.data);
-        }
-      } catch (err) {
-        console.error('Error fetching active campaign offer:', err);
-      } finally {
-        if (isMounted) setLoading(false);
+
+    // Use fresh memory cache if available within TTL
+    if (cachedOfferData && Date.now() - lastOfferFetch < OFFER_CACHE_TTL_MS) {
+      setOffer(cachedOfferData);
+      setLoading(false);
+      return;
+    }
+
+    // Deduplicate in-flight requests across multiple banner components
+    if (!offerPromise) {
+      offerPromise = fetch('/api/campaign-offers/active')
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.success && data.data) {
+            cachedOfferData = data.data;
+            lastOfferFetch = Date.now();
+            return data.data;
+          }
+          return null;
+        })
+        .catch((err) => {
+          console.error('Error fetching active campaign offer:', err);
+          return null;
+        })
+        .finally(() => {
+          offerPromise = null;
+        });
+    }
+
+    offerPromise.then((data) => {
+      if (isMounted) {
+        if (data) setOffer(data);
+        setLoading(false);
       }
-    })();
+    });
+
     return () => {
       isMounted = false;
     };

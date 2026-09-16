@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSiteInfo } from '../components/common/SiteInfoProvider';
+import { useBackToClose } from './useBackToClose';
 
 export interface SmartSearchResultProduct {
   id: string;
@@ -19,6 +20,14 @@ export function useMobileSmartSearch() {
   const { info } = useSiteInfo();
 
   const [isOpen, setIsOpen] = useState(false);
+
+  // Intercept mobile back button to close search modal instead of leaving page
+  useBackToClose({
+    isOpen,
+    onClose: useCallback(() => setIsOpen(false), []),
+    key: 'mobile_search',
+  });
+
   const [query, setQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
   const [suggestions, setSuggestions] = useState<SmartSearchResultProduct[]>([]);

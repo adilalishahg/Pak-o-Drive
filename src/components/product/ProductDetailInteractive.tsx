@@ -9,12 +9,13 @@ import { ProductViewLogger } from '../common/ProductViewLogger';
 import { MarkdownRenderer } from '../common/MarkdownRenderer';
 import { ProductDetailInteractiveProps } from '@/types/product';
 import { useProductDetail } from '@/hooks/useProductDetail';
-import { CategoryIcon } from '../common/ThemeIcon';
+import { CategoryIcon, ThemeIcon } from '../common/ThemeIcon';
 import { getBestCategoryIcon } from '@/lib/categoryIconService';
 import { FrequentlyBoughtTogether } from './FrequentlyBoughtTogether';
 import { ProductReviewsSection } from './ProductReviewsSection';
 import { StockUrgencyBanner } from './StockUrgencyBanner';
 import { SpotlightCard } from '../ui/SpotlightCard';
+import { Sparkles, Star, Truck, ShieldCheck, Headphones, CheckCircle2, SlidersHorizontal, ShieldAlert, Zap } from 'lucide-react';
 
 export const ProductDetailInteractive: React.FC<ProductDetailInteractiveProps> = ({ product }) => {
   const {
@@ -41,9 +42,9 @@ export const ProductDetailInteractive: React.FC<ProductDetailInteractiveProps> =
         price={currentPrice}
       />
 
-      <div className="row g-0">
+      <div className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-slate-100 dark:divide-slate-800 bg-white dark:bg-slate-900">
         {/* Image & Overview Hook col */}
-        <div className="col-12 col-md-6 border-bottom border-end-md d-flex flex-column" style={{ background: '#ffffff' }}>
+        <div className="flex flex-col bg-white dark:bg-slate-900">
           <ProductImageGallery
             image={currentImage}
             images={product.images || []}
@@ -54,20 +55,10 @@ export const ProductDetailInteractive: React.FC<ProductDetailInteractiveProps> =
 
           {/* Upper Overview Hook — Perfectly levels the left gallery with the right buy card */}
           {overviewDescription && (
-            <div className="d-none d-md-block px-3 px-lg-4 pt-3 pb-3 border-top flex-grow-1" style={{ borderColor: '#f1f5f9' }}>
-              <div className="d-flex align-items-center gap-2 mb-2">
-                <span
-                  className="badge rounded-pill border d-inline-flex align-items-center gap-1.5"
-                  style={{
-                    fontSize: '0.72rem',
-                    color: 'var(--pd-primary, #ea580c)',
-                    background: '#fff7ed',
-                    borderColor: '#ffedd5',
-                    fontWeight: 700,
-                    padding: '4px 10px',
-                  }}
-                >
-                  <i className="fas fa-sparkles" style={{ fontSize: '10px' }} />
+            <div className="hidden md:block px-4 lg:px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex-grow">
+              <div className="flex items-center gap-2 mb-2.5">
+                <span className="inline-flex items-center gap-1.5 text-xs font-bold text-primary bg-primary/10 border border-primary/20 px-2.5 py-1 rounded-full">
+                  <Sparkles className="w-3.5 h-3.5 text-primary" />
                   <span>Product Overview</span>
                 </span>
               </div>
@@ -83,28 +74,13 @@ export const ProductDetailInteractive: React.FC<ProductDetailInteractiveProps> =
         </div>
 
         {/* Info col */}
-        <div className="col-12 col-md-6">
-          <div className="pd-detail-right" style={{ padding: '20px 20px 24px' }}>
-            {/* Category Badge with Dynamic Icon */}
-            {product.category && (
+        <div className="flex flex-col p-4 sm:p-6 lg:p-7">
+          {/* Category Badge with Dynamic Icon */}
+          {product.category && (
+            <div className="mb-2.5">
               <Link
                 href={`/shop?category=${product.category}`}
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  textDecoration: 'none',
-                  background: 'rgba(var(--pd-primary-rgb,234,88,12),0.08)',
-                  color: 'var(--pd-primary-dark, #c2410c)',
-                  fontSize: '0.72rem',
-                  fontWeight: 700,
-                  padding: '4px 12px',
-                  borderRadius: '20px',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.5px',
-                  marginBottom: '10px',
-                  transition: 'all 0.2s ease',
-                }}
+                className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-primary bg-primary/10 hover:bg-primary/15 border border-primary/20 px-3 py-1 rounded-full transition-all"
               >
                 <CategoryIcon
                   icon={getBestCategoryIcon(product.category)}
@@ -112,257 +88,186 @@ export const ProductDetailInteractive: React.FC<ProductDetailInteractiveProps> =
                 />
                 <span>{product.category.replace(/-/g, ' ')}</span>
               </Link>
+            </div>
+          )}
+
+          {/* Name */}
+          <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-slate-50 tracking-tight leading-normal py-0.5 mb-2.5">
+            {product.name}
+            {selectedVariant && (
+              <span className="text-slate-500 dark:text-slate-400 font-semibold text-lg ml-2">
+                ({selectedVariant.name})
+              </span>
             )}
+          </h1>
 
-            {/* Name */}
-            <h1
-              className="pd-detail-title"
-              style={{
-                fontSize: '1.35rem',
-                fontWeight: 800,
-                color: '#111',
-                lineHeight: 1.3,
-                margin: '0 0 10px',
-              }}
-            >
-              {product.name}
-              {selectedVariant && (
-                <span className="text-secondary ms-2 fw-semibold" style={{ fontSize: '1.1rem' }}>
-                  ({selectedVariant.name})
-                </span>
-              )}
-            </h1>
+          {/* Stars + review count */}
+          <div className="flex items-center gap-2.5 mb-4">
+            <div className="flex items-center gap-0.5">
+              {Array.from({ length: 5 }, (_, i) => (
+                <Star
+                  key={i}
+                  className={`w-4 h-4 ${
+                    i < Math.floor(product.rating || 5)
+                      ? 'fill-amber-400 text-amber-400'
+                      : 'fill-slate-200 text-slate-200 dark:fill-slate-700 dark:text-slate-700'
+                  }`}
+                />
+              ))}
+            </div>
+            <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+              {product.rating?.toFixed(1) || '5.0'} · {product.reviewsCount || 0} customer reviews
+            </span>
+          </div>
 
-            {/* Stars + review count */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '14px' }}>
-              <div style={{ display: 'flex', gap: '2px' }}>
-                {Array.from({ length: 5 }, (_, i) => (
-                  <i
-                    key={i}
-                    className="fas fa-star"
-                    style={{
-                      fontSize: '13px',
-                      color: i < Math.floor(product.rating) ? '#f59e0b' : '#d1d5db',
-                    }}
-                  />
-                ))}
+          {/* Variant Selector badge/list */}
+          {product.variants && product.variants.length > 0 && (
+            <div className="mb-4">
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">
+                Available Options / Colors
+              </label>
+              <div className="flex flex-wrap gap-2">
+                {product.variants.map((v) => {
+                  const isSelected = selectedVariant?._id === v._id || selectedVariant?.name === v.name;
+                  return (
+                    <button
+                      key={v._id || v.name}
+                      onClick={() => handleSelectVariant(v)}
+                      type="button"
+                      className={`inline-flex items-center gap-2 px-3.5 py-2 text-xs font-semibold rounded-xl border transition-all cursor-pointer ${
+                        isSelected
+                          ? 'border-primary bg-primary/10 text-primary shadow-xs ring-1 ring-primary'
+                          : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:border-slate-300'
+                      }`}
+                    >
+                      {v.image && (
+                        <div className="w-5 h-5 rounded-full overflow-hidden border border-slate-200 shrink-0 relative">
+                          <OptimizedImage
+                            src={v.image}
+                            alt={v.name}
+                            fill
+                            sizes="20px"
+                            style={{ objectFit: 'cover' }}
+                          />
+                        </div>
+                      )}
+                      <span>{v.name}</span>
+                      <span className="text-slate-400 text-[11px] font-normal">({v.price.toLocaleString()} PKR)</span>
+                    </button>
+                  );
+                })}
               </div>
-              <span style={{ fontSize: '0.75rem', color: '#6b7280' }}>
-                {product.rating?.toFixed(1)} · {product.reviewsCount} reviews
+            </div>
+          )}
+
+          {/* Price box */}
+          <div className="bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-700/80 rounded-xl p-3.5 sm:p-4 mb-4">
+            {currentOriginalPrice > currentPrice && (
+              <div className="flex items-center gap-2 mb-1.5">
+                <del className="text-xs sm:text-sm text-slate-400 font-medium">
+                  PKR {currentOriginalPrice.toLocaleString()}
+                </del>
+                <span className="bg-rose-500 text-white text-[11px] font-bold px-2 py-0.5 rounded-full leading-normal">
+                  -{discountPercent}% OFF
+                </span>
+              </div>
+            )}
+            <div className="flex items-baseline gap-1.5">
+              <span className="text-sm font-semibold text-slate-500">PKR</span>
+              <span className="pd-detail-price-num text-3xl sm:text-4xl font-black text-primary tracking-tight leading-normal py-0.5">
+                {currentPrice.toLocaleString()}
               </span>
             </div>
+          </div>
 
-            {/* Variant Selector badge/list */}
-            {product.variants && product.variants.length > 0 && (
-              <div className="mb-4">
-                <label className="d-block text-muted small fw-bold mb-2 uppercase" style={{ letterSpacing: '0.5px' }}>
-                  Available Options / Colors
-                </label>
-                <div className="d-flex flex-wrap gap-2">
-                  {product.variants.map((v) => {
-                    const isSelected = selectedVariant?._id === v._id || selectedVariant?.name === v.name;
-                    return (
-                      <button
-                        key={v._id || v.name}
-                        onClick={() => handleSelectVariant(v)}
-                        type="button"
-                        className="btn btn-sm d-flex align-items-center gap-1.5 px-3 py-2 border rounded-pill transition-all"
-                        style={{
-                          background: isSelected ? 'rgba(var(--pd-primary-rgb,234,88,12),0.06)' : '#fff',
-                          borderColor: isSelected ? 'var(--pd-primary)' : '#ddd',
-                          color: isSelected ? 'var(--pd-primary)' : '#444',
-                          fontWeight: isSelected ? 700 : 500,
-                          boxShadow: isSelected ? '0 2px 8px rgba(234,88,12,0.1)' : 'none',
-                        }}
-                      >
-                        {v.image && (
-                          <div className="rounded-circle overflow-hidden border" style={{ width: '18px', height: '18px', position: 'relative', flexShrink: 0 }}>
-                            <OptimizedImage
-                              src={v.image}
-                              alt={v.name}
-                              fill
-                              sizes="18px"
-                              style={{ objectFit: 'cover' }}
-                            />
-                          </div>
-                        )}
-                        {v.name}
-                        <span className="small text-muted ms-1">({v.price.toLocaleString()} PKR)</span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-            {/* Price box */}
-            <div
-              style={{
-                background: '#fafafa',
-                border: '1px solid #eee',
-                borderRadius: '8px',
-                padding: '12px 14px',
-                marginBottom: '14px',
-              }}
-            >
-              {currentOriginalPrice > currentPrice && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                  <del style={{ fontSize: '0.82rem', color: '#64748b' }}>
-                    PKR {currentOriginalPrice.toLocaleString()}
-                  </del>
-                  <span
-                    style={{
-                      background: '#dc2626',
-                      color: '#fff',
-                      fontSize: '0.62rem',
-                      fontWeight: 800,
-                      padding: '2px 7px',
-                      borderRadius: '3px',
-                    }}
-                  >
-                    -{discountPercent}% OFF
-                  </span>
-                </div>
-              )}
-              <div style={{ display: 'flex', alignItems: 'baseline', gap: '3px' }}>
-                <span style={{ fontSize: '0.8rem', color: '#6b7280' }}>PKR</span>
-                <span
-                  className="pd-detail-price-num"
-                  style={{
-                    fontSize: '1.8rem',
-                    fontWeight: 900,
-                    color: 'var(--pd-primary)',
-                    lineHeight: 1,
-                  }}
-                >
-                  {currentPrice.toLocaleString()}
-                </span>
-              </div>
+          {/* Real-time Inventory Urgency Trigger */}
+          <StockUrgencyBanner stock={currentStock} />
+
+          {/* Meta Info */}
+          <div className="flex flex-col gap-1.5 text-xs text-slate-500 dark:text-slate-400 my-3">
+            <div className="flex items-center gap-1.5">
+              <span>Availability:</span>
+              <span className={`font-bold ${currentStock !== 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600'}`}>
+                {currentStock < 0 ? 'In Stock (Unlimited)' : currentStock > 0 ? `In Stock (${currentStock} items left)` : 'Out of Stock'}
+              </span>
             </div>
-
-            {/* Real-time Inventory Urgency Trigger */}
-            <StockUrgencyBanner stock={currentStock} />
-
-            {/* Meta */}
-            <div style={{ fontSize: '0.78rem', marginBottom: '14px', display: 'flex', flexDirection: 'column', gap: '5px' }}>
-              <div>
-                <span style={{ color: '#64748b' }}>Availability: </span>
-                <span style={{ fontWeight: 700, color: currentStock !== 0 ? '#15803d' : '#dc2626' }}>
-                  {currentStock < 0 ? 'In Stock (Unlimited)' : currentStock > 0 ? `In Stock (${currentStock})` : 'Out of Stock'}
-                </span>
-              </div>
-              <div>
-                <span style={{ color: '#64748b' }}>SKU: </span>
-                <span style={{ fontWeight: 600, color: '#374151' }}>
-                  PAK-{product._id?.substring(18).toUpperCase()}-{selectedVariant ? selectedVariant.name.substring(0, 3).toUpperCase() : 'MAIN'}
-                </span>
-              </div>
-              <div>
-                <span style={{ color: '#64748b' }}>Shipping: </span>
-                <span style={{ fontWeight: 600, color: '#15803d' }}>Free on 2 or more products</span>
-              </div>
+            <div className="flex items-center gap-1.5">
+              <span>SKU:</span>
+              <span className="font-mono text-slate-700 dark:text-slate-300">
+                PAK-{product._id?.substring(18).toUpperCase()}-{selectedVariant ? selectedVariant.name.substring(0, 3).toUpperCase() : 'MAIN'}
+              </span>
             </div>
+            <div className="flex items-center gap-1.5">
+              <span>Shipping:</span>
+              <span className="font-semibold text-emerald-600 dark:text-emerald-400">Free delivery on 2 or more products</span>
+            </div>
+          </div>
 
-            {/* Actions (Immediately visible next to image & price) */}
-            <ProductActions product={product} selectedVariant={selectedVariant} />
+          {/* Actions (Immediately visible next to image & price) */}
+          <ProductActions product={product} selectedVariant={selectedVariant} />
 
-            {/* Mobile-Only Description (Shown below buy buttons on small screens) */}
-            {currentDescription && (
-              <div className="d-block d-md-none mt-3 pt-3 border-top" style={{ borderColor: '#f1f5f9' }}>
-                <div className="d-flex align-items-center gap-2 mb-2">
-                  <span
-                    className="badge rounded-pill border d-inline-flex align-items-center gap-1.5"
-                    style={{
-                      fontSize: '0.72rem',
-                      color: 'var(--pd-primary, #ea580c)',
-                      background: '#fff7ed',
-                      borderColor: '#ffedd5',
-                      fontWeight: 700,
-                      padding: '4px 10px',
-                    }}
-                  >
-                    <i className="fas fa-sparkles" style={{ fontSize: '10px' }} />
-                    <span>Product Highlights</span>
-                  </span>
-                </div>
-                <MarkdownRenderer
-                  content={cleanedDescription}
-                  style={{
-                    fontSize: '0.88rem',
-                    lineHeight: 1.6,
-                  }}
-                />
+          {/* Mobile-Only Description (Shown below buy buttons on small screens) */}
+          {currentDescription && (
+            <div className="block md:hidden mt-4 pt-4 border-t border-slate-100 dark:border-slate-800">
+              <div className="flex items-center gap-2 mb-2.5">
+                <span className="inline-flex items-center gap-1.5 text-xs font-bold text-primary bg-primary/10 border border-primary/20 px-2.5 py-1 rounded-full">
+                  <Sparkles className="w-3.5 h-3.5 text-primary" />
+                  <span>Product Highlights</span>
+                </span>
               </div>
-            )}
-
-            {/* Localized Pakistan Trust & Assurance Box */}
-            <div
-              style={{
-                background: '#f8fafc',
-                borderRadius: '10px',
-                padding: '14px',
-                border: '1px solid #e2e8f0',
-                marginTop: '18px',
-              }}
-            >
-              <div
+              <MarkdownRenderer
+                content={cleanedDescription}
                 style={{
-                  display: 'grid',
-                  gridTemplateColumns: '1fr 1fr',
-                  gap: '10px',
-                  marginBottom: '12px',
+                  fontSize: '0.88rem',
+                  lineHeight: 1.6,
                 }}
-              >
-                {[
-                  { icon: 'fas fa-truck-moving', title: 'Cash on Delivery', desc: 'Pay upon parcel arrival' },
-                  { icon: 'fas fa-truck', title: 'Free Delivery', desc: 'On 2+ products' },
-                  { icon: 'fas fa-shield-check', title: '100% Original', desc: 'Quality checked product' },
-                  { icon: 'fas fa-headset', title: 'WhatsApp Help', desc: '24/7 active customer support' },
-                ].map((b, i) => (
+              />
+            </div>
+          )}
+
+          {/* Localized Pakistan Trust & Assurance Box */}
+          <div className="mt-5 p-4 rounded-xl bg-slate-50/70 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-700/80">
+            <div className="grid grid-cols-2 gap-2.5">
+              {[
+                { themeIcon: 'shipping', fallbackIcon: Truck, title: 'Cash on Delivery', desc: 'Pay upon parcel arrival' },
+                { themeIcon: 'sync', fallbackIcon: Zap, title: 'Express Delivery', desc: 'Fast TCS / Trax dispatch' },
+                { themeIcon: 'shield', fallbackIcon: ShieldCheck, title: '100% Genuine', desc: 'Quality checked product' },
+                { themeIcon: 'headset', fallbackIcon: Headphones, title: 'WhatsApp Help', desc: '24/7 dedicated support' },
+              ].map((b, i) => {
+                const FallbackComponent = b.fallbackIcon;
+                return (
                   <div
                     key={i}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'flex-start',
-                      gap: '8px',
-                      background: '#ffffff',
-                      borderRadius: '8px',
-                      padding: '8px 10px',
-                      border: '1px solid #f1f5f9',
-                    }}
+                    className="flex items-start gap-2.5 p-2.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200/70 dark:border-slate-700/70 shadow-xs"
                   >
-                    <i
-                      className={b.icon}
-                      style={{ color: 'var(--pd-primary, #ea580c)', fontSize: '14px', marginTop: '2px', flexShrink: 0 }}
-                    />
+                    <div className="p-1 rounded-lg bg-primary/10 text-primary shrink-0 mt-0.5 flex items-center justify-center w-7 h-7">
+                      {b.themeIcon ? (
+                        <ThemeIcon name={b.themeIcon} style={{ fontSize: '14px', color: 'var(--pd-primary, #ea580c)' }} />
+                      ) : (
+                        <FallbackComponent className="w-4 h-4" />
+                      )}
+                    </div>
                     <div>
-                      <span style={{ display: 'block', fontSize: '0.74rem', fontWeight: 700, color: '#0f172a', lineHeight: 1.2 }}>
+                      <span className="block text-xs font-bold text-slate-900 dark:text-slate-100 leading-normal">
                         {b.title}
                       </span>
-                      <span style={{ display: 'block', fontSize: '0.65rem', color: '#64748b', marginTop: '2px' }}>
+                      <span className="block text-[11px] text-slate-500 leading-normal mt-0.5">
                         {b.desc}
                       </span>
                     </div>
                   </div>
-                ))}
-              </div>
+                );
+              })}
+            </div>
 
-              {/* Delivery Timeline info */}
-              <div style={{
-                background: '#f0fdf4',
-                border: '1px solid #bbf7d0',
-                borderRadius: '6px',
-                padding: '8px 10px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                fontSize: '0.72rem',
-                color: '#166534',
-              }}>
-                <i className="fas fa-shipping-fast" style={{ fontSize: '13px', color: '#16a34a' }} />
-                <span>
-                  <strong>Estimated Delivery:</strong> Rawalpindi / Islamabad: 24 Hours (1 Day) | Lahore, Karachi & Nationwide: 2–3 Days
-                </span>
+            {/* Delivery Timeline info */}
+            <div className="mt-3 flex items-center gap-2.5 p-3 rounded-xl bg-emerald-50/80 dark:bg-emerald-950/30 border border-emerald-200/80 dark:border-emerald-800/60 text-xs text-emerald-800 dark:text-emerald-200">
+              <div className="p-1 rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 shrink-0">
+                <Truck className="w-4 h-4" />
               </div>
+              <span className="leading-normal">
+                <strong>Estimated Delivery:</strong> Rawalpindi / Islamabad: 24h (1 Day) | Lahore, Karachi & Nationwide: 2–3 Days
+              </span>
             </div>
           </div>
         </div>
@@ -370,46 +275,25 @@ export const ProductDetailInteractive: React.FC<ProductDetailInteractiveProps> =
 
       {/* ── Balanced Lower Section: Why You Need This (Left 50%) & Technical Specifications (Right 50%) ── */}
       {(featuresDescription || specs.length > 0) && (
-        <div className="row g-3 mt-2">
-          {/* Left Half: Features & Why You Need This (Circled Area in User's Screenshot) */}
-          <div className="col-12 col-md-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+          {/* Left Half: Features & Why You Need This */}
+          <div>
             <SpotlightCard
               spotlightColor="rgba(234, 88, 12, 0.12)"
               borderColor="rgba(234, 88, 12, 0.3)"
-              className="rounded-3 h-100"
+              className="rounded-2xl h-full"
             >
-              <div
-                className="pd-card h-100 p-3 p-lg-4"
-                style={{
-                  background: '#ffffff',
-                  borderRadius: '12px',
-                  border: '1px solid #e2e8f0',
-                  boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
-                }}
-              >
-                <div className="d-flex align-items-center gap-2 mb-3 pb-2 border-bottom">
-                  <span
-                    style={{
-                      width: '32px',
-                      height: '32px',
-                      borderRadius: '8px',
-                      background: 'rgba(234, 88, 12, 0.1)',
-                      color: 'var(--pd-primary, #ea580c)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontSize: '14px',
-                      flexShrink: 0,
-                    }}
-                  >
-                    <i className="fas fa-check-circle" />
+              <div className="h-full p-4 sm:p-6 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 shadow-xs">
+                <div className="flex items-center gap-3 mb-4 pb-3 border-b border-slate-100 dark:border-slate-800">
+                  <span className="w-9 h-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                    <CheckCircle2 className="w-5 h-5" />
                   </span>
                   <div>
-                    <h3 className="mb-0 fw-bold text-dark" style={{ fontSize: '1rem', lineHeight: 1.2 }}>
+                    <h3 className="text-sm sm:text-base font-bold text-slate-900 dark:text-slate-100 leading-normal">
                       Why You Need This & Key Features
                     </h3>
-                    <span style={{ fontSize: '0.72rem', color: '#64748b' }}>
-                      Highlights & Benefits of this product
+                    <span className="text-xs text-slate-500 dark:text-slate-400">
+                      Highlights & benefits of this product
                     </span>
                   </div>
                 </div>
@@ -425,89 +309,54 @@ export const ProductDetailInteractive: React.FC<ProductDetailInteractiveProps> =
           </div>
 
           {/* Right Half: Technical Specifications & Fitment */}
-          <div className="col-12 col-md-6">
+          <div>
             <SpotlightCard
               spotlightColor="rgba(37, 99, 235, 0.12)"
               borderColor="rgba(37, 99, 235, 0.3)"
-              className="rounded-3 h-100"
+              className="rounded-2xl h-full"
             >
-              <div
-                className="pd-card h-100 p-3 p-lg-4"
-                style={{
-                  background: '#ffffff',
-                  borderRadius: '12px',
-                  border: '1px solid #e2e8f0',
-                  boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
-                }}
-              >
-              <div className="d-flex align-items-center gap-2 mb-3 pb-2 border-bottom">
-                <span
-                  style={{
-                    width: '32px',
-                    height: '32px',
-                    borderRadius: '8px',
-                    background: 'rgba(37, 99, 235, 0.1)',
-                    color: '#2563eb',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '14px',
-                    flexShrink: 0,
-                  }}
-                >
-                  <i className="fas fa-sliders-h" />
-                </span>
-                <div>
-                  <h3 className="mb-0 fw-bold text-dark" style={{ fontSize: '1rem', lineHeight: 1.2 }}>
-                    Technical Specifications
-                  </h3>
-                  <span style={{ fontSize: '0.72rem', color: '#64748b' }}>
-                    Compatibility, Dimensions & Quality Details
+              <div className="h-full p-4 sm:p-6 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 shadow-xs">
+                <div className="flex items-center gap-3 mb-4 pb-3 border-b border-slate-100 dark:border-slate-800">
+                  <span className="w-9 h-9 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
+                    <SlidersHorizontal className="w-5 h-5" />
                   </span>
-                </div>
-              </div>
-
-              {specs.length > 0 ? (
-                <div style={{ overflowX: 'auto' }}>
-                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem' }}>
-                    <tbody>
-                      {specs.map(([key, val], i) => (
-                        <tr key={key} style={{ background: i % 2 === 0 ? '#f8fafc' : '#ffffff' }}>
-                          <td
-                            style={{
-                              padding: '10px 12px',
-                              fontWeight: 700,
-                              color: '#334155',
-                              width: '45%',
-                              borderBottom: '1px solid #f1f5f9',
-                            }}
-                          >
-                            {key}
-                          </td>
-                          <td
-                            style={{
-                              padding: '10px 12px',
-                              color: '#64748b',
-                              borderBottom: '1px solid #f1f5f9',
-                            }}
-                          >
-                            {String(val)}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              ) : (
-                <div className="p-3 bg-light rounded-3 text-secondary" style={{ fontSize: '0.82rem', lineHeight: 1.6 }}>
-                  <div className="fw-bold text-dark mb-2">
-                    <i className="fas fa-shield-alt text-primary me-1.5" /> Package & Quality Guarantee:
+                  <div>
+                    <h3 className="text-sm sm:text-base font-bold text-slate-900 dark:text-slate-100 leading-normal">
+                      Technical Specifications
+                    </h3>
+                    <span className="text-xs text-slate-500 dark:text-slate-400">
+                      Compatibility, dimensions & quality details
+                    </span>
                   </div>
-                  <div className="mb-1">• 100% Brand New & Quality Verified</div>
-                  <div className="mb-1">• Secure Bubble Wrap Fragile Packaging</div>
-                  <div className="mb-1">• Easy Direct Fitment & Installation</div>
-                  <div>• 7-Day Easy Return & Cash on Delivery Across Pakistan</div>
                 </div>
+
+                {specs.length > 0 ? (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-xs text-left">
+                      <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                        {specs.map(([key, val], i) => (
+                          <tr key={key} className={i % 2 === 0 ? 'bg-slate-50/50 dark:bg-slate-800/30' : 'bg-white dark:bg-slate-900'}>
+                            <td className="py-2.5 px-3 font-semibold text-slate-700 dark:text-slate-300 w-[45%]">
+                              {key}
+                            </td>
+                            <td className="py-2.5 px-3 text-slate-500 dark:text-slate-400">
+                              {String(val)}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <div className="p-3.5 bg-slate-50 dark:bg-slate-800/50 rounded-xl text-slate-600 dark:text-slate-400 text-xs leading-relaxed">
+                    <div className="font-bold text-slate-900 dark:text-slate-100 mb-2 flex items-center gap-1.5">
+                      <ShieldCheck className="w-4 h-4 text-primary" /> Package & Quality Guarantee:
+                    </div>
+                    <div className="mb-1">• 100% Brand New & Quality Verified</div>
+                    <div className="mb-1">• Secure Bubble Wrap Fragile Packaging</div>
+                    <div className="mb-1">• Easy Direct Fitment & Installation</div>
+                    <div>• 7-Day Easy Return & Cash on Delivery Across Pakistan</div>
+                  </div>
                 )}
               </div>
             </SpotlightCard>

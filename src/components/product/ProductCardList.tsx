@@ -39,53 +39,80 @@ export const ProductCardList: React.FC<ProductCardListProps> = ({ product, prior
       className="product-card-container product-card-list-item card-hover-lift group"
       style={{
         background: '#ffffff',
-        borderRadius: '12px',
-        border: '1px solid #eef2f7',
-        boxShadow: '0 1px 4px rgba(15, 23, 42, 0.05)',
-        padding: '10px 12px',
+        borderRadius: '16px',
+        border: '1px solid #f1f5f9',
+        boxShadow: '0 2px 8px rgba(15, 23, 42, 0.04)',
+        padding: '10px 14px',
         display: 'flex',
         alignItems: 'center',
         gap: '14px',
         cursor: 'pointer',
         width: '100%',
+        transition: 'all 0.2s ease',
       }}
     >
-      {/* Left Media Thumbnail */}
+      {/* ── Left Media Thumbnail (Rule 3: Dual-Layer Uncropped Media Presentation) ── */}
       <div
-        className="product-card-image-wrapper"
+        className="product-card-image-wrapper flex-shrink-0"
         style={{
-          width: '96px',
-          height: '96px',
-          flexShrink: 0,
+          width: '106px',
+          height: '106px',
           position: 'relative',
-          borderRadius: '8px',
+          borderRadius: '12px',
           overflow: 'hidden',
           background: '#f8fafc',
+          border: '1px solid #f1f5f9',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
         }}
       >
-        <div className="dual-img-wrapper">
+        {/* Layer 1: Ambient Blur Backdrop */}
+        <div
+          aria-hidden="true"
+          style={{
+            position: 'absolute',
+            inset: 0,
+            overflow: 'hidden',
+            pointerEvents: 'none',
+          }}
+        >
+          <OptimizedImage
+            src={product.image || '/img/product-placeholder.png'}
+            alt=""
+            fill
+            sizes="106px"
+            style={{
+              objectFit: 'cover',
+              filter: 'blur(16px)',
+              opacity: 0.35,
+              transform: 'scale(1.25)',
+            }}
+            fallbackSrc="/img/product-placeholder.png"
+          />
+        </div>
+
+        {/* Layer 2: 100% Uncropped Crisp Product Image */}
+        <div className="dual-img-wrapper" style={{ position: 'relative', width: '100%', height: '100%', zIndex: 1 }}>
           <div className={`dual-img-primary ${secondaryImg ? 'has-secondary' : ''}`} style={{ position: 'absolute', inset: 0 }}>
             <OptimizedImage
               src={product.image || '/img/product-placeholder.png'}
               alt={product.name}
               fill
-              sizes="96px"
-              style={{ objectFit: 'contain', padding: '4px' }}
+              sizes="106px"
+              style={{ objectFit: 'contain', padding: '6px' }}
               priority={priority}
               fallbackSrc="/img/product-placeholder.png"
             />
           </div>
           {secondaryImg && (
-            <div className="dual-img-secondary">
+            <div className="dual-img-secondary" style={{ position: 'absolute', inset: 0 }}>
               <OptimizedImage
                 src={secondaryImg}
                 alt={`${product.name} alternate view`}
                 fill
-                sizes="96px"
-                style={{ objectFit: 'contain', padding: '4px' }}
+                sizes="106px"
+                style={{ objectFit: 'contain', padding: '6px' }}
                 fallbackSrc="/img/product-placeholder.png"
               />
             </div>
@@ -98,22 +125,24 @@ export const ProductCardList: React.FC<ProductCardListProps> = ({ product, prior
             className="badge-shimmer"
             style={{
               position: 'absolute',
-              top: '4px',
-              left: '4px',
-              background: '#ef4444',
-              color: '#fff',
-              fontSize: '8px',
+              top: '5px',
+              left: '5px',
+              background: 'linear-gradient(135deg, #ef4444, #dc2626)',
+              color: '#ffffff',
+              fontSize: '9px',
               fontWeight: 800,
-              padding: '2px 5px',
-              borderRadius: '4px',
-              zIndex: 2,
+              padding: '2px 6px',
+              borderRadius: '6px',
+              zIndex: 3,
+              letterSpacing: '0.2px',
+              boxShadow: '0 2px 5px rgba(239, 68, 68, 0.35)',
             }}
           >
             -{discountPercent}%
           </span>
         )}
 
-        {/* Wishlist button */}
+        {/* Wishlist Button */}
         <button
           type="button"
           onClick={(e) => {
@@ -122,36 +151,43 @@ export const ProductCardList: React.FC<ProductCardListProps> = ({ product, prior
           }}
           style={{
             position: 'absolute',
-            bottom: '4px',
-            right: '4px',
-            background: 'rgba(255,255,255,0.92)',
-            border: 'none',
+            bottom: '5px',
+            right: '5px',
+            zIndex: 3,
+            background: 'rgba(255, 255, 255, 0.92)',
+            backdropFilter: 'blur(4px)',
+            border: '1px solid rgba(226, 232, 240, 0.8)',
             borderRadius: '50%',
-            width: '24px',
-            height: '24px',
+            width: '26px',
+            height: '26px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             cursor: 'pointer',
-            boxShadow: '0 1px 4px rgba(0,0,0,0.1)',
+            boxShadow: '0 1px 4px rgba(0,0,0,0.12)',
             color: isInWishlist(formattedId) ? '#dc2626' : '#94a3b8',
+            transition: 'all 0.15s ease',
           }}
           aria-label="Wishlist"
         >
-          <i className={isInWishlist(formattedId) ? 'fas fa-heart' : 'far fa-heart'} style={{ fontSize: '10px' }} />
+          <i className={isInWishlist(formattedId) ? 'fas fa-heart' : 'far fa-heart'} style={{ fontSize: '11px' }} />
         </button>
       </div>
 
-      {/* Right Product Details */}
-      <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '3px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '6px' }}>
+      {/* ── Right Product Details ── */}
+      <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '4px' }}>
+        {/* Top Badges Row */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
           <span
             style={{
-              fontSize: '0.68rem',
-              fontWeight: 600,
+              fontSize: '0.66rem',
+              fontWeight: 700,
               color: '#64748b',
               textTransform: 'uppercase',
-              letterSpacing: '0.4px',
+              letterSpacing: '0.5px',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
             }}
           >
             {product.category}
@@ -161,23 +197,31 @@ export const ProductCardList: React.FC<ProductCardListProps> = ({ product, prior
               background: '#ecfdf5',
               color: '#059669',
               border: '1px solid #a7f3d0',
-              fontSize: '0.6rem',
+              fontSize: '0.62rem',
               fontWeight: 700,
-              padding: '1px 5px',
-              borderRadius: '4px',
+              padding: '1.5px 6px',
+              borderRadius: '999px',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '3px',
+              flexShrink: 0,
             }}
           >
-            COD Available
+            <i className="fas fa-shield-alt" style={{ fontSize: '8px' }} />
+            <span>COD Available</span>
           </span>
         </div>
 
+        {/* Product Title (Rule 4: Typography Clipping Prevention leading-normal py-0.5) */}
         <h3
+          className="group-hover:text-orange-600 transition-colors"
           style={{
             margin: 0,
-            fontSize: '0.84rem',
+            fontSize: '0.88rem',
             fontWeight: 700,
             color: '#0f172a',
-            lineHeight: 1.3,
+            lineHeight: '1.45',
+            padding: '2px 0',
             display: '-webkit-box',
             WebkitLineClamp: 2,
             WebkitBoxOrient: 'vertical',
@@ -187,67 +231,77 @@ export const ProductCardList: React.FC<ProductCardListProps> = ({ product, prior
           {product.name}
         </h3>
 
-        {/* Stars */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '1px' }}>
-          <div style={{ display: 'flex', gap: '1px' }}>
+        {/* Rating Stars & Review Count */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+          <div style={{ display: 'flex', gap: '2px' }}>
             {Array.from({ length: 5 }, (_, i) => (
               <i
                 key={i}
                 className="fas fa-star"
                 style={{
-                  fontSize: '8px',
+                  fontSize: '9px',
                   color: i < Math.floor(product.rating || 5) ? '#f59e0b' : '#e2e8f0',
                 }}
               />
             ))}
           </div>
-          <span style={{ fontSize: '0.65rem', color: '#94a3b8' }}>
-            ({product.reviewsCount || 10})
+          <span style={{ fontSize: '0.68rem', fontWeight: 600, color: '#94a3b8' }}>
+            ({product.reviewsCount || 12})
           </span>
         </div>
 
-        {/* Price & Add to Cart button */}
+        {/* Bottom Pricing & Add-to-Cart Action Bar */}
         <div
           style={{
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
             marginTop: '4px',
-            flexWrap: 'wrap',
-            gap: '6px',
+            gap: '8px',
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
-            <span style={{ fontSize: '0.94rem', fontWeight: 900, color: 'var(--pd-primary, #ea580c)' }}>
+          {/* Price Container */}
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px', flexWrap: 'wrap' }}>
+            <span
+              style={{
+                fontSize: '1rem',
+                fontWeight: 900,
+                color: 'var(--pd-primary, #ea580c)',
+                letterSpacing: '-0.3px',
+                lineHeight: '1.2',
+              }}
+            >
               Rs. {product.price.toLocaleString()}
             </span>
             {product.originalPrice > product.price && (
-              <del style={{ fontSize: '0.7rem', color: '#94a3b8' }}>
+              <del style={{ fontSize: '0.74rem', color: '#94a3b8', textDecoration: 'line-through' }}>
                 Rs. {product.originalPrice.toLocaleString()}
               </del>
             )}
           </div>
 
+          {/* Action Button */}
           <button
             type="button"
             onClick={handleAddToCart}
             disabled={adding}
-            className="btn-gradient product-card-btn"
+            className="btn-gradient product-card-btn flex-shrink-0"
             style={{
               border: 'none',
-              borderRadius: '6px',
+              borderRadius: '8px',
               padding: '6px 14px',
-              fontSize: '0.74rem',
+              fontSize: '0.78rem',
               fontWeight: 700,
               cursor: adding ? 'default' : 'pointer',
               display: 'flex',
               alignItems: 'center',
-              gap: '5px',
-              boxShadow: '0 2px 6px rgba(234, 88, 12, 0.2)',
+              gap: '6px',
+              boxShadow: '0 2px 8px rgba(234, 88, 12, 0.25)',
+              transition: 'all 0.15s ease',
             }}
           >
-            <i className={`fas ${adding ? 'fa-check' : 'fa-shopping-cart'}`} style={{ fontSize: '10px' }} />
-            <span>{adding ? 'Added' : 'Add'}</span>
+            <i className={`fas ${adding ? 'fa-check' : 'fa-shopping-cart'}`} style={{ fontSize: '11px' }} />
+            <span>{adding ? 'Added!' : 'Add'}</span>
           </button>
         </div>
       </div>

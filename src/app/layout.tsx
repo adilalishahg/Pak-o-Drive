@@ -387,6 +387,15 @@ export default async function RootLayout({
           />
         )}
 
+        {/* React Scan: Real-time component re-render performance visualizer (Dev only) */}
+        {process.env.NODE_ENV === 'development' && (
+          <script
+            crossOrigin="anonymous"
+            src="https://unpkg.com/react-scan/dist/auto.global.js"
+            async
+          />
+        )}
+
         {/* Dynamic Icon Library Support (Material, Remix, Phosphor) */}
         <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" />
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css" />

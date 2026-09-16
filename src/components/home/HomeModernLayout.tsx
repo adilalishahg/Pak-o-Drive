@@ -17,6 +17,7 @@ import { CategoryProductsBlock } from './CategoryProductsBlock';
 import { HomeCleanCategoryStrip } from './HomeCleanCategoryStrip';
 import { Marquee } from '@/components/ui/Marquee';
 import { SpotlightCard } from '@/components/ui/SpotlightCard';
+import { Megaphone } from 'lucide-react';
 
 export interface HomeModernLayoutProps {
   theme: SiteTheme;
@@ -70,8 +71,8 @@ export const HomeModernLayout: React.FC<HomeModernLayoutProps> = ({
         <div className="announcement-bar text-white text-center py-2 px-2 overflow-hidden">
           <Marquee speed={32} gap="3.5rem" fadeEdges={false} pauseOnHover>
             <span className="announcement-inner d-inline-flex items-center gap-2">
-              <i className="fas fa-bullhorn" style={{ color: '#fbbf24' }} />
-              <span>{theme.announcementBarText}</span>
+              <Megaphone className="w-4 h-4 text-amber-400 shrink-0" />
+              <span className="leading-normal py-0.5">{theme.announcementBarText}</span>
             </span>
           </Marquee>
         </div>
@@ -238,7 +239,7 @@ export const HomeModernLayout: React.FC<HomeModernLayoutProps> = ({
                     fontWeight: 700,
                     fontSize: '0.88rem',
                     whiteSpace: 'nowrap',
-                    lineHeight: 1,
+                    lineHeight: 'normal',
                   }}
                 >
                   View All Products

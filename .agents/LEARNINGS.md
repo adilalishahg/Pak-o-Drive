@@ -2,6 +2,50 @@
 
 This file serves as persistent dynamic memory across coding agent sessions. Every core standard, architectural decision, and verified bug resolution must be preserved below.
 
+### 2026-09-16 — Mobile Category Sidebar & Drawer Scrolling Fix: Body Scroll Lock & Viewport Isolation
+- **📌 Issue**:
+  On mobile devices, opening the category sidebar/drawer and selecting a category caused subcategories to expand, but vertical scrolling was frozen/broken when the content exceeded screen height ("abi b mobile pr sidebar scroll ni kr ri open kro tou jb koi category phr select kro sub category show hoti ha ha tou scroll ata ha wo ni hota").
+- **🔍 Root Cause**:
+  1. Neither `MobileNavDrawer.tsx` nor `ShopClient.tsx` (mobile filter drawer) locked background body scroll (`document.body.style.overflow = 'hidden'`), causing touch-drag events to bubble up to the root window/body and freeze the drawer scroll viewport.
+  2. In `ShopClient.tsx`, the mobile filter drawer was an unconstrained `maxHeight: 85vh` element with header, category sidebar, and "Show Results" button all packed into one container, and `onSelectCategory` prematurely called `setMobileFilterOpen(false)`.
+  3. In `MobileNavDrawer.tsx`, the scroll container was styled with `display: flex; flex-direction: column` directly on the `overflow-y: auto` element, which prevented WebKit/Blink from recalculating `scrollHeight` when accordion children dynamically expanded.
+  4. Chevron buttons for expanding subcategories had tiny touch targets (~17px to 24px), causing accidental link taps and navigation away from the drawer.
+- **🛠️ Verified Code Fix**:
+  1. **Body Scroll Lock**: Added `useEffect` in both `MobileNavDrawer.tsx` and `ShopClient.tsx` to set `document.body.style.overflow = 'hidden'` and `touchAction = 'none'` when drawers are open, with clean teardown on unmount/close.
+  2. **Three-Layer Sheet Architecture (`ShopClient.tsx`)**: Re-architected mobile filter drawer into fixed non-scrolling Header (`flexShrink: 0`), isolated block scroll body (`flex: 1 1 0%; minHeight: 0; overflowY: auto; WebkitOverflowScrolling: touch; overscrollBehaviorY: contain; touchAction: pan-y`), and fixed Footer action bar (`flexShrink: 0`) with Reset and "Show {sorted.length} Results" buttons.
+  3. **Multi-Selection Subcategory Persistence**: Prevented `onSelectCategory` from auto-closing the mobile filter drawer prematurely, allowing users to expand categories, select subcategories, adjust price, and tap "Show Results".
+  4. **Touch Targets & Block Context (`MobileNavDrawer.tsx` & `CategorySidebar.tsx`)**: Expanded chevron touch targets to 32-34px with visual active states, and separated the scroll viewport from the flex child wrapper.
+  5. **Verification**: `pnpm tsc --noEmit` and `graft build` both passed with 0 errors.
+
+### 2026-09-16 — Mobile UX Optimization: Back-Button Overlay Dismissal, Drawer Touch-Scroll & List View Overhaul
+- **📌 Issue**:
+  1. Users on mobile devices pressing the Android/hardware back button while Chat widget or Navbar search overlay was open were navigated away from the store instead of closing the active overlay.
+  2. Mobile navigation drawer (`MobileNavDrawer`) failed to scroll vertically on touch devices when categories or links exceeded screen height.
+  3. Product list view in Shop page had cramped layout, uncropped media presentation clipping issues, and lacked refined typography.
+  4. Footer navigation required compact 3-column organization on mobile screens to minimize excess vertical scroll height.
+- **🔍 Root Cause**:
+  1. No browser history state (`pushState` / `popstate`) was synchronized when opening client overlays/modals.
+  2. The `<aside>` flex container had `overflowY: auto` on the parent with flex children lacking `minHeight: 0`, causing mobile touch engines to freeze scrolling.
+  3. `ProductCardList.tsx` lacked dual-layer ambient backdrop (Rule 3) and `leading-normal py-0.5` (Rule 4), and had raw pill CTA placement.
+  4. Footer links were spread across 2 wide columns with excess empty height.
+- **🛠️ Verified Code Fix**:
+  1. **Mobile Back-Button Interceptor (`src/hooks/useBackToClose.ts`)**: Built a reusable hook utilizing `window.history.pushState` and `popstate` event listeners with clean rollback on manual dismiss. Connected to `useStoreChatBot`, `useMobileSmartSearch`, and `useNavbar` (for search and mobile drawer).
+  2. **Mobile Nav Drawer Touch Scrolling (`src/components/layout/MobileNavDrawer.tsx`)**: Re-architected container to `overflow: hidden; max-height: 100dvh`, fixed header and bottom WhatsApp action bar with `flexShrink: 0`, and gave the inner scrollable body `flex: 1; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; touch-action: pan-y;`.
+  3. **Product List View Redesign (`src/components/product/ProductCardList.tsx`)**: Implemented Core Rule 3 dual-layer uncropped media presentation (ambient blur backdrop + `object-contain`), Core Rule 4 ascender-safe typography (`leading-normal py-0.5`), modern micro-badges (`COD Available`, `-XX% OFF`, glassmorphic wishlist), and responsive Add-to-Cart CTA button.
+  4. **Footer 3-Column Compact Grid (`src/components/layout/Footer.tsx`)**: Grouped footer links into 3 balanced columns (`col-4` each on mobile, `grid-cols-3` in Clean White) cutting vertical space by >35%.
+  5. **Verification**: Successfully executed `pnpm tsc --noEmit` passing with 0 errors.
+
+### 2026-09-16 — Mobile Footer 3-Column Navigation Layout: Streamlined Compact Categorization
+- **📌 Issue**:
+  User shared mobile screenshot showing footer navigation links split across only 2 wide columns (`Explore` and `Policies` using `col-6`), leaving excess empty vertical space and unoptimized categorization on small smartphone screens.
+- **🔍 Root Cause**:
+  Footer link blocks were hardcoded to `col-6` in Classic/Modern layout and `grid-cols-1 md:grid-cols-2 lg:grid-cols-4` in Clean White layout, forcing a 2-column mobile presentation instead of a clean, space-efficient 3-column navigation grid.
+- **🛠️ Verified Code Fix**:
+  1. **3-Column Mobile Layout (`src/components/layout/Footer.tsx`)**: Re-architected footer links into 3 distinct, balanced categories on mobile (`Explore`, `Help & Care`, and `Policies`), each assigned `col-4 col-md-4 col-lg-2 px-1 px-sm-2` in Classic layout and `grid-cols-3` in Clean White layout.
+  2. **Categorization Balance & Zero Clipping**: Balanced links with 4 items each (Explore: Shop All, Track Order, Auto Blog, Wishlist; Help & Care: Contact Us, About Us, COD Guide, My Cart; Policies: Returns, Shipping, Privacy, Terms) and enforced `leading-normal py-0.5` per Core Rule 4.
+  3. **Verification**: Successfully passed `pnpm tsc --noEmit` and `graft build` with 0 errors.
+
+
 ### 2026-09-16 — Storefront UI/UX Modernization & Typography Clipping Audit: Next.js 16 + React 19 Streamlining
 - **📌 Issue**:
   Storefront product page and homepage contained a mix of legacy Bootstrap utility classes (`d-flex`, `row`, `col-12`, `g-0`), heavy FontAwesome font icon tags (`<i className="fas fa-..." />`), raw inline style elements, and single-line elements with `lineHeight: 1` violating Core Rule 4 (typography ascender/descender clipping).

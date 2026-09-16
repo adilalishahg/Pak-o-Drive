@@ -173,21 +173,24 @@ const RecursiveSidebarNode: React.FC<{
               }}
               style={{
                 border: 'none',
-                background: 'transparent',
+                background: expanded ? 'rgba(0,0,0,0.06)' : 'transparent',
                 cursor: 'pointer',
-                padding: '4px',
-                color: '#94a3b8',
+                width: '32px',
+                height: '32px',
+                minWidth: '32px',
+                color: expanded ? 'var(--pd-primary, #ea580c)' : '#64748b',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                borderRadius: '4px',
+                borderRadius: '6px',
+                transition: 'all 0.15s ease',
               }}
               aria-label={expanded ? 'Collapse' : 'Expand'}
             >
               <i
                 className="fas fa-chevron-right"
                 style={{
-                  fontSize: '9px',
+                  fontSize: '10px',
                   transition: 'transform 0.2s ease',
                   transform: expanded ? 'rotate(90deg)' : 'none',
                 }}

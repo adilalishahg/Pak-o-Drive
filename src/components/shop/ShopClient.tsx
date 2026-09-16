@@ -38,6 +38,19 @@ function ShopContent({ initialProducts }: ShopClientProps) {
     hasFilters,
   } = useShopFilters({ initialProducts });
 
+  // Lock background scroll when mobile filter drawer is open
+  React.useEffect(() => {
+    if (!mobileFilterOpen) return;
+    const origOverflow = document.body.style.overflow;
+    const origTouchAction = document.body.style.touchAction;
+    document.body.style.overflow = 'hidden';
+    document.body.style.touchAction = 'none';
+    return () => {
+      document.body.style.overflow = origOverflow;
+      document.body.style.touchAction = origTouchAction;
+    };
+  }, [mobileFilterOpen]);
+
   return (
     <div style={{ background: bg, minHeight: '100vh' }}>
 
@@ -76,7 +89,7 @@ function ShopContent({ initialProducts }: ShopClientProps) {
       }}>
 
         {/* ── Sidebar (desktop) ── */}
-        <div className="d-none d-lg-block" style={{ width: '260px', flexShrink: 0, position: 'sticky', top: '80px' }}>
+        <div className="d-none d-lg-block" style={{ width: '260px', flexShrink: 0, position: 'sticky', top: '80px', maxHeight: 'calc(100vh - 100px)', overflowY: 'auto' }}>
           <CategorySidebar
             selectedCategory={selectedCategory}
             onSelectCategory={setSelectedCategory}
@@ -422,57 +435,201 @@ function ShopContent({ initialProducts }: ShopClientProps) {
 
       {/* ── Mobile Filter Drawer ── */}
       {mobileFilterOpen && (
-        <>
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 9998,
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'flex-end',
+          }}
+        >
           {/* Backdrop */}
-          <div onClick={() => setMobileFilterOpen(false)}
-            style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1050 }} />
-          {/* Drawer */}
-          <div style={{
-            position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 1051,
-            background: '#f5f7fa', borderRadius: '20px 20px 0 0',
-            padding: '0 0 32px 0', maxHeight: '85vh', overflowY: 'auto',
-            boxShadow: '0 -8px 32px rgba(0,0,0,0.15)',
-          }}>
-            {/* Handle */}
-            <div style={{ textAlign: 'center', padding: '12px 0 8px' }}>
-              <div style={{ width: '40px', height: '4px', background: '#cbd5e1', borderRadius: '2px', display: 'inline-block' }} />
-            </div>
-            <div style={{
-              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-              padding: '4px 16px 12px', borderBottom: '1px solid #eef2f7'
-            }}>
-              <span style={{ fontWeight: 800, fontSize: '1rem', color: '#1e293b' }}>Filters</span>
-              <button onClick={() => setMobileFilterOpen(false)}
+          <div
+            onClick={() => setMobileFilterOpen(false)}
+            style={{
+              position: 'fixed',
+              inset: 0,
+              background: 'rgba(15, 23, 42, 0.65)',
+              backdropFilter: 'blur(5px)',
+              WebkitBackdropFilter: 'blur(5px)',
+              zIndex: 9998,
+              touchAction: 'none',
+            }}
+            aria-hidden="true"
+          />
+
+          {/* Drawer Sheet */}
+          <div
+            style={{
+              position: 'relative',
+              zIndex: 9999,
+              background: '#f8fafc',
+              borderRadius: '24px 24px 0 0',
+              height: '88dvh',
+              maxHeight: '88dvh',
+              display: 'flex',
+              flexDirection: 'column',
+              boxShadow: '0 -10px 40px rgba(0, 0, 0, 0.35)',
+              overflow: 'hidden',
+            }}
+          >
+            {/* Grab Handle & Header (Fixed, Non-scrolling) */}
+            <div
+              style={{
+                flexShrink: 0,
+                background: '#ffffff',
+                borderBottom: '1px solid #e2e8f0',
+                padding: '10px 18px 12px',
+                zIndex: 10,
+              }}
+            >
+              <div style={{ textAlign: 'center', marginBottom: '8px' }}>
+                <div
+                  style={{
+                    width: '44px',
+                    height: '5px',
+                    background: '#cbd5e1',
+                    borderRadius: '3px',
+                    display: 'inline-block',
+                  }}
+                />
+              </div>
+              <div
                 style={{
-                  background: '#f1f5f9', border: 'none', borderRadius: '50%',
-                  width: '32px', height: '32px', cursor: 'pointer', display: 'flex',
-                  alignItems: 'center', justifyContent: 'center', color: '#64748b'
-                }}>
-                <i className="fas fa-times" style={{ fontSize: '13px' }} />
-              </button>
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{ fontWeight: 800, fontSize: '1.05rem', color: '#0f172a' }}>
+                    Filters & Categories
+                  </span>
+                  {hasFilters && (
+                    <span
+                      style={{
+                        background: 'var(--pd-primary, #ea580c)',
+                        color: '#ffffff',
+                        fontSize: '0.68rem',
+                        fontWeight: 700,
+                        padding: '2px 8px',
+                        borderRadius: '20px',
+                      }}
+                    >
+                      Active
+                    </span>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setMobileFilterOpen(false)}
+                  style={{
+                    background: '#f1f5f9',
+                    border: 'none',
+                    borderRadius: '50%',
+                    width: '34px',
+                    height: '34px',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#64748b',
+                    transition: 'all 0.15s ease',
+                  }}
+                  aria-label="Close filters"
+                >
+                  <i className="fas fa-times" style={{ fontSize: '14px' }} />
+                </button>
+              </div>
             </div>
-            <div style={{ padding: '12px 16px' }}>
+
+            {/* Scrollable Body (Independent scroll viewport, silky-smooth touch scrolling) */}
+            <div
+              style={{
+                flex: '1 1 0%',
+                minHeight: 0,
+                overflowY: 'auto',
+                overflowX: 'hidden',
+                WebkitOverflowScrolling: 'touch',
+                overscrollBehaviorY: 'contain',
+                touchAction: 'pan-y',
+                padding: '14px 16px 20px',
+              }}
+            >
               <CategorySidebar
                 selectedCategory={selectedCategory}
-                onSelectCategory={cat => { setSelectedCategory(cat); setMobileFilterOpen(false); }}
+                onSelectCategory={(cat) => setSelectedCategory(cat)}
                 priceRange={priceRange}
                 onPriceRangeChange={(min, max) => setPriceRange({ min, max })}
                 selectedRating={selectedRating}
                 onSelectRating={setSelectedRating}
-                onReset={() => { handleReset(); setMobileFilterOpen(false); }}
+                onReset={() => handleReset()}
               />
             </div>
-            <div style={{ padding: '0 16px' }}>
-              <button onClick={() => setMobileFilterOpen(false)} className="btn-gradient w-100"
+
+            {/* Fixed Footer Action Bar (Fixed, Non-scrolling, always visible) */}
+            <div
+              style={{
+                flexShrink: 0,
+                background: '#ffffff',
+                borderTop: '1px solid #e2e8f0',
+                padding: '12px 16px',
+                paddingBottom: 'max(14px, env(safe-area-inset-bottom, 14px))',
+                display: 'flex',
+                gap: '10px',
+                alignItems: 'center',
+                zIndex: 10,
+              }}
+            >
+              {hasFilters && (
+                <button
+                  type="button"
+                  onClick={() => handleReset()}
+                  style={{
+                    flex: '0 0 auto',
+                    background: '#f1f5f9',
+                    border: '1px solid #e2e8f0',
+                    color: '#64748b',
+                    borderRadius: '10px',
+                    padding: '12px 14px',
+                    fontWeight: 700,
+                    fontSize: '0.82rem',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                  }}
+                >
+                  <i className="fas fa-rotate-left" style={{ fontSize: '12px' }} />
+                  Reset
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => setMobileFilterOpen(false)}
+                className="btn-gradient"
                 style={{
-                  border: 'none', borderRadius: '10px', padding: '13px',
-                  fontWeight: 700, fontSize: '0.9rem', cursor: 'pointer'
-                }}>
-                Show {sorted.length} Results
+                  flex: 1,
+                  border: 'none',
+                  borderRadius: '10px',
+                  padding: '12px 16px',
+                  fontWeight: 800,
+                  fontSize: '0.92rem',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                }}
+              >
+                <span>Show {sorted.length} Results</span>
+                <i className="fas fa-arrow-right" style={{ fontSize: '11px' }} />
               </button>
             </div>
           </div>
-        </>
+        </div>
       )}
     </div>
   );
