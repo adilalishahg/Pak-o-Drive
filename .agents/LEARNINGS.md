@@ -6,6 +6,18 @@ This file serves as persistent dynamic memory across coding agent sessions. Ever
 
 ---
 
+### 2026-09-16 — Vercel Read-Only Filesystem ENOENT Resolution & Multi-Provider AI Fallback Insight
+- **📌 Issue**:
+  Vercel cron execution log threw `❌ [CronAutoInstagramReel] Task failed: Error: ENOENT: no such file or directory, mkdir '/var/task/public/img/viral-reels/library/beach'` alongside a warning `⚠️ [AI Engine: Gemini Quota/Billing 429] Cooling down Gemini for 3 mins.`.
+- **🔍 Root Cause**:
+  1. `selectUniqueVideoFromCategory` in `reelCategoryLibrary.ts` called `fs.mkdirSync(baseDir)` on `/var/task/...`. In Vercel serverless functions, `/var/task` is a read-only filesystem (`EROFS`/`ENOENT`), causing `mkdirSync` to crash the serverless process.
+  2. The Gemini 429 message is an intentional warning logged by `multiAiEngine.ts` when Gemini free-tier rate limits are reached; the system automatically cools down Gemini for 3 minutes and falls back to Groq, HuggingFace, SambaNova, Together AI, or curated offline fallbacks.
+- **🛠️ Verified Code Fix**:
+  1. **Removed `fs.mkdirSync` on Serverless Filesystem**: Refactored `selectUniqueVideoFromCategory` in `src/lib/reelCategoryLibrary.ts` to wrap directory reads in `try...catch` without invoking `fs.mkdirSync`. If a category subfolder is not bundled in build artifacts, it gracefully falls back to `public/img/viral-reels/raw/` videos or `nissan-300zx.mp4`.
+  2. **Verification**: `pnpm tsc --noEmit` and `graft build` passed with 0 errors.
+
+---
+
 ### 2026-09-16 — Autonomous Instagram Reels & TikTok Cron Dispatch Hardening & Serverless FFmpeg Fallback
 - **📌 Issue**:
   Manual triggering of `/api/cron/auto-instagram-reel?secret=pakodrive_secret_2026` via QStash did not post videos to Instagram or TikTok.

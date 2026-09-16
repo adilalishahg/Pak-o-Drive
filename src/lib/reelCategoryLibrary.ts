@@ -97,13 +97,32 @@ export function selectUniqueVideoFromCategory(category: ReelCategory): {
   const baseDir = path.resolve(process.cwd(), `public/img/viral-reels/library/${category}`);
   const config = CATEGORIES_CONFIG[category];
 
-  if (!fs.existsSync(baseDir)) {
-    fs.mkdirSync(baseDir, { recursive: true });
+  let files: string[] = [];
+  try {
+    if (fs.existsSync(baseDir)) {
+      files = fs.readdirSync(baseDir).filter((f) => f.endsWith('.mp4'));
+    }
+  } catch (err: any) {
+    console.warn(`⚠️ [ReelCategoryLibrary] Cannot read category dir ${category}:`, err.message);
   }
 
-  const files = fs.readdirSync(baseDir).filter(f => f.endsWith('.mp4'));
+  // Fallback: If category directory does not exist or has no videos, pick from raw pool or default asset
   if (files.length === 0) {
-    // Fallback if category directory has no files
+    const rawDir = path.resolve(process.cwd(), 'public/img/viral-reels/raw');
+    try {
+      if (fs.existsSync(rawDir)) {
+        const rawFiles = fs.readdirSync(rawDir).filter((f) => f.endsWith('.mp4'));
+        if (rawFiles.length > 0) {
+          const chosen = rawFiles[Math.floor(Math.random() * rawFiles.length)];
+          return {
+            videoPath: `public/img/viral-reels/raw/${chosen}`,
+            category,
+            config,
+          };
+        }
+      }
+    } catch {}
+
     return {
       videoPath: 'public/img/viral-reels/raw/nissan-300zx.mp4',
       category,
@@ -114,10 +133,11 @@ export function selectUniqueVideoFromCategory(category: ReelCategory): {
   const history = getUsageHistory();
 
   // Find files not used recently
-  const unUsedFiles = files.filter(f => !history.includes(`${category}/${f}`));
-  const chosenFile = unUsedFiles.length > 0 
-    ? unUsedFiles[Math.floor(Math.random() * unUsedFiles.length)]
-    : files[Math.floor(Math.random() * files.length)]; // If all used, cycle back
+  const unUsedFiles = files.filter((f) => !history.includes(`${category}/${f}`));
+  const chosenFile =
+    unUsedFiles.length > 0
+      ? unUsedFiles[Math.floor(Math.random() * unUsedFiles.length)]
+      : files[Math.floor(Math.random() * files.length)];
 
   const relativePath = `public/img/viral-reels/library/${category}/${chosenFile}`;
   recordUsage(`${category}/${chosenFile}`);
