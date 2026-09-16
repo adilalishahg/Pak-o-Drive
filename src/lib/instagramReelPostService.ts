@@ -168,18 +168,7 @@ export async function executeAutoInstagramReelPost(options?: {
   const igUserId = process.env.INSTAGRAM_ACCOUNT_ID;
   const accessToken = process.env.INSTAGRAM_ACCESS_TOKEN;
 
-  if (!igUserId || !accessToken) {
-    const err = 'INSTAGRAM_ACCOUNT_ID or INSTAGRAM_ACCESS_TOKEN is missing from environment.';
-    console.error(`❌ [InstagramReelService] ${err}`);
-    return {
-      success: false,
-      toolName: options?.customToolName || 'N/A',
-      error: err,
-    };
-  }
-
   console.log(`🚀 [InstagramReelService] Initializing automated reel dispatcher (type: ${reelType})...`);
-  console.log(`📱 [InstagramReelService] Target Instagram Account: ${igUserId}`);
 
   // Step 1: Generate Real Moving Video or Cinematic Video
   let videoPath = '';
@@ -197,7 +186,7 @@ export async function executeAutoInstagramReelPost(options?: {
     videoPath = motionResult.videoPath;
     videoDuration = motionResult.durationSeconds;
     toolName = motionResult.title;
-    caption = motionResult.caption || await generateViralUkCaption(toolName);
+    caption = motionResult.caption || (await generateViralUkCaption(toolName));
   } else {
     console.log('🎬 [InstagramReelService] Step 1: Generating cinematic AI video...');
     const videoResult = await generateCinematicVideo({
@@ -217,177 +206,180 @@ export async function executeAutoInstagramReelPost(options?: {
   console.log(`✓ [InstagramReelService] Video ready for "${toolName}" (${videoDuration.toFixed(1)}s)`);
 
   // Step 2: Upload Video to Public CDN
-  console.log('☁️ [InstagramReelService] Step 2: Uploading video to CDN for Meta ingestion...');
+  console.log('☁️ [InstagramReelService] Step 2: Uploading video to CDN for social ingestion...');
   const publicVideoUrl = await uploadVideoToCdn(videoPath);
 
   // Check UK Peak Hour status
   const ukTimeInfo = getUkTimeInfo();
-  console.log(`🇬🇧 [InstagramReelService] Algorithmic Timing Status: UK Time: ${ukTimeInfo.ukTimeString} | PKT: ${ukTimeInfo.pktTimeString}`);
-  console.log(`⏰ [InstagramReelService] Peak Window Status: ${ukTimeInfo.formattedCountdown}`);
+  console.log(
+    `🇬🇧 [InstagramReelService] Algorithmic Timing Status: UK Time: ${ukTimeInfo.ukTimeString} | PKT: ${ukTimeInfo.pktTimeString}`
+  );
 
-  // Step 4: Create Instagram Reel Media Container
-  console.log('📦 [InstagramReelService] Step 4: Creating Instagram Reel container in Meta Graph API...');
-  
-  const ukLocation = getRandomUkLocation();
-  const containerPayload: Record<string, any> = {
-    media_type: 'REELS',
-    video_url: publicVideoUrl,
-    caption,
-    share_to_feed: true,
-    access_token: accessToken,
-  };
-
-  if (ukTargeting) {
-    console.log(`📍 [InstagramReelService] Tagging UK Location: ${ukLocation.name} (Place ID: ${ukLocation.id})`);
-    containerPayload.location_id = ukLocation.id;
-  }
-
-  let containerRes = await fetch(`https://graph.facebook.com/v20.0/${igUserId}/media`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(containerPayload),
-  });
-
-  let containerData = await containerRes.json();
-
-  // Gracefully retry without location_id if Meta API rejects place ID
-  if (!containerRes.ok && containerPayload.location_id) {
-    console.warn(`⚠️ [InstagramReelService] Location ID error (${containerData.error?.message}). Retrying container creation with caption-only geo-tagging...`);
-    delete containerPayload.location_id;
-    containerRes = await fetch(`https://graph.facebook.com/v20.0/${igUserId}/media`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(containerPayload),
-    });
-    containerData = await containerRes.json();
-  }
-
-  if (!containerRes.ok || containerData.error || !containerData.id) {
-    throw new Error('Failed to create Instagram Reel container: ' + (containerData.error?.message || JSON.stringify(containerData)));
-  }
-
-  const containerId = containerData.id;
-  console.log(`✓ [InstagramReelService] Reel container created: ${containerId}`);
-
-  // Step 5: Wait for Meta to process and encode video
-  console.log('⏳ [InstagramReelService] Step 5: Waiting for Meta processing queue...');
-  let isReady = false;
-  let attempts = 0;
-  const maxAttempts = 25; // 25 * 4s = 100s max polling for video encoding
-
-  while (!isReady && attempts < maxAttempts) {
-    attempts++;
-    await new Promise((resolve) => setTimeout(resolve, 4000));
-    try {
-      const statusRes = await fetch(
-        `https://graph.facebook.com/v20.0/${containerId}?fields=status_code,status&access_token=${accessToken}`
-      );
-      const statusData = await statusRes.json();
-      console.log(`⏳ [InstagramReelService] Video processing status: ${statusData.status_code || 'IN_PROGRESS'} (attempt ${attempts}/${maxAttempts})`);
-
-      if (statusData.status_code === 'FINISHED') {
-        isReady = true;
-        console.log(`✓ [InstagramReelService] Reel video ready for publication!`);
-        break;
-      } else if (statusData.status_code === 'ERROR') {
-        throw new Error('Meta processing error: ' + (statusData.status || 'Failed to encode video'));
-      }
-    } catch (e: any) {
-      if (attempts >= maxAttempts) throw e;
-    }
-  }
-
-  if (!isReady) {
-    throw new Error('Meta video processing timed out after 100 seconds.');
-  }
-
-  // Step 6: Publish Reel Live
-  console.log('📡 [InstagramReelService] Step 6: Publishing Reel live to Instagram feed...');
-  const publishRes = await fetch(`https://graph.facebook.com/v20.0/${igUserId}/media_publish`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      creation_id: containerId,
-      access_token: accessToken,
-    }),
-  });
-
-  const publishData = await publishRes.json();
-  if (!publishRes.ok || publishData.error || !publishData.id) {
-    throw new Error('Failed to publish Reel: ' + (publishData.error?.message || JSON.stringify(publishData)));
-  }
-
-  const postId = publishData.id;
-  console.log(`🎉 [InstagramReelService] Reel published successfully! Post ID: ${postId}`);
-
-  // Step 7: Fetch Live Permalink
+  let postId: string | undefined;
   let permalink: string | undefined;
-  try {
-    const permalinkRes = await fetch(
-      `https://graph.facebook.com/v20.0/${postId}?fields=permalink&access_token=${accessToken}`
-    );
-    const permalinkData = await permalinkRes.json();
-    if (permalinkData.permalink) {
-      permalink = permalinkData.permalink;
-      console.log(`🔗 [InstagramReelService] Reel Live Link: ${permalink}`);
-    }
-  } catch {}
-
-  // Step 8: Log to MongoDB
-  try {
-    await dbConnect();
-    await InstagramPostLog.create({
-      topic: toolName,
-      topicNormalized: toolName.toLowerCase().replace(/[^a-z0-9]/g, ''),
-      category: 'viral-ai-tools',
-      caption,
-      mediaUrl: publicVideoUrl,
-      mediaType: 'REEL',
-      postId,
-      permalink,
-      source,
-      status: 'published',
-    });
-    console.log(`✓ [InstagramReelService] Log saved to MongoDB`);
-  } catch (err: any) {
-    console.warn('⚠️ [InstagramReelService] MongoDB log warning:', err.message);
-  }
-
-  // Step 9: Autonomous Share to Instagram Story
   let storyId: string | undefined;
-  if (options?.shareToStory !== false) {
+  let tikTokPublishId: string | undefined;
+  let instagramError: string | undefined;
+  let tikTokError: string | undefined;
+
+  // Step 3: Publish to Instagram Reels & Story (if credentials configured)
+  if (igUserId && accessToken) {
     try {
-      console.log('📲 [InstagramReelService] Step 9: Auto-sharing Reel to Instagram Story...');
-      const storyRes = await publishInstagramStory(videoPath);
-      if (storyRes.success) {
-        storyId = storyRes.storyId;
-        console.log(`🎉 [InstagramReelService] Story shared successfully! Story ID: ${storyId}`);
-      } else {
-        console.warn(`⚠️ [InstagramReelService] Story auto-share skipped: ${storyRes.error}`);
+      console.log('📦 [InstagramReelService] Step 3: Creating Instagram Reel container in Meta Graph API...');
+      const ukLocation = getRandomUkLocation();
+      const containerPayload: Record<string, any> = {
+        media_type: 'REELS',
+        video_url: publicVideoUrl,
+        caption,
+        share_to_feed: true,
+        access_token: accessToken,
+      };
+
+      if (ukTargeting) {
+        console.log(`📍 [InstagramReelService] Tagging UK Location: ${ukLocation.name} (Place ID: ${ukLocation.id})`);
+        containerPayload.location_id = ukLocation.id;
       }
-    } catch (storyErr: any) {
-      console.warn(`⚠️ [InstagramReelService] Story dispatch warning: ${storyErr.message}`);
+
+      let containerRes = await fetch(`https://graph.facebook.com/v20.0/${igUserId}/media`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(containerPayload),
+      });
+
+      let containerData = await containerRes.json();
+
+      if (!containerRes.ok && containerPayload.location_id) {
+        console.warn(
+          `⚠️ [InstagramReelService] Location ID error (${containerData.error?.message}). Retrying container creation without location...`
+        );
+        delete containerPayload.location_id;
+        containerRes = await fetch(`https://graph.facebook.com/v20.0/${igUserId}/media`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(containerPayload),
+        });
+        containerData = await containerRes.json();
+      }
+
+      if (containerRes.ok && containerData.id) {
+        const containerId = containerData.id;
+        console.log(`✓ [InstagramReelService] Reel container created: ${containerId}`);
+
+        // Wait for Meta processing (Fast 2s polling up to 15 attempts = 30s)
+        let isReady = false;
+        let attempts = 0;
+        const maxAttempts = 15;
+
+        while (!isReady && attempts < maxAttempts) {
+          attempts++;
+          await new Promise((resolve) => setTimeout(resolve, 2000));
+          try {
+            const statusRes = await fetch(
+              `https://graph.facebook.com/v20.0/${containerId}?fields=status_code,status&access_token=${accessToken}`
+            );
+            const statusData = await statusRes.json();
+            if (statusData.status_code === 'FINISHED') {
+              isReady = true;
+              break;
+            } else if (statusData.status_code === 'ERROR') {
+              throw new Error('Meta video processing error: ' + (statusData.status || 'Failed'));
+            }
+          } catch (e: any) {
+            if (attempts >= maxAttempts) throw e;
+          }
+        }
+
+        if (isReady) {
+          console.log('📡 [InstagramReelService] Publishing Reel live to Instagram feed...');
+          const publishRes = await fetch(`https://graph.facebook.com/v20.0/${igUserId}/media_publish`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              creation_id: containerId,
+              access_token: accessToken,
+            }),
+          });
+          const publishData = await publishRes.json();
+          if (publishRes.ok && publishData.id) {
+            postId = publishData.id;
+            console.log(`🎉 [InstagramReelService] Reel published! Post ID: ${postId}`);
+
+            try {
+              const permalinkRes = await fetch(
+                `https://graph.facebook.com/v20.0/${postId}?fields=permalink&access_token=${accessToken}`
+              );
+              const permalinkData = await permalinkRes.json();
+              permalink = permalinkData.permalink;
+            } catch {}
+          } else {
+            instagramError = publishData.error?.message || 'Publish failed';
+          }
+        } else {
+          instagramError = 'Meta video processing timed out';
+        }
+      } else {
+        instagramError = containerData.error?.message || 'Container creation failed';
+      }
+
+      // Log to MongoDB if published
+      if (postId) {
+        try {
+          await dbConnect();
+          await InstagramPostLog.create({
+            topic: toolName,
+            topicNormalized: toolName.toLowerCase().replace(/[^a-z0-9]/g, ''),
+            category: 'viral-ai-tools',
+            caption,
+            mediaUrl: publicVideoUrl,
+            mediaType: 'REEL',
+            postId,
+            permalink,
+            source,
+            status: 'published',
+          });
+        } catch {}
+      }
+
+      // Auto Share to Instagram Story
+      if (options?.shareToStory !== false) {
+        try {
+          const storyRes = await publishInstagramStory(videoPath);
+          if (storyRes.success) {
+            storyId = storyRes.storyId;
+          }
+        } catch {}
+      }
+    } catch (err: any) {
+      instagramError = err.message || 'Instagram dispatch exception';
+      console.warn(`⚠️ [InstagramReelService] Instagram dispatch issue: ${instagramError}`);
     }
+  } else {
+    instagramError = 'INSTAGRAM_ACCOUNT_ID or INSTAGRAM_ACCESS_TOKEN is missing in environment variables.';
+    console.warn(`⚠️ [InstagramReelService] ${instagramError}`);
   }
 
-  // Step 10: Autonomous Dispatch to TikTok (Buffer / Native API)
-  let tikTokPublishId: string | undefined;
+  // Step 4: Dispatch to TikTok (Buffer GraphQL API or Native API)
   if (publicVideoUrl && caption) {
     try {
       const { publishToTikTok } = await import('./tiktokPostService');
-      console.log('🎵 [InstagramReelService] Step 10: Auto-publishing video to TikTok...');
+      console.log('🎵 [InstagramReelService] Auto-publishing video to TikTok...');
       const tikTokRes = await publishToTikTok(publicVideoUrl, caption);
       if (tikTokRes.success) {
         tikTokPublishId = tikTokRes.publishId;
-        console.log(`🎉 [InstagramReelService] TikTok Reel Published! Publish ID: ${tikTokPublishId}`);
+        console.log(`🎉 [InstagramReelService] TikTok Reel Published! ID: ${tikTokPublishId}`);
+      } else {
+        tikTokError = tikTokRes.error;
       }
     } catch (tikTokErr: any) {
-      console.warn('⚠️ [InstagramReelService] TikTok dispatch skipped:', tikTokErr.message);
+      tikTokError = tikTokErr.message || 'TikTok dispatch failed';
+      console.warn(`⚠️ [InstagramReelService] TikTok dispatch skipped: ${tikTokError}`);
     }
   }
 
+  const overallSuccess = Boolean(postId || tikTokPublishId);
+
   return {
-    success: true,
+    success: overallSuccess,
     toolName,
     postId,
     permalink,
@@ -396,5 +388,8 @@ export async function executeAutoInstagramReelPost(options?: {
     durationSeconds: videoDuration,
     storyId,
     tikTokPublishId,
+    error: overallSuccess
+      ? undefined
+      : `Dispatch report — Instagram: ${instagramError || 'N/A'}, TikTok: ${tikTokError || 'N/A'}`,
   };
 }
