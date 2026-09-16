@@ -6,6 +6,23 @@ This file serves as persistent dynamic memory across coding agent sessions. Ever
 
 ---
 
+### 2026-09-16 — Mobile Article Detail Page (`/blog/[slug]` & `/auto/[slug]`) Layout & Template Streamlining
+- **📌 Issue**:
+  On mobile viewports, the article detail page suffered from severe visual bloat, layout distortion, and widget duplication:
+  1. `ViralProductSpotlight` was forced into the masthead header between the title and cover image, breaking the visual reading hierarchy.
+  2. Table of Contents rendered at the very bottom of the page inside the collapsed sidebar, appearing *after* the entire article and comment section.
+  3. Author profile card, newsletter form, tag clouds, and Google AdSense units were rendered twice in succession on mobile (once inside the main column and once dumped below comments from the collapsed desktop sidebar `<aside>`).
+- **🔍 Root Cause**:
+  The page layout was built on a 12-column grid (`lg:grid-cols-12`) where `<aside>` housed sticky desktop widgets. When collapsing to a single column on mobile (`< lg`), all `<aside>` items were dumped in sequential order underneath `<main>`, duplicating content already rendered in the article body.
+- **🛠️ Verified Code Fix**:
+  1. **Flow Restructure**: Moved `ViralProductSpotlight` out of the masthead and placed it inside the editorial reading flow under Key Takeaways.
+  2. **Top Mobile Collapsible Table of Contents**: Added an interactive, mobile-only (`lg:hidden`) collapsible `<details>` TOC directly below the dual-layer cover image, enabling 1-tap jump navigation to any section.
+  3. **Sidebar Redundancy Elimination (`hidden lg:block`)**: Cleaned up the mobile view by hiding duplicate sidebar items (Author Card, Sidebar TOC, Sidebar Tags Cloud, and Sidebar AdSense) using `hidden lg:block`.
+  4. **Post-Reading Mobile Flow**: Streamlined the post-comments section on mobile to only display high-value conversion elements: (1) Recent Posts / Guides, (2) Weekly Newsletter Signup, and (3) Cash on Delivery Store Promotion.
+  5. **Verification**: `pnpm tsc --noEmit` and `graft build` passed with 0 errors across both `blog/[slug]` and `auto/[slug]`.
+
+---
+
 ### 2026-09-16 — Mobile Sidebar & Drawer Touch Scroll: Lenis Interception Resolution
 - **📌 Issue**:
   On mobile devices (and touch emulation), the mobile navigation sidebar (`MobileNavDrawer`) and shop category filter drawer (`ShopClient.tsx`) could only be scrolled by dragging the tiny scrollbar thumb on the side ("side pr jo scroll ara us pr finger kr k ho ra scroll"). Swiping or dragging with a finger anywhere on the drawer content/body failed to scroll smoothly ("kahy b finger rkh k oper nechy kro hota wasy e ho smoothly").
