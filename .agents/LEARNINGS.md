@@ -2,6 +2,17 @@
 
 This file serves as persistent dynamic memory across coding agent sessions. Every core standard, architectural decision, and verified bug resolution must be preserved below.
 
+### 2026-09-16 — Upstash QStash Autonomous Scheduling & GitHub Actions Deduplication
+- **📌 Issue**:
+  User noticed morning automated posts failed to trigger reliably due to GitHub Actions top-of-hour scheduling queues and Vercel Hobby plan 1-cron limitation (`vercel.json`), with third-party webhooks timing out at 30 seconds.
+- **🔍 Root Cause**:
+  GitHub Actions free cron triggers experience 30-90 minute queue delays at top-of-the-hour (`:00`) intervals. Vercel Hobby plan enforces a strict 1-cron limit and 60s serverless timeout, while basic free webhook pinger services cap request durations to 30s, causing false 504 timeouts during AI text generation and PDF slide compilation.
+- **🛠️ Verified Code Fix**:
+  1. **QStash Multi-Schedule Migration**: Configured 3 dedicated schedules on Upstash QStash (`/api/cron/auto-social` at 10:00 AM PKT, `/api/cron/daily-master` at 07:00 PM PKT, and `/api/cron/auto-instagram-reel` at 11:00 PM PKT) with embedded `CRON_SECRET` authentication and generous serverless retry mechanisms.
+  2. **GitHub Actions Deduplication (`.github/workflows/daily-linkedin-post.yml`, `.github/workflows/daily-auto-blog.yml`)**: Commented out automatic cron schedules to prevent duplicate publishing collisions with QStash, preserving `workflow_dispatch` for manual on-demand execution.
+  3. **Off-Peak Staggered Backup (`.github/workflows/daily-instagram-reel.yml`)**: Shifted GitHub Actions Reel runner to `15 18 * * *` (11:15 PM PKT) avoiding top-of-hour congestion and serving as a resilient secondary VM runner for FFmpeg video compilation.
+  4. **Verification**: Passed `pnpm tsc --noEmit` and `graft build` with 0 errors.
+
 ### 2026-09-15 — Mobile-First LinkedIn Carousel Overhaul: Slobodan Gajić Centered Hierarchy & Large Monospace Code Blocks
 - **📌 Issue**:
   User provided mobile screenshots demonstrating that text descriptions and code blocks appeared too small, cramped, and faded on mobile screens, with tiny side-by-side boxes and poor readability compared to the viral PDF reference samples (`pdf_samples/`).

@@ -2,8 +2,8 @@ name: Daily Instagram Cinematic AI Reel Post
 
 on:
   schedule:
-    # 18:00 UTC = 07:00 PM UK (BST) & 11:00 PM PKT (Prime UK & European evening discovery peak)
-    - cron: '0 18 * * *'
+    # 18:15 UTC = 11:15 PM PKT (Off-peak backup runner for video compilation)
+    - cron: '15 18 * * *'
   workflow_dispatch:
     inputs:
       tool:

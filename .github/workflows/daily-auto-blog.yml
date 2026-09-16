@@ -1,10 +1,10 @@
 name: Daily Autonomous AI Auto-Blogger
 
+# Automatic schedule delegated to Upstash QStash (07:00 PM PKT via /api/cron/daily-master)
+# on:
+#   schedule:
+#     - cron: '0 4,13 * * *'
 on:
-  schedule:
-    # 04:00 UTC = 9:00 AM PKT (Morning rush)
-    # 13:00 UTC = 6:00 PM PKT (Evening prime browsing)
-    - cron: '0 4,13 * * *'
   workflow_dispatch:
     inputs:
       reason:
