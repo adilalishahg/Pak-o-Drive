@@ -6,6 +6,38 @@ This file serves as persistent dynamic memory across coding agent sessions. Ever
 
 ---
 
+### 2026-09-16 — Mobile Admin Categories: Edit Scroll Navigation & Delete Hard-Block Resolution
+- **📌 Issue**:
+  On mobile devices in `/admin/categories`, the admin was unable to delete categories (tap did nothing) and editing categories felt broken ("na e edit ho ri"):
+  1. Delete buttons were completely disabled and unresponsive on mobile.
+  2. Clicking "Edit" did not open the edit form on mobile or orient the user to it; the user remained looking at the top of the table.
+  3. Action buttons (Edit, Delete, Add Subcategory) frequently scrolled off the right edge of mobile screens due to horizontal table overflow.
+- **🔍 Root Cause**:
+  1. `disabled={cat.productCount > 0}` was hardcoded on the delete button. Because categories in the active database had products, the button was rendered disabled with no user explanation.
+  2. On mobile, the category form is stacked below the large table. `handleStartEdit` was running `window.scrollTo({ top: 0 })`, which scrolled the mobile viewport to the top of the table instead of down to `#category-form-card`.
+  3. The table `Actions` column had no sticky positioning, leaving the edit and delete buttons hidden beyond the right horizontal scroll boundary on standard mobile widths (360px-412px).
+- **🛠️ Verified Code Fix**:
+  1. **Removed Delete Hard-Block & Added Safe Reallocation**: Removed the client-side `disabled={cat.productCount > 0}` block. In `src/app/api/categories/[id]/route.ts`, safely unassigned affected products to `general` category and cleared parent links on child subcategories upon deletion.
+  2. **Product Warning Modal**: Updated `DeleteConfirmModal` to explicitly warn if the category has active products: `Warning: "[Category]" contains X product(s). Deleting it will safely move those products to "General". Proceed?`.
+  3. **Mobile Edit Auto-Scroll & Banner**: Added `scrollToForm()` using `document.getElementById('category-form-card')?.scrollIntoView({ behavior: 'smooth', block: 'start' })` on edit/add subcategory triggers. Added a prominent mobile alert banner atop the table when editing (`✏️ Currently editing [Name]`) with quick "Go to Form ⬇" and "Cancel" buttons.
+  4. **Sticky Action Column & Touch Targets**: Pinned `th` and `td` of the `Actions` column with `position: sticky; right: 0; background: white` and increased button touch targets to 34x34px so actions are always directly visible on any mobile screen.
+  5. **Verification**: Resolved duplicate `markImageFailed` TS declaration. Verified clean `pnpm tsc --noEmit` and `graft build` with 0 errors.
+
+---
+
+### 2026-09-16 — Admin Bulk Import: Dynamic Gemini AI Prompt Builder with Live Taxonomy Sync
+- **📌 Issue**:
+  User needed a seamless workflow to generate products using Gemini AI (by providing product photos and details) and bulk import them directly into Pak-o-Drive. The prompt needed to include high-converting Pakistani SEO tags and, critically, must dynamically reflect all existing store categories & subcategories so Gemini assigns products to existing taxonomy instead of creating duplicates, while still allowing new categories when a truly new product arrives.
+- **🔍 Root Cause**:
+  `src/app/admin/products/import/page.tsx` previously contained a static hardcoded JSON sample with outdated categories, requiring manual JSON crafting with no guided AI prompt generation or live category awareness.
+- **🛠️ Verified Code Fix**:
+  1. **Built `useAdminBulkImport.ts` (Rule 8 Zero Logic in UI)**: Created dedicated hook that fetches `/api/categories` on mount, constructs an N-level hierarchy tree (`buildCategoryTree`), and dynamically builds a complete, ready-to-use prompt for Gemini with live categories and rich SEO rules (`seoTitle`, `seoDescription`, `seoKeywords`, `specifications`, `price`, `originalPrice`, `images`).
+  2. **1-Click Interactive Modal & Action Bar**: Added "⚡ Gemini AI Prompt Builder" with 1-click clipboard copy (`handleCopyPrompt`, `handleCopyJson`), live categories inspector, and "Insert in Editor" button.
+  3. **Auto-Category Creation Support**: Maintained compatibility with `/api/products/import` where any newly generated categories/subcategories are auto-provisioned in MongoDB on import.
+  4. **Verification**: `pnpm tsc --noEmit` and `graft build` passed with 0 errors.
+
+---
+
 ### 2026-09-16 — Mobile Article Detail Page (`/blog/[slug]` & `/auto/[slug]`) Layout & Template Streamlining
 - **📌 Issue**:
   On mobile viewports, the article detail page suffered from severe visual bloat, layout distortion, and widget duplication:

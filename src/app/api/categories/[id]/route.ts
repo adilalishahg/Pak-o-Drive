@@ -56,6 +56,26 @@ export async function DELETE(
       return NextResponse.json({ success: false, error: 'Category not found' }, { status: 404 });
     }
 
+    // Safely unassign products pointing to this category or subcategory
+    try {
+      const Product = (await import('@/models/Product')).default;
+      await Product.updateMany(
+        { category: deletedCategory.slug },
+        { $set: { category: 'general' } }
+      );
+      await Product.updateMany(
+        { subcategory: deletedCategory.slug },
+        { $set: { subcategory: '' } }
+      );
+      // If any child subcategories had this as parent, detach them
+      await Category.updateMany(
+        { parentCategory: deletedCategory.slug },
+        { $set: { parentCategory: '' } }
+      );
+    } catch (cleanupErr) {
+      console.warn('Post-delete category product cleanup warning:', cleanupErr);
+    }
+
     purgeCacheTags(['categories', 'products']);
     try {
       revalidatePath('/');

@@ -114,6 +114,41 @@ export default function AdminCategoriesPage() {
               </button>
             </div>
 
+            {/* Active Editing Banner for Mobile */}
+            {editingCategory && (
+              <div
+                className="alert alert-primary bg-primary bg-opacity-10 border border-primary border-opacity-25 rounded-3 d-flex align-items-center justify-content-between p-2.5 mb-3"
+                role="alert"
+              >
+                <div className="d-flex align-items-center gap-2">
+                  <i className="fas fa-edit text-primary" />
+                  <span className="small fw-bold text-dark">
+                    Currently Editing: <span className="text-primary">{editingCategory.name}</span>
+                  </span>
+                </div>
+                <div className="d-flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      document.getElementById('category-form-card')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }}
+                    className="btn btn-sm btn-primary text-white px-2.5 py-1 fw-bold shadow-sm"
+                    style={{ fontSize: '0.74rem' }}
+                  >
+                    Go to Form ⬇
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleCancelEdit}
+                    className="btn btn-sm btn-outline-secondary px-2.5 py-1"
+                    style={{ fontSize: '0.74rem' }}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            )}
+
             <div className="table-responsive">
               <table className="table table-hover align-middle mb-0">
                 <thead className="table-light text-muted small uppercase">
@@ -122,7 +157,18 @@ export default function AdminCategoriesPage() {
                     <th>Category / Subcategory</th>
                     <th className="d-none d-md-table-cell">Slug</th>
                     <th>Products</th>
-                    <th className="text-end">Actions</th>
+                    <th
+                      className="text-end"
+                      style={{
+                        position: 'sticky',
+                        right: 0,
+                        background: '#f8fafc',
+                        zIndex: 2,
+                        minWidth: '130px',
+                      }}
+                    >
+                      Actions
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -187,38 +233,45 @@ export default function AdminCategoriesPage() {
                           </span>
                         </td>
 
-                        <td className="text-end">
-                          <button
-                            type="button"
-                            onClick={() => handleQuickAddSubcategory(cat.slug)}
-                            className="btn btn-sm btn-outline-success border-0 rounded-pill me-1 px-2 py-1"
-                            style={{ fontSize: '0.72rem', fontWeight: 600 }}
-                            title={`Add Subcategory inside ${cat.name}`}
-                          >
-                            <i className="fas fa-plus me-1" /> Sub
-                          </button>
-                          <button
-                            onClick={() => handleStartEdit(cat)}
-                            className="btn btn-sm btn-outline-primary border-0 rounded-circle me-1"
-                            style={{ width: '30px', height: '30px' }}
-                            title="Edit Category"
-                          >
-                            <i className="fas fa-edit small" />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setDeleteTarget({ id: cat.id, name: cat.name })}
-                            disabled={cat.productCount > 0}
-                            className="btn btn-sm btn-outline-danger border-0 rounded-circle"
-                            style={{ width: '30px', height: '30px' }}
-                            title={
-                              cat.productCount > 0
-                                ? 'Cannot delete category containing products'
-                                : 'Delete Category'
-                            }
-                          >
-                            <i className="fas fa-trash-alt small" />
-                          </button>
+                        <td
+                          className="text-end"
+                          style={{
+                            position: 'sticky',
+                            right: 0,
+                            background: depth > 0 ? '#f8fafc' : '#ffffff',
+                            zIndex: 1,
+                            boxShadow: '-4px 0 6px -2px rgba(0, 0, 0, 0.05)',
+                          }}
+                        >
+                          <div className="d-inline-flex align-items-center gap-1">
+                            <button
+                              type="button"
+                              onClick={() => handleQuickAddSubcategory(cat.slug)}
+                              className="btn btn-sm btn-outline-success border-0 rounded-pill px-2 py-1"
+                              style={{ fontSize: '0.74rem', fontWeight: 600 }}
+                              title={`Add Subcategory inside ${cat.name}`}
+                            >
+                              <i className="fas fa-plus me-1" /> Sub
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleStartEdit(cat)}
+                              className="btn btn-sm btn-outline-primary border-0 rounded-circle d-flex align-items-center justify-content-center"
+                              style={{ width: '34px', height: '34px', minWidth: '34px' }}
+                              title="Edit Category"
+                            >
+                              <i className="fas fa-edit" style={{ fontSize: '13px' }} />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setDeleteTarget({ id: cat.id, name: cat.name, productCount: cat.productCount })}
+                              className="btn btn-sm btn-outline-danger border-0 rounded-circle d-flex align-items-center justify-content-center"
+                              style={{ width: '34px', height: '34px', minWidth: '34px' }}
+                              title="Delete Category"
+                            >
+                              <i className="fas fa-trash-alt" style={{ fontSize: '13px' }} />
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     );
@@ -229,12 +282,24 @@ export default function AdminCategoriesPage() {
           </div>
         </div>
 
-        {/* Add Category Form */}
+        {/* Add / Edit Category Form */}
         <div className="col-12 col-lg-4">
-          <div className="card border-0 shadow-sm rounded-4 bg-white p-4">
-            <h5 className="fw-bold text-secondary mb-3 border-bottom pb-2">
-              {editingCategory ? `Edit Category: ${editingCategory.name}` : 'Add New Category'}
-            </h5>
+          <div
+            id="category-form-card"
+            className={`card shadow-sm rounded-4 bg-white p-4 transition-all ${
+              editingCategory ? 'border-2 border-primary shadow' : 'border-0'
+            }`}
+          >
+            <div className="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2">
+              <h5 className="fw-bold text-secondary m-0">
+                {editingCategory ? `Edit: ${editingCategory.name}` : 'Add New Category'}
+              </h5>
+              {editingCategory && (
+                <span className="badge bg-primary text-white rounded-pill px-2 py-1 small">
+                  ✏️ Editing Mode
+                </span>
+              )}
+            </div>
             <form onSubmit={handleSubmit}>
               <div className="mb-3">
                 <label className="form-label text-muted small fw-semibold">Category Name *</label>
@@ -391,7 +456,11 @@ export default function AdminCategoriesPage() {
       <DeleteConfirmModal
         isOpen={Boolean(deleteTarget)}
         title="Delete Category?"
-        message="Are you sure you want to permanently delete this category?"
+        message={
+          deleteTarget && (deleteTarget.productCount || 0) > 0
+            ? `Warning: "${deleteTarget.name}" currently contains ${deleteTarget.productCount} product(s). Deleting it will safely move those products to "General". Proceed?`
+            : "Are you sure you want to permanently delete this category?"
+        }
         itemName={deleteTarget?.name}
         onCancel={() => setDeleteTarget(null)}
         onConfirm={confirmDelete}

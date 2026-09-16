@@ -25,7 +25,7 @@ export function useAdminCategories() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [editingCategory, setEditingCategory] = useState<CategoryData | null>(null);
-  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string; productCount?: number } | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [filterMode, setFilterMode] = useState<'all' | 'roots' | 'subs'>('all');
   const [seeding, setSeeding] = useState(false);
@@ -50,12 +50,22 @@ export function useAdminCategories() {
         throw new Error(json.error || 'Failed to fetch categories');
       }
     } catch (err: any) {
-      console.error(err);
-      setError(err.message || 'Error connecting to database.');
+      setError(err.message || 'Error loading categories.');
     } finally {
       setLoading(false);
     }
   }
+
+  const generateSlug = (val: string) =>
+    val.toLowerCase().trim().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-');
+
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setName(val);
+    if (!editingCategory) {
+      setSlug(generateSlug(val));
+    }
+  };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -63,40 +73,39 @@ export function useAdminCategories() {
 
     setUploading(true);
     setError('');
-
     try {
-      const optimizedFile = await optimizeImageBeforeUpload(file);
       const formData = new FormData();
-      formData.append('file', optimizedFile);
+      formData.append('file', file);
+      formData.append('folder', 'categories');
+
       const res = await fetch('/api/upload', {
         method: 'POST',
         body: formData,
       });
-
-      const json = await res.json();
-      if (json.success) {
-        setImage(json.url);
+      const data = await res.json();
+      if (data.url) {
+        setImage(data.url);
       } else {
-        throw new Error(json.error || 'Failed to upload image file.');
+        throw new Error(data.error || 'Upload failed');
       }
     } catch (err: any) {
-      console.error(err);
-      setError(err.message || 'Error uploading file.');
+      setError(err.message || 'Image upload error');
     } finally {
       setUploading(false);
     }
   };
 
-  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = e.target.value;
-    setName(val);
-    setSlug(val.toLowerCase().trim().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-'));
-
-    // Automatically suggest the most fitting icon from active library if currently on default or empty
-    if (!icon || icon === 'fas fa-tag') {
-      const suggested = getBestCategoryIcon(val);
-      if (suggested && suggested !== 'fas fa-tag') {
-        setIcon(suggested);
+  const markImageFailed = (catId: string) => {
+    if (!catId) return;
+    setFailedImages((prev) => ({ ...prev, [catId]: true }));
+    const target = categories.find((c) => c.id === catId || c._id === catId);
+    if (target && target.image) {
+      if (typeof window !== 'undefined') {
+        fetch(`/api/categories/${catId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ image: '' }),
+        }).catch(() => {});
       }
     }
   };
@@ -106,6 +115,15 @@ export function useAdminCategories() {
     setIcon(suggested || 'fas fa-tag');
   };
 
+  const scrollToForm = () => {
+    setTimeout(() => {
+      const formCard = document.getElementById('category-form-card');
+      if (formCard) {
+        formCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 50);
+  };
+
   const handleStartEdit = (cat: CategoryData) => {
     setEditingCategory(cat);
     setName(cat.name);
@@ -113,7 +131,7 @@ export function useAdminCategories() {
     setIcon(cat.icon || 'fas fa-tag');
     setImage(cat.image || '');
     setParentCategory(cat.parentCategory || '');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    scrollToForm();
   };
 
   const handleQuickAddSubcategory = (parentCatSlug: string) => {
@@ -123,7 +141,7 @@ export function useAdminCategories() {
     setIcon('fas fa-tag');
     setImage('');
     setParentCategory(parentCatSlug);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    scrollToForm();
   };
 
   const handleCancelEdit = () => {
@@ -231,10 +249,6 @@ export function useAdminCategories() {
     } finally {
       setSeeding(false);
     }
-  };
-
-  const markImageFailed = (id: string) => {
-    setFailedImages((prev) => ({ ...prev, [id]: true }));
   };
 
   const categoryTree = useMemo(() => buildCategoryTree(categories), [categories]);
