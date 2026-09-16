@@ -124,8 +124,51 @@ export async function uploadVideoToCdn(
         folder: 'instagram_reels',
       });
 
-      if (uploadRes?.secure_url) {
-        console.log(`✓ [InstagramReelService] Video hosted on Cloudinary: ${uploadRes.secure_url}`);
+      if (uploadRes?.public_id) {
+        console.log(`✓ [InstagramReelService] Raw video hosted on Cloudinary: ${uploadRes.public_id}`);
+
+        const isRawVideo = videoFilePath.includes('/raw/') || videoFilePath.includes('\\raw\\') || !fs.existsSync(videoFilePath);
+
+        if (isRawVideo && overlayQuoteLines && overlayQuoteLines.length > 0) {
+          const filteredLines = overlayQuoteLines.filter((l) => l && l.trim().length > 0);
+
+          if (filteredLines.length > 0) {
+            const transformations: any[] = [
+              { width: 1080, height: 1920, crop: 'fill', gravity: 'center' },
+            ];
+
+            const colors = ['#FFFFFF', '#FACC15', '#FFFFFF', '#00E5FF'];
+            const yPositions = [-90, -20, 50, 110];
+
+            filteredLines.forEach((line, idx) => {
+              transformations.push({
+                overlay: {
+                  font_family: 'Arial',
+                  font_size: idx === 0 || idx === 1 ? 40 : 30,
+                  font_weight: 'bold',
+                  text: line.trim(),
+                },
+                color: colors[idx % colors.length],
+                gravity: 'center',
+                y: yPositions[idx] || idx * 60 - 60,
+              });
+            });
+
+            const publicIdWithExt = uploadRes.public_id.endsWith('.mp4')
+              ? uploadRes.public_id
+              : `${uploadRes.public_id}.mp4`;
+
+            const transformedUrl = cloudinary.url(publicIdWithExt, {
+              resource_type: 'video',
+              transformation: transformations,
+              secure: true,
+            });
+
+            console.log(`✨ [InstagramReelService] Dynamic Cloud Overlay Video URL generated: ${transformedUrl}`);
+            return transformedUrl;
+          }
+        }
+
         return uploadRes.secure_url;
       }
     } catch (err: any) {
