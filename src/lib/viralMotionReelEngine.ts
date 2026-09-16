@@ -194,14 +194,10 @@ export async function generateViralMotionReel(options?: ViralMotionReelOptions):
 
   // Dynamic Video Selection from Category Library (Guaranteed non-repeating)
   let sourceVideo = options?.sourceVideoPath;
-  if (!sourceVideo || !fs.existsSync(sourceVideo)) {
+  if (!sourceVideo) {
     const selected = selectUniqueVideoFromCategory(category);
     sourceVideo = selected.videoPath;
     console.log(`🎥 [ViralMotionReel] Selected unique video from ${category}: ${sourceVideo}`);
-  }
-
-  if (!fs.existsSync(sourceVideo)) {
-    sourceVideo = 'public/img/viral-reels/raw/nissan-300zx.mp4';
   }
 
   // Dynamic Audio Selection from Pool (Rotated)
