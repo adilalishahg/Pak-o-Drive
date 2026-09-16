@@ -585,10 +585,10 @@ export default async function AutoGuideDetailPage({ params }: PageProps) {
             </section>
           </div>
 
-          {/* ── Right / Sticky Sidebar (~32%) (Matching Reference) ─ */}
+          {/* ── Right / Sticky Sidebar (~32%) ───────────────────── */}
           <aside className="lg:col-span-4 space-y-6 lg:sticky lg:top-24">
-            {/* Sidebar Author Profile Card (Modern Trending Theme) */}
-            <div className="rounded-2xl border border-slate-200/90 bg-white shadow-xs overflow-hidden">
+            {/* Sidebar Author Profile Card (Desktop Only - Mobile already has verified author card in main column) */}
+            <div className="hidden lg:block rounded-2xl border border-slate-200/90 bg-white shadow-xs overflow-hidden">
               <div className="h-16 bg-gradient-to-r from-slate-900 via-rose-950 to-slate-900 relative">
                 <div className="absolute inset-0 bg-[radial-gradient(#ffffff22_1px,transparent_1px)] [background-size:8px_8px] opacity-40" />
               </div>
@@ -640,9 +640,9 @@ export default async function AutoGuideDetailPage({ params }: PageProps) {
               </div>
             </div>
 
-            {/* Table of Contents Sticky Box */}
+            {/* Desktop Table of Contents Sticky Box (Mobile has top collapsible TOC) */}
             {tocHeadings.length >= 2 && (
-              <div className="p-5 rounded-xl border border-slate-200 bg-[#fbfbfb]">
+              <div className="hidden lg:block p-5 rounded-xl border border-slate-200 bg-[#fbfbfb]">
                 <div className="flex items-center gap-2 text-slate-900 font-bold text-xs uppercase tracking-wider mb-3">
                   <List className="w-3.5 h-3.5 text-rose-500" />
                   <span>Table of Contents</span>
@@ -661,11 +661,6 @@ export default async function AutoGuideDetailPage({ params }: PageProps) {
                 </nav>
               </div>
             )}
-
-            {/* Sidebar Newsletter Box */}
-            <BlogNewsletterBox
-              description="Signup and receive car maintenance tips and exclusive COD deals every week."
-            />
 
             {/* Recent Guides Widget */}
             {relatedPosts.length > 0 && (
@@ -713,8 +708,13 @@ export default async function AutoGuideDetailPage({ params }: PageProps) {
               </div>
             )}
 
-            {/* Tag Cloud Widget */}
-            <div className="p-6 rounded-xl border border-slate-200 bg-white shadow-xs">
+            {/* Sidebar Newsletter Box */}
+            <BlogNewsletterBox
+              description="Signup and receive car maintenance tips and exclusive COD deals every week."
+            />
+
+            {/* Tag Cloud Widget (Desktop Only - Tags already visible at bottom of article) */}
+            <div className="hidden lg:block p-6 rounded-xl border border-slate-200 bg-white shadow-xs">
               <h5 className="font-serif font-bold text-sm text-slate-900 pb-2 border-b border-slate-100 mb-3">
                 Tags
               </h5>
@@ -752,12 +752,14 @@ export default async function AutoGuideDetailPage({ params }: PageProps) {
               </Link>
             </div>
 
-            {/* AdSense Sidebar Unit */}
-            <AdSenseSlot
-              slotId="auto-sidebar-rail"
-              format="rectangle"
-              slotLabel="Google AdSense Sidebar Banner"
-            />
+            {/* AdSense Sidebar Unit (Desktop Only) */}
+            <div className="hidden lg:block">
+              <AdSenseSlot
+                slotId="auto-sidebar-rail"
+                format="rectangle"
+                slotLabel="Google AdSense Sidebar Banner"
+              />
+            </div>
           </aside>
         </div>
       </div>
