@@ -2,6 +2,45 @@
 
 This file serves as persistent dynamic memory across coding agent sessions. Every core standard, architectural decision, and verified bug resolution must be preserved below.
 
+### 2026-09-16 — Blog & Auto Guides Mobile UI Modernization & Fast Loading Optimization
+- **📌 Issue**:
+  On mobile devices, the blog archive (`/blog`) and auto guides archive (`/auto`) suffered from severe vertical scroll fatigue (>15 stacked screens of bloated cards), blank gray placeholder boxes during image load, and unoptimized high-resolution images slowing initial page paint. Desktop sidebar components were dumped awkwardly in the mobile feed.
+- **🔍 Root Cause**:
+  1. "Popular Posts" rendered text first with full excerpt and a giant `aspect-[16/10]` image underneath, creating ~400px vertical height per card and displaying empty `bg-slate-100` gray rectangles while images were streaming.
+  2. Missing mobile thumbnail sizing in Next.js `<Image>` resulted in downloading full-resolution ~500KB desktop covers for small mobile viewports.
+  3. No horizontal category navigation existed on mobile, forcing readers to scroll past dozens of cards to find categories in the sidebar.
+- **🛠️ Verified Code Fix**:
+  1. **Quick Horizontal Category Scroller**: Added a sticky horizontal swipeable pill bar at the top of [`src/app/blog/page.tsx`](file:///d:/proj/Pak-o-Drive/src/app/blog/page.tsx) and [`src/app/auto/page.tsx`](file:///d:/proj/Pak-o-Drive/src/app/auto/page.tsx) with 1-tap instant category filtering and active filter clear badge.
+  2. **Trending Snap Carousel**: Re-architected Trending stories into a mobile swipeable horizontal snap carousel (`flex overflow-x-auto snap-x no-scrollbar`), cutting mobile scroll height by >650px.
+  3. **Apple News / Medium-Style Compact Row Cards**: Converted Popular Posts into compact rows on mobile (Title + Category + Read time on left, clean 80x80px rounded square thumbnail on right), increasing content density 3x and eliminating empty gray boxes.
+  4. **Fast Image Optimization**: Implemented `sizes="(max-width: 640px) 80px, 180px"` for mobile cards and `loading="lazy"` on all below-the-fold assets. Only Hero post uses `priority`.
+  5. **Verification**: `pnpm tsc --noEmit` and `graft build` passed with 0 errors.
+
+### 2026-09-16 — Product List View Card UI Overhaul & Test Asset Gitignore
+- **📌 Issue**:
+  1. Generated test PDFs and slide image assets (`public/generated_test_pdfs/`) appeared in git untracked changes, cluttering git status.
+  2. In shop page list view (`viewMode === 'list'`), the product card (`ProductCardList.tsx`) had inconsistent inline styling, lacked the spotlight hover interactive glow present in grid view cards, lacked clean responsive typography spacing on mobile viewports (e.g., 400px), and violated Rule 8 by managing internal cart state manually instead of using `useProductCard`.
+- **🔍 Root Cause**:
+  1. `.gitignore` was missing `public/generated_test_pdfs/`.
+  2. `ProductCardList.tsx` had rigid inline pixel dimensions, cramped action bar, and did not utilize `SpotlightCard` or the centralized `useProductCard` presentation hook.
+- **🛠️ Verified Code Fix**:
+  1. **Gitignore Updated**: Added `public/generated_test_pdfs/` to `.gitignore`.
+  2. **Refactored `ProductCardList.tsx`**: Integrated `SpotlightCard` with orange brand glow, Rule 3 uncropped dual-layer image presentation (ambient blur backdrop + object-contain), Rule 4 typography clipping prevention (`leading-normal py-0.5`), responsive price & CTA bar ("Add" on mobile, "Add to Cart" on desktop), and fully unified business logic with `useProductCard` (Rule 8).
+  3. **Verification**: `pnpm tsc --noEmit` passed with 0 errors.
+
+### 2026-09-16 — Mobile Hamburger Drawer Hang & Touch Scroll Fix
+- **📌 Issue**:
+  Opening the mobile navigation sidebar from the top hamburger icon caused the entire page to freeze/hang permanently ("wo open kro tou page b hang ho jata ha phr kuch b kro ni hota"), and the drawer was still unable to scroll vertically on touch devices ("abhi b scroll ni kr ri").
+- **🔍 Root Cause**:
+  1. `document.body.style.touchAction = 'none'` was being assigned to `document.body` in `MobileNavDrawer.tsx` and `ShopClient.tsx`. Applying `touch-action: none` to `<body>` killed all touch panning and scrolling gestures on mobile Chrome/Safari across the entire viewport.
+  2. `useBackToClose.ts` called raw `window.history.pushState` and `window.history.back()` when opening/closing the drawer. In Next.js 16 App Router, external uncoordinated `pushState` mutations corrupt router state transitions and trigger an infinite `popstate` <-> render cycle on mobile routes, freezing the browser main thread completely.
+  3. `useNavbar.ts` also had a competing duplicate `document.body.style.overflow = 'hidden'` effect that raced with the drawer's unmount cleanup, causing `overflow: hidden` to get permanently stuck on `<body>`.
+- **🛠️ Verified Code Fix**:
+  1. **Removed `touchAction = 'none'` on `<body>`**: Completely removed body touch-action tampering from [MobileNavDrawer.tsx](file:///d:/proj/Pak-o-Drive/src/components/layout/MobileNavDrawer.tsx) and [ShopClient.tsx](file:///d:/proj/Pak-o-Drive/src/components/shop/ShopClient.tsx), keeping clean `overflow = 'hidden'` on `<body>` during open state only and restoring on close.
+  2. **Eliminated Next.js Router Freeze**: Neutralized raw history mutations in [useBackToClose.ts](file:///d:/proj/Pak-o-Drive/src/hooks/useBackToClose.ts) and removed the hook from [useNavbar.ts](file:///d:/proj/Pak-o-Drive/src/hooks/useNavbar.ts), eliminating the main-thread popstate navigation loop and page hang.
+  3. **Touch-Scroll Container Architecture**: Added `touchAction: 'pan-y'` and `height: 100%` on `<aside>` and set the inner body container to `flex: 1 1 auto; minHeight: 0; overflowY: auto; WebkitOverflowScrolling: touch; touchAction: pan-y;`.
+  4. **Verification**: `pnpm tsc --noEmit` and `graft build` passed with 0 errors.
+
 ### 2026-09-16 — Mobile Category Sidebar & Drawer Scrolling Fix: Body Scroll Lock & Viewport Isolation
 - **📌 Issue**:
   On mobile devices, opening the category sidebar/drawer and selecting a category caused subcategories to expand, but vertical scrolling was frozen/broken when the content exceeded screen height ("abi b mobile pr sidebar scroll ni kr ri open kro tou jb koi category phr select kro sub category show hoti ha ha tou scroll ata ha wo ni hota").
