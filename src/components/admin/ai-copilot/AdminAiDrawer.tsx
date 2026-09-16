@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import {
@@ -17,6 +17,7 @@ import {
   DollarSign,
   Lightbulb,
   ChevronDown,
+  ChevronUp,
   Loader2,
   Maximize2,
   Minimize2,
@@ -90,35 +91,100 @@ export function AdminAiDrawer() {
     return <Lightbulb className="w-3.5 h-3.5 text-amber-300" />;
   };
 
+  const [autoShift, setAutoShift] = useState<boolean>(false);
+  const [manualShift, setManualShift] = useState<boolean | null>(null);
+
+  // Auto-detect when bottom buttons / forms appear in the danger zone or user scrolls near bottom
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const checkProximity = () => {
+      // 1. Scrolled near bottom of page
+      const scrollBottom = window.innerHeight + window.scrollY;
+      const documentHeight = document.documentElement.scrollHeight;
+      const isNearBottom = documentHeight - scrollBottom < 260;
+
+      // 2. Button / Form action collision check in lower-right viewport
+      const actionSelectors =
+        'button[type="submit"], .btn-gradient, .btn-primary, [data-admin-actions], .card-footer, form button';
+      const actionElements = document.querySelectorAll(actionSelectors);
+      let hasCollision = false;
+
+      const thresholdTop = window.innerHeight - 150;
+      const thresholdLeft = window.innerWidth - 280;
+
+      actionElements.forEach((el) => {
+        const rect = el.getBoundingClientRect();
+        if (rect.width > 0 && rect.height > 0) {
+          // If button element is in lower-right area
+          if (rect.bottom >= thresholdTop && rect.top <= window.innerHeight && rect.right >= thresholdLeft) {
+            hasCollision = true;
+          }
+        }
+      });
+
+      setAutoShift(isNearBottom || hasCollision);
+    };
+
+    window.addEventListener('scroll', checkProximity, { passive: true });
+    window.addEventListener('resize', checkProximity, { passive: true });
+    const interval = setInterval(checkProximity, 600);
+
+    checkProximity();
+
+    return () => {
+      window.removeEventListener('scroll', checkProximity);
+      window.removeEventListener('resize', checkProximity);
+      clearInterval(interval);
+    };
+  }, []);
+
+  const isShiftedUp = manualShift !== null ? manualShift : autoShift;
+
   return (
     <>
-      {/* Floating Action Trigger Button */}
+      {/* Floating Action Trigger Button with Dynamic Proximity Elevation */}
       <div
-        className="fixed z-[1050]"
+        className="fixed z-[1050] flex items-center gap-1.5 transition-all duration-300 ease-out"
         style={{
-          bottom: '20px',
-          right: '20px',
+          bottom: isShiftedUp ? '110px' : '20px',
+          right: '16px',
         }}
       >
+        {/* Manual Position Toggle: Allows admin to explicitly lift or lower the bot */}
+        <button
+          type="button"
+          onClick={() => setManualShift((prev) => (prev === null ? !autoShift : !prev))}
+          className="w-7 h-7 rounded-full bg-slate-900/90 hover:bg-slate-800 text-slate-300 hover:text-white flex items-center justify-center shadow-lg border border-white/15 transition-transform active:scale-90"
+          title={isShiftedUp ? 'Move Bot Down' : 'Move Bot Up'}
+          aria-label="Toggle AI Copilot vertical position"
+        >
+          {isShiftedUp ? (
+            <ChevronDown className="w-3.5 h-3.5" />
+          ) : (
+            <ChevronUp className="w-3.5 h-3.5" />
+          )}
+        </button>
+
         <button
           type="button"
           onClick={() => setIsOpen(!isOpen)}
-          className="group relative flex items-center gap-2.5 px-4 py-3 rounded-full text-white font-semibold shadow-2xl transition-all duration-300 hover:scale-105 active:scale-95 border border-white/20"
+          className="group relative flex items-center gap-2 px-3.5 py-2.5 sm:px-4 sm:py-3 rounded-full text-white font-semibold shadow-2xl transition-all duration-300 hover:scale-105 active:scale-95 border border-white/20"
           style={{
             background: 'linear-gradient(135deg, #ea580c 0%, #f97316 50%, #ea580c 100%)',
             boxShadow: '0 8px 30px rgba(234, 88, 12, 0.45)',
           }}
           aria-label="Toggle AI Executive Copilot"
         >
-          <span className="relative flex h-3 w-3">
+          <span className="relative flex h-2.5 w-2.5 sm:h-3 sm:w-3">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-300 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-3 w-3 bg-white"></span>
+            <span className="relative inline-flex rounded-full h-2.5 w-2.5 sm:h-3 sm:w-3 bg-white"></span>
           </span>
-          <Bot className="w-5 h-5 transition-transform group-hover:rotate-12" />
-          <span className="text-sm tracking-wide font-bold hidden sm:inline leading-normal py-0.5">
+          <Bot className="w-4 h-4 sm:w-5 sm:h-5 transition-transform group-hover:rotate-12" />
+          <span className="text-xs sm:text-sm tracking-wide font-bold hidden xs:inline leading-normal py-0.5">
             AI Copilot
           </span>
-          <span className="px-1.5 py-0.5 text-[10px] uppercase font-extrabold bg-black/30 rounded-md tracking-wider">
+          <span className="px-1.5 py-0.5 text-[9px] sm:text-[10px] uppercase font-extrabold bg-black/30 rounded-md tracking-wider">
             Twin Cities & Store
           </span>
         </button>

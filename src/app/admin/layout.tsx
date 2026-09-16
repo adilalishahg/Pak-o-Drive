@@ -286,7 +286,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </header>
 
           {/* Content Body */}
-          <main className="p-2 p-sm-3 p-md-4 flex-grow-1 w-100 min-w-0 overflow-x-hidden" style={{ maxWidth: '1600px', margin: '0 auto' }}>
+          <main className="p-2 p-sm-3 p-md-4 pb-28 sm:pb-16 flex-grow-1 w-100 min-w-0 overflow-x-hidden" style={{ maxWidth: '1600px', margin: '0 auto' }}>
             <AdminGlobalErrorBar />
             {authorized ? children : (
               <div className="d-flex align-items-center justify-content-center" style={{ minHeight: '300px' }}>

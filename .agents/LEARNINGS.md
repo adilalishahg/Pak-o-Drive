@@ -6,6 +6,19 @@ This file serves as persistent dynamic memory across coding agent sessions. Ever
 
 ---
 
+### 2026-09-16 — Admin AI Copilot Floating Trigger: Dynamic Proximity Elevation & Mobile Button Clearance
+- **📌 Issue**:
+  When editing categories (`/admin/categories`) or products (`/admin/products/[id]`) on mobile, the fixed floating AI Copilot trigger badge (`Twin Cities & Store`) sat at `bottom: 20px; right: 16px`, directly on top of the bottom action buttons (`Update`, `Cancel`, `Save Product`). This prevented the admin from tapping the buttons. The user requested that if action buttons appear or are near the bottom, the bot should automatically move up out of the way.
+- **🔍 Root Cause**:
+  `AdminAiDrawer` rendered a fixed floating trigger button at `bottom: 20px` with no awareness of the user's scroll depth or viewport collision with underlying submit buttons (`button[type="submit"]`, `.btn-gradient`, `data-admin-actions`). Additionally, admin layout `<main>` had insufficient bottom padding on mobile, leaving bottom form cards flush against the phone's bottom navigation bar.
+- **🛠️ Verified Code Fix**:
+  1. **Dynamic Proximity & Collision Elevation**: Implemented `useEffect` listener in `src/components/admin/ai-copilot/AdminAiDrawer.tsx` that monitors both scroll depth (`scrollHeight - (innerHeight + scrollY) < 260`) and button bounding rect intersection in the lower-right quadrant. When submit buttons enter the area or user reaches bottom, `isShiftedUp` dynamically raises the bot from `bottom: 20px` to `bottom: 110px` via smooth CSS bezier transitions.
+  2. **Manual Position Shift Override**: Added a 1-tap manual shift toggle (`ChevronUp` / `ChevronDown`) beside the bot trigger allowing the admin to explicitly lift or lower the bot at any moment.
+  3. **Mobile Layout Scroll Clearance**: Added `pb-28 sm:pb-16` to `<main>` in `src/app/admin/layout.tsx` and `mb-5` to form cards in `ProductForm.tsx` and `categories/page.tsx`, guaranteeing 112px+ of comfortable scrolling room below all submit buttons.
+  4. **Verification**: `pnpm tsc --noEmit` and `graft build` passed with 0 errors.
+
+---
+
 ### 2026-09-16 — Mobile Admin Categories: Edit Scroll Navigation & Delete Hard-Block Resolution
 - **📌 Issue**:
   On mobile devices in `/admin/categories`, the admin was unable to delete categories (tap did nothing) and editing categories felt broken ("na e edit ho ri"):

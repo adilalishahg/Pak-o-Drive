@@ -286,7 +286,7 @@ export default function AdminCategoriesPage() {
         <div className="col-12 col-lg-4">
           <div
             id="category-form-card"
-            className={`card shadow-sm rounded-4 bg-white p-4 transition-all ${
+            className={`card shadow-sm rounded-4 bg-white p-4 transition-all mb-5 ${
               editingCategory ? 'border-2 border-primary shadow' : 'border-0'
             }`}
           >
@@ -423,7 +423,7 @@ export default function AdminCategoriesPage() {
                 </div>
               )}
 
-              <div className="d-flex gap-2">
+              <div className="d-flex gap-2 pt-2" data-admin-actions="true">
                 {editingCategory && (
                   <button
                     type="button"

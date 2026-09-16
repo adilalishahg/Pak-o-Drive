@@ -286,7 +286,10 @@ export function ProductForm({ productId, pageTitle }: ProductFormProps) {
         </div>
 
         {/* Mobile & Desktop Bottom Submit Bar */}
-        <div className="card border-0 shadow-sm rounded-4 mt-4 p-3 bg-white d-flex flex-row justify-content-between align-items-center">
+        <div
+          data-admin-actions="true"
+          className="card border-0 shadow-sm rounded-4 mt-4 p-3 bg-white d-flex flex-row justify-content-between align-items-center mb-5"
+        >
           <span className="small text-muted d-none d-sm-inline">
             Review all product details and photos before saving.
           </span>
