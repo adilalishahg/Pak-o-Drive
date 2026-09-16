@@ -30,10 +30,18 @@ export const QUICK_ACTIONS = [
 ];
 
 import { isBlogPath } from '@/lib/constants';
+import { useBackToClose } from './useBackToClose';
 
 export function useStoreChatBot() {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
+
+  // Close chat on mobile back button press instead of navigating away
+  useBackToClose({
+    isOpen,
+    onClose: useCallback(() => setIsOpen(false), []),
+    key: 'store_chat',
+  });
   const [messages, setMessages] = useState<ChatMessage[]>([INITIAL_GREETING]);
   const [inputText, setInputText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
