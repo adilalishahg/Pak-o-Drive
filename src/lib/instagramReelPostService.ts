@@ -57,12 +57,50 @@ Follow @digitalinspirer & @pakodrive.official for daily drive & automotive luxur
 }
 
 /**
- * Uploads a local MP4 video file to public HTTPS CDN
+ * Uploads a local or Vercel public MP4 video file to public HTTPS CDN
  */
 export async function uploadVideoToCdn(videoFilePath: string): Promise<string> {
-  console.log(`📤 [InstagramReelService] Uploading video to CDN: ${videoFilePath}...`);
+  console.log(`📤 [InstagramReelService] Processing video for CDN: ${videoFilePath}...`);
 
-  // 1. Try Cloudinary if real credentials exist
+  // 1. If it's already a full HTTP/HTTPS URL, return it directly
+  if (videoFilePath.startsWith('http://') || videoFilePath.startsWith('https://')) {
+    return videoFilePath;
+  }
+
+  // 2. Determine public web URL on Vercel CDN fallback
+  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.pakodrive.pk').replace(/\/$/, '');
+  const cleanRelativePath = videoFilePath
+    .replace(/^.*?public[/\\]/, '')
+    .replace(/\\/g, '/')
+    .replace(/^\//, '');
+  const publicFallbackUrl = `${siteUrl}/${cleanRelativePath}`;
+
+  // 3. Try reading local file buffer if file exists on disk (e.g. in /tmp or local dev)
+  let fileBuffer: Buffer | null = null;
+  try {
+    if (fs.existsSync(videoFilePath)) {
+      fileBuffer = fs.readFileSync(videoFilePath);
+    }
+  } catch (err: any) {
+    console.warn(`⚠️ [InstagramReelService] Local file read skipped: ${err.message}`);
+  }
+
+  // 4. If local file read failed (e.g. Vercel serverless read-only disk), try fetching from Vercel Public CDN
+  if (!fileBuffer) {
+    try {
+      console.log(`🌐 [InstagramReelService] Fetching asset from site CDN: ${publicFallbackUrl}...`);
+      const fetchRes = await fetch(publicFallbackUrl);
+      if (fetchRes.ok) {
+        const arrayBuf = await fetchRes.arrayBuffer();
+        fileBuffer = Buffer.from(arrayBuf);
+        console.log(`✓ [InstagramReelService] Asset fetched successfully from site CDN (${fileBuffer.length} bytes)`);
+      }
+    } catch (cdnErr: any) {
+      console.warn(`⚠️ [InstagramReelService] CDN fetch fallback skipped: ${cdnErr.message}`);
+    }
+  }
+
+  // 5. Try Cloudinary if real credentials exist and target is available
   const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
   const apiKey = process.env.CLOUDINARY_API_KEY;
   const apiSecret = process.env.CLOUDINARY_API_SECRET;
@@ -76,7 +114,9 @@ export async function uploadVideoToCdn(videoFilePath: string): Promise<string> {
         api_secret: apiSecret,
       });
 
-      const uploadRes = await cloudinary.uploader.upload(videoFilePath, {
+      const targetSource = fs.existsSync(videoFilePath) ? videoFilePath : publicFallbackUrl;
+
+      const uploadRes = await cloudinary.uploader.upload(targetSource, {
         resource_type: 'video',
         folder: 'instagram_reels',
       });
@@ -86,27 +126,34 @@ export async function uploadVideoToCdn(videoFilePath: string): Promise<string> {
         return uploadRes.secure_url;
       }
     } catch (err: any) {
-      console.warn(`⚠️ [InstagramReelService] Cloudinary upload failed: ${err.message}. Falling back to public CDN.`);
+      console.warn(`⚠️ [InstagramReelService] Cloudinary upload failed: ${err.message}.`);
     }
   }
 
-  // 2. High-speed resilient public CDN fallback (uguu.se)
-  const fileBuffer = fs.readFileSync(videoFilePath);
-  const formData = new FormData();
-  formData.append('files[]', new Blob([new Uint8Array(fileBuffer)], { type: 'video/mp4' }), `reel_${Date.now()}.mp4`);
+  // 6. High-speed public CDN upload if buffer exists
+  if (fileBuffer && fileBuffer.length > 0) {
+    try {
+      const formData = new FormData();
+      formData.append('files[]', new Blob([new Uint8Array(fileBuffer)], { type: 'video/mp4' }), `reel_${Date.now()}.mp4`);
 
-  const res = await fetch('https://uguu.se/upload', {
-    method: 'POST',
-    body: formData,
-  });
+      const res = await fetch('https://uguu.se/upload', {
+        method: 'POST',
+        body: formData,
+      });
 
-  const json = await res.json();
-  if (json.success && json.files && json.files[0] && json.files[0].url) {
-    console.log(`✓ [InstagramReelService] Video hosted on CDN: ${json.files[0].url}`);
-    return json.files[0].url;
+      const json = await res.json();
+      if (json.success && json.files && json.files[0] && json.files[0].url) {
+        console.log(`✓ [InstagramReelService] Video hosted on CDN: ${json.files[0].url}`);
+        return json.files[0].url;
+      }
+    } catch (uguuErr: any) {
+      console.warn(`⚠️ [InstagramReelService] Uguu upload skipped: ${uguuErr.message}`);
+    }
   }
 
-  throw new Error('Failed to upload video to CDN: ' + JSON.stringify(json));
+  // 7. Ultimate Fallback: Return the Vercel Public CDN URL directly
+  console.log(`✓ [InstagramReelService] Using Vercel Public CDN URL directly: ${publicFallbackUrl}`);
+  return publicFallbackUrl;
 }
 
 /**
