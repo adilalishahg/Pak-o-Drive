@@ -286,6 +286,7 @@ export async function generateViralMotionReel(options?: ViralMotionReelOptions):
   const absAudio = path.resolve(process.cwd(), audioFile);
   const absOverlay = path.resolve(process.cwd(), overlayPath);
   const absOutput = path.resolve(process.cwd(), outputPath);
+  const cmd = `"${ffmpegBin}" -y -stream_loop -1 -i "${absSource}" -i "${absOverlay}" -i "${absAudio}" -filter_complex "${filterComplex}" -map "[v]" -map 2:a -c:v libx264 -preset fast -crf 22 -pix_fmt yuv420p -c:a aac -b:a 192k -t ${duration} "${absOutput}"`;
 
   let finalVideoPath = absOutput;
   try {
