@@ -465,4 +465,236 @@ Which React 19 feature has made the biggest difference in your daily production 
       },
     ],
   },
+  {
+    topic: 'Distributed Locking with Redis: Preventing Race Conditions in Production',
+    caption: `Concurrency bugs in distributed systems silently corrupt database state without throwing errors. 🛑
+#DistributedSystems #NodeJS #Redis #BackendEngineering #SystemDesign #SoftwareArchitecture
+
+When multiple server instances process the same user action concurrently (like wallet debits or booking reservations), in-memory mutexes fail completely.
+
+Swipe through this 6-slide architectural guide to mastering distributed locks:
+
+📌 Why in-memory mutexes fail across clustered containers
+📌 Atomic lock acquisition via Redis SET NX PX
+📌 The danger of garbage collection pauses & lock expiration
+📌 Fencing tokens: Ensuring monotonic storage safety
+
+#DistributedSystems #NodeJS #Redis #BackendEngineering #SystemDesign #SoftwareArchitecture #FullStack #Microservices`,
+    slides: [
+      {
+        isCover: true,
+        tag: 'CONCURRENCY ARCHITECTURE',
+        headline: 'Distributed Locking in Node.js: Preventing Race Conditions',
+        points: [
+          'Why in-memory mutexes fail in cluster mode',
+          'Atomic lock acquisition with Redis SET NX PX',
+          'Fencing tokens for monotonic storage safety',
+        ],
+        footer: 'SWIPE TO SOLVE ->',
+      },
+      {
+        tag: '01 / IN-MEMORY MUTEX LIMITATIONS',
+        headline: 'In-memory locks only protect a single process thread.',
+        codeSnippet: `// In-memory mutex only works in 1 Node process\nconst mutex = new Mutex();\n// Fails when running 4 pods on Kubernetes!`,
+        points: [
+          'In-memory locks cannot coordinate across container boundaries',
+          'Concurrent HTTP requests hit different instances simultaneously',
+          'Result: Double-spend bugs and silent database state corruption',
+        ],
+      },
+      {
+        tag: '02 / ATOMIC ACQUISITION VIA REDIS',
+        headline: 'Acquire lock with SET NX PX in a single roundtrip.',
+        codeSnippet: `// Atomic lock acquisition with unique secret\nconst acquired = await redis.set(\n  'lock:order:123', workerId, 'NX', 'PX', 5000\n);`,
+        points: [
+          'NX flag guarantees lock is set only if key does not exist',
+          'PX flag sets deterministic auto-release TTL preventing deadlocks',
+          'Stores unique client ID so workers only release their own locks',
+        ],
+      },
+      {
+        tag: '03 / SAFE RELEASE VIA LUA SCRIPT',
+        headline: 'Verify ownership before releasing the lock key.',
+        codeSnippet: `// Lua script guarantees atomic comparison & delete\nif redis.call("get",KEYS[1]) == ARGV[1] then\n  return redis.call("del",KEYS[1])\nelse return 0 end`,
+        points: [
+          'Prevents releasing a lock that expired and was taken by another pod',
+          'Executes atomically inside Redis engine without race condition',
+          'Guarantees strict single-owner execution boundaries',
+        ],
+      },
+      {
+        tag: '04 / FENCING TOKENS FOR STORAGE SAFETY',
+        headline: 'Monotonically incrementing tokens prevent stale writes.',
+        codeSnippet: `// Storage rejects writes with older token\nUPDATE accounts SET balance = balance - 100, token = 42\nWHERE id = 123 AND token < 42;`,
+        points: [
+          'Network partitions or long GC pauses can cause lease expiration',
+          'Fencing tokens increment on every lock acquisition',
+          'Storage layer rejects writes from expired zombie workers',
+        ],
+      },
+      {
+        isSummary: true,
+        slideType: 'outro',
+        tag: 'DECISION MATRIX',
+        headline: 'Found this breakdown valuable?',
+        subheadline: 'Save this cheat sheet and follow for weekly production architectures.',
+        footer: 'Follow @Syed Adil Ali & Repost',
+      },
+    ],
+  },
+  {
+    topic: 'API Security & Zero-Trust Architecture: Preventing BOLA & Token Leakage',
+    caption: `Broken Object Level Authorization (BOLA) remains the #1 API security vulnerability worldwide. 🔐
+#CyberSecurity #APISecurity #Backend #WebSecurity #SystemDesign #SoftwareEngineering
+
+Too many backend services verify WHO the user is (Authentication) but fail to verify whether they OWN the requested object (Authorization).
+
+Swipe through this 6-slide security masterclass:
+
+📌 The critical difference between 401 Unauthorized and 403 Forbidden
+📌 Enforcing scoped ownership checks on every database query
+📌 Short-lived JWTs + Refresh Token Rotation with Revocation Lists
+📌 Rate limiting and IP reputation defense against credential stuffing
+
+#APISecurity #CyberSecurity #Backend #WebSecurity #DevOps #SystemDesign #NextJS #SoftwareEngineering`,
+    slides: [
+      {
+        isCover: true,
+        tag: 'API SECURITY MASTERCLASS',
+        headline: 'API Security & Zero-Trust: Eliminating BOLA Vulnerabilities',
+        points: [
+          'Authentication vs Object-Level Authorization',
+          'Refresh token rotation & cryptographic replay detection',
+          'Zero-trust database query ownership filtering',
+        ],
+        footer: 'SWIPE TO SECURE ->',
+      },
+      {
+        tag: '01 / THE BOLA VULNERABILITY',
+        headline: 'Valid tokens accessing another tenant data.',
+        codeSnippet: `// VULNERABLE: Only verifies if user is logged in\napp.get('/api/invoices/:id', authMiddleware, async (req, res) => {\n  const invoice = await db.invoices.findById(req.params.id);\n});`,
+        points: [
+          'User A changes the ID parameter to read User B invoices',
+          'Auth middleware passes because the JWT itself is valid',
+          'Accounted for over 40% of major API data leaks in 2025',
+        ],
+      },
+      {
+        tag: '02 / OWNERSHIP-SCOPED DB QUERIES',
+        headline: 'Always append tenant ID directly into the query.',
+        codeSnippet: `// SECURE: Enforces tenant ownership in query\nconst invoice = await db.invoices.findOne({\n  _id: req.params.id,\n  tenantId: req.user.tenantId // Mandatory scope\n});`,
+        points: [
+          'Never fetch by primary ID alone without tenant ownership scope',
+          'Database engine automatically rejects unauthorized accesses',
+          'Return 404 Not Found to prevent ID enumeration attacks',
+        ],
+      },
+      {
+        tag: '03 / REFRESH TOKEN ROTATION (RTR)',
+        headline: 'Invalidate token family immediately on reuse detection.',
+        codeSnippet: `// Detect stolen token replay\nif (refreshToken.isUsed) {\n  await revokeEntireTokenFamily(refreshToken.familyId);\n  throw new SecurityAlert('Stolen token replayed!');\n}`,
+        points: [
+          'Issue short-lived access tokens (15 minutes lifespan)',
+          'Issue single-use refresh tokens stored in HTTP-only cookies',
+          'Replay of an old refresh token invalidates entire family',
+        ],
+      },
+      {
+        tag: '04 / DISTRIBUTED RATE LIMITING',
+        headline: 'Sliding window algorithms prevent credential stuffing.',
+        codeSnippet: `// Sliding window log via Redis Sorted Set\nconst currentCount = await redis.zcount(key, windowStart, now);\nif (currentCount > MAX_REQUESTS) return 429;`,
+        points: [
+          'Sliding window prevents traffic bursts at boundary edges',
+          'Differentiates IP-based bans from account-based lockouts',
+          'Protects auth endpoints from brute-force dictionary attacks',
+        ],
+      },
+      {
+        isSummary: true,
+        slideType: 'outro',
+        tag: 'DECISION MATRIX',
+        headline: 'Found this breakdown valuable?',
+        subheadline: 'Save this cheat sheet and follow for weekly production architectures.',
+        footer: 'Follow @Syed Adil Ali & Repost',
+      },
+    ],
+  },
+  {
+    topic: 'Apache Kafka vs RabbitMQ: Production Architecture Decision Guide',
+    caption: `Stop treating Kafka and RabbitMQ as interchangeable message brokers. 📨⚡
+#ApacheKafka #RabbitMQ #EventDriven #DistributedSystems #SystemDesign #CloudArchitecture
+
+RabbitMQ is a smart message broker for complex routing and task distribution. Kafka is a distributed, append-only commit log built for massive stream replays and event sourcing.
+
+Swipe through this 6-slide architectural decision guide:
+
+📌 Message Queuing vs Distributed Event Log paradigms
+📌 Smart Broker / Dumb Consumer vs Dumb Broker / Smart Consumer
+📌 Throughput benchmarks: 50,000 msg/sec vs 1,000,000+ msg/sec
+📌 When to pick RabbitMQ (AMQP) vs when to pick Apache Kafka
+
+#ApacheKafka #RabbitMQ #EventDriven #DistributedSystems #SystemDesign #SoftwareArchitecture #CloudArchitecture #BackendEngineering`,
+    slides: [
+      {
+        isCover: true,
+        tag: 'STREAMING ARCHITECTURE',
+        headline: 'Apache Kafka vs RabbitMQ: The Production Decision Guide',
+        points: [
+          'Message broker vs distributed commit log',
+          'Routing flexibility vs event stream replayability',
+          'Production decision heuristics for high throughput',
+        ],
+        footer: 'SWIPE TO DECIDE ->',
+      },
+      {
+        tag: '01 / CORE ARCHITECTURAL PARADIGM',
+        headline: 'Smart Broker vs Distributed Append-Only Log.',
+        codeSnippet: `// RabbitMQ: Deletes message after ACK\nchannel.ack(msg);\n// Kafka: Retains log for replay at any consumer offset!\nconsumer.seek({ topic, partition, offset: 0 });`,
+        points: [
+          'RabbitMQ tracks message consumption state on the broker',
+          'Kafka stores immutable event logs; consumers track offsets',
+          'Kafka enables replaying past events from any point in time',
+        ],
+      },
+      {
+        tag: '02 / ROUTING TOPOLOGIES & FLEXIBILITY',
+        headline: 'Complex exchange bindings vs strict partition keys.',
+        codeSnippet: `// RabbitMQ: Direct, Topic, Fanout, Headers exchange\nchannel.bindQueue(q, 'orders', 'eu.payment.*');\n// Kafka: Partition key hashing assigns to fixed partition`,
+        points: [
+          'RabbitMQ excels at complex AMQP routing and filtering rules',
+          'Kafka guarantees strict ordering ONLY within a single partition',
+          'Kafka scaling requires pre-partitioning topic capacity upfront',
+        ],
+      },
+      {
+        tag: '03 / THROUGHPUT & RETENTION PROFILES',
+        headline: 'In-memory buffers vs sequential disk page cache.',
+        codeSnippet: `// Kafka: Zero-copy sendfile syscall straight to NIC\n// Achieves 1,000,000+ events/second with low CPU\n// RabbitMQ: Optimizes for lowest latency per individual msg`,
+        points: [
+          'RabbitMQ degrades throughput when queues grow into millions',
+          'Kafka throughput remains constant regardless of data volume',
+          'Kafka leverages Linux OS page cache and zero-copy disk reads',
+        ],
+      },
+      {
+        tag: '04 / THE PRODUCTION DECISION MATRIX',
+        headline: 'Pick based on your data consumption lifecycle.',
+        codeSnippet: `// Choose RabbitMQ for: Work queues, RPC, granular routing\n// Choose Kafka for: Event sourcing, telemetry, data pipelines`,
+        points: [
+          'Pick RabbitMQ: Complex message routing, worker task queues',
+          'Pick Kafka: Stream processing, audit event logs, metrics',
+          'Hybrid architectures: RabbitMQ for tasks, Kafka for streams',
+        ],
+      },
+      {
+        isSummary: true,
+        slideType: 'outro',
+        tag: 'DECISION MATRIX',
+        headline: 'Found this breakdown valuable?',
+        subheadline: 'Save this cheat sheet and follow for weekly production architectures.',
+        footer: 'Follow @Syed Adil Ali & Repost',
+      },
+    ],
+  },
 ];
+

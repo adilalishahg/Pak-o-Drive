@@ -2,6 +2,42 @@
 
 This file serves as persistent dynamic memory across coding agent sessions. Every core standard, architectural decision, and verified bug resolution must be preserved below.
 
+### 2026-09-16 — Storefront UI/UX Modernization & Typography Clipping Audit: Next.js 16 + React 19 Streamlining
+- **📌 Issue**:
+  Storefront product page and homepage contained a mix of legacy Bootstrap utility classes (`d-flex`, `row`, `col-12`, `g-0`), heavy FontAwesome font icon tags (`<i className="fas fa-..." />`), raw inline style elements, and single-line elements with `lineHeight: 1` violating Core Rule 4 (typography ascender/descender clipping).
+- **🔍 Root Cause**:
+  Earlier prototypes carried forward Bootstrap grid classes and FontAwesome font dependencies alongside Tailwind CSS v4, resulting in visual inconsistencies, redundant DOM wrappers, unoptimized asset loads, and font descender clipping on PKR price tags and mobile action buttons.
+- **🛠️ Verified Code Fix**:
+  1. **Product Detail Page Layout (`src/app/product/[id]/page.tsx`)**: Removed legacy inline `<style>` tags in favor of modern Tailwind CSS v4 layout (`min-h-screen bg-slate-50 dark:bg-slate-950 max-w-6xl mx-auto rounded-2xl shadow-sm border border-slate-200/80`).
+  2. **Product Detail Interactive (`src/components/product/ProductDetailInteractive.tsx`)**: Replaced Bootstrap grid with clean Tailwind CSS grid (`grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x`), converted all FontAwesome icons to tree-shaken `lucide-react` icons (`Sparkles`, `Star`, `Truck`, `Zap`, `ShieldCheck`, `Headphones`, `CheckCircle2`, `SlidersHorizontal`), and updated variant buttons and specs cards to sleek rounded-2xl design.
+  3. **Typography Clipping Prevention (Rule 4)**: Applied `leading-normal py-0.5` across single-line PKR price tags and buttons in `ProductDetailInteractive.tsx`, `ProductActions.tsx`, and `HomeModernLayout.tsx`.
+  4. **Homepage Announcement Marquees (`HomeModernLayout.tsx`, `HomeCleanWhiteLayout.tsx`)**: Replaced FontAwesome bullhorn with Lucide `Megaphone` with `leading-normal py-0.5`.
+  5. **Verification**: Successfully executed `pnpm tsc --noEmit` passing with 0 errors.
+
+### 2026-09-16 — Monolithic Engine Modularization: Clean Split of Carousel, Video, and WhatsApp Bot Facades
+- **📌 Issue**:
+  User reported that 4 core architectural engines (`src/lib/carousel/utils.ts`, `src/lib/carousel/engine.ts`, `src/lib/cinematicVideo/uiRenderers.ts`, and `src/lib/whatsappBot/engine.ts`) had grown excessively large (400 - 800+ lines each), making maintenance difficult and increasing risk of regressions.
+- **🔍 Root Cause**:
+  Over time, PDF generation primitives, SVG slide templates, cinematic reel vector scenes, and WhatsApp socket/bot management logic were accumulated into single monolithic files instead of decomposed modules with single-responsibility domains.
+- **🛠️ Verified Code Fix**:
+  1. **`src/lib/carousel/utils.ts`**: Decomposed into `utils/text.ts` (ASCII sanitization, wrapping), `utils/assets.ts` (topic graphics), `utils/pdfDraw.ts` (headline, subheadline, text rendering), and kept `utils.ts` as a 100% backwards-compatible re-export facade.
+  2. **`src/lib/carousel/engine.ts`**: Decomposed into `svg/common.ts`, `svg/coverSlide.ts`, `svg/codeSlide.ts`, `svg/chartSlides.ts`, `svg/diagramSlide.ts`, `svg/cardListSlide.ts`, `svg/outroSlide.ts`, and `svg/index.ts`. Renamed SVG line wrapper to `wrapSvgTextLines` to eliminate export collision with PDF `wrapTextLines`.
+  3. **`src/lib/cinematicVideo/uiRenderers.ts`**: Decomposed into `scenes/common.ts`, `scenes/presenterHook.ts`, `scenes/searchSimulation.ts`, `scenes/dashboardInteractive.ts`, `scenes/superpowerComparison.ts`, `scenes/presenterCTA.ts`, and `scenes/index.ts`. Left `uiRenderers.ts` as the primary frame renderer and facade.
+  4. **`src/lib/whatsappBot/engine.ts`**: Decomposed into `whatsappBot/types.ts` (`BotState`), `whatsappBot/intentGuard.ts` (personal number whitelist & store keywords), `whatsappBot/matcher.ts` (rule evaluator), `whatsappBot/replyResolver.ts` (dynamic order lookup), and `whatsappBot/manager.ts` (`WhatsAppBotManager`). Retained `engine.ts` as the facade export.
+  5. **Verification**: Successfully executed `pnpm tsc --noEmit` (0 errors), `npx tsx scripts/test-carousel-pdf.ts` (0 errors, 1.1MB PDF created in 2615ms), and `graft build` (AST context graph updated with 0 errors).
+
+
+### 2026-09-16 — LinkedIn Carousel Serverless PDF Tofu Resolution: Resvg TrueType Font Embedding
+- **📌 Issue**:
+  User ran automated cron on Vercel/cloud and shared mobile screenshots showing that all carousel slide text rendered as empty missing-glyph rectangular boxes (tofu `▯▯▯▯▯▯`), despite working locally.
+- **🔍 Root Cause**:
+  The PDF carousel engine generated SVG strings and converted them directly via `sharp(Buffer.from(svgContent))` using `librsvg`. In serverless Linux environments (Vercel Lambda / AWS Lambda / GitHub Actions), system fonts (`-apple-system`, `Segoe UI`, `Roboto`, `Arial`) do not exist and `fontconfig` paths were unconfigured. When librsvg cannot find system font glyphs, it renders all text characters as empty tofu boxes. Additionally, librsvg does not load `@font-face` data URIs in SVGs.
+- **🛠️ Verified Code Fix**:
+  1. **Direct Rust-Based SVG Rasterization (`@resvg/resvg-js`)**: Integrated `@resvg/resvg-js` with explicit in-memory font file resolution (`fontDirs`, `fontFiles`: `Inter-Bold.ttf`, `Inter-Regular.ttf`, `FiraCode-SemiBold.ttf`) and `loadSystemFonts: false` to ensure 100% OS isolation and zero dependence on host fonts.
+  2. **Fontconfig Defense-in-Depth**: Created `src/lib/fonts/fonts.conf` and `fonts/fonts.conf` aliasing sans-serif/Segoe UI/Roboto to Inter and monospace to Fira Code, configured `FONTCONFIG_PATH` in `vercel.json` and module init, and added `./fonts/**/*` to `next.config.ts`'s `outputFileTracingIncludes` and `@resvg/resvg-js` to `serverExternalPackages`.
+  3. **Typography & Auto-Wrapping Improvements**: Enhanced `renderCoverSvg` and `renderCardListSvg` with multi-line auto-wrapping (`wrapTextLines`) for headlines and subheadlines, and refined regex splitting (`/:\s+|\s+[—–]\s+|\s+-\s+/`) so compound words like "In-memory" and "read-modify-write" do not break titles.
+  4. **Verification**: Successfully verified individual slide renders (`slide_1.jpg`, `slide_2.jpg`, `slide_3.jpg`, `slide_4.jpg`), generated 5 curated decks with 0 errors, and confirmed `pnpm tsc --noEmit` passed with 0 errors.
+
 ### 2026-09-16 — Upstash QStash Autonomous Scheduling & GitHub Actions Deduplication
 - **📌 Issue**:
   User noticed morning automated posts failed to trigger reliably due to GitHub Actions top-of-hour scheduling queues and Vercel Hobby plan 1-cron limitation (`vercel.json`), with third-party webhooks timing out at 30 seconds.

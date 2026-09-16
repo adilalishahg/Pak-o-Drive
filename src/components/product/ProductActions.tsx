@@ -275,7 +275,7 @@ export const ProductActions: React.FC<ProductActionsProps> = ({ product, selecte
           </div>
           <div style={{ minWidth: '65px' }}>
             <span style={{ fontSize: '0.6rem', color: '#64748b', display: 'block', fontWeight: 600 }}>Total</span>
-            <span style={{ fontSize: '0.94rem', fontWeight: 900, color: 'var(--pd-primary, #ea580c)', lineHeight: 1 }}>
+            <span style={{ fontSize: '0.94rem', fontWeight: 900, color: 'var(--pd-primary, #ea580c)', lineHeight: 'normal', display: 'inline-block', padding: '2px 0' }}>
               Rs. {finalPrice.toLocaleString()}
             </span>
           </div>

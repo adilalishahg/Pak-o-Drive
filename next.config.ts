@@ -15,13 +15,14 @@ const nextConfig: NextConfig = {
     'sharp',
     '@ffmpeg-installer/ffmpeg',
     '@ffprobe-installer/ffprobe',
+    '@resvg/resvg-js',
   ],
   experimental: {
     inlineCss: true,
     optimizePackageImports: ['canvas-confetti', 'lucide-react', 'recharts', 'bootstrap-icons'],
   },
   outputFileTracingIncludes: {
-    '/api/**/*': ['./src/lib/fonts/**/*'],
+    '/api/**/*': ['./src/lib/fonts/**/*', './fonts/**/*'],
   },
   turbopack: {
     resolveAlias: {
