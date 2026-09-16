@@ -3,7 +3,6 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { logInteraction } from '@/components/common/AnalyticsTracker';
-import { useBackToClose } from './useBackToClose';
 
 const DEFAULT_CATS = [
   { name: 'Headphones', slug: 'headphones' },
@@ -42,19 +41,6 @@ export function useNavbar(): NavbarHookReturn {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
 
-  // Close search on mobile back button press instead of navigating away
-  useBackToClose({
-    isOpen: searchOpen,
-    onClose: useCallback(() => setSearchOpen(false), []),
-    key: 'nav_search',
-  });
-
-  // Close mobile drawer on back button press
-  useBackToClose({
-    isOpen: mobileOpen,
-    onClose: useCallback(() => setMobileOpen(false), []),
-    key: 'nav_mobile_drawer',
-  });
   const [query, setQuery] = useState('');
   const [scrolled, setScrolled] = useState(false);
   const [showTop, setShowTop] = useState(false);
@@ -70,17 +56,6 @@ export function useNavbar(): NavbarHookReturn {
     setMobileOpen(false);
     setSearchOpen(false);
   }, [pathname]);
-
-  // Lock body scroll when mobile drawer is open so page doesn't scroll
-  useEffect(() => {
-    if (mobileOpen) {
-      const originalOverflow = document.body.style.overflow;
-      document.body.style.overflow = 'hidden';
-      return () => {
-        document.body.style.overflow = originalOverflow;
-      };
-    }
-  }, [mobileOpen]);
 
   // Fetch categories using client-side cache
   useEffect(() => {

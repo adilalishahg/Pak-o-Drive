@@ -146,12 +146,9 @@ export function MobileNavDrawer({
   React.useEffect(() => {
     if (!open) return;
     const origOverflow = document.body.style.overflow;
-    const origTouchAction = document.body.style.touchAction;
     document.body.style.overflow = 'hidden';
-    document.body.style.touchAction = 'none';
     return () => {
-      document.body.style.overflow = origOverflow;
-      document.body.style.touchAction = origTouchAction;
+      document.body.style.overflow = origOverflow || '';
     };
   }, [open]);
 
@@ -183,7 +180,7 @@ export function MobileNavDrawer({
           bottom: 0,
           width: '85%',
           maxWidth: '330px',
-          height: '100dvh',
+          height: '100%',
           maxHeight: '100dvh',
           zIndex: 9999,
           background: '#0f172a',
@@ -192,6 +189,7 @@ export function MobileNavDrawer({
           display: 'flex',
           flexDirection: 'column',
           overflow: 'hidden',
+          touchAction: 'pan-y',
         }}
         aria-label="Mobile Navigation Sidebar"
       >
@@ -255,12 +253,11 @@ export function MobileNavDrawer({
         {/* Drawer Content Body with Touch Scrolling Container */}
         <div
           style={{
-            flex: '1 1 0%',
+            flex: '1 1 auto',
             minHeight: 0,
             overflowY: 'auto',
             overflowX: 'hidden',
             WebkitOverflowScrolling: 'touch',
-            overscrollBehaviorY: 'contain',
             touchAction: 'pan-y',
           }}
         >

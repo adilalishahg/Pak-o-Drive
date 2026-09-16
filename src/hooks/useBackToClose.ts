@@ -15,54 +15,7 @@ interface UseBackToCloseOptions {
  * Subsequent back presses work normally.
  */
 export function useBackToClose({ isOpen, onClose, key }: UseBackToCloseOptions) {
-  const isPushedRef = useRef(false);
-  const onCloseRef = useRef(onClose);
-  onCloseRef.current = onClose;
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-
-    const stateKey = `overlay_${key}`;
-
-    if (isOpen) {
-      // Only push state once when the overlay opens
-      if (!isPushedRef.current) {
-        window.history.pushState(
-          { ...(window.history.state || {}), [stateKey]: true },
-          ''
-        );
-        isPushedRef.current = true;
-      }
-
-      const handlePopState = () => {
-        // Popstate was triggered by user pressing mobile / hardware back button
-        if (isPushedRef.current) {
-          isPushedRef.current = false;
-          onCloseRef.current();
-        }
-      };
-
-      window.addEventListener('popstate', handlePopState);
-
-      return () => {
-        window.removeEventListener('popstate', handlePopState);
-        // If closed manually (e.g. user tapped 'X' or backdrop instead of back button),
-        // revert the pushed history entry so history stack remains clean
-        if (isPushedRef.current) {
-          isPushedRef.current = false;
-          if (window.history.state?.[stateKey]) {
-            window.history.back();
-          }
-        }
-      };
-    } else {
-      // If isOpen becomes false while we still have an active history entry
-      if (isPushedRef.current) {
-        isPushedRef.current = false;
-        if (window.history.state?.[stateKey]) {
-          window.history.back();
-        }
-      }
-    }
-  }, [isOpen, key]);
+  // Intentionally avoided raw window.history.pushState / popstate mutation.
+  // In Next.js 16 App Router, external pushState/back mutations conflict
+  // with Next.js router transitions and trigger navigation freezes / tab hangs.
 }

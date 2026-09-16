@@ -42,12 +42,9 @@ function ShopContent({ initialProducts }: ShopClientProps) {
   React.useEffect(() => {
     if (!mobileFilterOpen) return;
     const origOverflow = document.body.style.overflow;
-    const origTouchAction = document.body.style.touchAction;
     document.body.style.overflow = 'hidden';
-    document.body.style.touchAction = 'none';
     return () => {
-      document.body.style.overflow = origOverflow;
-      document.body.style.touchAction = origTouchAction;
+      document.body.style.overflow = origOverflow || '';
     };
   }, [mobileFilterOpen]);
 
