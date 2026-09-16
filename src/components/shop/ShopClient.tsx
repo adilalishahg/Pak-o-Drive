@@ -459,6 +459,7 @@ function ShopContent({ initialProducts }: ShopClientProps) {
 
           {/* Drawer Sheet */}
           <div
+            data-lenis-prevent="true"
             style={{
               position: 'relative',
               zIndex: 9999,
@@ -544,6 +545,7 @@ function ShopContent({ initialProducts }: ShopClientProps) {
 
             {/* Scrollable Body (Independent scroll viewport, silky-smooth touch scrolling) */}
             <div
+              data-lenis-prevent="true"
               style={{
                 flex: '1 1 0%',
                 minHeight: 0,

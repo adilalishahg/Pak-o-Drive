@@ -173,6 +173,7 @@ export function MobileNavDrawer({
 
       {/* ── Fixed Sticky Slide-Out Drawer Panel ── */}
       <aside
+        data-lenis-prevent="true"
         style={{
           position: 'fixed',
           top: 0,
@@ -252,12 +253,14 @@ export function MobileNavDrawer({
 
         {/* Drawer Content Body with Touch Scrolling Container */}
         <div
+          data-lenis-prevent="true"
           style={{
             flex: '1 1 auto',
             minHeight: 0,
             overflowY: 'auto',
             overflowX: 'hidden',
             WebkitOverflowScrolling: 'touch',
+            overscrollBehaviorY: 'contain',
             touchAction: 'pan-y',
           }}
         >

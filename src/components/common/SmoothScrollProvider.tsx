@@ -63,6 +63,14 @@ export function SmoothScrollProvider({ children }: { children: React.ReactNode }
       wheelMultiplier: 1.05,
       touchMultiplier: 1.2,
       autoRaf: false, // We control RAF explicitly for buttery 120fps
+      prevent: (node: HTMLElement) => {
+        return (
+          node.hasAttribute('data-lenis-prevent') ||
+          Boolean(node.closest('[data-lenis-prevent]')) ||
+          Boolean(node.closest('aside')) ||
+          Boolean(node.closest('[role="dialog"]'))
+        );
+      },
     });
 
     lenisRef.current = lenis;

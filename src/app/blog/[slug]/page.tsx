@@ -226,20 +226,14 @@ export default async function BlogPostDetailPage({ params }: PageProps) {
               whatsappShareUrl={whatsappShareUrl}
             />
           </div>
-
-          {/* Viral Social Media Spotlight (Meta, TikTok & RWP/ISLB) */}
-          <ViralProductSpotlight
-            products={viralProducts}
-            cleanPhone={cleanPhone}
-          />
         </div>
       </header>
 
       {/* ── 2. Main 2-Column Editorial Grid ────────────────────── */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 sm:pt-10">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 xl:gap-14 items-start">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-10">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 xl:gap-14 items-start">
           {/* ── Left / Main Content Column (~68%) ────────────────── */}
-          <div className="lg:col-span-8 min-w-0 space-y-8">
+          <div className="lg:col-span-8 min-w-0 space-y-6 sm:space-y-8">
             {/* Panoramic Full-Bleed Cover Image with Dual-Layer Presentation (Rule 3) */}
             {post.coverImage && (
               <div className="relative w-full aspect-[16/9] sm:aspect-[21/9] rounded-2xl overflow-hidden shadow-lg border border-slate-200/90 bg-slate-950 group">
@@ -264,10 +258,37 @@ export default async function BlogPostDetailPage({ params }: PageProps) {
               </div>
             )}
 
+            {/* Mobile-Only Collapsible Table of Contents (Top Placement) */}
+            {tocHeadings.length >= 2 && (
+              <div className="lg:hidden p-4 rounded-xl border border-slate-200 bg-slate-50/80 shadow-xs">
+                <details className="group">
+                  <summary className="flex items-center justify-between cursor-pointer list-none font-bold text-xs uppercase tracking-wider text-slate-800 select-none">
+                    <div className="flex items-center gap-2">
+                      <List className="w-4 h-4 text-rose-500" />
+                      <span>Table of Contents ({tocHeadings.length} Sections)</span>
+                    </div>
+                    <ChevronDown className="w-4 h-4 text-slate-400 group-open:rotate-180 transition-transform duration-200" />
+                  </summary>
+                  <nav className="mt-3 pt-3 border-t border-slate-200/80 space-y-2 text-xs text-slate-600">
+                    {tocHeadings.map((h, i) => (
+                      <a
+                        key={i}
+                        href={`#${h.id}`}
+                        className="block hover:text-rose-500 transition-colors text-decoration-none py-0.5 truncate"
+                      >
+                        <span className="text-rose-500 font-semibold mr-1.5">{i + 1}.</span>
+                        {h.title}
+                      </a>
+                    ))}
+                  </nav>
+                </details>
+              </div>
+            )}
+
             {/* Executive Briefing / Key Takeaways Callout */}
             {takeaways.length > 0 && (
-              <div className="p-6 rounded-xl bg-[#fafafa] border-l-4 border-rose-500 border-y border-r border-slate-200/70 shadow-xs">
-                <div className="flex items-center gap-2 text-slate-900 font-bold text-sm mb-3">
+              <div className="p-5 sm:p-6 rounded-xl bg-[#fafafa] border-l-4 border-rose-500 border-y border-r border-slate-200/70 shadow-xs">
+                <div className="flex items-center gap-2 text-slate-900 font-bold text-xs sm:text-sm mb-2.5 sm:mb-3">
                   <Sparkles className="w-4 h-4 text-rose-500" />
                   <span>Executive Briefing & Key Highlights</span>
                 </div>
@@ -281,6 +302,12 @@ export default async function BlogPostDetailPage({ params }: PageProps) {
                 </ul>
               </div>
             )}
+
+            {/* Viral Social Media Spotlight */}
+            <ViralProductSpotlight
+              products={viralProducts}
+              cleanPhone={cleanPhone}
+            />
 
             {/* AdSense Top Slot */}
             <AdSenseSlot
@@ -549,10 +576,10 @@ export default async function BlogPostDetailPage({ params }: PageProps) {
             </section>
           </div>
 
-          {/* ── Right / Sticky Sidebar (~32%) (Matching Reference) ─ */}
+          {/* ── Right / Sticky Sidebar (~32%) ───────────────────── */}
           <aside className="lg:col-span-4 space-y-6 lg:sticky lg:top-24">
-            {/* Sidebar Author Profile Card (Modern Trending Theme) */}
-            <div className="rounded-2xl border border-slate-200/90 bg-white shadow-xs overflow-hidden">
+            {/* Sidebar Author Profile Card (Desktop Only - Mobile already has verified author card in main column) */}
+            <div className="hidden lg:block rounded-2xl border border-slate-200/90 bg-white shadow-xs overflow-hidden">
               <div className="h-16 bg-gradient-to-r from-slate-900 via-rose-950 to-slate-900 relative">
                 <div className="absolute inset-0 bg-[radial-gradient(#ffffff22_1px,transparent_1px)] [background-size:8px_8px] opacity-40" />
               </div>
@@ -604,9 +631,9 @@ export default async function BlogPostDetailPage({ params }: PageProps) {
               </div>
             </div>
 
-            {/* Table of Contents Sticky Box */}
+            {/* Desktop Table of Contents Sticky Box (Mobile has top collapsible TOC) */}
             {tocHeadings.length >= 2 && (
-              <div className="p-5 rounded-xl border border-slate-200 bg-[#fbfbfb]">
+              <div className="hidden lg:block p-5 rounded-xl border border-slate-200 bg-[#fbfbfb]">
                 <div className="flex items-center gap-2 text-slate-900 font-bold text-xs uppercase tracking-wider mb-3">
                   <List className="w-3.5 h-3.5 text-rose-500" />
                   <span>Table of Contents</span>
@@ -626,12 +653,7 @@ export default async function BlogPostDetailPage({ params }: PageProps) {
               </div>
             )}
 
-            {/* Sidebar Newsletter Box (Matching Reference) */}
-            <BlogNewsletterBox
-              description="Signup and receive recent articles and deals in your inbox every week."
-            />
-
-            {/* Recent Posts Widget (Matching Reference) */}
+            {/* Recent Posts Widget */}
             {relatedPosts.length > 0 && (
               <div className="p-5 sm:p-6 rounded-2xl border border-slate-200/90 bg-white shadow-xs">
                 <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
@@ -677,8 +699,13 @@ export default async function BlogPostDetailPage({ params }: PageProps) {
               </div>
             )}
 
-            {/* Tag Cloud Widget (Matching Reference) */}
-            <div className="p-6 rounded-xl border border-slate-200 bg-white shadow-xs">
+            {/* Sidebar Newsletter Box */}
+            <BlogNewsletterBox
+              description="Signup and receive recent articles and deals in your inbox every week."
+            />
+
+            {/* Tag Cloud Widget (Desktop Only - Tags already visible at bottom of article) */}
+            <div className="hidden lg:block p-6 rounded-xl border border-slate-200 bg-white shadow-xs">
               <h5 className="font-serif font-bold text-sm text-slate-900 pb-2 border-b border-slate-100 mb-3">
                 Tags
               </h5>
@@ -716,12 +743,14 @@ export default async function BlogPostDetailPage({ params }: PageProps) {
               </Link>
             </div>
 
-            {/* AdSense Sidebar Unit */}
-            <AdSenseSlot
-              slotId="auto-sidebar-rail"
-              format="rectangle"
-              slotLabel="Google AdSense Sidebar Banner"
-            />
+            {/* AdSense Sidebar Unit (Desktop Only) */}
+            <div className="hidden lg:block">
+              <AdSenseSlot
+                slotId="auto-sidebar-rail"
+                format="rectangle"
+                slotLabel="Google AdSense Sidebar Banner"
+              />
+            </div>
           </aside>
         </div>
       </div>

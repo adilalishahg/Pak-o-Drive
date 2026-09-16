@@ -262,7 +262,7 @@ export const CategorySidebar: React.FC<CategorySidebarProps> = ({
   );
 
   return (
-    <div>
+    <div data-lenis-prevent="true" style={{ touchAction: 'pan-y' }}>
       {/* Reset */}
       {hasFilters && section(
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
