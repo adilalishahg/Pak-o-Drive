@@ -6,6 +6,18 @@ This file serves as persistent dynamic memory across coding agent sessions. Ever
 
 ---
 
+### 2026-09-16 — Hybrid Cloud Video Synthesis Engine (Cloudinary Overlay API + GitHub Actions FFmpeg Runner)
+- **📌 Issue**:
+  User required brand-new synthesized vertical video generation with dynamic on-screen text overlays on every single run, bypassing Vercel serverless FFmpeg binary limitations.
+- **🔍 Root Cause**:
+  Vercel serverless environments lack FFmpeg binaries, preventing local text overlay encoding on Vercel lambda containers.
+- **🛠️ Verified Code Fix**:
+  1. **Solution 1 (Cloudinary Cloud Text Overlay Synthesis)**: Extended `uploadVideoToCdn` in `src/lib/instagramReelPostService.ts` to accept `overlayQuoteLines`. When Cloudinary credentials exist on Vercel, it applies Cloudinary's dynamic video transformation API to render dynamic on-screen typography on the fly in the cloud.
+  2. **Solution 3 (GitHub Actions Native FFmpeg Runner)**: Configured `.github/workflows/daily-instagram-reel.yml` with system `ffmpeg` on Ubuntu runners. Operates daily at 14:00 UTC (19:00 PKT / 15:00 UK Peak Hour) and includes `workflow_dispatch` for 1-click manual execution directly from GitHub Actions UI.
+  3. **Verification**: `pnpm tsc --noEmit` and `graft build` passed with 0 errors.
+
+---
+
 ### 2026-09-16 — Vercel 404 Asset Override Fix & Physical Raw Fallback Video Bundle
 - **📌 Issue**:
   Vercel HTTP logs showed `GET 404 /img/viral-reels/raw/nissan-300zx.mp4` and `Cloudinary upload failed: Resource not found - https://www.pakodrive.pk/img/viral-reels/raw/nissan-300zx.mp4`.

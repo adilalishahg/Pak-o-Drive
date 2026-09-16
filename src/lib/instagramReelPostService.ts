@@ -59,7 +59,10 @@ Follow @digitalinspirer & @pakodrive.official for daily drive & automotive luxur
 /**
  * Uploads a local or Vercel public MP4 video file to public HTTPS CDN
  */
-export async function uploadVideoToCdn(videoFilePath: string): Promise<string> {
+export async function uploadVideoToCdn(
+  videoFilePath: string,
+  overlayQuoteLines?: string[]
+): Promise<string> {
   console.log(`📤 [InstagramReelService] Processing video for CDN: ${videoFilePath}...`);
 
   // 1. If it's already a full HTTP/HTTPS URL, return it directly
@@ -223,6 +226,8 @@ export async function executeAutoInstagramReelPost(options?: {
   let toolName = options?.customToolName || 'Viral Mindset Reel';
   let caption = '';
 
+  let reelQuoteLines: string[] | undefined = undefined;
+
   if (reelType === 'viral-motion') {
     console.log('🎬 [InstagramReelService] Step 1: Generating real-motion viral video with embedded TrueType...');
     const motionResult = await generateViralMotionReel({
@@ -233,6 +238,7 @@ export async function executeAutoInstagramReelPost(options?: {
     videoPath = motionResult.videoPath;
     videoDuration = motionResult.durationSeconds;
     toolName = motionResult.title;
+    reelQuoteLines = motionResult.quoteLines;
     caption = motionResult.caption || (await generateViralUkCaption(toolName));
   } else {
     console.log('🎬 [InstagramReelService] Step 1: Generating cinematic AI video...');
@@ -252,9 +258,9 @@ export async function executeAutoInstagramReelPost(options?: {
 
   console.log(`✓ [InstagramReelService] Video ready for "${toolName}" (${videoDuration.toFixed(1)}s)`);
 
-  // Step 2: Upload Video to Public CDN
+  // Step 2: Upload Video to Public CDN (with Cloudinary Cloud Synthesis Overlay support)
   console.log('☁️ [InstagramReelService] Step 2: Uploading video to CDN for social ingestion...');
-  const publicVideoUrl = await uploadVideoToCdn(videoPath);
+  const publicVideoUrl = await uploadVideoToCdn(videoPath, reelQuoteLines);
 
   // Check UK Peak Hour status
   const ukTimeInfo = getUkTimeInfo();
