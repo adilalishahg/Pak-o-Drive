@@ -4,6 +4,31 @@ This file serves as persistent dynamic memory across coding agent sessions. Ever
 
 > 📦 **Historical Archive Notice**: Detailed operational entries, early prototypes, and historical setup steps from August 2026 have been archived to [`LEARNINGS_ARCHIVE.md`](./LEARNINGS_ARCHIVE.md) to keep this active knowledge base lean, token-efficient, and aligned with current Pak-o-Drive architecture.
 
+### 2026-09-17 — Instagram & TikTok Reel Auto-Post: Missing Text Overlay Fix
+- **📌 Issue**:
+  Recent automated Instagram Reels & TikTok posts contained only raw background video without any quote/text overlay.
+- **🔍 Root Cause**:
+  When auto-post runs in serverless environment (cron execution), FFmpeg path execution threw permissions/path errors, falling back to raw video paths (`isBurnedWithFfmpeg = false`). In `uploadVideoToCdn`, fallback Cloudinary key was missing or invalid, causing raw un-overlaid video buffers to be uploaded to Uguu / Vercel CDN and dispatched directly to social feeds.
+- **🛠️ Verified Code Fix**:
+  1. Updated `getFfmpegPath()` in `src/lib/viralMotionReelEngine.ts` to copy FFmpeg binary to `/tmp/ffmpeg` with `0o755` executable permissions when running on Linux serverless environments.
+  2. Created exportable `burnOverlayWithSharpAndFfmpeg()` pipeline combining Sharp SVG PNG overlay rendering with FFmpeg video stream overlay.
+  3. Integrated pre-upload overlay burn into `uploadVideoToCdn()` in `src/lib/instagramReelPostService.ts` so that all CDN uploads (Cloudinary, Uguu, Vercel CDN) receive pre-burned video buffers containing quote overlay text.
+  4. Verified zero compilation/type errors via `pnpm tsc --noEmit` and updated `graft build`.
+
+---
+
+### 2026-09-17 — Codebase Analysis: Monolithic File Identification & Refactoring Roadmap
+- **📌 Issue**:
+  Codebase contained several large files (>500–780 lines) combining presentational rendering, state management, and backend engine logic in single components.
+- **🔍 Root Cause**:
+  Rapid feature accretion across AI Copilot, Blog Editors, Admin Actions, and Category Hierarchy Management resulted in monolithic components lacking sub-component decomposition.
+- **🛠️ Verified Code Fix**:
+  1. Executed Node AST/Line-count scan identifying top candidates: `AdminAiDrawer.tsx` (788 lines), `adminAiEngine.ts` (702 lines), `BlogPostTemplate.tsx` (696 lines), `socialAutoPostService.ts` (680 lines), `orderActions.ts` (634 lines), and `categories/page.tsx` (623 lines).
+  2. Defined modular extraction plans for component decomposition and custom hook migration.
+  3. Verified TypeScript compilation (`pnpm tsc --noEmit`) passing with 0 errors.
+
+---
+
 ### 2026-09-17 — Mobile Shop: List View Add-to-Cart Button Clipping & Layout Balancing
 - **📌 Issue**:
   On mobile devices in list view (`ProductCardList.tsx`), the bottom "Add" button overflowed to the right and its right edge and text were clipped off by the outer card boundary (`SpotlightCard` `overflow: hidden`).

@@ -7,7 +7,7 @@ import path from 'path';
 import dbConnect from '@/lib/mongodb';
 import InstagramPostLog from '@/models/InstagramPostLog';
 import { generateCinematicVideo, DeepDiveToolScript } from './cinematicVideo';
-import { generateViralMotionReel } from './viralMotionReelEngine';
+import { generateViralMotionReel, burnOverlayWithSharpAndFfmpeg } from './viralMotionReelEngine';
 import { ReelCategory } from './reelCategoryLibrary';
 import { publishInstagramStory } from './instagramStoryPostService';
 import { callMultiProviderAI } from './multiAiEngine';
@@ -66,14 +66,36 @@ export async function uploadVideoToCdn(
 ): Promise<string> {
   console.log(`📤 [InstagramReelService] Processing video for CDN: ${videoFilePath}...`);
 
+  let currentVideoPath = videoFilePath;
+  let burnedStatus = isAlreadyBurned;
+
+  const filteredLines = overlayQuoteLines
+    ? overlayQuoteLines.filter((l) => l && l.trim().length > 0)
+    : [];
+
+  // 0. Ensure text overlay is burned into video before CDN distribution
+  if (!burnedStatus && filteredLines.length > 0 && !videoFilePath.startsWith('http://') && !videoFilePath.startsWith('https://')) {
+    try {
+      console.log('🎨 [InstagramReelService] Pre-rendering text overlay onto video stream...');
+      const burnedPath = await burnOverlayWithSharpAndFfmpeg(currentVideoPath, filteredLines);
+      if (burnedPath && fs.existsSync(burnedPath) && fs.statSync(burnedPath).size > 1000) {
+        currentVideoPath = burnedPath;
+        burnedStatus = true;
+        console.log(`✓ [InstagramReelService] Text overlay burned successfully: ${currentVideoPath}`);
+      }
+    } catch (overlayErr: any) {
+      console.warn(`⚠️ [InstagramReelService] Dynamic overlay burn skipped: ${overlayErr.message}`);
+    }
+  }
+
   // 1. If it's already a full HTTP/HTTPS URL, return it directly
-  if (videoFilePath.startsWith('http://') || videoFilePath.startsWith('https://')) {
-    return videoFilePath;
+  if (currentVideoPath.startsWith('http://') || currentVideoPath.startsWith('https://')) {
+    return currentVideoPath;
   }
 
   // 2. Determine public web URL on Vercel CDN fallback
   const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.pakodrive.pk').replace(/\/$/, '');
-  const cleanRelativePath = videoFilePath
+  const cleanRelativePath = currentVideoPath
     .replace(/^.*?public[/\\]/, '')
     .replace(/\\/g, '/')
     .replace(/^\//, '');
@@ -82,8 +104,8 @@ export async function uploadVideoToCdn(
   // 3. Try reading local file buffer if file exists on disk (e.g. in /tmp or local dev)
   let fileBuffer: Buffer | null = null;
   try {
-    if (fs.existsSync(videoFilePath)) {
-      fileBuffer = fs.readFileSync(videoFilePath);
+    if (fs.existsSync(currentVideoPath)) {
+      fileBuffer = fs.readFileSync(currentVideoPath);
     }
   } catch (err: any) {
     console.warn(`⚠️ [InstagramReelService] Local file read skipped: ${err.message}`);

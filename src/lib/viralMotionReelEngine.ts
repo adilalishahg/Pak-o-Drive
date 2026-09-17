@@ -12,13 +12,105 @@ import {
 } from './reelCategoryLibrary';
 
 // Direct path to ffmpeg
-function getFfmpegPath(): string {
+export function getFfmpegPath(): string {
   try {
     const ffmpegInstaller = eval('require')('@ffmpeg-installer/ffmpeg');
-    return ffmpegInstaller.path || 'ffmpeg';
+    const origPath = ffmpegInstaller.path || 'ffmpeg';
+
+    if (process.platform === 'linux' && origPath && fs.existsSync(origPath)) {
+      const tmpFfmpeg = path.join(os.tmpdir(), 'ffmpeg');
+      try {
+        if (!fs.existsSync(tmpFfmpeg)) {
+          fs.copyFileSync(origPath, tmpFfmpeg);
+          fs.chmodSync(tmpFfmpeg, 0o755);
+        }
+        return tmpFfmpeg;
+      } catch (e) {
+        console.warn('⚠️ [ViralMotionReel] Could not prepare tmp ffmpeg:', e);
+      }
+    }
+    return origPath;
   } catch {
     return 'ffmpeg';
   }
+}
+
+/**
+ * Fallback standalone overlay burn helper using Sharp & FFmpeg
+ */
+export async function burnOverlayWithSharpAndFfmpeg(
+  sourceVideoPath: string,
+  quoteLines: string[],
+  durationSeconds: number = 7.5
+): Promise<string> {
+  const WIDTH = 720;
+  const HEIGHT = 1280;
+
+  const filteredLines = quoteLines.filter(l => l && l.trim().length > 0);
+  if (filteredLines.length === 0) return sourceVideoPath;
+
+  const totalTextHeight = filteredLines.length * 48;
+  const startY = Math.round((HEIGHT - totalTextHeight) / 2) + 20;
+
+  const lineElements = filteredLines
+    .map((line, idx) => {
+      const y = startY + idx * 48;
+      const clean = line.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      return `
+        <text x="360" y="${y}" 
+          font-family="'Inter', Arial, sans-serif" 
+          font-size="34" 
+          font-weight="700" 
+          fill="#FFFFFF" 
+          stroke="#000000" 
+          stroke-width="3.2" 
+          paint-order="stroke fill"
+          text-anchor="middle"
+          letter-spacing="-0.5">${clean}</text>
+      `;
+    })
+    .join('');
+
+  const overlaySvg = `
+    <svg width="${WIDTH}" height="${HEIGHT}" viewBox="0 0 ${WIDTH} ${HEIGHT}" xmlns="http://www.w3.org/2000/svg">
+      ${lineElements}
+    </svg>
+  `;
+
+  const tempDir = path.join(os.tmpdir(), 'viral_reels_temp');
+  if (!fs.existsSync(tempDir)) {
+    try { fs.mkdirSync(tempDir, { recursive: true }); } catch {}
+  }
+
+  const overlayPath = path.join(tempDir, `overlay_${Date.now()}.png`);
+  await sharp(Buffer.from(overlaySvg)).png().toFile(overlayPath);
+
+  const outputPath = path.join(tempDir, `burned_${Date.now()}.mp4`);
+  const ffmpegBin = getFfmpegPath();
+
+  const filterComplex = `
+    [0:v]scale=720:1280:force_original_aspect_ratio=increase,crop=720:1280,setsar=1[bg];
+    [bg][1:v]overlay=0:0[v]
+  `.replace(/\s+/g, ' ').trim();
+
+  const absSource = path.resolve(process.cwd(), sourceVideoPath);
+  const absOverlay = path.resolve(process.cwd(), overlayPath);
+  const absOutput = path.resolve(process.cwd(), outputPath);
+
+  const cmd = `"${ffmpegBin}" -y -i "${absSource}" -i "${absOverlay}" -filter_complex "${filterComplex}" -map "[v]" -map 0:a? -c:v libx264 -preset fast -crf 22 -pix_fmt yuv420p -t ${durationSeconds} "${absOutput}"`;
+
+  try {
+    execSync(cmd, { stdio: 'pipe' });
+  } catch (err: any) {
+    console.warn(`⚠️ [burnOverlayWithSharpAndFfmpeg] FFmpeg burn warning: ${err.message}`);
+  }
+
+  try { if (fs.existsSync(overlayPath)) fs.unlinkSync(overlayPath); } catch {}
+
+  if (fs.existsSync(absOutput) && fs.statSync(absOutput).size > 1000) {
+    return absOutput;
+  }
+  return sourceVideoPath;
 }
 
 export interface ViralAiReelPackage {
