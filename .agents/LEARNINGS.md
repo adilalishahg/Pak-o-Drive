@@ -6,6 +6,57 @@ This file serves as persistent dynamic memory across coding agent sessions. Ever
 
 ---
 
+### 2026-09-17 — Phase 3 Refactoring: Viral Ad & Trends Intelligence Lab Decomposition
+- **📌 Issue**:
+  `src/app/admin/trending-intelligence/page.tsx` was a massive 1,016-line monolithic page component containing over 470 lines of embedded `<style jsx>` styles, coupled inline trend card renderers, dynamic video production guide modals, and nested responsive layout logic.
+- **🔍 Root Cause**:
+  Fast iteration on competitor intelligence extraction, live Pakistani ad library deep-linking (Meta / TikTok / YouTube), and video blueprint generation clustered heavy presentational JSX and raw CSS into a single route view.
+- **🛠️ Verified Code Fix**:
+  1. **Scoped CSS Module**: Extracted all 470 lines of custom and responsive CSS into [`src/components/admin/trending/trends.module.css`](file:///d:/proj/Pak-o-Drive/src/components/admin/trending/trends.module.css), completely eliminating embedded `<style jsx>` bloat from the Next.js App Router tree.
+  2. **Modular Presentational Subcomponents**: Created modular components under [`src/components/admin/trending/`](file:///d:/proj/Pak-o-Drive/src/components/admin/trending/):
+     - `TrendsHeader.tsx`: Title, subtitle, AI live suite badge, limit dropdown, and action toolbar (Refresh AI, Excel CSV, Creative Brief MD, WhatsApp dispatch, LinkedIn carousel).
+     - `TrendsInsightBanner.tsx`: Market executive summary, algorithm pulse, and auto-dispatch status.
+     - `TrendsFilterBar.tsx`: Platform pills (All, TikTok, Meta, Instagram) and store scope pills (All, In Store, High-Demand Recs).
+     - `TrendCard.tsx`: Individual competitor viral card (badges, economics matrix, 0-3s hook box, strategy angle, keywords, live Pakistan ad links, and script actions).
+     - `TrendDetailModal.tsx`: Comprehensive video production guide, smartphone camera setup, scene-by-scene shot list table, and Roman Urdu voiceover script with copy.
+     - `index.ts`: Barrel export.
+  3. **Lean View Layer**: Reduced `src/app/admin/trending-intelligence/page.tsx` from 1,016 lines to 103 lines (a 90% line reduction, -913 lines), strictly adhering to Rule #8 (Zero Logic in UI views).
+  4. **Verification**: Ran `pnpm tsc --noEmit` passing with 0 errors and updated context graph via `graft build`.
+
+---
+
+### 2026-09-17 — Phase 2 Refactoring: Admin Blogs & Editorial Studio Hook & Subcomponents Decomposition
+- **📌 Issue**:
+  `src/app/admin/blogs/page.tsx` was an unwieldy 1,414-line monolithic client component containing mixed business logic, state variables, asynchronous mutations, image uploading, AI generation triggers, auto-blogger controls, and prohibited native browser dialogs (`window.alert()` and `window.confirm()`), violating Rule #7 and Rule #8.
+- **🔍 Root Cause**:
+  Rapid prototyping of blog management, autonomous auto-blogger triggers, and AI multi-model waterfall writers accreted all state, API handlers, modal dialogs, and large tabbed forms directly inside a single view component.
+- **🛠️ Verified Code Fix**:
+  1. **Custom Business Logic Hook**: Extracted all state, network calls, and actions into [`src/hooks/useAdminBlogs.ts`](file:///d:/proj/Pak-o-Drive/src/hooks/useAdminBlogs.ts) (400 lines). Replaced all `window.alert()` with non-blocking toast notifications. Replaced all `window.confirm()` with dedicated state-driven confirmation dialogs.
+  2. **Modular Presentational Subcomponents**: Created modular components under [`src/components/admin/blogs/`](file:///d:/proj/Pak-o-Drive/src/components/admin/blogs/):
+     - `BlogKpiStats.tsx`: KPI metrics bar (Total, Published, Drafts, Monetized).
+     - `BlogSearchBar.tsx`: Search query, category filter, publication status, and refresh.
+     - `BlogTable.tsx`: Full responsive data table with status toggles and action buttons.
+     - `BlogAiModal.tsx`: Multi-model waterfall AI Blog generation modal with trending quick-picks.
+     - `BlogEditorDrawer.tsx`: Full-screen 4-tab editor drawer (Content/Markdown Live Preview, FAQs schema editor, Product selector, SEO SERP preview).
+     - `BlogConfirmDialogs.tsx`: Non-native dialog primitives for article deletion and autonomous auto-blogger execution.
+  3. **Lean View Layer**: Reduced `src/app/admin/blogs/page.tsx` from 1,414 lines to 214 lines (an 85% line reduction), strictly adhering to Rule #7 (Zero Native Dialogs) and Rule #8 (Zero Logic in UI views).
+  4. **Verification**: Ran `pnpm tsc --noEmit` passing with 0 errors and re-indexed context graph via `graft build`.
+
+---
+
+### 2026-09-17 — Phase 1 Refactoring: Editorial Hub DRY Unification (`auto/[slug]` & `blog/[slug]`)
+- **📌 Issue**:
+  `src/app/auto/[slug]/page.tsx` (769 lines) and `src/app/blog/[slug]/page.tsx` (760 lines) contained over 1,500 lines of 90% duplicated JSX, layout headers, AdSense slots, markdown renderers, and sidebar structures.
+- **🔍 Root Cause**:
+  Historical separation of automotive editorial guides (`/auto`) and general technology/journal articles (`/blog`) created parallel copy-pasted implementations rather than leveraging a parameterized presentational template.
+- **🛠️ Verified Code Fix**:
+  1. **Unified Presentational Component**: Created [`src/components/blog/BlogPostTemplate.tsx`](file:///d:/proj/Pak-o-Drive/src/components/blog/BlogPostTemplate.tsx) (657 lines) handling all shared layout sections (hero header, table of contents, takeaways callout, prose markdown, author bio, AdSense slots, WhatsApp consultation, related posts rail, newsletter, and store COD card).
+  2. **Lean Route Wrappers**: Refactored both `src/app/auto/[slug]/page.tsx` and `src/app/blog/[slug]/page.tsx` down to 127 lines each. They now serve as lightweight server component data-fetchers that pass strongly-typed props to `BlogPostTemplate`.
+  3. **Zero Duplication & Token Savings**: Net reduction of 618 redundant lines of code (-35.4 KB bundle payload) while strictly adhering to Rule #8 (Zero logic in UI views).
+  4. **Verification**: `pnpm tsc --noEmit` passed with 0 errors and `graft build` updated.
+
+---
+
 ### 2026-09-17 — Navigation Scroll Position: Bottom/Footer View Flash & Instant Scroll-To-Top Resolution
 - **📌 Issue**:
   When users clicked any product card or link from shop/category pages to open a product details page, the new page initially flashed the bottom/footer view at the previous scroll offset before jumping to the top of the page.
