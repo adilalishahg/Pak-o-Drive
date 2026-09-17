@@ -22,8 +22,8 @@ export function useProductCard({ product }: UseProductCardProps) {
   const [imgSrc, setImgSrc] = useState(product.image || '/img/product-placeholder.png');
 
   const formattedId = useMemo(() => {
-    return product._id ? product._id.toString() : '';
-  }, [product._id]);
+    return product.slug || (product._id ? product._id.toString() : '');
+  }, [product.slug, product._id]);
 
   const isCleanWhite = theme.layoutTheme === 'theme1';
   const isModernGreen = theme.layoutTheme === 'modern-green';
@@ -53,7 +53,7 @@ export function useProductCard({ product }: UseProductCardProps) {
   const handleQuickBuy = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
     addToCart(product, 1);
-    router.push('/checkout');
+    router.push('/checkout', { scroll: true });
   }, [addToCart, product, router]);
 
   const handleMouseEnter = useCallback(() => {
@@ -69,7 +69,7 @@ export function useProductCard({ product }: UseProductCardProps) {
 
   const handleCardClick = useCallback(() => {
     if (formattedId) {
-      router.push(`/product/${formattedId}`);
+      router.push(`/product/${formattedId}`, { scroll: true });
     }
   }, [formattedId, router]);
 

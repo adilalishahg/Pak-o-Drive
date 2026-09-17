@@ -190,7 +190,8 @@ export const FrequentlyBoughtTogether: React.FC<FrequentlyBoughtTogetherProps> =
                 </div>
                 <div style={{ minWidth: 0 }}>
                   <Link
-                    href={`/product/${companionProduct._id}`}
+                    href={`/product/${companionProduct.slug || companionProduct._id}`}
+                    scroll={true}
                     className="text-truncate fw-bold text-dark d-block text-decoration-none"
                     style={{ fontSize: '0.78rem', lineHeight: 1.3 }}
                     title={companionProduct.name}

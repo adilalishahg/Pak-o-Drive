@@ -67,6 +67,7 @@ export const ProductCardCleanWhite: React.FC<ProductCardCleanWhiteProps> = ({
       <Link
         href={`/product/${formattedId}`}
         prefetch={true}
+        scroll={true}
         className="aspect-square w-full bg-slate-50 rounded-lg sm:rounded-xl overflow-hidden mb-2 sm:mb-4 flex items-center justify-center p-1.5 sm:p-2 relative text-decoration-none block group/img"
         onClick={(e) => e.stopPropagation()}
       >
@@ -119,6 +120,7 @@ export const ProductCardCleanWhite: React.FC<ProductCardCleanWhiteProps> = ({
           <Link
             href={`/product/${formattedId}`}
             prefetch={true}
+            scroll={true}
             className="text-decoration-none block"
             onClick={(e) => e.stopPropagation()}
           >

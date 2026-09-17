@@ -15,6 +15,7 @@ import {
   RelatedProductsSection,
   RelatedProductsSkeleton,
 } from '@/components/product/RelatedProductsSection';
+import { ScrollToTopOnMount } from '@/components/common/ScrollToTopOnMount';
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -54,6 +55,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
 
   return (
     <>
+      <ScrollToTopOnMount />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchema) }}

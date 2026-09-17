@@ -66,7 +66,7 @@ export default function CartPage() {
         <div style={{ background: '#fff', borderRadius: '12px', overflow: 'hidden', marginBottom: '12px' }}>
           {cart.map((item, idx) => {
             const prod = item.product;
-            const id = prod._id ? prod._id.toString() : '';
+            const id = (prod as any).slug || (prod._id ? prod._id.toString() : '');
             const variantId = item.variant?._id;
             const itemPrice = item.variant ? item.variant.price : prod.price;
             const itemImage = item.variant?.image || prod.image || '/img/product-placeholder.png';
@@ -79,7 +79,7 @@ export default function CartPage() {
                 alignItems: 'flex-start',
               }}>
                 {/* Image */}
-                <Link href={`/product/${id}`} style={{ flexShrink: 0, display: 'block' }}>
+                <Link href={`/product/${id}`} scroll={true} style={{ flexShrink: 0, display: 'block' }}>
                   <div style={{ width: '80px', height: '80px', borderRadius: '8px', background: '#f5f5f5', position: 'relative', overflow: 'hidden' }}>
                     <OptimizedImage src={itemImage} alt={prod.name} fill
                       sizes="80px" style={{ objectFit: 'contain', padding: '4px' }}
@@ -90,7 +90,7 @@ export default function CartPage() {
 
                 {/* Details */}
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <Link href={`/product/${id}`} style={{ textDecoration: 'none' }}>
+                  <Link href={`/product/${id}`} scroll={true} style={{ textDecoration: 'none' }}>
                     <p style={{ margin: '0 0 4px', fontWeight: 700, fontSize: '0.85rem', color: '#111',
                       overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {prod.name}

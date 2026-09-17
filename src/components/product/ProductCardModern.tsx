@@ -63,6 +63,7 @@ export const ProductCardModern: React.FC<ProductCardModernProps> = ({
       <Link
         href={`/product/${formattedId}`}
         prefetch={true}
+        scroll={true}
         className="product-card-image-wrapper"
         onClick={(e) => e.stopPropagation()}
         style={{
@@ -210,6 +211,7 @@ export const ProductCardModern: React.FC<ProductCardModernProps> = ({
         <Link
           href={`/product/${formattedId}`}
           prefetch={true}
+          scroll={true}
           className="text-decoration-none block"
           onClick={(e) => e.stopPropagation()}
         >

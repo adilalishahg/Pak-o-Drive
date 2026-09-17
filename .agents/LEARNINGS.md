@@ -6,7 +6,22 @@ This file serves as persistent dynamic memory across coding agent sessions. Ever
 
 ---
 
-### 2026-09-16 — Hybrid Cloud Video Synthesis Engine (Cloudinary Overlay API + GitHub Actions FFmpeg Runner)
+### 2026-09-17 — Navigation Scroll Position: Bottom/Footer View Flash & Instant Scroll-To-Top Resolution
+- **📌 Issue**:
+  When users clicked any product card or link from shop/category pages to open a product details page, the new page initially flashed the bottom/footer view at the previous scroll offset before jumping to the top of the page.
+- **🔍 Root Cause**:
+  1. `SmoothScrollProvider.tsx` relied on an asynchronous `useEffect([pathname])` to call `lenis.scrollTo(0, { immediate: true })`. In React 19 / Next.js 16, `useEffect` executes AFTER the browser has already painted the initial frame to the screen. If the user was scrolled 1,500px down, the browser painted the product page (or its `loading.tsx` skeleton) at y=1,500px (directly on the footer) before the effect could fire.
+  2. `useProductCard.ts` formatted product links using `product._id` rather than `product.slug`. This triggered an internal 308 permanent redirect on `/product/[id]/page.tsx`, causing a double client-side navigation transition that disrupted App Router scroll management.
+  3. Native browser `history.scrollRestoration` defaulted to `'auto'`, retaining previous window scroll coordinates across route transitions.
+- **🛠️ Verified Code Fix**:
+  1. **Synchronous Layout Effect Scroll Reset**: Upgraded `SmoothScrollProvider.tsx` to execute `window.scrollTo({ top: 0, left: 0, behavior: 'instant' })`, `document.documentElement.scrollTop = 0`, and `lenis.scrollTo(0, { immediate: true, force: true })` inside `useIsomorphicLayoutEffect([pathname])` synchronously before browser paint, backed by dual RAF fallback frames.
+  2. **Internal Link Click Momentum Halt**: Added capture-phase click interception for internal route links to halt Lenis smooth scroll momentum immediately on tap.
+  3. **Zero-Redirect Canonical Slug Links**: Updated `useProductCard.ts` to prioritize `product.slug || product._id`, eliminating server-side 308 redirects on product card clicks.
+  4. **Head-Level Manual Scroll Restoration**: Injected `history.scrollRestoration = 'manual'` inside `src/app/layout.tsx` `<head>` script and `SmoothScrollProvider.tsx` mount effect.
+  5. **Skeleton & Page Mount Guarantees**: Created `useScrollToTopOnMount` and `<ScrollToTopOnMount />`, mounting it in both `src/app/product/[id]/loading.tsx` and `src/app/product/[id]/page.tsx` with explicit `scroll={true}` on all product card `<Link>` components.
+  6. **Verification**: `pnpm tsc --noEmit` passed with 0 errors and `graft build` updated successfully.
+
+---
 - **📌 Issue**:
   User required brand-new synthesized vertical video generation with dynamic on-screen text overlays on every single run, bypassing Vercel serverless FFmpeg binary limitations.
 - **🔍 Root Cause**:

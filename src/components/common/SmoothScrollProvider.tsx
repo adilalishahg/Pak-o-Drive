@@ -174,22 +174,74 @@ export function SmoothScrollProvider({ children }: { children: React.ReactNode }
 
     observer.observe(document.body, { attributes: true, attributeFilter: ['style', 'class'] });
 
+    // Intercept clicks on links that navigate to a different route to halt lingering scroll momentum
+    let momentumHaltTimer: NodeJS.Timeout | null = null;
+    const handleInternalLinkClick = (event: MouseEvent) => {
+      const target = event.target as HTMLElement | null;
+      const anchor = target?.closest('a');
+      if (!anchor) return;
+
+      const href = anchor.getAttribute('href');
+      // If navigating to another internal page (not hash anchor or external)
+      if (href && href.startsWith('/') && !href.startsWith('/#') && href !== window.location.pathname) {
+        if (lenisRef.current) {
+          lenisRef.current.stop();
+          if (momentumHaltTimer) clearTimeout(momentumHaltTimer);
+          momentumHaltTimer = setTimeout(() => {
+            if (lenisRef.current) lenisRef.current.start();
+          }, 1000);
+        }
+      }
+    };
+
+    document.addEventListener('click', handleInternalLinkClick, { capture: true });
+
     return () => {
       cancelAnimationFrame(rafId);
       document.removeEventListener('click', handleAnchorClick);
+      if (momentumHaltTimer) clearTimeout(momentumHaltTimer);
+      document.removeEventListener('click', handleInternalLinkClick, { capture: true });
       observer.disconnect();
       lenis.destroy();
       lenisRef.current = null;
     };
   }, []);
 
-  // Smooth scroll to top on Next.js 16 route transition
+  // Force native browser history scroll restoration to manual to prevent bottom jumping
   useEffect(() => {
-    if (lenisRef.current) {
-      lenisRef.current.scrollTo(0, { immediate: true });
-    } else if (typeof window !== 'undefined') {
-      window.scrollTo(0, 0);
+    if (typeof window !== 'undefined' && 'scrollRestoration' in window.history) {
+      window.history.scrollRestoration = 'manual';
     }
+  }, []);
+
+  // Force instant scroll to top on Next.js 16 route transition synchronously before browser paint
+  const useIsomorphicLayoutEffect =
+    typeof window !== 'undefined' ? React.useLayoutEffect : React.useEffect;
+
+  useIsomorphicLayoutEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    // 1. Instant window & DOM reset before browser paints the frame
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+
+    if (lenisRef.current) {
+      lenisRef.current.start();
+      lenisRef.current.scrollTo(0, { immediate: true, force: true });
+    }
+
+    // 2. Secondary RAF guard to catch asynchronous layout shifts and Next.js App Router streaming
+    const rafId = requestAnimationFrame(() => {
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+      if (lenisRef.current) {
+        lenisRef.current.scrollTo(0, { immediate: true, force: true });
+      }
+    });
+
+    return () => cancelAnimationFrame(rafId);
   }, [pathname]);
 
   const scrollTo = useCallback((target: string | number | HTMLElement, options?: any) => {

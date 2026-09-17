@@ -276,6 +276,7 @@ export function HomeCampaignOfferBanner({
                     {/* Entire card is a clickable Link to the product */}
                     <Link
                       href={`/product/${prod.slug || prod.productId}`}
+                      scroll={true}
                       className="card h-100 border-0 rounded-3 overflow-hidden shadow-xs text-decoration-none transition-all p-2 position-relative d-flex flex-column"
                       style={{
                         background: '#ffffff',

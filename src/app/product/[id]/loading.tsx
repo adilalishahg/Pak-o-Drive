@@ -1,8 +1,10 @@
 import React from 'react';
+import { ScrollToTopOnMount } from '@/components/common/ScrollToTopOnMount';
 
 export default function ProductDetailLoading() {
   return (
     <div className="pd-detail-page bg-[#f4f4f4] min-h-screen">
+      <ScrollToTopOnMount />
       {/* Breadcrumb Skeleton */}
       <div className="bg-white border-b border-slate-100 py-2.5">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

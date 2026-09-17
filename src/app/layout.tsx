@@ -414,6 +414,12 @@ export default async function RootLayout({
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
         />
+        {/* Disable automatic browser scroll restoration to prevent bottom-of-page flashes on route change */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `if(typeof window!=='undefined'&&'scrollRestoration' in history){history.scrollRestoration='manual';}`,
+          }}
+        />
       </head>
       <body suppressHydrationWarning>
         <DynamicThemeProvider initialTheme={initialTheme}>

@@ -136,6 +136,7 @@ export const ProductCardList: React.FC<ProductCardListProps> = ({ product, prior
           <Link
             href={`/product/${formattedId}`}
             prefetch={true}
+            scroll={true}
             onClick={(e) => e.stopPropagation()}
             className="text-decoration-none block my-0.5"
           >

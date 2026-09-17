@@ -547,6 +547,7 @@ export const BundleDetailInteractive: React.FC<BundleDetailInteractiveProps> = (
                 {inspectItem.slug && (
                   <Link
                     href={`/product/${inspectItem.slug}`}
+                    scroll={true}
                     className="btn btn-outline-primary rounded-pill py-2 small fw-bold text-decoration-none"
                     style={{ fontSize: '0.84rem' }}
                     onClick={() => setInspectItem(null)}
