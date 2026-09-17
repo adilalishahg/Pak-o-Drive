@@ -4,6 +4,19 @@ This file serves as persistent dynamic memory across coding agent sessions. Ever
 
 > 📦 **Historical Archive Notice**: Detailed operational entries, early prototypes, and historical setup steps from August 2026 have been archived to [`LEARNINGS_ARCHIVE.md`](./LEARNINGS_ARCHIVE.md) to keep this active knowledge base lean, token-efficient, and aligned with current Pak-o-Drive architecture.
 
+### 2026-09-17 — Mobile Shop: List View Add-to-Cart Button Clipping & Layout Balancing
+- **📌 Issue**:
+  On mobile devices in list view (`ProductCardList.tsx`), the bottom "Add" button overflowed to the right and its right edge and text were clipped off by the outer card boundary (`SpotlightCard` `overflow: hidden`).
+- **🔍 Root Cause**:
+  1. The bottom action bar placed the price container (`Rs. 2,599` + `Rs. 2,947`) and the Add button side-by-side in `justify-between`. On narrow mobile screens (360px - 390px), where the right details column is only ~190-210px wide, the unstacked horizontal prices and the button exceeded available width.
+  2. The button had `flex-shrink-0` and `white-space: nowrap !important` (from `.btn-gradient`), causing the entire row to push past the right padding of `article` and get hard-clipped by `SpotlightCard`'s `overflow: hidden`.
+- **🛠️ Verified Code Fix**:
+  1. **Vertical Price Stack**: Refactored the price container in `ProductCardList.tsx` into a clean vertical stack (prominent current price on line 1, compact strikethrough original price on line 2), freeing over 50px of horizontal room.
+  2. **Safe Action Button Layout**: Rebalanced the Add button with `!rounded-xl`, `px-3 sm:px-4 py-1.5 sm:py-2`, and `pr-1 sm:pr-0` right safe margin, guaranteeing the button and its shadow stay completely within the visible card boundaries on all mobile viewports.
+  3. **Refined Image Proportion**: Adjusted mobile thumbnail wrapper to `w-[104px] h-[104px] sm:w-[128px] sm:h-[128px]` with `sizes="(max-width: 640px) 104px, 136px"` to give comfortable breathing room to the details column without sacrificing visual quality.
+
+---
+
 ### 2026-09-17 — Social Video Cron Engine: Instagram & TikTok Text Overlay Synthesis Fix
 - **📌 Issue**:
   Videos scheduled via Upstash cron jobs (`/api/cron/auto-instagram-reel` & `/api/cron/daily-master`) were posting to Instagram Reels and TikTok, but the viral mindset text overlay was completely missing (posting blank raw videos without any text).

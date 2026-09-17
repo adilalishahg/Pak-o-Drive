@@ -45,7 +45,7 @@ export const ProductCardList: React.FC<ProductCardListProps> = ({ product, prior
         <meta itemProp="name" content={product.name} />
 
         {/* ── Left Media Thumbnail (Rule 3: Dual-Layer Uncropped Media Presentation) ── */}
-        <div className="product-card-image-wrapper relative flex-shrink-0 w-[112px] h-[112px] sm:w-[132px] sm:h-[132px] rounded-xl overflow-hidden bg-slate-50 border border-slate-100 flex items-center justify-center">
+        <div className="product-card-image-wrapper relative flex-shrink-0 w-[104px] h-[104px] sm:w-[128px] sm:h-[128px] md:w-[136px] md:h-[136px] rounded-xl overflow-hidden bg-slate-50 border border-slate-100 flex items-center justify-center">
           {/* Layer 1: Ambient Blur Backdrop */}
           <div
             aria-hidden="true"
@@ -55,7 +55,7 @@ export const ProductCardList: React.FC<ProductCardListProps> = ({ product, prior
               src={displayImage || '/img/product-placeholder.png'}
               alt=""
               fill
-              sizes="(max-width: 640px) 112px, 132px"
+              sizes="(max-width: 640px) 104px, 136px"
               className="object-cover blur-xl opacity-35 scale-125 pointer-events-none"
               fallbackSrc="/img/product-placeholder.png"
             />
@@ -70,7 +70,7 @@ export const ProductCardList: React.FC<ProductCardListProps> = ({ product, prior
                 src={displayImage || '/img/product-placeholder.png'}
                 alt={product.name}
                 fill
-                sizes="(max-width: 640px) 112px, 132px"
+                sizes="(max-width: 640px) 104px, 136px"
                 className="object-contain p-1.5 sm:p-2 group-hover:scale-105 transition-transform duration-300"
                 priority={priority}
                 onError={handleImageError}
@@ -84,7 +84,7 @@ export const ProductCardList: React.FC<ProductCardListProps> = ({ product, prior
                   src={secondaryImg}
                   alt={`${product.name} alternate view`}
                   fill
-                  sizes="(max-width: 640px) 112px, 132px"
+                  sizes="(max-width: 640px) 104px, 136px"
                   className="object-contain p-1.5 sm:p-2"
                   fallbackSrc="/img/product-placeholder.png"
                 />
@@ -120,7 +120,7 @@ export const ProductCardList: React.FC<ProductCardListProps> = ({ product, prior
         </div>
 
         {/* ── Right Product Details ── */}
-        <div className="flex-1 min-w-0 flex flex-col justify-between py-0.5 self-stretch">
+        <div className="flex-1 min-w-0 flex flex-col justify-between py-0.5 self-stretch pr-1 sm:pr-0">
           {/* Top Badges Row */}
           <div className="flex items-center justify-between gap-1.5 mb-0.5">
             <span className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider truncate">
@@ -165,14 +165,16 @@ export const ProductCardList: React.FC<ProductCardListProps> = ({ product, prior
 
           {/* Bottom Pricing & Add-to-Cart Action Bar */}
           <div className="flex items-center justify-between gap-2 mt-auto pt-1">
-            {/* Price Container */}
-            <div className="flex items-baseline gap-1 flex-wrap min-w-0">
-              <span className="text-[10px] sm:text-xs font-bold text-slate-500">Rs.</span>
-              <span className="text-[13.5px] sm:text-base font-black text-orange-600 leading-normal">
-                {product.price.toLocaleString()}
-              </span>
+            {/* Price Container (Stacked on mobile to preserve layout integrity) */}
+            <div className="flex flex-col min-w-0 justify-center">
+              <div className="flex items-baseline gap-1 leading-normal py-0.5">
+                <span className="text-[10px] sm:text-xs font-bold text-slate-500">Rs.</span>
+                <span className="text-[14px] sm:text-base font-black text-orange-600 leading-normal">
+                  {product.price.toLocaleString()}
+                </span>
+              </div>
               {product.originalPrice > product.price && (
-                <del className="text-[9.5px] sm:text-xs text-slate-400 line-through leading-normal ml-0.5">
+                <del className="text-[9.5px] sm:text-xs text-slate-400 line-through leading-normal -mt-1">
                   Rs. {product.originalPrice.toLocaleString()}
                 </del>
               )}
@@ -183,10 +185,10 @@ export const ProductCardList: React.FC<ProductCardListProps> = ({ product, prior
               type="button"
               onClick={handleAddToCart}
               disabled={adding}
-              className="btn-gradient product-card-btn flex-shrink-0 flex items-center justify-center gap-1 px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-lg text-[10.5px] sm:text-xs font-bold shadow-sm hover:shadow-md transition-all active:scale-95 cursor-pointer border-0"
+              className="btn-gradient product-card-btn flex-shrink-0 flex items-center justify-center gap-1.5 px-3 sm:px-4 py-1.5 sm:py-2 !rounded-xl text-[11px] sm:text-xs font-bold shadow-sm hover:shadow-md transition-all active:scale-95 cursor-pointer border-0"
             >
               <i
-                className={`fas ${adding ? 'fa-check' : 'fa-shopping-cart'} text-[9.5px] sm:text-[11px]`}
+                className={`fas ${adding ? 'fa-check' : 'fa-shopping-cart'} text-[10px] sm:text-[11px]`}
               />
               <span className="hidden sm:inline">{adding ? 'Added!' : 'Add to Cart'}</span>
               <span className="sm:hidden">{adding ? 'Added!' : 'Add'}</span>
