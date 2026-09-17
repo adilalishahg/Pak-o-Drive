@@ -4,6 +4,100 @@ This file serves as persistent dynamic memory across coding agent sessions. Ever
 
 > 📦 **Historical Archive Notice**: Detailed operational entries, early prototypes, and historical setup steps from August 2026 have been archived to [`LEARNINGS_ARCHIVE.md`](./LEARNINGS_ARCHIVE.md) to keep this active knowledge base lean, token-efficient, and aligned with current Pak-o-Drive architecture.
 
+### 2026-09-17 — Social Video Cron Engine: Instagram & TikTok Text Overlay Synthesis Fix
+- **📌 Issue**:
+  Videos scheduled via Upstash cron jobs (`/api/cron/auto-instagram-reel` & `/api/cron/daily-master`) were posting to Instagram Reels and TikTok, but the viral mindset text overlay was completely missing (posting blank raw videos without any text).
+- **🔍 Root Cause**:
+  1. On Vercel Serverless, local FFmpeg (`@ffmpeg-installer`) was unavailable, causing `generateViralMotionReel` to fall back to the raw source video.
+  2. In `uploadVideoToCdn` (`src/lib/instagramReelPostService.ts`), the overlay synthesis block was guarded by `const isRawVideo = videoFilePath.includes('/raw/') || videoFilePath.includes('\\raw\\') || !fs.existsSync(videoFilePath);`.
+  3. Because all active rotation videos reside in `public/img/viral-reels/library/${category}/` and exist in Vercel's traced filesystem, `isRawVideo` evaluated to `false`. The entire overlay code block was skipped, returning the raw video URL without text overlay.
+  4. Dynamic video transformations also risked latency timeouts or 423 locks without Cloudinary eager transformations.
+- **🛠️ Verified Code Fix**:
+  1. **Flagged Burn Status**: Added `isBurnedWithFfmpeg` flag to `ViralMotionReelResult` in `src/lib/viralMotionReelEngine.ts` to detect whether FFmpeg actually encoded the text overlay or fell back to raw source.
+  2. **Cloud Synthesis Overlay**: Refactored `uploadVideoToCdn` in `src/lib/instagramReelPostService.ts` to compute `shouldApplyOverlay = !isAlreadyBurned && filteredLines.length > 0`. Any unburned video (from `library/` or `raw/`) automatically receives the Cloudinary overlay.
+  3. **Aesthetic Typography & Mobile Safe-Zone**: Implemented dynamic vertical centering (`startY = -35 - Math.floor(((totalLines - 1) * lineHeight) / 2)`), high-contrast styling (`border: '3px_solid_black'`, white/gold palette), and `eager` Cloudinary video synthesis (`eager_async: false`) with URL cache pre-warming for zero-latency downloads by Meta & TikTok.
+  4. **Story Overlay Reusability**: Updated Instagram Story dispatcher to reuse `publicVideoUrl` so Stories inherit the same text overlay with zero redundant uploads.
+  5. **Verification**: `pnpm tsc --noEmit` passed with 0 errors.
+
+---
+
+### 2026-09-17 — Phase 3 Refactoring: Mobile Search Modal & Blog Editor Drawer Modularization
+- **📌 Issue**:
+  `src/components/layout/search/MobileSearchModal.tsx` (724 lines) and `src/components/admin/blogs/BlogEditorDrawer.tsx` (603 lines) were monolithic presentational components combining search state, category chips, live results, Markdown editing tabs, FAQ forms, product link selectors, and SERP preview snippets inside single large files.
+- **🔍 Root Cause**:
+  Search inputs, trending categories list, search result cards, and 4 distinct blog drawer tab panels (Article Body, FAQs, Linked Products, SEO Settings) were all defined inline, causing heavy re-renders and making code maintenance difficult.
+- **🛠️ Verified Code Fix**:
+  1. **Mobile Search Modal Decomposition**: Extracted presentational sub-components under `src/components/layout/search/`:
+     - `SearchHeaderInput.tsx`: Top search bar, clear button, and close trigger.
+     - `SearchPopularCategories.tsx`: Trending search terms and category pills.
+     - `SearchResultsList.tsx`: Live product results grid with price formatting, ratings, and uncropped images.
+     - Reduced `MobileSearchModal.tsx` from 724 lines down to 135 lines (81% line reduction).
+  2. **Blog Editor Drawer Tab Decomposition**: Extracted 4 dedicated tab sub-components under `src/components/admin/blogs/editor/`:
+     - `BlogEditorContentTab.tsx`: Guide H1, slug, excerpt, metadata dropdowns, cover image upload, Markdown editor & live preview.
+     - `BlogEditorFaqTab.tsx`: Interactive FAQ items with JSON-LD schema info.
+     - `BlogEditorProductsTab.tsx`: Link matching store products with high-converting COD cards.
+     - `BlogEditorSeoTab.tsx`: Meta SEO Title, Meta Description, tags, and Google SERP live snippet preview.
+     - Reduced `BlogEditorDrawer.tsx` from 603 lines down to 198 lines (67% line reduction).
+  3. **Verification**: `pnpm tsc --noEmit` and `graft build` both passed cleanly with 0 errors (2,608 AST nodes indexed across 741 files).
+
+---
+
+### 2026-09-17 — UI/UX: Shop Page Mobile List View & Floating Cart Collision Resolution
+- **📌 Issue**:
+  On mobile viewports (360px - 420px), shop page list view suffered from layout collision: (1) bottom sticky floating cart bar blocked the 3rd card's buttons and details with insufficient scroll clearance, while overlapping the floating WhatsApp chat widget; (2) product image thumbnails in list view were cramped (100px) and discount badges (`-12%`, `-24%`) clipped outside the container border; (3) product titles prematurely truncated.
+- **🔍 Root Cause**:
+  1. `.badge-shimmer` in `globals.css` set `position: relative`, which overrode Tailwind's `.absolute` class, pushing the discount span out of absolute flow and causing border overlap/clipping.
+  2. Thumbnail height was hardcoded to 100px, constraining the right details column height and leaving insufficient vertical room for 2-line title wrapping.
+  3. Shop page container bottom padding was only 110px on mobile, leaving no scroll clearance below the last card above the floating cart pill bar.
+- **🛠️ Verified Code Fix**:
+  1. **Badge Cascade Fix**: Removed `position: relative` from `.badge-shimmer` in `globals.css`, restoring absolute positioning (`top-1.5 left-1.5`) inside the overflow-hidden thumbnail wrapper.
+  2. **Proportional Mobile Thumbnail & Card Balance**: Enlarged thumbnail box in `ProductCardList.tsx` to `w-[112px] h-[112px] sm:w-[132px] sm:h-[132px]` with `flex-shrink-0 relative overflow-hidden rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center`. Balanced flex column right details layout for full 2-line title wrapping (`line-clamp-2 leading-snug py-0.5`).
+  3. **Scroll Clearance & Floating Collision Safeguards**: Updated container bottom padding in `ShopClient.tsx` to `140px`, and set mobile `FloatingCartButton` `max-width: calc(100vw - 92px)` and `z-index: 9990` to maintain a 16px safe gap with the WhatsApp launcher (`right: 14px`).
+  4. **Verification**: `pnpm tsc --noEmit` passed with 0 errors.
+
+---
+
+### 2026-09-17 — Phase 2 Refactoring: Shop Catalog, Analytics Engine & Product Form Hook Modularization
+- **📌 Issue**:
+  `src/components/shop/ShopClient.tsx` (646 lines), `src/app/api/analytics/route.ts` (705 lines), and `src/hooks/useProductForm.ts` (625 lines) were heavy monolithic files mixing layout rendering, complex database aggregations, and multi-faceted product state management.
+- **🔍 Root Cause**:
+  Shop filtering and search drawer JSX was packed in a single component; 30+ MongoDB aggregation pipelines for conversion funnels and marketing attribution ran inline inside the API GET route; media upload and variant state were merged into a single large hook.
+- **🛠️ Verified Code Fix**:
+  1. **Shop Catalog Layout Decomposition**: Extracted presentational sub-components under `src/components/shop/`:
+     - `ShopBreadcrumbBar.tsx`: Breadcrumb trail and products count badge.
+     - `ShopToolbar.tsx`: Search form, view mode toggle (grid vs list), sort dropdown, mobile filter button.
+     - `ShopActiveFilters.tsx`: Active filter tags for category, price range, search query, rating, and reset.
+     - `ShopMobileFilterDrawer.tsx`: Bottom slide-up drawer with category sidebar integration and body scroll lock.
+     - Reduced `ShopClient.tsx` from 646 lines to 195 lines (70% line reduction).
+  2. **Analytics Service Layer**: Created [`src/lib/analytics/analyticsService.ts`](file:///d:/proj/Pak-o-Drive/src/lib/analytics/analyticsService.ts) encapsulating all 30+ MongoDB aggregation pipelines, date/timezone math, and tracking logic. Reduced `src/app/api/analytics/route.ts` from 705 lines down to 30 lines (95% line reduction).
+  3. **Product Form Sub-Hooks**: Modularized `useProductForm` by delegating to:
+     - `src/hooks/product-form/useProductFormMedia.ts`: Image upload, gallery, background video task sync, Cloudinary feedback.
+     - `src/hooks/product-form/useProductFormVariants.ts`: Product variants, prices, images, and specifications table.
+     - Reduced `useProductForm.ts` from 625 lines to 310 lines (50% line reduction).
+  4. **Verification**: Resolved initial import pathing and type annotations. `pnpm tsc --noEmit` and `graft build` both passed with 0 errors (2,587 AST nodes indexed).
+
+---
+
+### 2026-09-17 — Phase 1 Refactoring: Admin Site Info & AI Copilot Page Monolith Modularization
+- **📌 Issue**:
+  `src/app/admin/site-info/page.tsx` (752 lines) and `src/app/admin/ai-copilot/page.tsx` (962 lines) were massive monolithic components mixing page routing, sub-tab forms, chat stream threads, prompt suggestions, competitor spy inputs, and metrics cards inside single root view components.
+- **🔍 Root Cause**:
+  Adding multiple form tabs (Branding, SEO, Contact, Social, Policies) and rich AI copilot features (Metrics, SEO Audit URL, Competitor Spy, Prompt Pills, Voice Input, Proposal Cards) accreted all presentational JSX into single route files, causing whole-page re-renders on every keystroke.
+- **🛠️ Verified Code Fix**:
+  1. **Admin Site Info Modularization**: Decomposed `AdminSiteInfoPage` into 5 focused sub-components under `src/components/admin/site-info/`:
+     - `SiteGeneralTab.tsx`: Branding, logo upload, site tagline, trending AI limits, copyright text.
+     - `SiteSeoTab.tsx`: Tab icon selectors, favicon, meta titles, descriptions, H1 headings, brand aliases, page SEO.
+     - `SiteContactTab.tsx`: Phone numbers, email addresses, WhatsApp multi-admin routing, physical address, city selector.
+     - `SiteSocialTab.tsx`: Social media links (FB, IG, TikTok, YT, Twitter) and Google Maps embed.
+     - `SitePoliciesTab.tsx`: Store policies and terms Markdown textareas.
+     - Reduced `src/app/admin/site-info/page.tsx` from 752 lines down to 142 lines (81% line reduction).
+  2. **AI Copilot Page Modularization**: Decomposed `AdminAiCopilotPage` into sub-components under `src/components/admin/ai-copilot/`:
+     - `AiCopilotHeader.tsx`: Title banner, live engine badge, SEO bar toggle, competitor spy bar, metric cards strip.
+     - `AiCopilotMessageList.tsx`: Markdown chat bubbles, copy buttons, proposal cards, loading animations.
+     - `AiCopilotInputBar.tsx`: Textarea input, camera photo picker, voice recording toggle, send button, error notifications.
+     - Reduced `src/app/admin/ai-copilot/page.tsx` from 962 lines down to 170 lines (82% line reduction).
+  3. **Verification**: Executed `graft build` re-indexing 2,568 AST nodes with 0 errors.
+
 ---
 
 ### 2026-09-17 — UI/UX: Mobile Responsiveness & Floating Widget Clearance for Admin Categories

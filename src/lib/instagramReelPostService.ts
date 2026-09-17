@@ -61,7 +61,8 @@ Follow @digitalinspirer & @pakodrive.official for daily drive & automotive luxur
  */
 export async function uploadVideoToCdn(
   videoFilePath: string,
-  overlayQuoteLines?: string[]
+  overlayQuoteLines?: string[],
+  isAlreadyBurned: boolean = false
 ): Promise<string> {
   console.log(`📤 [InstagramReelService] Processing video for CDN: ${videoFilePath}...`);
 
@@ -119,54 +120,93 @@ export async function uploadVideoToCdn(
 
       const targetSource = fs.existsSync(videoFilePath) ? videoFilePath : publicFallbackUrl;
 
-      const uploadRes = await cloudinary.uploader.upload(targetSource, {
+      // Check if video requires dynamic text overlay (e.g. raw video from library/raw without FFmpeg burn)
+      const filteredLines = overlayQuoteLines
+        ? overlayQuoteLines.filter((l) => l && l.trim().length > 0)
+        : [];
+      const shouldApplyOverlay = !isAlreadyBurned && filteredLines.length > 0;
+
+      let transformations: any[] | undefined = undefined;
+
+      if (shouldApplyOverlay) {
+        transformations = [
+          { width: 1080, height: 1920, crop: 'fill', gravity: 'center' },
+        ];
+
+        const totalLines = filteredLines.length;
+        const lineHeight = 68;
+        // Position slightly above center to clear TikTok/Reels captions and bottom UI safe area
+        const startY = -35 - Math.floor(((totalLines - 1) * lineHeight) / 2);
+        const colors = ['#FFFFFF', '#FACC15', '#FFFFFF', '#00E5FF'];
+
+        filteredLines.forEach((line, idx) => {
+          const cleanText = line.trim().replace(/\s+/g, ' ');
+          transformations!.push({
+            overlay: {
+              font_family: 'Arial',
+              font_size: idx === 0 || idx === 1 ? 42 : 34,
+              font_weight: 'bold',
+              text: cleanText,
+            },
+            color: colors[idx % colors.length],
+            border: '3px_solid_black',
+            gravity: 'center',
+            y: startY + idx * lineHeight,
+          });
+        });
+      }
+
+      console.log(
+        `☁️ [InstagramReelService] Uploading video to Cloudinary (overlay active: ${Boolean(transformations && transformations.length > 1)})...`
+      );
+
+      const uploadOptions: Record<string, any> = {
         resource_type: 'video',
         folder: 'instagram_reels',
-      });
+      };
+
+      if (transformations && transformations.length > 1) {
+        uploadOptions.eager = [
+          {
+            transformation: transformations,
+            format: 'mp4',
+          },
+        ];
+        uploadOptions.eager_async = false;
+      }
+
+      const uploadRes = await cloudinary.uploader.upload(targetSource, uploadOptions);
 
       if (uploadRes?.public_id) {
         console.log(`✓ [InstagramReelService] Raw video hosted on Cloudinary: ${uploadRes.public_id}`);
 
-        const isRawVideo = videoFilePath.includes('/raw/') || videoFilePath.includes('\\raw\\') || !fs.existsSync(videoFilePath);
+        // 1. If eager transformation succeeded, return pre-baked overlaid MP4
+        if (uploadRes.eager && uploadRes.eager[0] && uploadRes.eager[0].secure_url) {
+          console.log(`✨ [InstagramReelService] Cloudinary Eager Overlay Video ready: ${uploadRes.eager[0].secure_url}`);
+          return uploadRes.eager[0].secure_url;
+        }
 
-        if (isRawVideo && overlayQuoteLines && overlayQuoteLines.length > 0) {
-          const filteredLines = overlayQuoteLines.filter((l) => l && l.trim().length > 0);
+        // 2. If eager wasn't returned, generate dynamic transformed URL
+        if (transformations && transformations.length > 1) {
+          const publicIdWithExt = uploadRes.public_id.endsWith('.mp4')
+            ? uploadRes.public_id
+            : `${uploadRes.public_id}.mp4`;
 
-          if (filteredLines.length > 0) {
-            const transformations: any[] = [
-              { width: 1080, height: 1920, crop: 'fill', gravity: 'center' },
-            ];
+          const transformedUrl = cloudinary.url(publicIdWithExt, {
+            resource_type: 'video',
+            transformation: transformations,
+            secure: true,
+          });
 
-            const colors = ['#FFFFFF', '#FACC15', '#FFFFFF', '#00E5FF'];
-            const yPositions = [-90, -20, 50, 110];
+          console.log(`✨ [InstagramReelService] Dynamic Cloud Overlay Video URL generated: ${transformedUrl}`);
 
-            filteredLines.forEach((line, idx) => {
-              transformations.push({
-                overlay: {
-                  font_family: 'Arial',
-                  font_size: idx === 0 || idx === 1 ? 40 : 30,
-                  font_weight: 'bold',
-                  text: line.trim(),
-                },
-                color: colors[idx % colors.length],
-                gravity: 'center',
-                y: yPositions[idx] || idx * 60 - 60,
-              });
-            });
+          // Warm up Cloudinary cache before passing to Meta/TikTok
+          try {
+            const warmup = await fetch(transformedUrl, { method: 'HEAD' });
+            console.log(`📡 [InstagramReelService] Cloudinary warm-up status: ${warmup.status}`);
+          } catch {}
 
-            const publicIdWithExt = uploadRes.public_id.endsWith('.mp4')
-              ? uploadRes.public_id
-              : `${uploadRes.public_id}.mp4`;
-
-            const transformedUrl = cloudinary.url(publicIdWithExt, {
-              resource_type: 'video',
-              transformation: transformations,
-              secure: true,
-            });
-
-            console.log(`✨ [InstagramReelService] Dynamic Cloud Overlay Video URL generated: ${transformedUrl}`);
-            return transformedUrl;
-          }
+          return transformedUrl;
         }
 
         return uploadRes.secure_url;
@@ -271,6 +311,8 @@ export async function executeAutoInstagramReelPost(options?: {
 
   let reelQuoteLines: string[] | undefined = undefined;
 
+  let isBurnedWithFfmpeg = false;
+
   if (reelType === 'viral-motion') {
     console.log('🎬 [InstagramReelService] Step 1: Generating real-motion viral video with embedded TrueType...');
     const motionResult = await generateViralMotionReel({
@@ -283,6 +325,7 @@ export async function executeAutoInstagramReelPost(options?: {
     toolName = motionResult.title;
     reelQuoteLines = motionResult.quoteLines;
     caption = motionResult.caption || (await generateViralUkCaption(toolName));
+    isBurnedWithFfmpeg = motionResult.isBurnedWithFfmpeg ?? false;
   } else {
     console.log('🎬 [InstagramReelService] Step 1: Generating cinematic AI video...');
     const videoResult = await generateCinematicVideo({
@@ -297,13 +340,14 @@ export async function executeAutoInstagramReelPost(options?: {
     videoDuration = videoResult.videoDurationSeconds;
     toolName = videoResult.toolName;
     caption = await generateReelCaption(toolName, 'Next-Gen Developer Superpower', 'Developer Tools');
+    isBurnedWithFfmpeg = true;
   }
 
   console.log(`✓ [InstagramReelService] Video ready for "${toolName}" (${videoDuration.toFixed(1)}s)`);
 
   // Step 2: Upload Video to Public CDN (with Cloudinary Cloud Synthesis Overlay support)
   console.log('☁️ [InstagramReelService] Step 2: Uploading video to CDN for social ingestion...');
-  const publicVideoUrl = await uploadVideoToCdn(videoPath, reelQuoteLines);
+  const publicVideoUrl = await uploadVideoToCdn(videoPath, reelQuoteLines, isBurnedWithFfmpeg);
 
   // Check UK Peak Hour status
   const ukTimeInfo = getUkTimeInfo();
@@ -439,7 +483,7 @@ export async function executeAutoInstagramReelPost(options?: {
       // Auto Share to Instagram Story
       if (options?.shareToStory !== false) {
         try {
-          const storyRes = await publishInstagramStory(videoPath);
+          const storyRes = await publishInstagramStory(publicVideoUrl);
           if (storyRes.success) {
             storyId = storyRes.storyId;
           }

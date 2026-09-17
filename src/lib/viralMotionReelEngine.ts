@@ -48,6 +48,7 @@ export interface ViralMotionReelResult {
   caption?: string;
   hashtags?: string[];
   category: ReelCategory;
+  isBurnedWithFfmpeg?: boolean;
 }
 
 /**
@@ -292,11 +293,19 @@ export async function generateViralMotionReel(options?: ViralMotionReelOptions):
   const cmd = `"${ffmpegBin}" -y -stream_loop -1 -i "${absSource}" -i "${absOverlay}" -i "${absAudio}" -filter_complex "${filterComplex}" -map "[v]" -map 2:a -c:v libx264 -preset fast -crf 22 -pix_fmt yuv420p -c:a aac -b:a 192k -t ${duration} "${absOutput}"`;
 
   let finalVideoPath = absOutput;
+  let isBurnedWithFfmpeg = false;
   try {
     execSync(cmd, { stdio: 'pipe' });
+    if (fs.existsSync(absOutput) && fs.statSync(absOutput).size > 1000) {
+      isBurnedWithFfmpeg = true;
+      console.log(`✓ [ViralMotionReel] Video rendered successfully with FFmpeg overlay: ${absOutput}`);
+    } else {
+      finalVideoPath = absSource;
+    }
   } catch (renderErr: any) {
-    console.warn(`⚠️ [ViralMotionReel] Serverless FFmpeg unavailable (${renderErr.message}). Using raw 9:16 video source directly: ${absSource}`);
+    console.warn(`⚠️ [ViralMotionReel] Serverless FFmpeg unavailable (${renderErr.message}). Using raw 9:16 video source with Cloudinary synthesis fallback: ${absSource}`);
     finalVideoPath = absSource;
+    isBurnedWithFfmpeg = false;
   }
 
   // Clean up temporary overlay
@@ -313,5 +322,6 @@ export async function generateViralMotionReel(options?: ViralMotionReelOptions):
     caption,
     hashtags,
     category,
+    isBurnedWithFfmpeg,
   };
 }

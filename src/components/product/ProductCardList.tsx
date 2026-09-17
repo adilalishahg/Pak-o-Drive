@@ -45,7 +45,7 @@ export const ProductCardList: React.FC<ProductCardListProps> = ({ product, prior
         <meta itemProp="name" content={product.name} />
 
         {/* ── Left Media Thumbnail (Rule 3: Dual-Layer Uncropped Media Presentation) ── */}
-        <div className="product-card-image-wrapper relative flex-shrink-0 w-[100px] h-[100px] sm:w-[124px] sm:h-[124px] rounded-xl overflow-hidden bg-slate-50 border border-slate-100 flex items-center justify-center">
+        <div className="product-card-image-wrapper relative flex-shrink-0 w-[112px] h-[112px] sm:w-[132px] sm:h-[132px] rounded-xl overflow-hidden bg-slate-50 border border-slate-100 flex items-center justify-center">
           {/* Layer 1: Ambient Blur Backdrop */}
           <div
             aria-hidden="true"
@@ -55,7 +55,7 @@ export const ProductCardList: React.FC<ProductCardListProps> = ({ product, prior
               src={displayImage || '/img/product-placeholder.png'}
               alt=""
               fill
-              sizes="(max-width: 640px) 100px, 124px"
+              sizes="(max-width: 640px) 112px, 132px"
               className="object-cover blur-xl opacity-35 scale-125 pointer-events-none"
               fallbackSrc="/img/product-placeholder.png"
             />
@@ -70,7 +70,7 @@ export const ProductCardList: React.FC<ProductCardListProps> = ({ product, prior
                 src={displayImage || '/img/product-placeholder.png'}
                 alt={product.name}
                 fill
-                sizes="(max-width: 640px) 100px, 124px"
+                sizes="(max-width: 640px) 112px, 132px"
                 className="object-contain p-1.5 sm:p-2 group-hover:scale-105 transition-transform duration-300"
                 priority={priority}
                 onError={handleImageError}
@@ -84,7 +84,7 @@ export const ProductCardList: React.FC<ProductCardListProps> = ({ product, prior
                   src={secondaryImg}
                   alt={`${product.name} alternate view`}
                   fill
-                  sizes="(max-width: 640px) 100px, 124px"
+                  sizes="(max-width: 640px) 112px, 132px"
                   className="object-contain p-1.5 sm:p-2"
                   fallbackSrc="/img/product-placeholder.png"
                 />
@@ -122,11 +122,11 @@ export const ProductCardList: React.FC<ProductCardListProps> = ({ product, prior
         {/* ── Right Product Details ── */}
         <div className="flex-1 min-w-0 flex flex-col justify-between py-0.5 self-stretch">
           {/* Top Badges Row */}
-          <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center justify-between gap-1.5 mb-0.5">
             <span className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider truncate">
               {product.category || 'Automotive'}
             </span>
-            <span className="inline-flex items-center gap-1 text-[9px] sm:text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-full flex-shrink-0 leading-normal">
+            <span className="inline-flex items-center gap-1 text-[9px] sm:text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-1.5 sm:px-2 py-0.5 rounded-full flex-shrink-0 leading-normal">
               <i className="fas fa-truck-moving text-[8px]" />
               <span>COD Available</span>
             </span>
@@ -138,9 +138,9 @@ export const ProductCardList: React.FC<ProductCardListProps> = ({ product, prior
             prefetch={true}
             scroll={true}
             onClick={(e) => e.stopPropagation()}
-            className="text-decoration-none block my-0.5"
+            className="text-decoration-none block my-0.5 min-w-0"
           >
-            <h3 className="text-[13px] sm:text-[15px] font-bold text-slate-800 line-clamp-2 leading-normal py-0.5 group-hover:text-orange-600 transition-colors m-0">
+            <h3 className="text-[12.5px] sm:text-[14.5px] font-bold text-slate-800 line-clamp-2 leading-snug py-0.5 group-hover:text-orange-600 transition-colors m-0">
               {product.name}
             </h3>
           </Link>
@@ -166,13 +166,13 @@ export const ProductCardList: React.FC<ProductCardListProps> = ({ product, prior
           {/* Bottom Pricing & Add-to-Cart Action Bar */}
           <div className="flex items-center justify-between gap-2 mt-auto pt-1">
             {/* Price Container */}
-            <div className="flex items-baseline gap-1.5 flex-wrap">
-              <span className="text-[11px] sm:text-xs font-bold text-slate-500">Rs.</span>
-              <span className="text-sm sm:text-base font-black text-orange-600 leading-normal">
+            <div className="flex items-baseline gap-1 flex-wrap min-w-0">
+              <span className="text-[10px] sm:text-xs font-bold text-slate-500">Rs.</span>
+              <span className="text-[13.5px] sm:text-base font-black text-orange-600 leading-normal">
                 {product.price.toLocaleString()}
               </span>
               {product.originalPrice > product.price && (
-                <del className="text-[10px] sm:text-xs text-slate-400 line-through leading-normal ml-0.5">
+                <del className="text-[9.5px] sm:text-xs text-slate-400 line-through leading-normal ml-0.5">
                   Rs. {product.originalPrice.toLocaleString()}
                 </del>
               )}
@@ -183,10 +183,10 @@ export const ProductCardList: React.FC<ProductCardListProps> = ({ product, prior
               type="button"
               onClick={handleAddToCart}
               disabled={adding}
-              className="btn-gradient product-card-btn flex-shrink-0 flex items-center justify-center gap-1.5 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-[11px] sm:text-xs font-bold shadow-sm hover:shadow-md transition-all active:scale-95 cursor-pointer border-0"
+              className="btn-gradient product-card-btn flex-shrink-0 flex items-center justify-center gap-1 px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-lg text-[10.5px] sm:text-xs font-bold shadow-sm hover:shadow-md transition-all active:scale-95 cursor-pointer border-0"
             >
               <i
-                className={`fas ${adding ? 'fa-check' : 'fa-shopping-cart'} text-[10px] sm:text-[11px]`}
+                className={`fas ${adding ? 'fa-check' : 'fa-shopping-cart'} text-[9.5px] sm:text-[11px]`}
               />
               <span className="hidden sm:inline">{adding ? 'Added!' : 'Add to Cart'}</span>
               <span className="sm:hidden">{adding ? 'Added!' : 'Add'}</span>

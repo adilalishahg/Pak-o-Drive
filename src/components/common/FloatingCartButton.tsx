@@ -88,9 +88,12 @@ export const FloatingCartButton: React.FC = () => {
         @media (max-width: 576px) {
           .floating-cart-btn-pill {
             bottom: 16px !important;
-            left: 16px !important;
-            minWidth: 190px !important;
-            padding: 10px 16px !important;
+            left: 12px !important;
+            min-width: 170px !important;
+            max-width: calc(100vw - 92px) !important;
+            padding: 9px 14px !important;
+            font-size: 0.8rem !important;
+            z-index: 9990 !important;
           }
         }
       `}</style>

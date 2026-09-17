@@ -418,6 +418,14 @@ export const StoreChatWidget: React.FC = () => {
       {/* Global CSS Responsive Styling */}
       <style>{`
         @media (max-width: 640px) {
+          .chat-widget-root {
+            right: 14px !important;
+            bottom: ${isProductPage ? '78px' : '16px'} !important;
+          }
+          .chat-launcher-btn {
+            width: 52px !important;
+            height: 52px !important;
+          }
           .chat-widget-root.is-open {
             position: fixed !important;
             top: 0 !important;
