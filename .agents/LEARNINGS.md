@@ -6,6 +6,19 @@ This file serves as persistent dynamic memory across coding agent sessions. Ever
 
 ---
 
+### 2026-09-17 — UI/UX: Mobile Responsiveness & Floating Widget Clearance for Admin Categories
+- **📌 Issue**:
+  On mobile devices (`< 768px`), `/admin/categories` suffered from severe table truncation (category names clipped into "Car Acceso...", "Car Poli & Fre..."), horizontal layout squishing (columns squeezed into narrow screens), and collision with the fixed bottom floating AI Copilot widget ("TWIN CITIES & STORE") which overlapped table rows and action buttons.
+- **🔍 Root Cause**:
+  The categories view rendered a rigid desktop `<table>` without a dedicated mobile card/list pattern, lacking natural text-wrapping and column minimum widths, while the container lacked adequate bottom clearance padding against the fixed floating action widget.
+- **🛠️ Verified Code Fix**:
+  1. **Mobile Card View Pattern**: Implemented a touch-friendly Card/List pattern for mobile screens (`d-block d-md-none`) featuring unclipped natural text wrapping (`text-break leading-normal py-0.5`), clear hierarchy depth styling (`border-start border-3 border-primary` + `LEVEL {depth}` / `MAIN` badges), parent category links, product count indicators, and comfortable >=40px touch targets for `+ Sub`, `Edit`, and `Delete` action buttons.
+  2. **Desktop Table Min-Width Safeguards**: Preserved regular table layout on desktop (`d-none d-md-block`) wrapped with `overflow-x-auto min-w-full` and explicit column min-widths (`min-w-[220px]` for category, `min-w-[140px]` for sticky actions) with empty-state handling.
+  3. **Floating Widget Clearance & Filter Tab Scrolling**: Added `pb-32 md:pb-12` clearance padding to prevent the floating AI Copilot widget from blocking content or buttons, optimized container padding (`p-3 p-sm-4`), responsive seed button copy, and smooth swipeable tab filters (`overflow-x-auto no-scrollbar flex-nowrap`).
+  4. **Verification**: Executed `pnpm tsc --noEmit` passing with 0 errors and re-indexed AST graph via `graft build`.
+
+---
+
 ### 2026-09-17 — Core Refactoring: Admin Action Engine Monolith Decomposition
 - **📌 Issue**:
   `src/lib/adminActionEngine.ts` was a massive 1,967-line monolithic file containing a single 1,600+ line `executeAdminAction()` function with 25 different operation handlers (Order status, COD risk analysis, product CRUD, bundle proposals, flash sales, blog generation, courier manifests, cron triggers).

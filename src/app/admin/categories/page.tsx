@@ -50,6 +50,8 @@ export default function AdminCategoriesPage() {
     handleAutoPickIcon,
   } = useAdminCategories();
 
+  const currentList = filterMode === 'all' ? flattenedHierarchy : displayedCategories;
+
   if (loading && categories.length === 0) {
     return (
       <div className="d-flex align-items-center justify-content-center p-5" style={{ minHeight: '400px' }}>
@@ -59,7 +61,7 @@ export default function AdminCategoriesPage() {
   }
 
   return (
-    <div className="fade-in">
+    <div className="fade-in pb-32 md:pb-12">
       {error && (
         <div className="alert alert-danger border-0 mb-4" role="alert">
           {error}
@@ -69,7 +71,7 @@ export default function AdminCategoriesPage() {
       <div className="row g-4">
         {/* Categories List */}
         <div className="col-12 col-lg-8">
-          <div className="card border-0 shadow-sm rounded-4 bg-white p-4">
+          <div className="card border-0 shadow-sm rounded-4 bg-white p-3 p-sm-4">
             <div className="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
               <div>
                 <h5 className="fw-bold text-secondary mb-1">Available Categories & Subcategories</h5>
@@ -85,30 +87,32 @@ export default function AdminCategoriesPage() {
                 disabled={seeding}
                 className="btn btn-sm btn-outline-success rounded-3 d-flex align-items-center gap-1.5 fw-semibold"
               >
-                <span>{seeding ? '🌱 Loading...' : '🌱 Load Default Multi-Niche Categories'}</span>
+                <span>{seeding ? '🌱 Loading...' : '🌱 '}</span>
+                <span className="d-none d-sm-inline">{!seeding && 'Load Default Multi-Niche Categories'}</span>
+                <span className="d-inline d-sm-none">{!seeding && 'Load Defaults'}</span>
               </button>
             </div>
 
             {/* Filter Tabs */}
-            <div className="d-flex gap-2 mb-3 border-bottom pb-2">
+            <div className="d-flex gap-2 mb-3 border-bottom pb-2 overflow-x-auto no-scrollbar flex-nowrap">
               <button
                 type="button"
                 onClick={() => setFilterMode('all')}
-                className={`btn btn-sm rounded-pill px-3 ${filterMode === 'all' ? 'btn-dark' : 'btn-light text-muted'}`}
+                className={`btn btn-sm rounded-pill px-3 text-nowrap ${filterMode === 'all' ? 'btn-dark' : 'btn-light text-muted'}`}
               >
                 All ({categories.length})
               </button>
               <button
                 type="button"
                 onClick={() => setFilterMode('roots')}
-                className={`btn btn-sm rounded-pill px-3 ${filterMode === 'roots' ? 'btn-primary' : 'btn-light text-muted'}`}
+                className={`btn btn-sm rounded-pill px-3 text-nowrap ${filterMode === 'roots' ? 'btn-primary' : 'btn-light text-muted'}`}
               >
                 Main Departments ({rootCategories.length})
               </button>
               <button
                 type="button"
                 onClick={() => setFilterMode('subs')}
-                className={`btn btn-sm rounded-pill px-3 ${filterMode === 'subs' ? 'btn-warning text-dark' : 'btn-light text-muted'}`}
+                className={`btn btn-sm rounded-pill px-3 text-nowrap ${filterMode === 'subs' ? 'btn-warning text-dark' : 'btn-light text-muted'}`}
               >
                 Subcategories ({subCategories.length})
               </button>
@@ -149,14 +153,152 @@ export default function AdminCategoriesPage() {
               </div>
             )}
 
-            <div className="table-responsive">
-              <table className="table table-hover align-middle mb-0">
+            {/* Mobile Card / List Item View (< 768px) */}
+            <div className="d-block d-md-none d-flex flex-column gap-3 mb-3">
+              {currentList.length === 0 ? (
+                <div className="text-center py-5 text-muted">
+                  <i className="fas fa-folder-open fs-2 mb-2 d-block opacity-50" />
+                  <p className="mb-0">No categories found in this view.</p>
+                </div>
+              ) : (
+                currentList.map((cat: any) => {
+                  const depth = cat.depth || 0;
+                  return (
+                    <div
+                      key={cat.id || cat._id || cat.slug}
+                      className={`card border rounded-3 p-3 shadow-xs position-relative ${
+                        depth > 0 ? 'border-start border-3 border-primary' : 'border-slate-200'
+                      }`}
+                      style={{
+                        marginLeft: depth > 0 ? `${Math.min(depth * 10, 28)}px` : '0px',
+                        backgroundColor: depth > 0 ? '#f8fafc' : '#ffffff',
+                      }}
+                    >
+                      {/* Top Row: Icon + Title & Badges */}
+                      <div className="d-flex align-items-start gap-2.5 mb-2">
+                        <div
+                          className="rounded bg-light d-flex align-items-center justify-content-center overflow-hidden border position-relative flex-shrink-0"
+                          style={{
+                            width: '42px',
+                            height: '42px',
+                            color: depth > 0 ? '#0284c7' : '#ea580c',
+                            fontSize: '18px',
+                          }}
+                        >
+                          {cat.image && !failedImages[cat.id] ? (
+                            <OptimizedImage
+                              src={cat.image}
+                              alt={cat.name}
+                              fill
+                              sizes="42px"
+                              style={{ objectFit: 'cover' }}
+                              onError={() => markImageFailed(cat.id)}
+                            />
+                          ) : (
+                            <i className={cat.icon || 'fas fa-tag'} />
+                          )}
+                        </div>
+
+                        <div className="flex-grow-1 min-w-0">
+                          {/* Badges */}
+                          <div className="d-flex flex-wrap align-items-center gap-1.5 mb-1">
+                            {depth > 0 ? (
+                              <>
+                                <span className="text-primary fw-bold" style={{ fontSize: '0.85rem' }}>
+                                  {'↳'.repeat(Math.min(depth, 3))}
+                                </span>
+                                <span
+                                  className="badge bg-info bg-opacity-10 text-primary border border-info border-opacity-25 rounded-pill px-2 py-0.5"
+                                  style={{ fontSize: '0.62rem' }}
+                                >
+                                  LEVEL {depth}
+                                </span>
+                              </>
+                            ) : (
+                              <span className="badge bg-dark text-white rounded-pill px-2 py-0.5" style={{ fontSize: '0.65rem' }}>
+                                MAIN
+                              </span>
+                            )}
+                            {cat.parentCategory && (
+                              <span className="small text-muted font-monospace text-break" style={{ fontSize: '0.72rem' }}>
+                                Parent: <strong className="text-primary">{cat.parentCategory}</strong>
+                              </span>
+                            )}
+                          </div>
+
+                          {/* Full wrap title without truncation */}
+                          <h6 className="fw-bold text-dark mb-1 text-break leading-normal py-0.5" style={{ fontSize: '0.98rem' }}>
+                            {cat.name}
+                          </h6>
+
+                          {/* Slug */}
+                          <code className="text-muted small font-monospace d-inline-block text-break" style={{ fontSize: '0.75rem' }}>
+                            /{cat.slug}
+                          </code>
+                        </div>
+                      </div>
+
+                      {/* Middle Details: Product Count */}
+                      <div className="d-flex align-items-center justify-content-between py-2 border-top border-bottom border-light-subtle my-2">
+                        <span className="text-muted small fw-medium">Assigned Products</span>
+                        <span
+                          className={`badge rounded-pill px-2.5 py-1 ${
+                            cat.productCount > 0 ? 'bg-success bg-opacity-10 text-success fw-bold' : 'bg-light text-muted'
+                          }`}
+                          style={{ fontSize: '0.75rem' }}
+                        >
+                          📦 {cat.productCount} {cat.productCount === 1 ? 'product' : 'products'}
+                        </span>
+                      </div>
+
+                      {/* Footer Actions Row (Min 40px touch targets) */}
+                      <div className="d-flex align-items-center gap-2 pt-1">
+                        <button
+                          type="button"
+                          onClick={() => handleQuickAddSubcategory(cat.slug)}
+                          className="btn btn-sm btn-outline-success rounded-3 d-flex align-items-center justify-content-center gap-1.5 flex-grow-1"
+                          style={{ minHeight: '40px', fontSize: '0.82rem', fontWeight: 600 }}
+                          title={`Add Subcategory inside ${cat.name}`}
+                        >
+                          <i className="fas fa-plus" />
+                          <span>+ Sub</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleStartEdit(cat)}
+                          className="btn btn-sm btn-outline-primary rounded-3 d-flex align-items-center justify-content-center flex-shrink-0"
+                          style={{ width: '42px', height: '40px', minWidth: '42px' }}
+                          title="Edit Category"
+                          aria-label={`Edit ${cat.name}`}
+                        >
+                          <i className="fas fa-edit" style={{ fontSize: '15px' }} />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setDeleteTarget({ id: cat.id, name: cat.name, productCount: cat.productCount })}
+                          className="btn btn-sm btn-outline-danger rounded-3 d-flex align-items-center justify-content-center flex-shrink-0"
+                          style={{ width: '42px', height: '40px', minWidth: '42px' }}
+                          title="Delete Category"
+                          aria-label={`Delete ${cat.name}`}
+                        >
+                          <i className="fas fa-trash-alt" style={{ fontSize: '15px' }} />
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+
+            {/* Desktop Table View (>= 768px) */}
+            <div className="d-none d-md-block table-responsive overflow-x-auto min-w-full">
+              <table className="table table-hover align-middle mb-0" style={{ minWidth: '600px' }}>
                 <thead className="table-light text-muted small uppercase">
                   <tr>
-                    <th style={{ width: '50px' }}>Icon</th>
-                    <th>Category / Subcategory</th>
-                    <th className="d-none d-md-table-cell">Slug</th>
-                    <th>Products</th>
+                    <th style={{ width: '56px', minWidth: '56px' }}>Icon</th>
+                    <th style={{ minWidth: '220px' }}>Category / Subcategory</th>
+                    <th style={{ minWidth: '130px' }}>Slug</th>
+                    <th style={{ minWidth: '110px' }}>Products</th>
                     <th
                       className="text-end"
                       style={{
@@ -164,7 +306,7 @@ export default function AdminCategoriesPage() {
                         right: 0,
                         background: '#f8fafc',
                         zIndex: 2,
-                        minWidth: '130px',
+                        minWidth: '140px',
                       }}
                     >
                       Actions
@@ -172,110 +314,119 @@ export default function AdminCategoriesPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {(filterMode === 'all' ? flattenedHierarchy : displayedCategories).map((cat: any) => {
-                    const depth = cat.depth || 0;
-                    return (
-                      <tr key={cat.id || cat._id || cat.slug} className={depth > 0 ? 'bg-light bg-opacity-25' : ''}>
-                        <td>
-                          <div
-                            className="rounded bg-light d-flex align-items-center justify-content-center overflow-hidden border position-relative"
+                  {currentList.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="text-center py-5 text-muted">
+                        <i className="fas fa-folder-open fs-2 mb-2 d-block opacity-50" />
+                        No categories found in this view.
+                      </td>
+                    </tr>
+                  ) : (
+                    currentList.map((cat: any) => {
+                      const depth = cat.depth || 0;
+                      return (
+                        <tr key={cat.id || cat._id || cat.slug} className={depth > 0 ? 'bg-light bg-opacity-25' : ''}>
+                          <td>
+                            <div
+                              className="rounded bg-light d-flex align-items-center justify-content-center overflow-hidden border position-relative"
+                              style={{
+                                width: '36px',
+                                height: '36px',
+                                color: depth > 0 ? '#0284c7' : '#ea580c',
+                                marginLeft: `${depth * 18}px`,
+                              }}
+                            >
+                              {cat.image && !failedImages[cat.id] ? (
+                                <OptimizedImage
+                                  src={cat.image}
+                                  alt={cat.name}
+                                  fill
+                                  sizes="36px"
+                                  style={{ objectFit: 'cover' }}
+                                  onError={() => markImageFailed(cat.id)}
+                                />
+                              ) : (
+                                <i className={cat.icon || 'fas fa-tag'} />
+                              )}
+                            </div>
+                          </td>
+                          <td>
+                            <div className="d-flex align-items-center gap-1.5 flex-wrap" style={{ paddingLeft: `${depth * 18}px` }}>
+                              {depth > 0 ? (
+                                <span className="text-primary fw-bold" style={{ fontSize: '0.9rem' }}>
+                                  {'↳'.repeat(Math.min(depth, 3))}
+                                </span>
+                              ) : (
+                                <span className="badge bg-dark text-white rounded-pill" style={{ fontSize: '0.62rem' }}>MAIN</span>
+                              )}
+                              {depth > 0 && (
+                                <span className="badge bg-info bg-opacity-10 text-primary border border-info border-opacity-25 rounded-pill" style={{ fontSize: '0.6rem' }}>
+                                  LEVEL {depth}
+                                </span>
+                              )}
+                              <span className={`text-dark text-break leading-normal py-0.5 ${depth > 0 ? 'fw-semibold text-secondary' : 'fw-bold'}`}>
+                                {cat.name}
+                              </span>
+                            </div>
+                            {cat.parentCategory && (
+                              <div className="small text-muted font-monospace text-break" style={{ fontSize: '0.70rem', paddingLeft: `${depth * 18 + 14}px` }}>
+                                Parent: <span className="text-primary">{cat.parentCategory}</span>
+                              </div>
+                            )}
+                          </td>
+                          <td>
+                            <code className="text-muted small text-break">{cat.slug}</code>
+                          </td>
+                          <td>
+                            <span className={`badge rounded-pill px-2.5 py-1 ${cat.productCount > 0 ? 'bg-success bg-opacity-10 text-success' : 'bg-light text-muted'}`}>
+                              {cat.productCount} products
+                            </span>
+                          </td>
+
+                          <td
+                            className="text-end"
                             style={{
-                              width: '36px',
-                              height: '36px',
-                              color: depth > 0 ? '#0284c7' : '#ea580c',
-                              marginLeft: `${depth * 18}px`,
+                              position: 'sticky',
+                              right: 0,
+                              background: depth > 0 ? '#f8fafc' : '#ffffff',
+                              zIndex: 1,
+                              boxShadow: '-4px 0 6px -2px rgba(0, 0, 0, 0.05)',
                             }}
                           >
-                            {cat.image && !failedImages[cat.id] ? (
-                              <OptimizedImage
-                                src={cat.image}
-                                alt={cat.name}
-                                fill
-                                sizes="36px"
-                                style={{ objectFit: 'cover' }}
-                                onError={() => markImageFailed(cat.id)}
-                              />
-                            ) : (
-                              <i className={cat.icon || 'fas fa-tag'} />
-                            )}
-                          </div>
-                        </td>
-                        <td>
-                          <div className="d-flex align-items-center gap-1.5" style={{ paddingLeft: `${depth * 18}px` }}>
-                            {depth > 0 ? (
-                              <span className="text-primary fw-bold" style={{ fontSize: '0.9rem' }}>
-                                {'↳'.repeat(Math.min(depth, 3))}
-                              </span>
-                            ) : (
-                              <span className="badge bg-dark text-white rounded-pill" style={{ fontSize: '0.62rem' }}>MAIN</span>
-                            )}
-                            {depth > 0 && (
-                              <span className="badge bg-info bg-opacity-10 text-primary border border-info border-opacity-25 rounded-pill" style={{ fontSize: '0.6rem' }}>
-                                LEVEL {depth}
-                              </span>
-                            )}
-                            <span className={`text-dark ${depth > 0 ? 'fw-semibold text-secondary' : 'fw-bold'}`}>
-                              {cat.name}
-                            </span>
-                          </div>
-                          {cat.parentCategory && (
-                            <div className="small text-muted font-monospace" style={{ fontSize: '0.70rem', paddingLeft: `${depth * 18 + 14}px` }}>
-                              Parent: <span className="text-primary">{cat.parentCategory}</span>
+                            <div className="d-inline-flex align-items-center gap-1">
+                              <button
+                                type="button"
+                                onClick={() => handleQuickAddSubcategory(cat.slug)}
+                                className="btn btn-sm btn-outline-success border-0 rounded-pill px-2 py-1"
+                                style={{ fontSize: '0.74rem', fontWeight: 600 }}
+                                title={`Add Subcategory inside ${cat.name}`}
+                              >
+                                <i className="fas fa-plus me-1" /> Sub
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleStartEdit(cat)}
+                                className="btn btn-sm btn-outline-primary border-0 rounded-circle d-flex align-items-center justify-content-center"
+                                style={{ width: '34px', height: '34px', minWidth: '34px' }}
+                                title="Edit Category"
+                              >
+                                <i className="fas fa-edit" style={{ fontSize: '13px' }} />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setDeleteTarget({ id: cat.id, name: cat.name, productCount: cat.productCount })}
+                                className="btn btn-sm btn-outline-danger border-0 rounded-circle d-flex align-items-center justify-content-center"
+                                style={{ width: '34px', height: '34px', minWidth: '34px' }}
+                                title="Delete Category"
+                              >
+                                <i className="fas fa-trash-alt" style={{ fontSize: '13px' }} />
+                              </button>
                             </div>
-                          )}
-                        </td>
-                        <td className="d-none d-md-table-cell">
-                          <code className="text-muted small">{cat.slug}</code>
-                        </td>
-                        <td>
-                          <span className={`badge rounded-pill px-2.5 py-1 ${cat.productCount > 0 ? 'bg-success bg-opacity-10 text-success' : 'bg-light text-muted'}`}>
-                            {cat.productCount} products
-                          </span>
-                        </td>
-
-                        <td
-                          className="text-end"
-                          style={{
-                            position: 'sticky',
-                            right: 0,
-                            background: depth > 0 ? '#f8fafc' : '#ffffff',
-                            zIndex: 1,
-                            boxShadow: '-4px 0 6px -2px rgba(0, 0, 0, 0.05)',
-                          }}
-                        >
-                          <div className="d-inline-flex align-items-center gap-1">
-                            <button
-                              type="button"
-                              onClick={() => handleQuickAddSubcategory(cat.slug)}
-                              className="btn btn-sm btn-outline-success border-0 rounded-pill px-2 py-1"
-                              style={{ fontSize: '0.74rem', fontWeight: 600 }}
-                              title={`Add Subcategory inside ${cat.name}`}
-                            >
-                              <i className="fas fa-plus me-1" /> Sub
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => handleStartEdit(cat)}
-                              className="btn btn-sm btn-outline-primary border-0 rounded-circle d-flex align-items-center justify-content-center"
-                              style={{ width: '34px', height: '34px', minWidth: '34px' }}
-                              title="Edit Category"
-                            >
-                              <i className="fas fa-edit" style={{ fontSize: '13px' }} />
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => setDeleteTarget({ id: cat.id, name: cat.name, productCount: cat.productCount })}
-                              className="btn btn-sm btn-outline-danger border-0 rounded-circle d-flex align-items-center justify-content-center"
-                              style={{ width: '34px', height: '34px', minWidth: '34px' }}
-                              title="Delete Category"
-                            >
-                              <i className="fas fa-trash-alt" style={{ fontSize: '13px' }} />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
                 </tbody>
               </table>
             </div>
@@ -286,7 +437,7 @@ export default function AdminCategoriesPage() {
         <div className="col-12 col-lg-4">
           <div
             id="category-form-card"
-            className={`card shadow-sm rounded-4 bg-white p-4 transition-all mb-5 ${
+            className={`card shadow-sm rounded-4 bg-white p-3 p-sm-4 transition-all mb-5 ${
               editingCategory ? 'border-2 border-primary shadow' : 'border-0'
             }`}
           >
