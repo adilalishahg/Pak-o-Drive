@@ -165,14 +165,25 @@ export interface ViralMotionReelResult {
 }
 
 /**
- * Available audio tracks pool for dynamic daily music rotation
+ * Available viral audio tracks pool for dynamic daily music rotation
  */
 export const AUDIO_TRACKS_POOL = [
+  'public/audio/viral-electronic-night-drive.mp3',
+  'public/audio/viral-synthwave-memory.mp3',
+  'public/audio/viral-dark-ambient-mindset.mp3',
+  'public/audio/viral-snowfall-atmospheric.mp3',
+  'public/audio/viral-lofi-chill.mp3',
   'public/audio/aesthetic-lofi-trending.mp3',
-  'public/audio/aesthetic-lofi-282.mp3',
-  'public/audio/dark-ambient-135.mp3',
-  'public/audio/ambient-atmospheric-track.mp3',
 ];
+
+export const CATEGORY_VIRAL_AUDIO_MAP: Record<ReelCategory, string> = {
+  roads: 'public/audio/viral-electronic-night-drive.mp3',
+  buildings: 'public/audio/viral-synthwave-memory.mp3',
+  sky: 'public/audio/viral-snowfall-atmospheric.mp3',
+  beach: 'public/audio/viral-snowfall-atmospheric.mp3',
+  rain: 'public/audio/viral-dark-ambient-mindset.mp3',
+  nature: 'public/audio/viral-lofi-chill.mp3',
+};
 
 /**
  * Dynamically generates viral quotes, hooks, captions, and hashtags via multi-provider AI matching the active category
@@ -314,13 +325,19 @@ export async function generateViralMotionReel(options?: ViralMotionReelOptions):
     console.log(`🎥 [ViralMotionReel] Selected unique video from ${category}: ${sourceVideo}`);
   }
 
-  // Dynamic Audio Selection from Pool (Rotated)
+  // Dynamic Audio Selection from Pool (Matched to category for maximum viral retention)
   const validAudio = AUDIO_TRACKS_POOL.filter(a => fs.existsSync(a));
   let audioFile = options?.audioFile;
   if (!audioFile || !fs.existsSync(audioFile)) {
-    audioFile = validAudio.length > 0 
-      ? validAudio[Math.floor(Math.random() * validAudio.length)] 
-      : 'public/audio/aesthetic-lofi-trending.mp3';
+    const categoryTrack = CATEGORY_VIRAL_AUDIO_MAP[category];
+    if (categoryTrack && fs.existsSync(categoryTrack)) {
+      audioFile = categoryTrack;
+      console.log(`🎵 [ViralMotionReel] Matched high-retention viral audio for [${category}]: ${path.basename(audioFile)}`);
+    } else {
+      audioFile = validAudio.length > 0 
+        ? validAudio[Math.floor(Math.random() * validAudio.length)] 
+        : 'public/audio/aesthetic-lofi-trending.mp3';
+    }
   }
 
   // Load font base64 for crisp serverless rendering

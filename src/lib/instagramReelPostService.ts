@@ -12,6 +12,7 @@ import { ReelCategory } from './reelCategoryLibrary';
 import { publishInstagramStory } from './instagramStoryPostService';
 import { callMultiProviderAI } from './multiAiEngine';
 import { getUkTimeInfo, getRandomUkLocation } from './ukScheduleHelper';
+import { ensureTrendingAudioPoolFresh } from './trendingAudioService';
 
 export interface InstagramReelResult {
   success: boolean;
@@ -329,6 +330,13 @@ export async function executeAutoInstagramReelPost(options?: {
   const accessToken = process.env.INSTAGRAM_ACCESS_TOKEN;
 
   console.log(`🚀 [InstagramReelService] Initializing automated reel dispatcher (type: ${reelType})...`);
+
+  // Step 0: Ensure weekly trending audio pool is fresh (auto-checks every 7 days inside the cron)
+  try {
+    await ensureTrendingAudioPoolFresh();
+  } catch (audioErr: any) {
+    console.warn('⚠️ [InstagramReelService] Audio freshness check non-fatal warning:', audioErr.message);
+  }
 
   // Step 1: Generate Real Moving Video or Cinematic Video
   let videoPath = '';

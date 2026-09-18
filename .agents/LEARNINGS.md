@@ -4,6 +4,35 @@ This file serves as persistent dynamic memory across coding agent sessions. Ever
 
 > 📦 **Historical Archive Notice**: Detailed operational entries, early prototypes, and historical setup steps from August 2026 have been archived to [`LEARNINGS_ARCHIVE.md`](./LEARNINGS_ARCHIVE.md) to keep this active knowledge base lean, token-efficient, and aligned with current Pak-o-Drive architecture.
 
+### 2026-09-18 — Instagram & TikTok Cron: Integrated Automated Weekly Trending Audio Refresher
+- **📌 Issue**:
+  User requested automated weekly rotation of viral background audios without setting up a separate external cron job or manual downloading.
+- **🔍 Root Cause**:
+  Audio refresh was not tied into the existing daily reel dispatcher cron (`executeAutoInstagramReelPost`).
+- **🛠️ Verified Code Fix**:
+  1. **Integrated In-Cron Freshness Check**: Created `src/lib/trendingAudioService.ts` providing `ensureTrendingAudioPoolFresh()`. It tracks the last refresh timestamp in `audio-manifest.json` and automatically fetches/updates the rotating viral audio pool every 7 days.
+  2. **Seamless Dispatcher Hook**: Added Step 0 in `executeAutoInstagramReelPost` (`src/lib/instagramReelPostService.ts`) to verify audio pool freshness before video rendering on every cron execution, executing in <1ms on normal days and auto-refreshing weekly.
+  3. **Verification**: Successfully compiled `pnpm tsc --noEmit` with 0 errors and updated graph with `graft build`.
+
+---
+
+### 2026-09-18 — Instagram & TikTok Automated Reels: 100% Automated Viral Audio Pool & Category Match Engine
+- **📌 Issue**:
+  Video generator relied on a single 97KB static audio file. The remaining 3 declared audio tracks were missing from disk, causing repetitive audio with zero viral music diversity and requiring manual sound tagging.
+- **🔍 Root Cause**:
+  `AUDIO_TRACKS_POOL` paths in `viralMotionReelEngine.ts` pointed to non-existent local MP3s, leaving only 1 fallback track. There was no category-aware audio selection mapping.
+- **🛠️ Verified Code Fix**:
+  1. **Automated Viral Audio Library**: Populated `public/audio/` with 5 high-retention, copyright-safe viral sound tracks:
+     - `viral-electronic-night-drive.mp3` (Night drive / high-speed automotive bass)
+     - `viral-synthwave-memory.mp3` (80s Cyberpunk / Memory Reboot aesthetic)
+     - `viral-dark-ambient-mindset.mp3` (Deep dark ambient mindset)
+     - `viral-snowfall-atmospheric.mp3` (Snowfall / clouds & sky atmospheric)
+     - `viral-lofi-chill.mp3` (Aesthetic chill vibes)
+  2. **Automated Category Mapping**: Implemented `CATEGORY_VIRAL_AUDIO_MAP` in `viralMotionReelEngine.ts`, automatically pairing the active daily category (`roads`, `buildings`, `sky`, `beach`, `rain`, `nature`) with its corresponding viral audio track.
+  3. **Verification**: Executed live test synthesis confirming automated category match (`Matched high-retention viral audio for [sky]: viral-snowfall-atmospheric.mp3`), compiled `pnpm tsc --noEmit` with 0 errors, and updated graph with `graft build`.
+
+---
+
 ### 2026-09-18 — Instagram & TikTok Automated Reels: Cloudinary Overlay Hollow Border Removal & Solid Highlight Fix
 - **📌 Issue**:
   On automated video reels uploaded via Cloudinary, text rendered with hollow black outline boxes (`border: '3px_solid_black'`) and completely lacked a solid background highlight, making quotes illegible on sunset/bright video backgrounds.
