@@ -4,6 +4,21 @@ This file serves as persistent dynamic memory across coding agent sessions. Ever
 
 > 📦 **Historical Archive Notice**: Detailed operational entries, early prototypes, and historical setup steps from August 2026 have been archived to [`LEARNINGS_ARCHIVE.md`](./LEARNINGS_ARCHIVE.md) to keep this active knowledge base lean, token-efficient, and aligned with current Pak-o-Drive architecture.
 
+### 2026-09-18 — Instagram Reel Engine: Serverless Video Inventory (Fixing nissan-300zx fallback), Consecutive Run Category Rotation, & Clean FFmpeg Bypass
+- **📌 Issue**:
+  Successive manual calls to `/api/cron/auto-instagram-reel` in Vercel serverless always used the exact same video (`nissan-300zx.mp4`) and same audio (`viral-snowfall-atmospheric.mp3`), and emitted `FFmpeg unavailable (/bin/sh: line 1: ffmpeg: command not found)` warnings.
+- **🔍 Root Cause**:
+  1. **Serverless Disk Scan Failure**: On Vercel Lambda, `public/` files are deployed to the Edge CDN, not local Lambda disk. `fs.readdirSync('public/img/viral-reels/library/...')` threw or returned empty, causing immediate fallback to hardcoded `nissan-300zx.mp4` on every run.
+  2. **Day-Locked Category**: `getActiveReelCategory()` was strictly mapped to `DAY_CATEGORY_MAP[day]`. On Friday (`day = 5`), every consecutive manual trigger was forced to `sky` and its default audio `viral-snowfall-atmospheric.mp3`.
+  3. **Unchecked FFmpeg Binary Call**: `getFfmpegPath()` returned `'ffmpeg'` on serverless Linux without verifying binary presence in PATH, causing `execSync` to fail with `/bin/sh: line 1: ffmpeg: command not found`.
+- **🛠️ Verified Code Fix**:
+  1. **Static Category Video Map**: Declared `CATEGORY_VIDEOS` inventory in `src/lib/reelCategoryLibrary.ts`, ensuring serverless always rotates through authentic 9:16 clips for all categories (`pink-sunset-clouds.mp4`, `sunrise-beach-coast.mp4`, `houston-night-skyline.mp4`, etc.) without relying on disk reads.
+  2. **Consecutive Run Rotation**: Updated `getActiveReelCategory()` to check `getUsageHistory()`: if the scheduled category was just used in the immediate previous run, it automatically rotates to a different category and distinct trending audio track.
+  3. **Zero-Warning FFmpeg Bypass**: Added `isFfmpegAvailable()` helper in `src/lib/viralMotionReelEngine.ts` which detects serverless environments in 0ms and routes video and Sharp PNG overlays to Cloudinary synthesis cleanly without executing missing binaries or throwing warnings.
+  4. **Verification**: Ran consecutive-run simulation in Node verifying Run 1 (`sky` / `pink-sunset-clouds.mp4`), Run 2 (`beach` / `sunrise-beach-coast.mp4`), and Run 3 (`sky` / `airplane-window-clouds.mp4`), compiled `pnpm tsc --noEmit` with 0 errors, and updated graph with `graft build`.
+
+---
+
 ### 2026-09-18 — Instagram Reel Engine: Serverless Cloud Overlay Synthesis, AAC Audio Layering & Robust AI Generation
 - **📌 Issue**:
   Reels published in production appeared with only 3 words on 1 line of text and were completely silent with no sound. Serverless logs revealed:

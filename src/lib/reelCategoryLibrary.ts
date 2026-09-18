@@ -52,6 +52,36 @@ const DAY_CATEGORY_MAP: Record<number, ReelCategory> = {
   6: 'roads',      // Saturday
 };
 
+export const CATEGORY_VIDEOS: Record<ReelCategory, string[]> = {
+  beach: [
+    'public/img/viral-reels/library/beach/calm-ocean-waves.mp4',
+    'public/img/viral-reels/library/beach/sunrise-beach-coast.mp4',
+    'public/img/viral-reels/library/beach/waves-ocean-moody.mp4',
+  ],
+  buildings: [
+    'public/img/viral-reels/library/buildings/houston-night-skyline.mp4',
+    'public/img/viral-reels/library/buildings/manhattan-skyline.mp4',
+    'public/img/viral-reels/library/buildings/timelapse-night-cityscape.mp4',
+  ],
+  nature: [
+    'public/img/viral-reels/library/nature/above-misty-forest.mp4',
+    'public/img/viral-reels/library/nature/misty-mountains.mp4',
+    'public/img/viral-reels/library/nature/waterfall-near-road.mp4',
+  ],
+  rain: [
+    'public/img/viral-reels/library/rain/misty-forest-drive.mp4',
+    'public/img/viral-reels/library/rain/storm-city-rain.mp4',
+  ],
+  roads: [
+    'public/img/viral-reels/library/roads/black-suv-road.mp4',
+    'public/img/viral-reels/raw/nissan-300zx.mp4',
+  ],
+  sky: [
+    'public/img/viral-reels/library/sky/airplane-window-clouds.mp4',
+    'public/img/viral-reels/library/sky/pink-sunset-clouds.mp4',
+  ],
+};
+
 import os from 'os';
 
 function getHistoryFilePath(): string {
@@ -59,7 +89,7 @@ function getHistoryFilePath(): string {
   if (isServerless) {
     return path.join(os.tmpdir(), 'viral_video_usage_history.json');
   }
-  return path.resolve(process.cwd(), 'public/img/viral-reels/library/usage-history.json');
+  return path.join('public', 'img', 'viral-reels', 'library', 'usage-history.json');
 }
 
 function getUsageHistory(): string[] {
@@ -86,74 +116,75 @@ function recordUsage(videoRelativePath: string) {
 }
 
 /**
- * Returns today's active category or selects one dynamically
+ * Returns today's active category or rotates dynamically on consecutive manual triggers
  */
 export function getActiveReelCategory(customCategory?: string): ReelCategory {
   if (customCategory && customCategory in CATEGORIES_CONFIG) {
     return customCategory as ReelCategory;
   }
+
+  const allCategories: ReelCategory[] = ['roads', 'sky', 'buildings', 'rain', 'nature', 'beach'];
+  const history = getUsageHistory();
+  const lastUsed = history[history.length - 1];
+
+  let lastCategory: ReelCategory | null = null;
+  if (lastUsed) {
+    for (const cat of allCategories) {
+      if (lastUsed.includes(`/${cat}/`)) {
+        lastCategory = cat;
+        break;
+      }
+    }
+  }
+
   const day = new Date().getDay();
-  return DAY_CATEGORY_MAP[day] || 'roads';
+  const scheduledToday = DAY_CATEGORY_MAP[day] || 'roads';
+
+  // If today's category was literally just used in the last run (consecutive manual test/cron), rotate to keep reels fresh!
+  if (lastCategory === scheduledToday) {
+    const nextCategories = allCategories.filter((c) => c !== lastCategory);
+    return nextCategories[Math.floor(Math.random() * nextCategories.length)];
+  }
+
+  return scheduledToday;
 }
 
 /**
  * Selects an unrepeated video from the given category library
+ * Works seamlessly on Vercel Serverless (using static verified inventory) and local dev
  */
 export function selectUniqueVideoFromCategory(category: ReelCategory): {
   videoPath: string;
   category: ReelCategory;
   config: CategoryMetadata;
 } {
-  const baseDir = path.resolve(process.cwd(), `public/img/viral-reels/library/${category}`);
   const config = CATEGORIES_CONFIG[category];
+  const staticPool = CATEGORY_VIDEOS[category] || CATEGORY_VIDEOS.roads;
 
+  // 1. Try reading local directory if on disk
+  const baseDir = path.join('public', 'img', 'viral-reels', 'library', category);
   let files: string[] = [];
   try {
     if (fs.existsSync(baseDir)) {
-      files = fs.readdirSync(baseDir).filter((f) => f.endsWith('.mp4'));
+      files = fs.readdirSync(baseDir).filter((f) => f.endsWith('.mp4')).map(f => `public/img/viral-reels/library/${category}/${f}`);
     }
-  } catch (err: any) {
-    console.warn(`⚠️ [ReelCategoryLibrary] Cannot read category dir ${category}:`, err.message);
-  }
+  } catch {}
 
-  // Fallback: If category directory does not exist or has no videos, pick from raw pool or default asset
-  if (files.length === 0) {
-    const rawDir = path.resolve(process.cwd(), 'public/img/viral-reels/raw');
-    try {
-      if (fs.existsSync(rawDir)) {
-        const rawFiles = fs.readdirSync(rawDir).filter((f) => f.endsWith('.mp4'));
-        if (rawFiles.length > 0) {
-          const chosen = rawFiles[Math.floor(Math.random() * rawFiles.length)];
-          return {
-            videoPath: `public/img/viral-reels/raw/${chosen}`,
-            category,
-            config,
-          };
-        }
-      }
-    } catch {}
-
-    return {
-      videoPath: 'public/img/viral-reels/raw/nissan-300zx.mp4',
-      category,
-      config,
-    };
-  }
-
+  // 2. If on serverless where public/ is hosted on CDN, use verified static library pool
+  const candidatePool = files.length > 0 ? files : staticPool;
   const history = getUsageHistory();
 
-  // Find files not used recently
-  const unUsedFiles = files.filter((f) => !history.includes(`${category}/${f}`));
-  const chosenFile =
+  // Find videos not used recently
+  const unUsedFiles = candidatePool.filter((f) => !history.includes(f));
+  const chosenVideo =
     unUsedFiles.length > 0
       ? unUsedFiles[Math.floor(Math.random() * unUsedFiles.length)]
-      : files[Math.floor(Math.random() * files.length)];
+      : candidatePool[Math.floor(Math.random() * candidatePool.length)];
 
-  const relativePath = `public/img/viral-reels/library/${category}/${chosenFile}`;
-  recordUsage(`${category}/${chosenFile}`);
+  recordUsage(chosenVideo);
 
   return {
-    videoPath: relativePath,
+    videoPath: chosenVideo,
     category,
     config,
   };

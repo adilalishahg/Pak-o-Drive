@@ -37,6 +37,30 @@ export function getFfmpegPath(): string {
   }
 }
 
+let _ffmpegAvailableCache: boolean | null = null;
+
+export function isFfmpegAvailable(): boolean {
+  if (_ffmpegAvailableCache !== null) return _ffmpegAvailableCache;
+  try {
+    const isServerless = Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME || process.platform === 'linux');
+    const ffmpegBin = getFfmpegPath();
+    if (isServerless && ffmpegBin === 'ffmpeg') {
+      _ffmpegAvailableCache = false;
+      return false;
+    }
+    if (ffmpegBin && ffmpegBin !== 'ffmpeg' && fs.existsSync(ffmpegBin)) {
+      _ffmpegAvailableCache = true;
+      return true;
+    }
+    execSync('ffmpeg -version', { stdio: 'ignore' });
+    _ffmpegAvailableCache = true;
+    return true;
+  } catch {
+    _ffmpegAvailableCache = false;
+    return false;
+  }
+}
+
 /**
  * Fallback standalone overlay burn helper using Sharp & FFmpeg
  */
@@ -45,6 +69,10 @@ export async function burnOverlayWithSharpAndFfmpeg(
   quoteLines: string[],
   durationSeconds: number = 7.5
 ): Promise<string> {
+  if (!isFfmpegAvailable()) {
+    return sourceVideoPath;
+  }
+
   const WIDTH = 720;
   const HEIGHT = 1280;
 
@@ -542,18 +570,25 @@ export async function generateViralMotionReel(options?: ViralMotionReelOptions):
 
   let finalVideoPath = absOutput;
   let isBurnedWithFfmpeg = false;
-  try {
-    execSync(cmd, { stdio: 'pipe' });
-    if (fs.existsSync(absOutput) && fs.statSync(absOutput).size > 1000) {
-      isBurnedWithFfmpeg = true;
-      console.log(`✓ [ViralMotionReel] Video rendered successfully with FFmpeg overlay: ${absOutput}`);
-    } else {
-      finalVideoPath = absSource;
-    }
-  } catch (renderErr: any) {
-    console.warn(`⚠️ [ViralMotionReel] Serverless FFmpeg unavailable (${renderErr.message}). Using raw 9:16 video source with Cloudinary synthesis fallback: ${absSource}`);
+
+  if (!isFfmpegAvailable()) {
+    console.log(`☁️ [ViralMotionReel] Serverless environment: routing video & overlay to Cloudinary synthesis: ${path.basename(absSource)}`);
     finalVideoPath = absSource;
     isBurnedWithFfmpeg = false;
+  } else {
+    try {
+      execSync(cmd, { stdio: 'pipe' });
+      if (fs.existsSync(absOutput) && fs.statSync(absOutput).size > 1000) {
+        isBurnedWithFfmpeg = true;
+        console.log(`✓ [ViralMotionReel] Video rendered successfully with FFmpeg overlay: ${absOutput}`);
+      } else {
+        finalVideoPath = absSource;
+      }
+    } catch (renderErr: any) {
+      console.warn(`⚠️ [ViralMotionReel] Local FFmpeg execution failed: ${renderErr.message}. Falling back to Cloudinary synthesis.`);
+      finalVideoPath = absSource;
+      isBurnedWithFfmpeg = false;
+    }
   }
 
   // Clean up temporary overlay ONLY if FFmpeg succeeded; if fallback to Cloudinary, keep it
