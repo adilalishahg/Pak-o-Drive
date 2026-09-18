@@ -4,6 +4,20 @@ This file serves as persistent dynamic memory across coding agent sessions. Ever
 
 > 📦 **Historical Archive Notice**: Detailed operational entries, early prototypes, and historical setup steps from August 2026 have been archived to [`LEARNINGS_ARCHIVE.md`](./LEARNINGS_ARCHIVE.md) to keep this active knowledge base lean, token-efficient, and aligned with current Pak-o-Drive architecture.
 
+### 2026-09-18 — Instagram & TikTok Cron: Serverless EROFS Audio Resolution & 4-Week Auto-Rotating Trending Audio
+- **📌 Issue**:
+  Reels published to TikTok and Instagram were completely silent ("This sound isn't available"). The Vercel cron log threw `EROFS: read-only file system, open '/var/task/public/audio/...'`, causing all audio downloads to be skipped, FFmpeg input failure, and Cloudinary fallback upload without audio mixing.
+- **🔍 Root Cause**:
+  1. AWS Lambda / Vercel Serverless `/var/task` root filesystem is strictly read-only (`EROFS`). Only `os.tmpdir()` (`/tmp`) is writable.
+  2. Missing audio files caused local FFmpeg to fail, falling back to raw video uploaded via Cloudinary with only text transformations and zero audio track layering.
+- **🛠️ Verified Code Fix**:
+  1. **Serverless Writable Storage**: Updated `src/lib/trendingAudioService.ts` to route audio caching and manifest writes to `os.tmpdir()/viral_audio_cache` when in serverless/Linux environments.
+  2. **4-Week Auto-Rotating Trending Audio Library**: Implemented `WEEKLY_VIRAL_AUDIO_POOLS` with `getCurrentWeekNumber() % 4` rotation across 4 curated viral sound pools (Adrenaline Phonk, Midnight Cyberpunk, Cinematic Elevation, Neon Mindset), rotating automatically every 7 days without manual steps.
+  3. **Guaranteed Local Pre-Caching & Dual-Layer Audio Mixing**: Updated `viralMotionReelEngine.ts` with `ensureLocalVideoFile()` and `resolveActiveViralAudio()` ensuring both MP4 and MP3 files exist in `/tmp` before FFmpeg synthesis. Updated `uploadVideoToCdn()` in `instagramReelPostService.ts` to upload and overlay the audio track into Cloudinary if local FFmpeg burn is ever bypassed.
+  4. **Verification**: Executed `pnpm tsc --noEmit` passing with 0 errors and updated graph with `graft build`.
+
+---
+
 ### 2026-09-18 — Instagram & TikTok Cron: Integrated Automated Weekly Trending Audio Refresher
 - **📌 Issue**:
   User requested automated weekly rotation of viral background audios without setting up a separate external cron job or manual downloading.

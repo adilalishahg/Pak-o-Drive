@@ -4,6 +4,7 @@
  */
 import fs from 'fs';
 import path from 'path';
+import os from 'os';
 import dbConnect from '@/lib/mongodb';
 import InstagramPostLog from '@/models/InstagramPostLog';
 import { generateCinematicVideo, DeepDiveToolScript } from './cinematicVideo';
@@ -65,7 +66,8 @@ export async function uploadVideoToCdn(
   overlayQuoteLines?: string[],
   isAlreadyBurned: boolean = false,
   audioFilePath?: string,
-  audioRemoteUrl?: string
+  audioRemoteUrl?: string,
+  overlayPngPath?: string
 ): Promise<string> {
   console.log(`📤 [InstagramReelService] Processing video for CDN: ${videoFilePath}...`);
 
@@ -76,18 +78,18 @@ export async function uploadVideoToCdn(
     ? overlayQuoteLines.filter((l) => l && l.trim().length > 0)
     : [];
 
-  // 0. Ensure text overlay is burned into video before CDN distribution
+  // 0. If local FFmpeg is available and video isn't burned, attempt local burn
   if (!burnedStatus && filteredLines.length > 0 && !videoFilePath.startsWith('http://') && !videoFilePath.startsWith('https://')) {
     try {
-      console.log('🎨 [InstagramReelService] Pre-rendering text overlay onto video stream...');
+      console.log('🎨 [InstagramReelService] Checking local text overlay burn...');
       const burnedPath = await burnOverlayWithSharpAndFfmpeg(currentVideoPath, filteredLines);
-      if (burnedPath && fs.existsSync(burnedPath) && fs.statSync(burnedPath).size > 1000) {
+      if (burnedPath && fs.existsSync(burnedPath) && fs.statSync(burnedPath).size > 1000 && burnedPath !== currentVideoPath) {
         currentVideoPath = burnedPath;
         burnedStatus = true;
-        console.log(`✓ [InstagramReelService] Text overlay burned successfully: ${currentVideoPath}`);
+        console.log(`✓ [InstagramReelService] Text overlay burned locally: ${currentVideoPath}`);
       }
     } catch (overlayErr: any) {
-      console.warn(`⚠️ [InstagramReelService] Dynamic overlay burn skipped: ${overlayErr.message}`);
+      console.warn(`⚠️ [InstagramReelService] Local overlay burn skipped: ${overlayErr.message}`);
     }
   }
 
@@ -135,6 +137,7 @@ export async function uploadVideoToCdn(
   const apiSecret = process.env.CLOUDINARY_API_SECRET;
 
   if (cloudName && apiKey && apiSecret && apiKey !== '52311231313') {
+    let tempOverlayCleanup: string | null = null;
     try {
       const { v2: cloudinary } = await import('cloudinary');
       cloudinary.config({
@@ -145,48 +148,103 @@ export async function uploadVideoToCdn(
 
       const targetSource = fs.existsSync(videoFilePath) ? videoFilePath : publicFallbackUrl;
 
-      // Check if video requires dynamic cloud overlay (e.g. raw video without local FFmpeg burn)
-      const shouldApplyOverlay = !isAlreadyBurned && (filteredLines.length > 0 || Boolean(audioFilePath || audioRemoteUrl));
+      // Check if video requires cloud overlay synthesis (e.g. raw video without local FFmpeg burn)
+      const shouldApplyOverlay = !burnedStatus && (filteredLines.length > 0 || Boolean(audioFilePath || audioRemoteUrl));
 
       let transformations: any[] | undefined = undefined;
 
       if (shouldApplyOverlay) {
         transformations = [
-          { width: 1080, height: 1920, crop: 'fill', gravity: 'center', effect: 'brightness:-12' },
-          { effect: 'contrast:15' },
+          { width: 720, height: 1280, crop: 'fill', gravity: 'center', effect: 'volume:mute' },
+          { effect: 'contrast:12' },
         ];
 
-        const totalLines = filteredLines.length;
-        const lineHeight = 76;
-        // Position slightly above center to clear TikTok/Reels captions and bottom UI safe area
-        const startY = -40 - Math.floor(((totalLines - 1) * lineHeight) / 2);
+        // 5a. Resolve or generate high-contrast Sharp PNG overlay
+        let activeOverlayPng = overlayPngPath && fs.existsSync(overlayPngPath) ? overlayPngPath : null;
 
-        filteredLines.forEach((line, idx) => {
-          const cleanText = line.trim().replace(/\s+/g, ' ');
-          // High-contrast text with electric yellow highlight on punchlines
-          const isEmphasis = idx === 1 || (totalLines > 2 && idx === totalLines - 1);
-          const textColor = isEmphasis ? '#FDE047' : '#FFFFFF';
+        if (!activeOverlayPng && filteredLines.length > 0) {
+          try {
+            const sharp = (await import('sharp')).default;
+            const WIDTH = 720;
+            const HEIGHT = 1280;
+            const lineHeight = 58;
+            const totalTextHeight = filteredLines.length * lineHeight;
+            const startY = Math.round((HEIGHT - totalTextHeight) / 2) + 26;
 
-          transformations!.push({
-            overlay: {
-              font_family: 'Arial',
-              font_size: 38,
-              font_weight: 'bold',
-              text: cleanText,
-            },
-            color: textColor,
-            background: 'rgb:080C14', // Solid dark contrast highlight backdrop
-            radius: 14,                // Rounded pill corners (no ugly hollow borders)
+            const lineElements = filteredLines
+              .map((line, idx) => {
+                const y = startY + idx * lineHeight;
+                const clean = line.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                const pillWidth = Math.min(WIDTH - 50, Math.max(200, Math.round(line.length * 19.5 + 44)));
+                const pillHeight = 50;
+                const pillX = Math.round(360 - pillWidth / 2);
+                const pillY = Math.round(y - 35);
+                const isEmphasis = idx === 1 || (filteredLines.length > 2 && idx === filteredLines.length - 1);
+                const textColor = isEmphasis ? '#FDE047' : '#FFFFFF';
+
+                return `
+                  <g>
+                    <rect x="${pillX}" y="${pillY}" width="${pillWidth}" height="${pillHeight}" rx="12" 
+                      fill="#090D16" fill-opacity="0.85" stroke="rgba(255, 255, 255, 0.22)" stroke-width="1.2" />
+                    <text x="360" y="${y}" font-family="'Inter', Arial, sans-serif" font-size="32" font-weight="800" 
+                      fill="${textColor}" stroke="#000000" stroke-width="1.2" paint-order="stroke fill"
+                      text-anchor="middle" letter-spacing="-0.3">${clean}</text>
+                  </g>
+                `;
+              })
+              .join('');
+
+            const overlaySvg = `
+              <svg width="${WIDTH}" height="${HEIGHT}" viewBox="0 0 ${WIDTH} ${HEIGHT}" xmlns="http://www.w3.org/2000/svg">
+                <rect width="${WIDTH}" height="${HEIGHT}" fill="#000000" fill-opacity="0.18" />
+                ${lineElements}
+              </svg>
+            `;
+
+            const tempDir = path.join(os.tmpdir(), 'viral_reels_temp');
+            if (!fs.existsSync(tempDir)) fs.mkdirSync(tempDir, { recursive: true });
+            tempOverlayCleanup = path.join(tempDir, `cloud_overlay_${Date.now()}.png`);
+            await sharp(Buffer.from(overlaySvg)).png().toFile(tempOverlayCleanup);
+            activeOverlayPng = tempOverlayCleanup;
+          } catch (sharpErr: any) {
+            console.warn('⚠️ [InstagramReelService] Sharp cloud overlay preparation failed:', sharpErr.message);
+          }
+        }
+
+        // 5b. Upload Sharp overlay PNG to Cloudinary as full-frame image layer
+        let overlayImagePublicId: string | null = null;
+        if (activeOverlayPng && fs.existsSync(activeOverlayPng)) {
+          try {
+            console.log('🎨 [InstagramReelService] Pre-uploading Sharp high-contrast text overlay to Cloudinary...');
+            const overlayUpload = await cloudinary.uploader.upload(activeOverlayPng, {
+              resource_type: 'image',
+              folder: 'instagram_reels/overlays',
+            });
+            overlayImagePublicId = overlayUpload.public_id;
+            console.log(`✓ [InstagramReelService] Overlay image uploaded: ${overlayImagePublicId}`);
+          } catch (oErr: any) {
+            console.warn(`⚠️ [InstagramReelService] Cloudinary overlay image upload failed: ${oErr.message}`);
+          }
+        }
+
+        if (overlayImagePublicId) {
+          transformations.push({
+            overlay: overlayImagePublicId.replace(/\//g, ':'),
+            width: 720,
+            height: 1280,
+            crop: 'scale',
             gravity: 'center',
-            y: startY + idx * lineHeight,
           });
-        });
+          transformations.push({
+            flags: 'layer_apply',
+          });
+        }
 
-        // Layer background trending audio if not already burned into video
+        // 5c. Pre-upload and layer background trending audio
         let audioPublicId: string | null = null;
         if (audioFilePath && fs.existsSync(audioFilePath)) {
           try {
-            console.log(`🎵 [InstagramReelService] Pre-uploading background audio to Cloudinary: ${path.basename(audioFilePath)}...`);
+            console.log(`🎵 [InstagramReelService] Pre-uploading background audio: ${path.basename(audioFilePath)}...`);
             const audioUpload = await cloudinary.uploader.upload(audioFilePath, {
               resource_type: 'video',
               folder: 'instagram_reels/audio',
@@ -197,7 +255,7 @@ export async function uploadVideoToCdn(
           }
         } else if (audioRemoteUrl) {
           try {
-            console.log(`🎵 [InstagramReelService] Pre-uploading remote audio to Cloudinary: ${audioRemoteUrl}...`);
+            console.log(`🎵 [InstagramReelService] Pre-uploading remote audio: ${audioRemoteUrl}...`);
             const audioUpload = await cloudinary.uploader.upload(audioRemoteUrl, {
               resource_type: 'video',
               folder: 'instagram_reels/audio',
@@ -209,16 +267,18 @@ export async function uploadVideoToCdn(
         }
 
         if (audioPublicId) {
-          console.log(`✓ [InstagramReelService] Audio layer attached to Cloudinary video: ${audioPublicId}`);
+          console.log(`✓ [InstagramReelService] Attaching background audio track: ${audioPublicId}`);
           transformations.push({
             overlay: `video:${audioPublicId.replace(/\//g, ':')}`,
+          });
+          transformations.push({
             flags: 'layer_apply',
           });
         }
       }
 
       console.log(
-        `☁️ [InstagramReelService] Uploading video to Cloudinary (overlay active: ${Boolean(transformations && transformations.length > 1)})...`
+        `☁️ [InstagramReelService] Uploading video to Cloudinary (cloud overlay synthesis active: ${Boolean(transformations && transformations.length > 2)})...`
       );
 
       const uploadOptions: Record<string, any> = {
@@ -231,12 +291,22 @@ export async function uploadVideoToCdn(
           {
             transformation: transformations,
             format: 'mp4',
+            audio_codec: 'aac',
+            video_codec: 'auto',
           },
         ];
         uploadOptions.eager_async = false;
       }
 
       const uploadRes = await cloudinary.uploader.upload(targetSource, uploadOptions);
+
+      // Clean up temporary overlay files
+      if (tempOverlayCleanup && fs.existsSync(tempOverlayCleanup)) {
+        try { fs.unlinkSync(tempOverlayCleanup); } catch {}
+      }
+      if (overlayPngPath && fs.existsSync(overlayPngPath)) {
+        try { fs.unlinkSync(overlayPngPath); } catch {}
+      }
 
       if (uploadRes?.public_id) {
         console.log(`✓ [InstagramReelService] Raw video hosted on Cloudinary: ${uploadRes.public_id}`);
@@ -247,7 +317,7 @@ export async function uploadVideoToCdn(
           return uploadRes.eager[0].secure_url;
         }
 
-        // 2. If eager wasn't returned, generate dynamic transformed URL
+        // 2. If eager wasn't returned, generate dynamic transformed URL with AAC audio
         if (transformations && transformations.length > 1) {
           const publicIdWithExt = uploadRes.public_id.endsWith('.mp4')
             ? uploadRes.public_id
@@ -256,6 +326,7 @@ export async function uploadVideoToCdn(
           const transformedUrl = cloudinary.url(publicIdWithExt, {
             resource_type: 'video',
             transformation: transformations,
+            audio_codec: 'aac',
             secure: true,
           });
 
@@ -274,6 +345,9 @@ export async function uploadVideoToCdn(
       }
     } catch (err: any) {
       console.warn(`⚠️ [InstagramReelService] Cloudinary upload failed: ${err.message}.`);
+      if (tempOverlayCleanup && fs.existsSync(tempOverlayCleanup)) {
+        try { fs.unlinkSync(tempOverlayCleanup); } catch {}
+      }
     }
   }
 
@@ -380,6 +454,7 @@ export async function executeAutoInstagramReelPost(options?: {
   let reelQuoteLines: string[] | undefined = undefined;
   let audioPath: string | undefined = undefined;
   let audioRemoteUrl: string | undefined = undefined;
+  let overlayPngPath: string | undefined = undefined;
 
   let isBurnedWithFfmpeg = false;
 
@@ -398,6 +473,7 @@ export async function executeAutoInstagramReelPost(options?: {
     isBurnedWithFfmpeg = motionResult.isBurnedWithFfmpeg ?? false;
     audioPath = motionResult.audioPath;
     audioRemoteUrl = motionResult.audioRemoteUrl;
+    overlayPngPath = motionResult.overlayPngPath;
   } else {
     console.log('🎬 [InstagramReelService] Step 1: Generating cinematic AI video...');
     const videoResult = await generateCinematicVideo({
@@ -424,7 +500,8 @@ export async function executeAutoInstagramReelPost(options?: {
     reelQuoteLines,
     isBurnedWithFfmpeg,
     audioPath,
-    audioRemoteUrl
+    audioRemoteUrl,
+    overlayPngPath
   );
 
   // Check UK Peak Hour status
@@ -454,8 +531,7 @@ export async function executeAutoInstagramReelPost(options?: {
       };
 
       if (ukTargeting) {
-        console.log(`📍 [InstagramReelService] Tagging UK Location: ${ukLocation.name} (Place ID: ${ukLocation.id})`);
-        containerPayload.location_id = ukLocation.id;
+        console.log(`📍 [InstagramReelService] Algorithmic UK Geo-targeting: ${ukLocation.name}`);
       }
 
       let containerRes = await fetch(`https://graph.facebook.com/v20.0/${igUserId}/media`, {

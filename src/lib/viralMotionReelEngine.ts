@@ -165,6 +165,7 @@ export interface ViralMotionReelResult {
   isBurnedWithFfmpeg?: boolean;
   audioPath?: string;
   audioRemoteUrl?: string;
+  overlayPngPath?: string;
 }
 
 /**
@@ -188,6 +189,43 @@ export const CATEGORY_VIRAL_AUDIO_MAP: Record<ReelCategory, string> = {
   nature: 'public/audio/viral-lofi-chill.mp3',
 };
 
+function robustParseAiJson(rawText: string): any {
+  if (!rawText) return null;
+  let cleaned = rawText.replace(/```json/gi, '').replace(/```/g, '').trim();
+  const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
+  if (jsonMatch) cleaned = jsonMatch[0];
+
+  try {
+    return JSON.parse(cleaned);
+  } catch {
+    try {
+      const sanitized = cleaned.replace(/(:\s*")([^"\\]*(?:\\.[^"\\]*)*)(")/g, (_m, p1, p2, p3) => {
+        return p1 + p2.replace(/\r?\n/g, ' ').replace(/\t/g, ' ') + p3;
+      });
+      return JSON.parse(sanitized);
+    } catch {
+      const titleMatch = cleaned.match(/"title"\s*:\s*"([^"]+)"/i);
+      const hookMatch = cleaned.match(/"captionHook"\s*:\s*"([^"]+)"/i);
+      const quoteLinesMatch = cleaned.match(/"quoteLines"\s*:\s*\[([\s\S]*?)\]/);
+      let quoteLines: string[] = [];
+      if (quoteLinesMatch) {
+        const lines = quoteLinesMatch[1].match(/"([^"\\]*(?:\\.[^"\\]*)*)"/g);
+        if (lines) {
+          quoteLines = lines.map(l => l.replace(/^"|"$/g, '').trim()).filter(Boolean);
+        }
+      }
+      if (quoteLines.length > 0) {
+        return {
+          title: titleMatch ? titleMatch[1] : quoteLines[0],
+          quoteLines,
+          captionHook: hookMatch ? hookMatch[1] : undefined,
+        };
+      }
+    }
+  }
+  return null;
+}
+
 /**
  * Dynamically generates viral quotes, hooks, captions, and hashtags via multi-provider AI matching the active category
  */
@@ -195,48 +233,60 @@ export async function generateViralAiContent(selectedCategory?: ReelCategory): P
   const category = selectedCategory || getActiveReelCategory();
   const catConfig = CATEGORIES_CONFIG[category];
 
-  const prompt = `You are the creative mastermind behind viral dark aesthetic automotive & mindset Instagram Reels for Pak-o-Drive (e.g. @digitalinspirer, @pakodrive.official, @pakwheels).
-Generate 1 completely fresh, high-retention on-screen quote and viral caption designed to captivate car enthusiasts and convert them into customers for Pak-o-Drive (Pakistan's premium car accessories & styling store with Cash on Delivery).
+  const dualCta = `━━━━━━━━━━━━━━━━━
+🇬🇧 UK & Global (Digital & Affiliate):
+✨ 4K Luxury Car Wallpapers & Presets 👉 Link in Bio
+🛒 Trending Car Interior Styling on Amazon UK 👉 Link in Bio
 
-Visual Background Theme for this Reel: "${catConfig.name}"
-Category Tone & Concepts: ${catConfig.themePrompt}
-Category Suggested Tags: ${catConfig.suggestedTags.join(', ')}
+🇵🇰 Pakistan (Physical Stock):
+🚗 Cash on Delivery (COD) All Over Pakistan
+📦 Tap Link in Bio or WhatsApp: +92 318 5205667
+
+━━━━━━━━━━━━━━━━━
+Follow @digitalinspirer & @pakodrive.official for daily drive & automotive luxury.
+
+📍 London, United Kingdom`;
+
+  const prompt = `You are the creative mastermind behind viral dark aesthetic automotive & mindset Instagram Reels for Pak-o-Drive.
+Generate 1 completely fresh, high-retention on-screen quote and viral hook designed to captivate car enthusiasts and convert them into customers.
+
+Visual Background Theme: "${catConfig.name}"
+Category Concepts: ${catConfig.themePrompt}
 
 Requirements:
-1. quoteLines: 3 to 4 short, punchy lines designed for vertical 9:16 text overlay (under 6 words per line). Must match the visual mood of ${catConfig.name} (e.g. stoic, ambitious, impossible mindset, consistency, or quiet discipline) in pure British/American English.
-2. title: An intense 2-4 word hook title in ALL CAPS (e.g. "MOVE IN SILENCE", "THE UNSEEN GRIND", "ABOVE THE NOISE").
-3. caption: A viral conversion caption structure:
-   - First line: Thumb-stopping hook in ALL CAPS with lightning emoji.
-   - 2-3 lines of deep, inspiring wisdom connecting the visual (${catConfig.name}) with ambition.
-   - Save trigger: "Save this for the days you need a reminder 📌"
-   - Comment question: "Drop a '🔥' in the comments if you agree."
-   - Dual Monetization Call to Action (UK/Global Digital & Affiliate + Pakistan COD):
-     "🇬🇧 UK & Global (Digital & Affiliate):\n✨ 4K Luxury Car Wallpapers & Presets 👉 Link in Bio\n🛒 Trending Car Interior Styling on Amazon UK 👉 Link in Bio\n\n🇵🇰 Pakistan (Physical Stock):\n🚗 Cash on Delivery (COD) All Over Pakistan\n📦 Tap Link in Bio or WhatsApp: +92 318 5205667"
-   - Profile follow tag: "Follow @digitalinspirer & @pakodrive.official for daily drive & automotive luxury."
-   - Geo-tag line: "📍 London, United Kingdom"
-4. hashtags: 15-20 trending UK & global automotive tags combined with Pakistan (#ukcarscene, #supercarsoflondon, #londoncars, #uknightdrive, #birminghamcars, #carcultureuk, #supercarsuk, #reelsuk, #pakwheels, #pakodrive, #darkaesthetic, #nightdrive, #reelsviral, plus category tags like ${catConfig.suggestedTags.slice(0, 3).join(', ')}).
+1. quoteLines: Exactly 4 short, intense lines for 9:16 vertical video overlay (3 to 6 words each). Must match the visual mood of ${catConfig.name} (stoic, ambitious, impossible mindset, consistency).
+2. title: An intense 2-4 word hook in ALL CAPS (e.g. "MOVE IN SILENCE", "ABOVE THE NOISE", "RELENTLESS FOCUS").
+3. captionHook: 2 short sentences of deep mindset wisdom on ONE single line (no raw newlines).
+4. hashtags: 12-16 trending UK & Pakistan automotive tags as a JSON array of strings.
 
 Output ONLY valid JSON with no markdown backticks:
 {
   "title": "...",
-  "quoteLines": ["...", "...", "..."],
-  "caption": "...",
-  "hashtags": ["#ukcarscene", "#londoncars", "..."],
+  "quoteLines": ["line 1", "line 2", "line 3", "line 4"],
+  "captionHook": "...",
+  "hashtags": ["#ukcarscene", "#londoncars", "#pakwheels", "#pakodrive"],
   "theme": "${category}"
 }`;
 
   try {
     const aiRes = await callMultiProviderAI('You are a viral Instagram growth director.', prompt);
     if (aiRes && typeof aiRes.text === 'string') {
-      const jsonMatch = aiRes.text.match(/\{[\s\S]*\}/);
-      const cleaned = jsonMatch ? jsonMatch[0] : aiRes.text.replace(/```json/g, '').replace(/```/g, '').trim();
-      const parsed = JSON.parse(cleaned);
-      if (parsed.quoteLines && Array.isArray(parsed.quoteLines) && parsed.quoteLines.length > 0) {
+      const parsed = robustParseAiJson(aiRes.text);
+      if (parsed?.quoteLines && Array.isArray(parsed.quoteLines) && parsed.quoteLines.length >= 2) {
+        const title = (parsed.title || parsed.quoteLines[0]).toUpperCase();
+        const quoteLines = parsed.quoteLines.filter((l: string) => typeof l === 'string' && l.trim().length > 0);
+        const hook = parsed.captionHook || 'When you elevate your standards, daily noise can no longer reach you.';
+        const hashtags = Array.isArray(parsed.hashtags) && parsed.hashtags.length > 0
+          ? parsed.hashtags
+          : ['#ukcarscene', '#supercarsoflondon', '#londoncars', '#uknightdrive', '#carcultureuk', '#reelsuk', '#pakwheels', '#pakodrive', ...catConfig.suggestedTags];
+
+        const caption = `${title} ⚡\n\n${hook}\n\nSave this for the days you need a reminder 📌\n\nDrop a "🔥" in the comments if you agree.\n\n${dualCta}\n\n${hashtags.join(' ')}`;
+
         return {
-          title: parsed.title || parsed.quoteLines[0],
-          quoteLines: parsed.quoteLines,
-          caption: parsed.caption || `${parsed.title} ⚡\n\nSave this for when you need a reminder 📌\n\n#ukcarscene #londoncars #mindsetquotes #viralreels`,
-          hashtags: parsed.hashtags || ['#ukcarscene', '#supercarsoflondon', '#londoncars', '#uknightdrive', '#carcultureuk', '#reelsuk', '#pakwheels', '#pakodrive', ...catConfig.suggestedTags],
+          title,
+          quoteLines,
+          caption,
+          hashtags,
           theme: category,
           category,
         };
@@ -246,40 +296,37 @@ Output ONLY valid JSON with no markdown backticks:
     console.warn(`⚠️ [ViralMotionReel] AI generation fallback: ${err.message}`);
   }
 
-  // Dual Monetization CTA snippet
-  const dualCta = `━━━━━━━━━━━━━━━━━\n🇬🇧 UK & Global (Digital & Affiliate):\n✨ 4K Luxury Car Wallpapers & Presets 👉 Link in Bio\n🛒 Trending Car Interior Styling on Amazon UK 👉 Link in Bio\n\n🇵🇰 Pakistan (Physical Stock):\n🚗 Cash on Delivery (COD) All Over Pakistan\n📦 Tap Link in Bio or WhatsApp: +92 318 5205667\n\n━━━━━━━━━━━━━━━━━\nFollow @digitalinspirer & @pakodrive.official for daily drive & automotive luxury.\n\n📍 London, United Kingdom`;
-
-  // Curated category fallbacks
+  // Curated category fallbacks (Guaranteed 4 punchy lines, zero empty entries)
   const fallbacks: Record<ReelCategory, { title: string; quoteLines: string[]; caption: string }> = {
     nature: {
       title: 'BE UNTOUCHED',
-      quoteLines: ['Rooted like mountains.', 'Untouched by storms.', '', 'Grow in silence.'],
+      quoteLines: ['Rooted like mountains.', 'Untouched by storms.', 'Grow in quiet discipline.', 'Let results make the noise.'],
       caption: `BE UNTOUCHED ⚡\n\nThe storm only affects what is shallow. When your roots are deep, turbulence cannot move you.\n\nSave this for the days you need a reminder 📌\n\nDrop a "🔥" if you agree.\n\n${dualCta}`,
     },
     roads: {
       title: 'MOVE IN SILENCE',
-      quoteLines: ['Speed means nothing', 'if you are in the wrong lane.', '', 'Focus on direction.', 'Let results speak.'],
-      caption: `MOVE IN SILENCE ⚡\n\nMost people tell everyone what they are going to do.\nThe top 1% just execute and let the scoreboard do the talking.\n\nSave this for the days you need a reminder 📌\n\nDrop a "🔥" if you agree.\n\n${dualCta}`,
+      quoteLines: ['Speed means nothing', 'in the wrong lane.', 'Focus on your direction.', 'Let success be the noise.'],
+      caption: `MOVE IN SILENCE ⚡\n\nMost people announce what they are going to do. The top 1% just execute and let the scoreboard speak.\n\nSave this for the days you need a reminder 📌\n\nDrop a "🔥" if you agree.\n\n${dualCta}`,
     },
     beach: {
       title: 'RELENTLESS WAVES',
-      quoteLines: ['The ocean never rushes,', 'yet it carves continents.', '', 'Relentless consistency.'],
-      caption: `RELENTLESS WAVES ⚡\n\nPatience and consistency outperform intensity every single time. Keep showing up every day.\n\nSave this for when you need a reminder 📌\n\nDrop a "🔥" in the comments.\n\n${dualCta}`,
+      quoteLines: ['The ocean never rushes,', 'yet it carves mountains.', 'Relentless consistency', 'beats talent every time.'],
+      caption: `RELENTLESS WAVES ⚡\n\nPatience and consistency outperform intensity every single time. Keep showing up every single day.\n\nSave this for when you need a reminder 📌\n\nDrop a "🔥" in the comments.\n\n${dualCta}`,
     },
     buildings: {
       title: 'BUILD YOUR EMPIRE',
-      quoteLines: ['From the ground, they see limits.', 'From the summit, you see empires.', '', 'Keep building.'],
-      caption: `BUILD YOUR EMPIRE ⚡\n\nDon't let people with small visions talk you out of your big dreams. Keep building block by block.\n\nSave this for when you need a reminder 📌\n\nDrop a "🔥" if you agree.\n\n${dualCta}`,
+      quoteLines: ['From the bottom they doubt.', 'From the summit you reign.', 'Stack your wins in silence.', 'Build an unbreakable empire.'],
+      caption: `BUILD YOUR EMPIRE ⚡\n\nNever let small-minded people talk you out of your big dreams. Keep building block by block.\n\nSave this for when you need a reminder 📌\n\nDrop a "🔥" if you agree.\n\n${dualCta}`,
     },
     sky: {
       title: 'ABOVE THE NOISE',
-      quoteLines: ['Fly above the storm.', 'The turbulence below', 'is temporary.', '', 'Stay high.'],
+      quoteLines: ['Fly above the storm.', 'Small minds cause turbulence.', 'Elevate your standards.', 'Stay untouched at the top.'],
       caption: `ABOVE THE NOISE ⚡\n\nWhen you elevate your standards, small minds and daily drama can no longer reach you.\n\nSave this for when you need a reminder 📌\n\nDrop a "🔥" in the comments.\n\n${dualCta}`,
     },
     rain: {
       title: 'CLARITY IN THE STORM',
-      quoteLines: ['Comfort kills ambition.', 'Find your clarity', 'in the storm.', '', 'Keep moving.'],
-      caption: `CLARITY IN THE STORM ⚡\n\nHard times reveal who you really are. Embrace the pressure; that's where diamonds are formed.\n\nSave this for when you need a reminder 📌\n\nDrop a "🔥" if you agree.\n\n${dualCta}`,
+      quoteLines: ['Storms do not last.', 'Resilience stays forever.', 'Find clarity in the chaos.', 'Keep driving forward.'],
+      caption: `CLARITY IN THE STORM ⚡\n\nHard times reveal who you really are. Embrace the pressure; that is where diamonds are forged.\n\nSave this for when you need a reminder 📌\n\nDrop a "🔥" if you agree.\n\n${dualCta}`,
     },
   };
 
@@ -512,10 +559,12 @@ export async function generateViralMotionReel(options?: ViralMotionReelOptions):
     isBurnedWithFfmpeg = false;
   }
 
-  // Clean up temporary overlay
-  try {
-    if (fs.existsSync(overlayPath)) fs.unlinkSync(overlayPath);
-  } catch {}
+  // Clean up temporary overlay ONLY if FFmpeg succeeded; if fallback to Cloudinary, keep it
+  if (isBurnedWithFfmpeg) {
+    try {
+      if (fs.existsSync(overlayPath)) fs.unlinkSync(overlayPath);
+    } catch {}
+  }
 
   return {
     success: true,
@@ -529,5 +578,6 @@ export async function generateViralMotionReel(options?: ViralMotionReelOptions):
     isBurnedWithFfmpeg,
     audioPath: localAudioPath,
     audioRemoteUrl,
+    overlayPngPath: !isBurnedWithFfmpeg && fs.existsSync(overlayPath) ? overlayPath : undefined,
   };
 }

@@ -347,7 +347,10 @@ export async function ensureTrendingAudioPoolFresh(): Promise<void> {
         try {
           console.log(`⏳ [TrendingAudioService] Syncing trending audio: ${track.name}...`);
           const res = await fetch(track.sourceUrl, {
-            headers: { 'User-Agent': 'Mozilla/5.0' },
+            headers: {
+              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+              'Referer': 'https://pixabay.com/',
+            },
           });
 
           if (res.ok) {
@@ -432,7 +435,12 @@ export async function resolveActiveViralAudio(category: ReelCategory): Promise<R
   // 3. Download directly on-demand into writable storage
   try {
     console.log(`📥 [TrendingAudioService] On-demand fetching: ${matchedItem.name}...`);
-    const res = await fetch(matchedItem.sourceUrl, { headers: { 'User-Agent': 'Mozilla/5.0' } });
+    const res = await fetch(matchedItem.sourceUrl, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Referer': 'https://pixabay.com/',
+      },
+    });
     if (res.ok) {
       const buffer = Buffer.from(await res.arrayBuffer());
       if (buffer.length > 20000) {
