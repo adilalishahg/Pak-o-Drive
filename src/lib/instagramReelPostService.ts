@@ -152,26 +152,31 @@ export async function uploadVideoToCdn(
 
       if (shouldApplyOverlay) {
         transformations = [
-          { width: 1080, height: 1920, crop: 'fill', gravity: 'center' },
+          { width: 1080, height: 1920, crop: 'fill', gravity: 'center', effect: 'brightness:-12' },
+          { effect: 'contrast:15' },
         ];
 
         const totalLines = filteredLines.length;
-        const lineHeight = 68;
+        const lineHeight = 76;
         // Position slightly above center to clear TikTok/Reels captions and bottom UI safe area
-        const startY = -35 - Math.floor(((totalLines - 1) * lineHeight) / 2);
-        const colors = ['#FFFFFF', '#FACC15', '#FFFFFF', '#00E5FF'];
+        const startY = -40 - Math.floor(((totalLines - 1) * lineHeight) / 2);
 
         filteredLines.forEach((line, idx) => {
           const cleanText = line.trim().replace(/\s+/g, ' ');
+          // High-contrast text with electric yellow highlight on punchlines
+          const isEmphasis = idx === 1 || (totalLines > 2 && idx === totalLines - 1);
+          const textColor = isEmphasis ? '#FDE047' : '#FFFFFF';
+
           transformations!.push({
             overlay: {
               font_family: 'Arial',
-              font_size: idx === 0 || idx === 1 ? 42 : 34,
+              font_size: 38,
               font_weight: 'bold',
               text: cleanText,
             },
-            color: colors[idx % colors.length],
-            border: '3px_solid_black',
+            color: textColor,
+            background: 'rgb:080C14', // Solid dark contrast highlight backdrop
+            radius: 14,                // Rounded pill corners (no ugly hollow borders)
             gravity: 'center',
             y: startY + idx * lineHeight,
           });

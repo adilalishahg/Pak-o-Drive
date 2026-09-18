@@ -92,6 +92,8 @@ export async function burnOverlayWithSharpAndFfmpeg(
 
   const overlaySvg = `
     <svg width="${WIDTH}" height="${HEIGHT}" viewBox="0 0 ${WIDTH} ${HEIGHT}" xmlns="http://www.w3.org/2000/svg">
+      <!-- Full-Frame Cinematic Dark Tint Overlay -->
+      <rect width="${WIDTH}" height="${HEIGHT}" fill="#000000" fill-opacity="0.18" />
       ${lineElements}
     </svg>
   `;
@@ -108,7 +110,7 @@ export async function burnOverlayWithSharpAndFfmpeg(
   const ffmpegBin = getFfmpegPath();
 
   const filterComplex = `
-    [0:v]scale=720:1280:force_original_aspect_ratio=increase,crop=720:1280,setsar=1[bg];
+    [0:v]scale=720:1280:force_original_aspect_ratio=increase,crop=720:1280,eq=brightness=-0.08:contrast=1.15:saturation=1.1,setsar=1[bg];
     [bg][1:v]overlay=0:0[v]
   `.replace(/\s+/g, ' ').trim();
 
@@ -389,6 +391,8 @@ export async function generateViralMotionReel(options?: ViralMotionReelOptions):
           ${fontStyle}
         </style>
       </defs>
+      <!-- Full-Frame Cinematic Dark Tint Overlay -->
+      <rect width="${WIDTH}" height="${HEIGHT}" fill="#000000" fill-opacity="0.18" />
       ${lineElements}
     </svg>
   `;

@@ -4,15 +4,16 @@ This file serves as persistent dynamic memory across coding agent sessions. Ever
 
 > 📦 **Historical Archive Notice**: Detailed operational entries, early prototypes, and historical setup steps from August 2026 have been archived to [`LEARNINGS_ARCHIVE.md`](./LEARNINGS_ARCHIVE.md) to keep this active knowledge base lean, token-efficient, and aligned with current Pak-o-Drive architecture.
 
-### 2026-09-18 — Instagram & TikTok Automated Reels: Contrast Highlight Pill Backdrop Fix
+### 2026-09-18 — Instagram & TikTok Automated Reels: Cloudinary Overlay Hollow Border Removal & Solid Highlight Fix
 - **📌 Issue**:
-  On automated TikTok & Instagram Reels, quote text overlay blended into bright video backgrounds (sunsets, city skylines, highway glare), making words difficult to read on mobile feeds.
+  On automated video reels uploaded via Cloudinary, text rendered with hollow black outline boxes (`border: '3px_solid_black'`) and completely lacked a solid background highlight, making quotes illegible on sunset/bright video backgrounds.
 - **🔍 Root Cause**:
-  SVG overlay text in `viralMotionReelEngine.ts`, `build-viral-moving-reels.js`, and `build-viral-reel.js` only used a thin 3px stroke with no background container or backdrop pills behind the text lines.
+  In `src/lib/instagramReelPostService.ts`, the Cloudinary transformation layer applied `border: '3px_solid_black'` without specifying `background` or `radius`, producing hollow wireframe rectangular borders around the text with no fill.
 - **🛠️ Verified Code Fix**:
-  1. **Dynamic Backdrop Highlight Pills**: Updated SVG generation to calculate individual text line widths and inject rounded backdrop rectangles (`<rect rx="12" fill="#090D16" fill-opacity="0.85" stroke="rgba(255,255,255,0.22)" stroke-width="1.2">`) behind each text line.
-  2. **High-Contrast Punchline Styling**: Styled bold 800-weight typography with pure white (`#FFFFFF`) and vibrant yellow accent (`#FDE047`) on punchline/emphasis sentences for instant 100% readability across any video background.
-  3. **Verification**: Executed `pnpm tsc --noEmit` passing with 0 errors and updated graph with `graft build`.
+  1. **Removed Hollow Borders**: Stripped `border: '3px_solid_black'` from Cloudinary overlay transformations in `instagramReelPostService.ts`.
+  2. **Solid Dark Highlight & Rounded Radius**: Configured `background: 'rgb:080C14'` and `radius: 14` on Cloudinary text overlays, producing clean, solid rounded dark pill highlights behind every line.
+  3. **High-Contrast Punchline Colors**: Added pure white (`#FFFFFF`) with electric yellow accent (`#FDE047`) on emphasis lines with expanded line height (`lineHeight: 76`).
+  4. **Verification**: Successfully generated and tested transformed Cloudinary video URLs (`b_rgb:080C14,co_rgb:FFFFFF,r_14,y_-154`), executed `pnpm tsc --noEmit` passing with 0 errors, and updated graph with `graft build`.
 
 ---
 
