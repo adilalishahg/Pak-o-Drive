@@ -63,7 +63,9 @@ Follow @digitalinspirer & @pakodrive.official for daily drive & automotive luxur
 export async function uploadVideoToCdn(
   videoFilePath: string,
   overlayQuoteLines?: string[],
-  isAlreadyBurned: boolean = false
+  isAlreadyBurned: boolean = false,
+  audioFilePath?: string,
+  audioRemoteUrl?: string
 ): Promise<string> {
   console.log(`📤 [InstagramReelService] Processing video for CDN: ${videoFilePath}...`);
 
@@ -143,11 +145,8 @@ export async function uploadVideoToCdn(
 
       const targetSource = fs.existsSync(videoFilePath) ? videoFilePath : publicFallbackUrl;
 
-      // Check if video requires dynamic text overlay (e.g. raw video from library/raw without FFmpeg burn)
-      const filteredLines = overlayQuoteLines
-        ? overlayQuoteLines.filter((l) => l && l.trim().length > 0)
-        : [];
-      const shouldApplyOverlay = !isAlreadyBurned && filteredLines.length > 0;
+      // Check if video requires dynamic cloud overlay (e.g. raw video without local FFmpeg burn)
+      const shouldApplyOverlay = !isAlreadyBurned && (filteredLines.length > 0 || Boolean(audioFilePath || audioRemoteUrl));
 
       let transformations: any[] | undefined = undefined;
 
@@ -182,6 +181,40 @@ export async function uploadVideoToCdn(
             y: startY + idx * lineHeight,
           });
         });
+
+        // Layer background trending audio if not already burned into video
+        let audioPublicId: string | null = null;
+        if (audioFilePath && fs.existsSync(audioFilePath)) {
+          try {
+            console.log(`🎵 [InstagramReelService] Pre-uploading background audio to Cloudinary: ${path.basename(audioFilePath)}...`);
+            const audioUpload = await cloudinary.uploader.upload(audioFilePath, {
+              resource_type: 'video',
+              folder: 'instagram_reels/audio',
+            });
+            audioPublicId = audioUpload.public_id;
+          } catch (aErr: any) {
+            console.warn(`⚠️ [InstagramReelService] Cloudinary local audio upload failed: ${aErr.message}`);
+          }
+        } else if (audioRemoteUrl) {
+          try {
+            console.log(`🎵 [InstagramReelService] Pre-uploading remote audio to Cloudinary: ${audioRemoteUrl}...`);
+            const audioUpload = await cloudinary.uploader.upload(audioRemoteUrl, {
+              resource_type: 'video',
+              folder: 'instagram_reels/audio',
+            });
+            audioPublicId = audioUpload.public_id;
+          } catch (aErr: any) {
+            console.warn(`⚠️ [InstagramReelService] Cloudinary remote audio upload failed: ${aErr.message}`);
+          }
+        }
+
+        if (audioPublicId) {
+          console.log(`✓ [InstagramReelService] Audio layer attached to Cloudinary video: ${audioPublicId}`);
+          transformations.push({
+            overlay: `video:${audioPublicId.replace(/\//g, ':')}`,
+            flags: 'layer_apply',
+          });
+        }
       }
 
       console.log(
@@ -345,6 +378,8 @@ export async function executeAutoInstagramReelPost(options?: {
   let caption = '';
 
   let reelQuoteLines: string[] | undefined = undefined;
+  let audioPath: string | undefined = undefined;
+  let audioRemoteUrl: string | undefined = undefined;
 
   let isBurnedWithFfmpeg = false;
 
@@ -361,6 +396,8 @@ export async function executeAutoInstagramReelPost(options?: {
     reelQuoteLines = motionResult.quoteLines;
     caption = motionResult.caption || (await generateViralUkCaption(toolName));
     isBurnedWithFfmpeg = motionResult.isBurnedWithFfmpeg ?? false;
+    audioPath = motionResult.audioPath;
+    audioRemoteUrl = motionResult.audioRemoteUrl;
   } else {
     console.log('🎬 [InstagramReelService] Step 1: Generating cinematic AI video...');
     const videoResult = await generateCinematicVideo({
@@ -382,7 +419,13 @@ export async function executeAutoInstagramReelPost(options?: {
 
   // Step 2: Upload Video to Public CDN (with Cloudinary Cloud Synthesis Overlay support)
   console.log('☁️ [InstagramReelService] Step 2: Uploading video to CDN for social ingestion...');
-  const publicVideoUrl = await uploadVideoToCdn(videoPath, reelQuoteLines, isBurnedWithFfmpeg);
+  const publicVideoUrl = await uploadVideoToCdn(
+    videoPath,
+    reelQuoteLines,
+    isBurnedWithFfmpeg,
+    audioPath,
+    audioRemoteUrl
+  );
 
   // Check UK Peak Hour status
   const ukTimeInfo = getUkTimeInfo();
