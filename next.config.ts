@@ -29,6 +29,9 @@ const nextConfig: NextConfig = {
       'node_modules/@swc/core-linux-x64-gnu',
       'node_modules/@swc/core-linux-x64-musl',
       'node_modules/esbuild-linux-64',
+      'public/img/viral-reels/**/*',
+      'public/audio/**/*',
+      'public/viral-preview-*.mp4',
     ],
   },
   turbopack: {

@@ -11,6 +11,7 @@ import {
   CATEGORIES_CONFIG,
 } from './reelCategoryLibrary';
 import { resolveActiveViralAudio } from './trendingAudioService';
+import { INTER_BOLD_BASE64 } from './fonts/fontBase64';
 
 // Direct path to ffmpeg
 export function getFfmpegPath(): string {
@@ -115,9 +116,9 @@ export async function burnOverlayWithSharpAndFfmpeg(
     [bg][1:v]overlay=0:0[v]
   `.replace(/\s+/g, ' ').trim();
 
-  const absSource = path.resolve(process.cwd(), sourceVideoPath);
-  const absOverlay = path.resolve(process.cwd(), overlayPath);
-  const absOutput = path.resolve(process.cwd(), outputPath);
+  const absSource = path.isAbsolute(sourceVideoPath) ? sourceVideoPath : path.resolve(sourceVideoPath);
+  const absOverlay = overlayPath;
+  const absOutput = outputPath;
 
   const cmd = `"${ffmpegBin}" -y -i "${absSource}" -i "${absOverlay}" -filter_complex "${filterComplex}" -map "[v]" -map 0:a? -c:v libx264 -preset fast -crf 22 -pix_fmt yuv420p -t ${durationSeconds} "${absOutput}"`;
 
@@ -347,7 +348,7 @@ Output ONLY valid JSON with no markdown backticks:
  */
 async function ensureLocalVideoFile(sourceVideoPath: string): Promise<string> {
   // 1. Direct local path in project
-  const absDirect = path.resolve(process.cwd(), sourceVideoPath);
+  const absDirect = path.isAbsolute(sourceVideoPath) ? sourceVideoPath : path.resolve(sourceVideoPath);
   if (fs.existsSync(absDirect) && fs.statSync(absDirect).size > 50000) {
     return absDirect;
   }
@@ -441,11 +442,7 @@ export async function generateViralMotionReel(options?: ViralMotionReelOptions):
   console.log(`🎵 [ViralMotionReel] Active weekly trending audio for [${category}]: "${audioName}" (${path.basename(localAudioPath)})`);
 
   // Load font base64 for crisp serverless rendering
-  let fontBase64 = '';
-  const fontPath = path.resolve(process.cwd(), 'src/lib/fonts/Inter-Bold.ttf');
-  if (fs.existsSync(fontPath)) {
-    fontBase64 = fs.readFileSync(fontPath).toString('base64');
-  }
+  const fontBase64 = INTER_BOLD_BASE64 || '';
 
   // Generate SVG overlay with contrast highlight pill backdrops
   const filteredLines = quoteLines.filter(l => l.trim().length > 0);
@@ -539,8 +536,8 @@ export async function generateViralMotionReel(options?: ViralMotionReelOptions):
   `.replace(/\s+/g, ' ').trim();
 
   const absAudio = localAudioPath;
-  const absOverlay = path.resolve(process.cwd(), overlayPath);
-  const absOutput = path.resolve(process.cwd(), outputPath);
+  const absOverlay = overlayPath;
+  const absOutput = outputPath;
   const cmd = `"${ffmpegBin}" -y -stream_loop -1 -i "${absSource}" -i "${absOverlay}" -i "${absAudio}" -filter_complex "${filterComplex}" -map "[v]" -map 2:a -c:v libx264 -preset fast -crf 22 -pix_fmt yuv420p -c:a aac -b:a 192k -t ${duration} "${absOutput}"`;
 
   let finalVideoPath = absOutput;
