@@ -54,31 +54,31 @@ const DAY_CATEGORY_MAP: Record<number, ReelCategory> = {
 
 export const CATEGORY_VIDEOS: Record<ReelCategory, string[]> = {
   beach: [
-    'public/img/viral-reels/library/beach/calm-ocean-waves.mp4',
-    'public/img/viral-reels/library/beach/sunrise-beach-coast.mp4',
-    'public/img/viral-reels/library/beach/waves-ocean-moody.mp4',
+    'https://cdn.coverr.co/videos/coverr-calm-waves-in-an-ocean-gulf-4513/1080p.mp4',
+    'https://cdn.coverr.co/videos/coverr-waves-in-the-ocean-9488/1080p.mp4',
+    'https://cdn.coverr.co/videos/coverr-sunrise-on-the-beach-9704/1080p.mp4',
   ],
   buildings: [
-    'public/img/viral-reels/library/buildings/houston-night-skyline.mp4',
-    'public/img/viral-reels/library/buildings/manhattan-skyline.mp4',
-    'public/img/viral-reels/library/buildings/timelapse-night-cityscape.mp4',
+    'https://cdn.coverr.co/videos/coverr-houston-texas-at-night-4130/1080p.mp4',
+    'https://cdn.coverr.co/videos/coverr-manhattan-skyline-7479/1080p.mp4',
+    'https://cdn.coverr.co/videos/coverr-temp-zna6gen-3-alpha-2777358279-a-dynamic-time-lapse-mp4-5453/1080p.mp4',
   ],
   nature: [
-    'public/img/viral-reels/library/nature/above-misty-forest.mp4',
-    'public/img/viral-reels/library/nature/misty-mountains.mp4',
-    'public/img/viral-reels/library/nature/waterfall-near-road.mp4',
+    'https://cdn.coverr.co/videos/coverr-above-a-misty-forest-518/1080p.mp4',
+    'https://cdn.coverr.co/videos/coverr-misty-mountains-in-sao-vicente-portugal-3617/1080p.mp4',
+    'https://cdn.coverr.co/videos/coverr-waterfall-near-a-road-6235/1080p.mp4',
   ],
   rain: [
-    'public/img/viral-reels/library/rain/misty-forest-drive.mp4',
-    'public/img/viral-reels/library/rain/storm-city-rain.mp4',
+    'https://cdn.coverr.co/videos/coverr-woman-driving-through-a-misty-forest-7158/1080p.mp4',
+    'https://cdn.coverr.co/videos/coverr-storm-in-vilnius-lithuania-5273/1080p.mp4',
   ],
   roads: [
-    'public/img/viral-reels/library/roads/black-suv-road.mp4',
-    'public/img/viral-reels/raw/nissan-300zx.mp4',
+    'https://cdn.coverr.co/videos/coverr-black-suv-on-the-road-4297/1080p.mp4',
+    'https://cdn.coverr.co/videos/coverr-woman-driving-through-a-misty-forest-7158/1080p.mp4',
   ],
   sky: [
-    'public/img/viral-reels/library/sky/airplane-window-clouds.mp4',
-    'public/img/viral-reels/library/sky/pink-sunset-clouds.mp4',
+    'https://cdn.coverr.co/videos/coverr-view-of-a-city-from-plane-window-6971/1080p.mp4',
+    'https://cdn.coverr.co/videos/coverr-pink-sunset-timelapse-4178/1080p.mp4',
   ],
 };
 
@@ -130,7 +130,8 @@ export function getActiveReelCategory(customCategory?: string): ReelCategory {
   let lastCategory: ReelCategory | null = null;
   if (lastUsed) {
     for (const cat of allCategories) {
-      if (lastUsed.includes(`/${cat}/`)) {
+      const pool = CATEGORY_VIDEOS[cat] || [];
+      if (lastUsed.includes(`/${cat}/`) || pool.includes(lastUsed)) {
         lastCategory = cat;
         break;
       }
@@ -151,7 +152,7 @@ export function getActiveReelCategory(customCategory?: string): ReelCategory {
 
 /**
  * Selects an unrepeated video from the given category library
- * Works seamlessly on Vercel Serverless (using static verified inventory) and local dev
+ * Works seamlessly on Vercel Serverless (using static verified CDN inventory) and local dev
  */
 export function selectUniqueVideoFromCategory(category: ReelCategory): {
   videoPath: string;
@@ -161,7 +162,7 @@ export function selectUniqueVideoFromCategory(category: ReelCategory): {
   const config = CATEGORIES_CONFIG[category];
   const staticPool = CATEGORY_VIDEOS[category] || CATEGORY_VIDEOS.roads;
 
-  // 1. Try reading local directory if on disk
+  // 1. Try reading local directory if on disk (local development override)
   const baseDir = path.join('public', 'img', 'viral-reels', 'library', category);
   let files: string[] = [];
   try {
@@ -170,8 +171,8 @@ export function selectUniqueVideoFromCategory(category: ReelCategory): {
     }
   } catch {}
 
-  // 2. If on serverless where public/ is hosted on CDN, use verified static library pool
-  const candidatePool = files.length > 0 ? files : staticPool;
+  // 2. Prioritize staticPool (high-speed CDN/Cloudinary) so Vercel deployment remains super light
+  const candidatePool = staticPool && staticPool.length > 0 ? staticPool : (files.length > 0 ? files : ['https://cdn.coverr.co/videos/coverr-black-suv-on-the-road-4297/1080p.mp4']);
   const history = getUsageHistory();
 
   // Find videos not used recently

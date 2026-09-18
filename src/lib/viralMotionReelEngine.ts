@@ -382,7 +382,9 @@ async function ensureLocalVideoFile(sourceVideoPath: string): Promise<string> {
   }
 
   // 2. Check writable /tmp cache
-  const filename = path.basename(sourceVideoPath);
+  const filename = sourceVideoPath.startsWith('http')
+    ? (sourceVideoPath.split('/').filter(Boolean).slice(-2).join('-').replace(/[?#].*$/, '') || 'reel-source.mp4')
+    : path.basename(sourceVideoPath);
   const tmpDir = path.join(os.tmpdir(), 'viral_video_cache');
   if (!fs.existsSync(tmpDir)) {
     try { fs.mkdirSync(tmpDir, { recursive: true }); } catch {}
@@ -392,7 +394,7 @@ async function ensureLocalVideoFile(sourceVideoPath: string): Promise<string> {
     return tmpPath;
   }
 
-  // 3. Download from site CDN on-demand
+  // 3. Download from remote CDN / Cloudinary or site on-demand
   const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.pakodrive.pk').replace(/\/$/, '');
   const cleanRelative = sourceVideoPath.replace(/^.*?public[/\\]/, '').replace(/\\/g, '/').replace(/^\//, '');
   const downloadUrl = sourceVideoPath.startsWith('http') ? sourceVideoPath : `${siteUrl}/${cleanRelative}`;

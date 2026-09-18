@@ -86,3 +86,8 @@ public/generated_test_pdfs/
 
 pdf_samples/
 
+# Large raw video assets (streamed directly from high-speed CDN / Cloudinary into serverless /tmp)
+public/img/viral-reels/library/**/*.mp4
+public/img/viral-reels/raw/**/*.mp4
+public/viral-preview-*.mp4
+

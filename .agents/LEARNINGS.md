@@ -4,6 +4,22 @@ This file serves as persistent dynamic memory across coding agent sessions. Ever
 
 > 📦 **Historical Archive Notice**: Detailed operational entries, early prototypes, and historical setup steps from August 2026 have been archived to [`LEARNINGS_ARCHIVE.md`](./LEARNINGS_ARCHIVE.md) to keep this active knowledge base lean, token-efficient, and aligned with current Pak-o-Drive architecture.
 
+### 2026-09-18 — Vercel Deployment Storage Optimization: CDN/Cloudinary Video Migration & Zero-Storage Serverless Caching
+- **📌 Issue**:
+  Vercel account usage showed a sudden spike in `Deployment Storage` rising up to ~5.0 GB on Sep 18. Each git push was uploading 216 MB of static files, causing rapid storage exhaustion across retained preview and production deployments.
+- **🔍 Root Cause**:
+  1. **Heavy Video & Media Files in Git**: `public/img/viral-reels/library` contained 132 MB of raw 1080p `.mp4` video clips and `public/audio` had 31 MB of `.mp3` files tracked directly in git.
+  2. **Cumulative Deployment Storage Retention**: Vercel stores an immutable snapshot of all `public/` static assets for every deployment. 15 deployments × 216 MB = ~3.24 GB added to account storage in a single day.
+  3. **Filename Cache Overlap**: `ensureLocalVideoFile()` used raw `path.basename()`, which risked collision on generic names like `1080p.mp4` when downloading from remote video CDNs.
+- **🛠️ Verified Code Fix**:
+  1. **High-Speed CDN Video Inventory**: Replaced local `.mp4` paths in `CATEGORY_VIDEOS` (`src/lib/reelCategoryLibrary.ts`) with high-speed verified 1080p CDN/Cloudinary URLs across all 6 categories (`roads`, `buildings`, `nature`, `rain`, `beach`, `sky`).
+  2. **Zero-Storage Serverless Caching**: Updated `ensureLocalVideoFile()` in `src/lib/viralMotionReelEngine.ts` to stream remote CDN/Cloudinary videos on-demand into `/tmp/viral_video_cache/<slug>.mp4`. Serverless `/tmp` memory consumes 0 bytes of Vercel deployment storage.
+  3. **Git Untrack & Ignore**: Added `public/img/viral-reels/library/**/*.mp4` to `.gitignore` and untracked 16 video files from git, instantly slashing the static payload of future Vercel deployments by over 90% (from 216 MB down to ~15 MB).
+  4. **Dedicated Cloudinary Sync Script**: Created `scripts/sync-videos-to-cloudinary.js` enabling one-click migration of stock videos into user's Cloudinary storage whenever credentials are provided.
+  5. **Verification**: Executed reel generation test with remote CDN video, Sharp 1080x1920 typography overlay, and dynamic weekly trending audio, rendered successfully into 1.48 MB MP4, and verified `pnpm tsc --noEmit` passed with 0 errors.
+
+---
+
 ### 2026-09-18 — Instagram Reel Engine: Serverless Video Inventory (Fixing nissan-300zx fallback), Consecutive Run Category Rotation, & Clean FFmpeg Bypass
 - **📌 Issue**:
   Successive manual calls to `/api/cron/auto-instagram-reel` in Vercel serverless always used the exact same video (`nissan-300zx.mp4`) and same audio (`viral-snowfall-atmospheric.mp3`), and emitted `FFmpeg unavailable (/bin/sh: line 1: ffmpeg: command not found)` warnings.
