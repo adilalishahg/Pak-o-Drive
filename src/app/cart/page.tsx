@@ -66,20 +66,23 @@ export default function CartPage() {
         <div style={{ background: '#fff', borderRadius: '12px', overflow: 'hidden', marginBottom: '12px' }}>
           {cart.map((item, idx) => {
             const prod = item.product;
-            const id = (prod as any).slug || (prod._id ? prod._id.toString() : '');
+            const productId = prod._id ? prod._id.toString() : (prod as any).slug || '';
+            const slug = (prod as any).slug || productId;
             const variantId = item.variant?._id;
             const itemPrice = item.variant ? item.variant.price : prod.price;
             const itemImage = item.variant?.image || prod.image || '/img/product-placeholder.png';
-            const stockLimit = item.variant !== undefined ? item.variant.stock : prod.stock;
+            const rawStock = item.variant !== undefined ? item.variant.stock : prod.stock;
+            const isStockEnforced = typeof rawStock === 'number' && rawStock > 0;
+            const isMaxStockReached = isStockEnforced && item.quantity >= rawStock;
 
             return (
-              <div key={`${id}_${variantId || ''}`} style={{
+              <div key={`${productId}_${variantId || ''}`} style={{
                 display: 'flex', gap: '12px', padding: '14px',
                 borderBottom: idx < cart.length - 1 ? '1px solid #f0f0f0' : 'none',
                 alignItems: 'flex-start',
               }}>
                 {/* Image */}
-                <Link href={`/product/${id}`} scroll={true} style={{ flexShrink: 0, display: 'block' }}>
+                <Link href={`/product/${slug}`} scroll={true} style={{ flexShrink: 0, display: 'block' }}>
                   <div style={{ width: '80px', height: '80px', borderRadius: '8px', background: '#f5f5f5', position: 'relative', overflow: 'hidden' }}>
                     <OptimizedImage src={itemImage} alt={prod.name} fill
                       sizes="80px" style={{ objectFit: 'contain', padding: '4px' }}
@@ -90,7 +93,7 @@ export default function CartPage() {
 
                 {/* Details */}
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <Link href={`/product/${id}`} scroll={true} style={{ textDecoration: 'none' }}>
+                  <Link href={`/product/${slug}`} scroll={true} style={{ textDecoration: 'none' }}>
                     <p style={{ margin: '0 0 4px', fontWeight: 700, fontSize: '0.85rem', color: '#111',
                       overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {prod.name}
@@ -110,31 +113,58 @@ export default function CartPage() {
 
                   {/* Qty controls */}
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0' }}>
-                    <button onClick={() => updateQuantity(id, item.quantity - 1, variantId)} disabled={item.quantity <= 1}
+                    <button
+                      type="button"
+                      onClick={() => updateQuantity(productId, item.quantity - 1, variantId)}
+                      disabled={item.quantity <= 1}
+                      aria-label="Decrease quantity"
                       style={{
-                        width: '32px', height: '32px', border: '1px solid #e5e7eb',
+                        width: '36px', height: '36px', minWidth: '36px', minHeight: '36px',
+                        border: '1px solid #e5e7eb',
                         borderRadius: '6px 0 0 6px', background: '#f9fafb',
                         cursor: item.quantity <= 1 ? 'not-allowed' : 'pointer',
-                        fontSize: '1rem', color: '#374151', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      }}>−</button>
+                        fontSize: '1.1rem', color: item.quantity <= 1 ? '#9ca3af' : '#374151',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent',
+                        userSelect: 'none',
+                      }}
+                    >−</button>
                     <span style={{
-                      width: '40px', height: '32px', border: '1px solid #e5e7eb', borderLeft: 'none', borderRight: 'none',
+                      width: '42px', height: '36px', border: '1px solid #e5e7eb', borderLeft: 'none', borderRight: 'none',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontSize: '0.88rem', fontWeight: 700, color: '#111',
+                      fontSize: '0.9rem', fontWeight: 700, color: '#111', background: '#fff',
+                      userSelect: 'none',
                     }}>{item.quantity}</span>
-                    <button onClick={() => updateQuantity(id, item.quantity + 1, variantId)} disabled={stockLimit >= 0 && item.quantity >= stockLimit}
+                    <button
+                      type="button"
+                      onClick={() => updateQuantity(productId, item.quantity + 1, variantId)}
+                      disabled={isMaxStockReached}
+                      aria-label="Increase quantity"
                       style={{
-                        width: '32px', height: '32px', border: '1px solid #e5e7eb',
+                        width: '36px', height: '36px', minWidth: '36px', minHeight: '36px',
+                        border: '1px solid #e5e7eb',
                         borderRadius: '0 6px 6px 0', background: '#f9fafb',
-                        cursor: (stockLimit >= 0 && item.quantity >= stockLimit) ? 'not-allowed' : 'pointer',
-                        fontSize: '1rem', color: '#374151', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      }}>+</button>
+                        cursor: isMaxStockReached ? 'not-allowed' : 'pointer',
+                        fontSize: '1.1rem', color: isMaxStockReached ? '#9ca3af' : '#374151',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent',
+                        userSelect: 'none',
+                      }}
+                    >+</button>
                   </div>
                 </div>
 
                 {/* Remove */}
-                <button onClick={() => removeFromCart(id, variantId)}
-                  style={{ flexShrink: 0, background: 'none', border: 'none', cursor: 'pointer', padding: '4px', color: '#ef4444', marginTop: '2px' }}>
+                <button
+                  type="button"
+                  onClick={() => removeFromCart(productId, variantId)}
+                  aria-label="Remove item from cart"
+                  style={{
+                    flexShrink: 0, background: 'none', border: 'none',
+                    cursor: 'pointer', padding: '8px', color: '#ef4444',
+                    marginTop: '2px', touchAction: 'manipulation',
+                  }}
+                >
                   <i className="fas fa-trash-alt" style={{ fontSize: '15px' }} />
                 </button>
               </div>

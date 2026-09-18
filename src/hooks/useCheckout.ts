@@ -20,7 +20,7 @@ const STORAGE_KEY = 'pakodrive_saved_profile';
 
 export function useCheckout() {
   const router = useRouter();
-  const { cart, cartTotal, clearCart } = useCart();
+  const { cart, cartTotal, clearCart, updateQuantity, removeFromCart } = useCart();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -337,5 +337,7 @@ export function useCheckout() {
     applyPhoneSuggestedProfile,
     dismissPhoneSuggestedProfile,
     isHydrated,
+    updateQuantity,
+    removeFromCart,
   };
 }

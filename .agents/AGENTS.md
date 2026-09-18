@@ -53,6 +53,30 @@ This repository contains the full-stack Pak-o-Drive application. All work must f
 
 ---
 
+## ⚡ Fast & Lean Execution Directives (High-Speed Mode)
+
+To maximize Antigravity's responsiveness and eliminate latency:
+
+1. **No Unsolicited Planning**:
+   - **NEVER** create `implementation_plan.md` or block on planning mode for bug fixes, tweaks, refactors, or straightforward features unless the user explicitly types "create a plan" or asks for architectural review.
+   - Execute immediately: inspect line -> edit chunk -> verify -> reply.
+
+2. **No Bloated Essays or Lengthy Reports**:
+   - Strictly avoid long introductory fluff, boilerplate explanations, or multi-page summary reports.
+   - Give direct, concise answers with actionable links: `[file:line](file:///path#L10)`.
+
+3. **Surgical Context Inspection (Zero File Dumps)**:
+   - **NEVER** read whole 500+ line files at once. Always slice with `StartLine`/`EndLine` or query `graft ask` / `graft skeleton`.
+   - Never grep whole node_modules or output huge logs.
+
+4. **Targeted Chunk Diffing Only**:
+   - Always use `replace_file_content` targeting the exact 5-15 lines needing changes. Never overwrite entire files.
+
+5. **Instant Verification & Turn Handoff**:
+   - Run verification (e.g. `tsc`) swiftly in the background or synchronous check, fix any breakages immediately, and return control to the user with a brief 2-3 line confirmation.
+
+---
+
 ## Dynamic Memory & Changelog Directive
 - Update `.agents/LEARNINGS.md` in 3-bullet resolution format (`Issue`, `Root Cause`, `Verified Fix`) with date-stamped entries on every completed task.
 - Run `graft build` after architectural or knowledge updates to ensure the graph and code build pass with 0 errors.

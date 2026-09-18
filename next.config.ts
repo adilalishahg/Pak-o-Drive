@@ -24,6 +24,13 @@ const nextConfig: NextConfig = {
   outputFileTracingIncludes: {
     '/api/**/*': ['./src/lib/fonts/**/*', './fonts/**/*'],
   },
+  outputFileTracingExcludes: {
+    '*': [
+      'node_modules/@swc/core-linux-x64-gnu',
+      'node_modules/@swc/core-linux-x64-musl',
+      'node_modules/esbuild-linux-64',
+    ],
+  },
   turbopack: {
     resolveAlias: {
       'core-js/stable': { browser: './src/lib/empty-polyfills.js' },

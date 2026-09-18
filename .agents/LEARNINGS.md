@@ -4,6 +4,48 @@ This file serves as persistent dynamic memory across coding agent sessions. Ever
 
 > 📦 **Historical Archive Notice**: Detailed operational entries, early prototypes, and historical setup steps from August 2026 have been archived to [`LEARNINGS_ARCHIVE.md`](./LEARNINGS_ARCHIVE.md) to keep this active knowledge base lean, token-efficient, and aligned with current Pak-o-Drive architecture.
 
+### 2026-09-18 — Vercel Functions Storage Optimization & Automated CLI Cleanup
+- **📌 Issue**:
+  Vercel Hobby Tier Functions Storage breached the 10 GB limit (14.76 GB consumed), raising storage warnings while preserving automated Upstash video synthesis cron jobs and text overlay burning.
+- **🔍 Root Cause**:
+  1. Cumulative storage retention across numerous historical preview and previous production deployments stored gigabytes of archived serverless function snapshots.
+  2. Next.js server function tracing included redundant platform compiler binaries (`@swc`, `esbuild`) across serverless endpoints.
+- **🛠️ Verified Code Fix**:
+  1. **Next.js Bundle Tracing Filter**: Added `outputFileTracingExcludes` for SWC and esbuild platform binaries in `next.config.ts`, while explicitly preserving `@ffmpeg-installer`, `@ffprobe-installer`, `sharp`, and font assets so Upstash cron text-overlay video generation continues seamlessly.
+  2. **Automated Vercel Deployment Cleanup**: Created `scripts/clean-vercel-deployments.mjs` allowing automated 1-command bulk deletion of all old/preview deployments via Vercel REST API while strictly safeguarding the active production deployment.
+  3. **Verification**: Executed `pnpm tsc --noEmit` passing with 0 errors and updated context graph via `graft build`.
+
+---
+
+### 2026-09-18 — Mobile Cart & Checkout: Product Quantity Stepper & Identifier Normalization Fix
+- **📌 Issue**:
+  1. On mobile devices, users were unable to increase or decrease product quantity in the shopping cart (`/cart`).
+  2. On the 1-Click Cash On Delivery checkout page (`/checkout`), users had no ability to increase, decrease, or remove items in their order summary.
+- **🔍 Root Cause**:
+  1. In `src/app/cart/page.tsx`, `updateQuantity` was passed `prod.slug` (due to `(prod as any).slug || prod._id`), while `CartContext.tsx` strictly performed identity check `item.product._id === productId`. Because slug never matched MongoDB ObjectId, quantity mutations silently failed to locate the item. Additionally, `disabled={stockLimit >= 0 && item.quantity >= stockLimit}` disabled increment when stock was 0 or unconfigured.
+  2. `src/app/checkout/page.tsx` rendered items in Order Summary with static badges (`{item.quantity}x`) without exposing any quantity modification controls or remove action, and `useCheckout` did not expose cart mutation methods.
+- **🛠️ Verified Code Fix**:
+  1. **Flexible Product Matching**: Updated `CartContext.tsx` `removeFromCart` and `updateQuantity` using `isItemMatch()` helper that checks both `_id` and `slug` for robust matching across legacy and newly added cart items.
+  2. **Cart Page Stepper & Touch Target**: Updated `src/app/cart/page.tsx` to pass normalized `productId`, enforce stock limits only when positive (`typeof rawStock === 'number' && rawStock > 0`), and added `type="button"` with `touchAction: 'manipulation'` on 36px touch targets.
+  3. **Checkout Order Summary Stepper**: Extended `useCheckout` to expose `updateQuantity` and `removeFromCart` (Rule 8 Zero Logic in UI), and added an interactive, touch-friendly `[ - ] [ Qty ] [ + ]` quantity stepper and remove button to each item card in `CheckoutPage`.
+  4. **Verification**: Ran `pnpm tsc --noEmit` passing with 0 errors and rebuilt context graph with `graft build`.
+
+---
+
+### 2026-09-17 — Product Detail & List View: Low-Contrast Color Mismatch & Add Button Styling Fix
+- **📌 Issue**:
+  1. On product detail page (`ProductDetailInteractive.tsx`), title text rendered in white (`dark:text-slate-50`) on light background, making it invisible. Price box, localized trust badges, delivery timeline, and technical specifications rendered in solid dark gray containers (`dark:bg-slate-800`) with unreadable text.
+  2. In product list view (`ProductCardList.tsx`), the bottom right "Add" button rendered as a squished/rounded orange circle blob.
+- **🔍 Root Cause**:
+  1. `dark:` Tailwind utility classes in `ProductDetailInteractive.tsx` fired when user's OS/browser had Dark Mode enabled, while the store layout background remained light, creating low-contrast white text and dark gray box mismatches.
+  2. `btn-gradient` class applied `border-radius: var(--pd-btn-radius) !important` (50px pill radius), forcing compact buttons into circular blobs on narrow mobile viewports.
+- **🛠️ Verified Code Fix**:
+  1. **Clean High-Contrast Product Details**: Removed conflicting `dark:` classes from `ProductDetailInteractive.tsx`. Set product title to `text-slate-900 font-extrabold`. Styled price box with `bg-orange-50/70 border border-orange-200/80 rounded-xl` and price in `text-orange-600 font-black`. Cleaned trust badges to `bg-white border border-slate-200/80` with sharp `text-slate-900` titles and `text-slate-500` descriptions.
+  2. **Rectangular Add Button in List View**: Refactored Add button in `ProductCardList.tsx` with explicit `borderRadius: '12px'`, `minWidth: '76px'`, and `bg-gradient-to-r from-orange-600 to-amber-600`, preventing pill/circle distortion.
+  3. **Verification**: Executed `pnpm tsc --noEmit` passing with 0 errors and updated `graft build`.
+
+---
+
 ### 2026-09-17 — Instagram & TikTok Reel Auto-Post: Missing Text Overlay Fix
 - **📌 Issue**:
   Recent automated Instagram Reels & TikTok posts contained only raw background video without any quote/text overlay.

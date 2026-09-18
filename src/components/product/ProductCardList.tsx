@@ -185,7 +185,8 @@ export const ProductCardList: React.FC<ProductCardListProps> = ({ product, prior
               type="button"
               onClick={handleAddToCart}
               disabled={adding}
-              className="btn-gradient product-card-btn flex-shrink-0 flex items-center justify-center gap-1.5 px-3 sm:px-4 py-1.5 sm:py-2 !rounded-xl text-[11px] sm:text-xs font-bold shadow-sm hover:shadow-md transition-all active:scale-95 cursor-pointer border-0"
+              className="flex-shrink-0 inline-flex items-center justify-center gap-1.5 px-3 sm:px-4 py-1.5 sm:py-2 text-[11px] sm:text-xs font-bold text-white bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-700 hover:to-amber-700 shadow-sm hover:shadow-md transition-all active:scale-95 cursor-pointer border-0 select-none"
+              style={{ borderRadius: '12px', minWidth: '76px' }}
             >
               <i
                 className={`fas ${adding ? 'fa-check' : 'fa-shopping-cart'} text-[10px] sm:text-[11px]`}

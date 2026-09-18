@@ -27,6 +27,8 @@ export default function CheckoutPage() {
     applyPhoneSuggestedProfile,
     dismissPhoneSuggestedProfile,
     isHydrated,
+    updateQuantity,
+    removeFromCart,
   } = useCheckout();
 
   if (cart.length === 0) {
@@ -254,31 +256,116 @@ export default function CheckoutPage() {
                 </h3>
 
                 {/* Items List */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '16px', maxHeight: '240px', overflowY: 'auto' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '16px', maxHeight: '300px', overflowY: 'auto', paddingRight: '2px' }}>
                   {cart.map(item => {
                     const price = item.variant ? item.variant.price : item.product.price;
                     const variantId = item.variant?._id || '';
+                    const prod = item.product;
+                    const productId = prod._id ? prod._id.toString() : (prod as any).slug || '';
+                    const rawStock = item.variant !== undefined ? item.variant.stock : prod.stock;
+                    const isStockEnforced = typeof rawStock === 'number' && rawStock > 0;
+                    const isMaxStockReached = isStockEnforced && item.quantity >= rawStock;
+
                     return (
-                      <div key={`${item.product._id}_${variantId}`} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.84rem', alignItems: 'center', gap: '8px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', overflow: 'hidden' }}>
-                          <span style={{
-                            background: '#f1f5f9', color: '#475569', fontSize: '0.72rem',
-                            fontWeight: 700, padding: '2px 6px', borderRadius: '4px', flexShrink: 0,
-                          }}>
-                            {item.quantity}x
-                          </span>
-                          <span style={{ color: '#1e293b', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                            {item.product.name}
+                      <div
+                        key={`${productId}_${variantId}`}
+                        style={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '6px',
+                          padding: '8px 10px',
+                          background: '#f8fafc',
+                          borderRadius: '8px',
+                          border: '1px solid #f1f5f9',
+                        }}
+                      >
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px' }}>
+                          <span style={{ color: '#1e293b', fontWeight: 600, fontSize: '0.84rem', lineHeight: '1.3' }}>
+                            {prod.name}
                             {item.variant && (
-                              <span style={{ color: '#64748b', fontSize: '0.76rem', marginLeft: '4px' }}>
+                              <span style={{ color: '#64748b', fontSize: '0.75rem', marginLeft: '4px' }}>
                                 ({item.variant.name})
                               </span>
                             )}
                           </span>
+                          <span style={{ fontWeight: 700, color: '#0f172a', fontSize: '0.86rem', flexShrink: 0 }}>
+                            Rs. {(price * item.quantity).toLocaleString()}
+                          </span>
                         </div>
-                        <span style={{ fontWeight: 700, color: '#0f172a', flexShrink: 0 }}>
-                          Rs. {(price * item.quantity).toLocaleString()}
-                        </span>
+
+                        {/* Quantity Stepper & Actions */}
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '2px' }}>
+                          <span style={{ fontSize: '0.74rem', color: '#64748b' }}>
+                            Rs. {price.toLocaleString()} each
+                          </span>
+
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <div style={{
+                              display: 'flex', alignItems: 'center',
+                              border: '1px solid #cbd5e1', borderRadius: '6px',
+                              background: '#fff', overflow: 'hidden',
+                            }}>
+                              <button
+                                type="button"
+                                onClick={() => updateQuantity(productId, item.quantity - 1, variantId)}
+                                disabled={item.quantity <= 1}
+                                aria-label="Decrease quantity"
+                                style={{
+                                  width: '30px', height: '30px', minWidth: '30px', minHeight: '30px',
+                                  border: 'none', background: '#f1f5f9',
+                                  cursor: item.quantity <= 1 ? 'not-allowed' : 'pointer',
+                                  fontSize: '1rem', color: item.quantity <= 1 ? '#94a3b8' : '#1e293b',
+                                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                  fontWeight: 700, touchAction: 'manipulation',
+                                  userSelect: 'none',
+                                }}
+                              >
+                                −
+                              </button>
+                              <span style={{
+                                width: '32px', textAlign: 'center',
+                                fontSize: '0.84rem', fontWeight: 700, color: '#0f172a',
+                                userSelect: 'none',
+                              }}>
+                                {item.quantity}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => updateQuantity(productId, item.quantity + 1, variantId)}
+                                disabled={isMaxStockReached}
+                                aria-label="Increase quantity"
+                                style={{
+                                  width: '30px', height: '30px', minWidth: '30px', minHeight: '30px',
+                                  border: 'none', background: '#f1f5f9',
+                                  cursor: isMaxStockReached ? 'not-allowed' : 'pointer',
+                                  fontSize: '1rem', color: isMaxStockReached ? '#94a3b8' : '#1e293b',
+                                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                  fontWeight: 700, touchAction: 'manipulation',
+                                  userSelect: 'none',
+                                }}
+                              >
+                                +
+                              </button>
+                            </div>
+
+                            <button
+                              type="button"
+                              onClick={() => removeFromCart(productId, variantId)}
+                              aria-label="Remove item"
+                              title="Remove item"
+                              style={{
+                                border: 'none', background: 'transparent',
+                                color: '#94a3b8', cursor: 'pointer',
+                                padding: '4px', display: 'flex', alignItems: 'center',
+                                touchAction: 'manipulation',
+                              }}
+                              onMouseEnter={(e) => (e.currentTarget.style.color = '#ef4444')}
+                              onMouseLeave={(e) => (e.currentTarget.style.color = '#94a3b8')}
+                            >
+                              <i className="fas fa-trash-alt" style={{ fontSize: '13px' }} />
+                            </button>
+                          </div>
+                        </div>
                       </div>
                     );
                   })}

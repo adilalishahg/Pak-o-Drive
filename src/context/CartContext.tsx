@@ -70,12 +70,20 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
   };
 
+  const isItemMatch = (itemProd: IProduct, targetId: string) => {
+    if (!itemProd || !targetId) return false;
+    const rawId = itemProd._id ? String(itemProd._id) : '';
+    const slug = (itemProd as any).slug ? String((itemProd as any).slug) : '';
+    return rawId === targetId || slug === targetId;
+  };
+
   const removeFromCart = (productId: string, variantId?: string) => {
     const targetVariantId = variantId || undefined;
     setCart((prevCart) =>
       prevCart.filter((item) => {
         const itemVariantId = item.variant?._id || undefined;
-        return !(item.product._id === productId && itemVariantId === targetVariantId);
+        const matchesProduct = isItemMatch(item.product, productId);
+        return !(matchesProduct && itemVariantId === targetVariantId);
       })
     );
   };
@@ -89,7 +97,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setCart((prevCart) =>
       prevCart.map((item) => {
         const itemVariantId = item.variant?._id || undefined;
-        return item.product._id === productId && itemVariantId === targetVariantId
+        const matchesProduct = isItemMatch(item.product, productId);
+        return matchesProduct && itemVariantId === targetVariantId
           ? { ...item, quantity }
           : item;
       })
