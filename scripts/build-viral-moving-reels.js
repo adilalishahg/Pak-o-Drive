@@ -12,21 +12,37 @@ async function buildVideo(inputMp4, outputName, title, lines, duration = 7.0) {
 
   console.log(`\n🎬 [ViralReelEngine] Building: ${title} -> ${outputName}`);
 
-  // 1. Generate Crisp Typographic Transparent PNG Overlay
+  // 1. Generate Crisp Typographic Transparent PNG Overlay with Contrast Highlight Pills
   const lineElements = lines
     .map((line, idx) => {
-      const y = 500 + idx * 48;
+      const y = 490 + idx * 56;
+      const clean = line.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      const pillWidth = Math.min(WIDTH - 50, Math.max(200, Math.round(line.length * 19.5 + 44)));
+      const pillHeight = 50;
+      const pillX = Math.round(360 - pillWidth / 2);
+      const pillY = Math.round(y - 35);
+
+      const isEmphasis = idx === 1 || (lines.length > 2 && idx === lines.length - 1);
+      const textColor = isEmphasis ? '#FDE047' : '#FFFFFF';
+
       return `
-        <text x="360" y="${y}" 
-          font-family="'Inter', -apple-system, sans-serif" 
-          font-size="34" 
-          font-weight="700" 
-          fill="#FFFFFF" 
-          stroke="#000000" 
-          stroke-width="3" 
-          paint-order="stroke fill"
-          text-anchor="middle"
-          letter-spacing="-0.5">${line}</text>
+        <g>
+          <rect x="${pillX}" y="${pillY}" width="${pillWidth}" height="${pillHeight}" rx="12" 
+            fill="#090D16" 
+            fill-opacity="0.85" 
+            stroke="rgba(255, 255, 255, 0.22)" 
+            stroke-width="1.2" />
+          <text x="360" y="${y}" 
+            font-family="'Inter', -apple-system, sans-serif" 
+            font-size="32" 
+            font-weight="800" 
+            fill="${textColor}" 
+            stroke="#000000" 
+            stroke-width="1.2" 
+            paint-order="stroke fill"
+            text-anchor="middle"
+            letter-spacing="-0.3">${clean}</text>
+        </g>
       `;
     })
     .join('');

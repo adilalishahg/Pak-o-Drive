@@ -49,24 +49,43 @@ export async function burnOverlayWithSharpAndFfmpeg(
   const filteredLines = quoteLines.filter(l => l && l.trim().length > 0);
   if (filteredLines.length === 0) return sourceVideoPath;
 
-  const totalTextHeight = filteredLines.length * 48;
-  const startY = Math.round((HEIGHT - totalTextHeight) / 2) + 20;
+  const lineHeight = 58;
+  const totalTextHeight = filteredLines.length * lineHeight;
+  const startY = Math.round((HEIGHT - totalTextHeight) / 2) + 26;
 
   const lineElements = filteredLines
     .map((line, idx) => {
-      const y = startY + idx * 48;
+      const y = startY + idx * lineHeight;
       const clean = line.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+      const pillWidth = Math.min(WIDTH - 50, Math.max(200, Math.round(line.length * 19.5 + 44)));
+      const pillHeight = 50;
+      const pillX = Math.round(360 - pillWidth / 2);
+      const pillY = Math.round(y - 35);
+
+      const isEmphasis = idx === 1 || (filteredLines.length > 2 && idx === filteredLines.length - 1);
+      const textColor = isEmphasis ? '#FDE047' : '#FFFFFF';
+
       return `
-        <text x="360" y="${y}" 
-          font-family="'Inter', Arial, sans-serif" 
-          font-size="34" 
-          font-weight="700" 
-          fill="#FFFFFF" 
-          stroke="#000000" 
-          stroke-width="3.2" 
-          paint-order="stroke fill"
-          text-anchor="middle"
-          letter-spacing="-0.5">${clean}</text>
+        <g>
+          <!-- Dark Contrast Highlight Pill Backdrop -->
+          <rect x="${pillX}" y="${pillY}" width="${pillWidth}" height="${pillHeight}" rx="12" 
+            fill="#090D16" 
+            fill-opacity="0.85" 
+            stroke="rgba(255, 255, 255, 0.22)" 
+            stroke-width="1.2" />
+          <!-- High Contrast Bold Text -->
+          <text x="360" y="${y}" 
+            font-family="'Inter', Arial, sans-serif" 
+            font-size="32" 
+            font-weight="800" 
+            fill="${textColor}" 
+            stroke="#000000" 
+            stroke-width="1.2" 
+            paint-order="stroke fill"
+            text-anchor="middle"
+            letter-spacing="-0.3">${clean}</text>
+        </g>
       `;
     })
     .join('');
@@ -309,25 +328,45 @@ export async function generateViralMotionReel(options?: ViralMotionReelOptions):
     fontBase64 = fs.readFileSync(fontPath).toString('base64');
   }
 
-  // Generate SVG overlay
+  // Generate SVG overlay with contrast highlight pill backdrops
   const filteredLines = quoteLines.filter(l => l.trim().length > 0);
-  const totalTextHeight = filteredLines.length * 48;
-  const startY = Math.round((HEIGHT - totalTextHeight) / 2) + 20;
+  const lineHeight = 58;
+  const totalTextHeight = filteredLines.length * lineHeight;
+  const startY = Math.round((HEIGHT - totalTextHeight) / 2) + 26;
 
   const lineElements = filteredLines
     .map((line, idx) => {
-      const y = startY + idx * 48;
+      const y = startY + idx * lineHeight;
+      const clean = line.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+      const pillWidth = Math.min(WIDTH - 50, Math.max(200, Math.round(line.length * 19.5 + 44)));
+      const pillHeight = 50;
+      const pillX = Math.round(360 - pillWidth / 2);
+      const pillY = Math.round(y - 35);
+
+      const isEmphasis = idx === 1 || (filteredLines.length > 2 && idx === filteredLines.length - 1);
+      const textColor = isEmphasis ? '#FDE047' : '#FFFFFF';
+
       return `
-        <text x="360" y="${y}" 
-          font-family="'Inter', -apple-system, sans-serif" 
-          font-size="34" 
-          font-weight="700" 
-          fill="#FFFFFF" 
-          stroke="#000000" 
-          stroke-width="3.2" 
-          paint-order="stroke fill"
-          text-anchor="middle"
-          letter-spacing="-0.5">${line}</text>
+        <g>
+          <!-- Dark Contrast Highlight Pill Backdrop -->
+          <rect x="${pillX}" y="${pillY}" width="${pillWidth}" height="${pillHeight}" rx="12" 
+            fill="#090D16" 
+            fill-opacity="0.85" 
+            stroke="rgba(255, 255, 255, 0.22)" 
+            stroke-width="1.2" />
+          <!-- High Contrast Bold Text -->
+          <text x="360" y="${y}" 
+            font-family="'Inter', -apple-system, sans-serif" 
+            font-size="32" 
+            font-weight="800" 
+            fill="${textColor}" 
+            stroke="#000000" 
+            stroke-width="1.2" 
+            paint-order="stroke fill"
+            text-anchor="middle"
+            letter-spacing="-0.3">${clean}</text>
+        </g>
       `;
     })
     .join('');

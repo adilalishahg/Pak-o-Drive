@@ -4,6 +4,18 @@ This file serves as persistent dynamic memory across coding agent sessions. Ever
 
 > 📦 **Historical Archive Notice**: Detailed operational entries, early prototypes, and historical setup steps from August 2026 have been archived to [`LEARNINGS_ARCHIVE.md`](./LEARNINGS_ARCHIVE.md) to keep this active knowledge base lean, token-efficient, and aligned with current Pak-o-Drive architecture.
 
+### 2026-09-18 — Instagram & TikTok Automated Reels: Contrast Highlight Pill Backdrop Fix
+- **📌 Issue**:
+  On automated TikTok & Instagram Reels, quote text overlay blended into bright video backgrounds (sunsets, city skylines, highway glare), making words difficult to read on mobile feeds.
+- **🔍 Root Cause**:
+  SVG overlay text in `viralMotionReelEngine.ts`, `build-viral-moving-reels.js`, and `build-viral-reel.js` only used a thin 3px stroke with no background container or backdrop pills behind the text lines.
+- **🛠️ Verified Code Fix**:
+  1. **Dynamic Backdrop Highlight Pills**: Updated SVG generation to calculate individual text line widths and inject rounded backdrop rectangles (`<rect rx="12" fill="#090D16" fill-opacity="0.85" stroke="rgba(255,255,255,0.22)" stroke-width="1.2">`) behind each text line.
+  2. **High-Contrast Punchline Styling**: Styled bold 800-weight typography with pure white (`#FFFFFF`) and vibrant yellow accent (`#FDE047`) on punchline/emphasis sentences for instant 100% readability across any video background.
+  3. **Verification**: Executed `pnpm tsc --noEmit` passing with 0 errors and updated graph with `graft build`.
+
+---
+
 ### 2026-09-18 — Multi-Category E-Commerce Programmatic SEO & Category Hub Architecture
 - **📌 Issue**:
   Pak-o-Drive product catalog (Auto accessories, wireless earbuds, smart tech, home gadgets) lacked dedicated crawlable landing pages. All category filtering was locked behind client-side state on `/shop?category=...`, rendering search engines blind to category-specific search intent and emitting unindexed query URLs in sitemaps.
