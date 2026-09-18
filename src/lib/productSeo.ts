@@ -250,7 +250,7 @@ export function buildBreadcrumbJsonLd(product: IProduct, siteUrl: string) {
         '@type': 'ListItem',
         position: 3,
         name: product.category,
-        item: `${siteUrl}/shop?category=${product.category}`,
+        item: `${siteUrl}/category/${encodeURIComponent((product.category || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''))}`,
       },
       {
         '@type': 'ListItem',

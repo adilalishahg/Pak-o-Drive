@@ -55,10 +55,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }));
 
     categoryRoutes = categories.map((cat: any) => ({
-      url: `${baseUrl}/shop?category=${cat.slug}`,
+      url: `${baseUrl}/category/${cat.slug}`,
       lastModified: cat.updatedAt ? new Date(cat.updatedAt) : new Date(),
       changeFrequency: 'weekly' as const,
-      priority: 0.8,
+      priority: 0.85,
     }));
 
     blogRoutes = posts.map((post: any) => {

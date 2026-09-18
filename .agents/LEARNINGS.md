@@ -4,6 +4,18 @@ This file serves as persistent dynamic memory across coding agent sessions. Ever
 
 > 📦 **Historical Archive Notice**: Detailed operational entries, early prototypes, and historical setup steps from August 2026 have been archived to [`LEARNINGS_ARCHIVE.md`](./LEARNINGS_ARCHIVE.md) to keep this active knowledge base lean, token-efficient, and aligned with current Pak-o-Drive architecture.
 
+### 2026-09-18 — Multi-Category E-Commerce Programmatic SEO & Category Hub Architecture
+- **📌 Issue**:
+  Pak-o-Drive product catalog (Auto accessories, wireless earbuds, smart tech, home gadgets) lacked dedicated crawlable landing pages. All category filtering was locked behind client-side state on `/shop?category=...`, rendering search engines blind to category-specific search intent and emitting unindexed query URLs in sitemaps.
+- **🔍 Root Cause**:
+  Lack of dedicated SSR category dynamic routes (`/category/[slug]`). `sitemap.ts` published parameter URLs (`/shop?category=${cat.slug}`), while breadcrumbs and JSON-LD schema referenced non-canonical query strings.
+- **🛠️ Verified Code Fix**:
+  1. **Programmatic SSR Category Route**: Created `src/app/category/[slug]/page.tsx` with dynamic `generateMetadata()`, high-intent Pakistani buyer copywriting, Schema.org `CollectionPage` and `ItemList` JSON-LD, Rule 3 ambient-blur uncropped media, Rule 4 typography clipping prevention, and Rule 2 1-click WhatsApp order buttons.
+  2. **Canonical Breadcrumb & Sitemap Integration**: Updated `src/app/sitemap.ts` to emit clean `/category/${cat.slug}` routes (priority 0.85). Updated `ProductBreadcrumb.tsx` and `src/lib/productSeo.ts` to route and link to canonical category slugs.
+  3. **Verification**: Successfully executed `pnpm tsc --noEmit` passing with 0 errors and updated graph with `graft build`.
+
+---
+
 ### 2026-09-18 — Vercel Functions Storage Optimization & Automated CLI Cleanup
 - **📌 Issue**:
   Vercel Hobby Tier Functions Storage breached the 10 GB limit (14.76 GB consumed), raising storage warnings while preserving automated Upstash video synthesis cron jobs and text overlay burning.

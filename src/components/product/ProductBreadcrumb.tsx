@@ -20,10 +20,10 @@ export function ProductBreadcrumb({ category, productName }: ProductBreadcrumbPr
             </li>
             <li className="breadcrumb-item flex-shrink-0">
               <Link
-                href={`/shop?category=${encodeURIComponent(category)}`}
+                href={`/category/${encodeURIComponent(category.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''))}`}
                 className="text-decoration-none text-muted text-capitalize"
               >
-                {category}
+                {category.replace(/-/g, ' ')}
               </Link>
             </li>
             <li
