@@ -4,6 +4,26 @@ This file serves as persistent dynamic memory across coding agent sessions. Ever
 
 > 📦 **Historical Archive Notice**: Detailed operational entries, early prototypes, and historical setup steps from August 2026 have been archived to [`LEARNINGS_ARCHIVE.md`](./LEARNINGS_ARCHIVE.md) to keep this active knowledge base lean, token-efficient, and aligned with current Pak-o-Drive architecture.
 
+### 2026-09-18 — Instagram Reel Engine: Serverless Cloud Overlay Synthesis, AAC Audio Layering & Robust AI Generation
+- **📌 Issue**:
+  Reels published in production appeared with only 3 words on 1 line of text and were completely silent with no sound. Serverless logs revealed:
+  1. `AI generation fallback: Unterminated string in JSON at position 357 (line 8 column 231)`.
+  2. `Serverless FFmpeg unavailable (/bin/sh: line 1: ffmpeg: command not found)`.
+  3. `Location ID error ((#100) Param location_id is not a valid location page ID)`.
+- **🔍 Root Cause**:
+  1. **AI Unterminated String**: Prompt requested a multi-line `"caption"` inside JSON, prompting the LLM to output unescaped raw newlines inside string literals which broke `JSON.parse`.
+  2. **Truncated 3-Word Text**: When FFmpeg was absent in serverless, `generateViralMotionReel` unlinked the Sharp `overlay.png` before returning. `uploadVideoToCdn` attempted raw Cloudinary text transformations where subsequent lines lacked `flags: 'layer_apply'`, causing Cloudinary to overwrite previous lines and keep only the final 3-word line.
+  3. **Silent Video**: Cloudinary's video transcode defaulted to `ac: none` on silent source clips because `audio_codec: 'aac'` was omitted from eager options, and audio requests without browser headers received 403 Forbidden.
+  4. **Invalid Meta Location**: The hardcoded Facebook page ID for UK locations was rejected by Meta Graph API with error `#100`.
+- **🛠️ Verified Code Fix**:
+  1. **Robust AI JSON Parser**: Added `robustParseAiJson` with automatic newline escaping and regex token fallback in `src/lib/viralMotionReelEngine.ts`. Prompt updated to request single-line `captionHook`, assembling the rich conversion caption programmatically. Updated all category fallbacks with 4 complete, punchy lines.
+  2. **Sharp PNG Cloud Synthesis**: Kept `overlayPngPath` in `ViralMotionReelResult`. In `uploadVideoToCdn` (`src/lib/instagramReelPostService.ts`), if local FFmpeg is unavailable, Sharp renders the pixel-perfect 720x1280 PNG (with pill backdrops, yellow accents, and Inter font), uploads it to Cloudinary as an image layer, and composites it with `{ flags: 'layer_apply' }`.
+  3. **Guaranteed AAC Audio Mixing**: Attached background audio tracks with `audio_codec: 'aac'`, `volume:mute` on the base clip, and added browser `User-Agent` + `Referer: https://pixabay.com/` headers in `src/lib/trendingAudioService.ts`.
+  4. **Location Error Removal**: Removed invalid `location_id` from container creation payload while preserving algorithmic geo-tagging in caption text (`📍 London, United Kingdom`).
+  5. **Verification**: Successfully ran `scripts/test-category-reels.ts` generating real videos across all 6 categories (`roads`, `rain`, `nature`, `beach`, `buildings`, `sky`) with AI quotes and audio tracks, compiled `pnpm tsc --noEmit` with 0 errors, and updated context graph with `graft build`.
+
+---
+
 ### 2026-09-18 — Instagram & TikTok Cron: Serverless EROFS Audio Resolution & 4-Week Auto-Rotating Trending Audio
 - **📌 Issue**:
   Reels published to TikTok and Instagram were completely silent ("This sound isn't available"). The Vercel cron log threw `EROFS: read-only file system, open '/var/task/public/audio/...'`, causing all audio downloads to be skipped, FFmpeg input failure, and Cloudinary fallback upload without audio mixing.

@@ -9,7 +9,7 @@ import { ReelCategory } from '../src/lib/reelCategoryLibrary';
 async function main() {
   console.log('🌟 Testing Multi-Category Reel Generation Engine...\n');
 
-  const categories: ReelCategory[] = ['nature', 'beach', 'buildings', 'sky'];
+  const categories: ReelCategory[] = ['roads', 'rain', 'nature', 'beach', 'buildings', 'sky'];
   const generated: Array<{ category: string; title: string; videoPath: string; duration: number }> = [];
 
   for (const cat of categories) {
