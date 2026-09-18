@@ -52,12 +52,21 @@ const DAY_CATEGORY_MAP: Record<number, ReelCategory> = {
   6: 'roads',      // Saturday
 };
 
-const HISTORY_FILE = path.resolve(process.cwd(), 'public/img/viral-reels/library/usage-history.json');
+import os from 'os';
+
+function getHistoryFilePath(): string {
+  const isServerless = Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME || process.platform === 'linux');
+  if (isServerless) {
+    return path.join(os.tmpdir(), 'viral_video_usage_history.json');
+  }
+  return path.resolve(process.cwd(), 'public/img/viral-reels/library/usage-history.json');
+}
 
 function getUsageHistory(): string[] {
   try {
-    if (fs.existsSync(HISTORY_FILE)) {
-      return JSON.parse(fs.readFileSync(HISTORY_FILE, 'utf8'));
+    const file = getHistoryFilePath();
+    if (fs.existsSync(file)) {
+      return JSON.parse(fs.readFileSync(file, 'utf8'));
     }
   } catch {}
   return [];
@@ -65,11 +74,12 @@ function getUsageHistory(): string[] {
 
 function recordUsage(videoRelativePath: string) {
   try {
+    const file = getHistoryFilePath();
     const history = getUsageHistory();
     history.push(videoRelativePath);
     // Keep last 60 entries
     const trimmed = history.slice(-60);
-    fs.writeFileSync(HISTORY_FILE, JSON.stringify(trimmed, null, 2));
+    fs.writeFileSync(file, JSON.stringify(trimmed, null, 2));
   } catch (err: any) {
     console.warn('⚠️ Failed to save video usage history:', err.message);
   }

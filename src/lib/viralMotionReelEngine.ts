@@ -10,6 +10,7 @@ import {
   ReelCategory,
   CATEGORIES_CONFIG,
 } from './reelCategoryLibrary';
+import { resolveActiveViralAudio } from './trendingAudioService';
 
 // Direct path to ffmpeg
 export function getFfmpegPath(): string {
@@ -162,6 +163,8 @@ export interface ViralMotionReelResult {
   hashtags?: string[];
   category: ReelCategory;
   isBurnedWithFfmpeg?: boolean;
+  audioPath?: string;
+  audioRemoteUrl?: string;
 }
 
 /**
@@ -292,6 +295,51 @@ Output ONLY valid JSON with no markdown backticks:
 }
 
 /**
+ * Ensures a video asset exists as a real file on the local filesystem.
+ * Handles serverless read-only disk environments where public/ files are hosted on CDN.
+ */
+async function ensureLocalVideoFile(sourceVideoPath: string): Promise<string> {
+  // 1. Direct local path in project
+  const absDirect = path.resolve(process.cwd(), sourceVideoPath);
+  if (fs.existsSync(absDirect) && fs.statSync(absDirect).size > 50000) {
+    return absDirect;
+  }
+
+  // 2. Check writable /tmp cache
+  const filename = path.basename(sourceVideoPath);
+  const tmpDir = path.join(os.tmpdir(), 'viral_video_cache');
+  if (!fs.existsSync(tmpDir)) {
+    try { fs.mkdirSync(tmpDir, { recursive: true }); } catch {}
+  }
+  const tmpPath = path.join(tmpDir, filename);
+  if (fs.existsSync(tmpPath) && fs.statSync(tmpPath).size > 50000) {
+    return tmpPath;
+  }
+
+  // 3. Download from site CDN on-demand
+  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.pakodrive.pk').replace(/\/$/, '');
+  const cleanRelative = sourceVideoPath.replace(/^.*?public[/\\]/, '').replace(/\\/g, '/').replace(/^\//, '');
+  const downloadUrl = sourceVideoPath.startsWith('http') ? sourceVideoPath : `${siteUrl}/${cleanRelative}`;
+
+  try {
+    console.log(`📥 [ViralMotionReel] Pre-caching video into serverless /tmp: ${downloadUrl}...`);
+    const res = await fetch(downloadUrl, { headers: { 'User-Agent': 'Mozilla/5.0' } });
+    if (res.ok) {
+      const buffer = Buffer.from(await res.arrayBuffer());
+      if (buffer.length > 50000) {
+        fs.writeFileSync(tmpPath, buffer);
+        console.log(`✓ [ViralMotionReel] Video cached locally in /tmp: ${filename} (${(buffer.length / 1024 / 1024).toFixed(2)} MB)`);
+        return tmpPath;
+      }
+    }
+  } catch (e: any) {
+    console.warn(`⚠️ [ViralMotionReel] Could not pre-cache video into /tmp: ${e.message}`);
+  }
+
+  return absDirect;
+}
+
+/**
  * Generates a viral 9:16 real moving video reel with automatic category & asset rotation
  */
 export async function generateViralMotionReel(options?: ViralMotionReelOptions): Promise<ViralMotionReelResult> {
@@ -325,20 +373,25 @@ export async function generateViralMotionReel(options?: ViralMotionReelOptions):
     console.log(`🎥 [ViralMotionReel] Selected unique video from ${category}: ${sourceVideo}`);
   }
 
-  // Dynamic Audio Selection from Pool (Matched to category for maximum viral retention)
-  const validAudio = AUDIO_TRACKS_POOL.filter(a => fs.existsSync(a));
-  let audioFile = options?.audioFile;
-  if (!audioFile || !fs.existsSync(audioFile)) {
-    const categoryTrack = CATEGORY_VIRAL_AUDIO_MAP[category];
-    if (categoryTrack && fs.existsSync(categoryTrack)) {
-      audioFile = categoryTrack;
-      console.log(`🎵 [ViralMotionReel] Matched high-retention viral audio for [${category}]: ${path.basename(audioFile)}`);
-    } else {
-      audioFile = validAudio.length > 0 
-        ? validAudio[Math.floor(Math.random() * validAudio.length)] 
-        : 'public/audio/aesthetic-lofi-trending.mp3';
-    }
+  // Resolve video into confirmed local file on disk (resilient to serverless)
+  const absSource = await ensureLocalVideoFile(sourceVideo);
+
+  // Dynamic Weekly Audio Selection from Trending Pool
+  let localAudioPath = '';
+  let audioRemoteUrl = '';
+  let audioName = '';
+
+  if (options?.audioFile && fs.existsSync(options.audioFile)) {
+    localAudioPath = options.audioFile;
+    audioName = path.basename(options.audioFile);
+  } else {
+    const resolvedAudio = await resolveActiveViralAudio(category);
+    localAudioPath = resolvedAudio.localPath;
+    audioRemoteUrl = resolvedAudio.sourceUrl;
+    audioName = resolvedAudio.name;
   }
+
+  console.log(`🎵 [ViralMotionReel] Active weekly trending audio for [${category}]: "${audioName}" (${path.basename(localAudioPath)})`);
 
   // Load font base64 for crisp serverless rendering
   let fontBase64 = '';
@@ -431,15 +484,14 @@ export async function generateViralMotionReel(options?: ViralMotionReelOptions):
   const outputPath = options?.outputFilePath || path.join(tempDir, `viral_reel_${Date.now()}.mp4`);
   const ffmpegBin = getFfmpegPath();
 
-  console.log(`🎬 [ViralMotionReel] Rendering: [${category}] ${path.basename(sourceVideo)} + ${path.basename(audioFile)} -> ${path.basename(outputPath)}`);
+  console.log(`🎬 [ViralMotionReel] Rendering: [${category}] ${path.basename(absSource)} + ${path.basename(localAudioPath)} -> ${path.basename(outputPath)}`);
 
   const filterComplex = `
     [0:v]scale=720:1280:force_original_aspect_ratio=increase,crop=720:1280,eq=brightness=-0.08:contrast=1.15:saturation=1.1,setsar=1[bg];
     [bg][1:v]overlay=0:0[v]
   `.replace(/\s+/g, ' ').trim();
 
-  const absSource = path.resolve(process.cwd(), sourceVideo);
-  const absAudio = path.resolve(process.cwd(), audioFile);
+  const absAudio = localAudioPath;
   const absOverlay = path.resolve(process.cwd(), overlayPath);
   const absOutput = path.resolve(process.cwd(), outputPath);
   const cmd = `"${ffmpegBin}" -y -stream_loop -1 -i "${absSource}" -i "${absOverlay}" -i "${absAudio}" -filter_complex "${filterComplex}" -map "[v]" -map 2:a -c:v libx264 -preset fast -crf 22 -pix_fmt yuv420p -c:a aac -b:a 192k -t ${duration} "${absOutput}"`;
@@ -475,5 +527,7 @@ export async function generateViralMotionReel(options?: ViralMotionReelOptions):
     hashtags,
     category,
     isBurnedWithFfmpeg,
+    audioPath: localAudioPath,
+    audioRemoteUrl,
   };
 }
