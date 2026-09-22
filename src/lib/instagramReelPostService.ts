@@ -37,25 +37,12 @@ export async function generateViralUkCaption(title: string): Promise<string> {
 Most people quit right before everything is about to change. 
 Stay focused. Keep building in silence.
 
-Save this for the days you need a reminder 📌
+Drop a "🔥" in the comments if you agree.
+Save this for when you need a reminder 📌
 
-Drop a "🔥" in the comments if you are on your grind today.
+Follow @digitalinspirer for daily drive & unstoppable mindset.
 
-━━━━━━━━━━━━━━━━━
-🇬🇧 UK & Global (Digital & Affiliate):
-✨ 4K Luxury Car Wallpapers & Presets 👉 Link in Bio
-🛒 Trending Car Interior Styling on Amazon UK 👉 Link in Bio
-
-🇵🇰 Pakistan (Physical Stock):
-🚗 Cash on Delivery (COD) All Over Pakistan
-📦 Tap Link in Bio or WhatsApp: +92 318 5205667
-
-━━━━━━━━━━━━━━━━━
-Follow @digitalinspirer & @pakodrive.official for daily drive & automotive luxury.
-
-📍 London, United Kingdom
-
-#ukcarscene #supercarsoflondon #londoncars #uknightdrive #birminghamcars #carcultureuk #supercarsuk #luxurycarslondon #britishautomotive #reelsuk #pakwheels #pakodrive #darkaesthetic #automotive #nightdrive #carsofinstagram #explorepage #reelsviral`;
+#mindset #stoic #nightdrive #darkaesthetic #discipline`;
 }
 
 /**

@@ -262,19 +262,10 @@ export async function generateViralAiContent(selectedCategory?: ReelCategory): P
   const category = selectedCategory || getActiveReelCategory();
   const catConfig = CATEGORIES_CONFIG[category];
 
-  const dualCta = `━━━━━━━━━━━━━━━━━
-🇬🇧 UK & Global (Digital & Affiliate):
-✨ 4K Luxury Car Wallpapers & Presets 👉 Link in Bio
-🛒 Trending Car Interior Styling on Amazon UK 👉 Link in Bio
+  const cleanViralCta = `Drop a "🔥" in the comments if you agree.
+Save this for when you need a reminder 📌
 
-🇵🇰 Pakistan (Physical Stock):
-🚗 Cash on Delivery (COD) All Over Pakistan
-📦 Tap Link in Bio or WhatsApp: +92 318 5205667
-
-━━━━━━━━━━━━━━━━━
-Follow @digitalinspirer & @pakodrive.official for daily drive & automotive luxury.
-
-📍 London, United Kingdom`;
+Follow @digitalinspirer for daily drive & unstoppable mindset.`;
 
   const prompt = `You are a viral short-form video creative director specializing in high-retention, psychology-driven motivational and dark aesthetic car reels (like top accounts with 500k+ views).
 
@@ -312,10 +303,10 @@ Output ONLY valid JSON with no markdown backticks:
         const quoteLines = parsed.quoteLines.filter((l: string) => typeof l === 'string' && l.trim().length > 0);
         const hook = parsed.captionHook || 'When you elevate your standards, daily noise can no longer reach you.';
         const hashtags = Array.isArray(parsed.hashtags) && parsed.hashtags.length > 0
-          ? parsed.hashtags
-          : ['#ukcarscene', '#supercarsoflondon', '#londoncars', '#uknightdrive', '#carcultureuk', '#reelsuk', '#pakwheels', '#pakodrive', ...catConfig.suggestedTags];
+          ? parsed.hashtags.slice(0, 5)
+          : ['#mindset', '#stoic', '#nightdrive', '#darkaesthetic', '#discipline'];
 
-        const caption = `${title} ⚡\n\n${hook}\n\nSave this for the days you need a reminder 📌\n\nDrop a "🔥" in the comments if you agree.\n\n${dualCta}\n\n${hashtags.join(' ')}`;
+        const caption = `${title} ⚡\n\n${hook}\n\n${cleanViralCta}\n\n${hashtags.join(' ')}`;
 
         return {
           title,
@@ -336,32 +327,32 @@ Output ONLY valid JSON with no markdown backticks:
     nature: {
       title: 'RULE OF THE TOP 1%',
       quoteLines: ['Rule #1 of the top 1%:', 'Grow in complete silence.', 'Let the results shatter the room.'],
-      caption: `RULE OF THE TOP 1% ⚡\n\nThe storm only shakes what is shallow. When your roots are deep, nothing can move you.\n\nSave this for when you need a reminder 📌\n\nDrop a "🔥" if you are locked in.\n\n${dualCta}`,
+      caption: `RULE OF THE TOP 1% ⚡\n\nThe storm only shakes what is shallow. When your roots are deep, nothing can move you.\n\n${cleanViralCta}\n\n#mindset #stoic #nightdrive #darkaesthetic #discipline`,
     },
     roads: {
       title: 'MOVE IN SILENCE',
       quoteLines: ['If you are building in silence:', 'Never announce your moves.', 'Let the scoreboard speak for you.'],
-      caption: `MOVE IN SILENCE ⚡\n\nMost people tell everyone what they are going to do. The top 1% execute and disappear.\n\nSave this for when you need a reminder 📌\n\nDrop a "🔥" if you agree.\n\n${dualCta}`,
+      caption: `MOVE IN SILENCE ⚡\n\nMost people tell everyone what they are going to do. The top 1% execute and disappear.\n\n${cleanViralCta}\n\n#mindset #stoic #nightdrive #darkaesthetic #discipline`,
     },
     beach: {
       title: 'RELENTLESS WAVES',
       quoteLines: ['Most people realize too late:', 'Intensity starts the journey.', 'Consistency finishes it.'],
-      caption: `RELENTLESS WAVES ⚡\n\nThe ocean never rushes, yet it carves mountains. Ruthless daily consistency beats talent every single time.\n\nSave this for when you need a reminder 📌\n\nDrop a "🔥" if you are grinding today.\n\n${dualCta}`,
+      caption: `RELENTLESS WAVES ⚡\n\nThe ocean never rushes, yet it carves mountains. Ruthless daily consistency beats talent every single time.\n\n${cleanViralCta}\n\n#mindset #stoic #nightdrive #darkaesthetic #discipline`,
     },
     buildings: {
       title: 'BUILD YOUR EMPIRE',
       quoteLines: ['They laughed at your sacrifice:', 'Now they ask how you did it.', 'Stack every win in silence.'],
-      caption: `BUILD YOUR EMPIRE ⚡\n\nNever let small-minded opinions talk you out of an empire. Brick by brick, quietly.\n\nSave this for when you need a reminder 📌\n\nDrop a "🔥" in the comments.\n\n${dualCta}`,
+      caption: `BUILD YOUR EMPIRE ⚡\n\nNever let small-minded opinions talk you out of an empire. Brick by brick, quietly.\n\n${cleanViralCta}\n\n#mindset #stoic #nightdrive #darkaesthetic #discipline`,
     },
     sky: {
       title: 'ABOVE THE NOISE',
       quoteLines: ['When you elevate your standards:', 'Daily drama cannot reach you.', 'Stay untouchable at the top.'],
-      caption: `ABOVE THE NOISE ⚡\n\nSmall minds create noise. High-level vision creates generational wealth. Fly above it.\n\nSave this for when you need a reminder 📌\n\nDrop a "🔥" if you agree.\n\n${dualCta}`,
+      caption: `ABOVE THE NOISE ⚡\n\nSmall minds create noise. High-level vision creates generational wealth. Fly above it.\n\n${cleanViralCta}\n\n#mindset #stoic #nightdrive #darkaesthetic #discipline`,
     },
     rain: {
       title: 'CLARITY IN THE STORM',
       quoteLines: ['Comfort destroys ambition:', 'Storms reveal your true strength.', 'Keep driving while they doubt.'],
-      caption: `CLARITY IN THE STORM ⚡\n\nHard seasons reveal who you truly are. Don't wish it was easier, make sure you are stronger.\n\nSave this for when you need a reminder 📌\n\nDrop a "🔥" if you are in your grind season.\n\n${dualCta}`,
+      caption: `CLARITY IN THE STORM ⚡\n\nHard seasons reveal who you truly are. Don't wish it was easier, make sure you are stronger.\n\n${cleanViralCta}\n\n#mindset #stoic #nightdrive #darkaesthetic #discipline`,
     },
   };
 
