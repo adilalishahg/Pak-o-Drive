@@ -276,24 +276,30 @@ Follow @digitalinspirer & @pakodrive.official for daily drive & automotive luxur
 
 📍 London, United Kingdom`;
 
-  const prompt = `You are the creative mastermind behind viral dark aesthetic automotive & mindset Instagram Reels for Pak-o-Drive.
-Generate 1 completely fresh, high-retention on-screen quote and viral hook designed to captivate car enthusiasts and convert them into customers.
+  const prompt = `You are a viral short-form video creative director specializing in high-retention, psychology-driven motivational and dark aesthetic car reels (like top accounts with 500k+ views).
 
-Visual Background Theme: "${catConfig.name}"
-Category Concepts: ${catConfig.themePrompt}
+Visual Background Category: "${catConfig.name}"
+Category Theme: ${catConfig.themePrompt}
+
+IMPORTANT INSTAGRAM ALGORITHM RULES (2026):
+- NEVER write abstract, poetic, or cryptic lines (e.g. NEVER write "Rain cloaks the road", "Reflections whisper", "Shadows guide"). Viewers swipe away in 0.5s.
+- ALWAYS use psychological SCROLL-STOPPING HOOKS that trigger intense curiosity, relatability, or FOMO.
+- Line 1 MUST be a pattern-interrupt hook that forces the viewer to stop scrolling (e.g. "Rule #1 of the top 1%:", "Most people realize this 10 years too late:", "If you are grinding in silence:", "They laughed at your sacrifice:").
+- Lines 2 & 3 must deliver a hard-hitting, memorable truth or punchline.
+- Maximum 3 lines total. Keep each line between 3 to 7 words. Easy to read in 3 seconds.
 
 Requirements:
-1. quoteLines: Exactly 4 short, intense lines for 9:16 vertical video overlay (3 to 6 words each). Must match the visual mood of ${catConfig.name} (stoic, ambitious, impossible mindset, consistency).
-2. title: An intense 2-4 word hook in ALL CAPS (e.g. "MOVE IN SILENCE", "ABOVE THE NOISE", "RELENTLESS FOCUS").
-3. captionHook: 2 short sentences of deep mindset wisdom on ONE single line (no raw newlines).
-4. hashtags: 12-16 trending UK & Pakistan automotive tags as a JSON array of strings.
+1. quoteLines: Exactly 3 punchy lines as an array of strings.
+2. title: An intense 2-4 word hook in ALL CAPS (e.g. "STAY DANGEROUS", "SILENT DISCIPLINE", "OUTWORK EVERYONE").
+3. captionHook: 1 powerful sentence on ONE single line.
+4. hashtags: Exactly 4 to 5 hyper-targeted hashtags (e.g. ["#mindset", "#stoic", "#nightdrive", "#darkaesthetic", "#discipline"]).
 
 Output ONLY valid JSON with no markdown backticks:
 {
   "title": "...",
-  "quoteLines": ["line 1", "line 2", "line 3", "line 4"],
+  "quoteLines": ["Hook line", "Truth line", "Punchline"],
   "captionHook": "...",
-  "hashtags": ["#ukcarscene", "#londoncars", "#pakwheels", "#pakodrive"],
+  "hashtags": ["#mindset", "#stoic", "#nightdrive", "#darkaesthetic"],
   "theme": "${category}"
 }`;
 
@@ -325,37 +331,37 @@ Output ONLY valid JSON with no markdown backticks:
     console.warn(`⚠️ [ViralMotionReel] AI generation fallback: ${err.message}`);
   }
 
-  // Curated category fallbacks (Guaranteed 4 punchy lines, zero empty entries)
+  // Curated category fallbacks (3 punchy high-retention lines, zero filler)
   const fallbacks: Record<ReelCategory, { title: string; quoteLines: string[]; caption: string }> = {
     nature: {
-      title: 'BE UNTOUCHED',
-      quoteLines: ['Rooted like mountains.', 'Untouched by storms.', 'Grow in quiet discipline.', 'Let results make the noise.'],
-      caption: `BE UNTOUCHED ⚡\n\nThe storm only affects what is shallow. When your roots are deep, turbulence cannot move you.\n\nSave this for the days you need a reminder 📌\n\nDrop a "🔥" if you agree.\n\n${dualCta}`,
+      title: 'RULE OF THE TOP 1%',
+      quoteLines: ['Rule #1 of the top 1%:', 'Grow in complete silence.', 'Let the results shatter the room.'],
+      caption: `RULE OF THE TOP 1% ⚡\n\nThe storm only shakes what is shallow. When your roots are deep, nothing can move you.\n\nSave this for when you need a reminder 📌\n\nDrop a "🔥" if you are locked in.\n\n${dualCta}`,
     },
     roads: {
       title: 'MOVE IN SILENCE',
-      quoteLines: ['Speed means nothing', 'in the wrong lane.', 'Focus on your direction.', 'Let success be the noise.'],
-      caption: `MOVE IN SILENCE ⚡\n\nMost people announce what they are going to do. The top 1% just execute and let the scoreboard speak.\n\nSave this for the days you need a reminder 📌\n\nDrop a "🔥" if you agree.\n\n${dualCta}`,
+      quoteLines: ['If you are building in silence:', 'Never announce your moves.', 'Let the scoreboard speak for you.'],
+      caption: `MOVE IN SILENCE ⚡\n\nMost people tell everyone what they are going to do. The top 1% execute and disappear.\n\nSave this for when you need a reminder 📌\n\nDrop a "🔥" if you agree.\n\n${dualCta}`,
     },
     beach: {
       title: 'RELENTLESS WAVES',
-      quoteLines: ['The ocean never rushes,', 'yet it carves mountains.', 'Relentless consistency', 'beats talent every time.'],
-      caption: `RELENTLESS WAVES ⚡\n\nPatience and consistency outperform intensity every single time. Keep showing up every single day.\n\nSave this for when you need a reminder 📌\n\nDrop a "🔥" in the comments.\n\n${dualCta}`,
+      quoteLines: ['Most people realize too late:', 'Intensity starts the journey.', 'Consistency finishes it.'],
+      caption: `RELENTLESS WAVES ⚡\n\nThe ocean never rushes, yet it carves mountains. Ruthless daily consistency beats talent every single time.\n\nSave this for when you need a reminder 📌\n\nDrop a "🔥" if you are grinding today.\n\n${dualCta}`,
     },
     buildings: {
       title: 'BUILD YOUR EMPIRE',
-      quoteLines: ['From the bottom they doubt.', 'From the summit you reign.', 'Stack your wins in silence.', 'Build an unbreakable empire.'],
-      caption: `BUILD YOUR EMPIRE ⚡\n\nNever let small-minded people talk you out of your big dreams. Keep building block by block.\n\nSave this for when you need a reminder 📌\n\nDrop a "🔥" if you agree.\n\n${dualCta}`,
+      quoteLines: ['They laughed at your sacrifice:', 'Now they ask how you did it.', 'Stack every win in silence.'],
+      caption: `BUILD YOUR EMPIRE ⚡\n\nNever let small-minded opinions talk you out of an empire. Brick by brick, quietly.\n\nSave this for when you need a reminder 📌\n\nDrop a "🔥" in the comments.\n\n${dualCta}`,
     },
     sky: {
       title: 'ABOVE THE NOISE',
-      quoteLines: ['Fly above the storm.', 'Small minds cause turbulence.', 'Elevate your standards.', 'Stay untouched at the top.'],
-      caption: `ABOVE THE NOISE ⚡\n\nWhen you elevate your standards, small minds and daily drama can no longer reach you.\n\nSave this for when you need a reminder 📌\n\nDrop a "🔥" in the comments.\n\n${dualCta}`,
+      quoteLines: ['When you elevate your standards:', 'Daily drama cannot reach you.', 'Stay untouchable at the top.'],
+      caption: `ABOVE THE NOISE ⚡\n\nSmall minds create noise. High-level vision creates generational wealth. Fly above it.\n\nSave this for when you need a reminder 📌\n\nDrop a "🔥" if you agree.\n\n${dualCta}`,
     },
     rain: {
       title: 'CLARITY IN THE STORM',
-      quoteLines: ['Storms do not last.', 'Resilience stays forever.', 'Find clarity in the chaos.', 'Keep driving forward.'],
-      caption: `CLARITY IN THE STORM ⚡\n\nHard times reveal who you really are. Embrace the pressure; that is where diamonds are forged.\n\nSave this for when you need a reminder 📌\n\nDrop a "🔥" if you agree.\n\n${dualCta}`,
+      quoteLines: ['Comfort destroys ambition:', 'Storms reveal your true strength.', 'Keep driving while they doubt.'],
+      caption: `CLARITY IN THE STORM ⚡\n\nHard seasons reveal who you truly are. Don't wish it was easier, make sure you are stronger.\n\nSave this for when you need a reminder 📌\n\nDrop a "🔥" if you are in your grind season.\n\n${dualCta}`,
     },
   };
 
@@ -364,7 +370,7 @@ Output ONLY valid JSON with no markdown backticks:
     title: fb.title,
     quoteLines: fb.quoteLines,
     caption: fb.caption,
-    hashtags: ['#ukcarscene', '#supercarsoflondon', '#londoncars', '#uknightdrive', '#birminghamcars', '#carcultureuk', '#supercarsuk', '#reelsuk', '#pakwheels', '#pakodrive', '#darkaesthetic', '#nightdrive', ...catConfig.suggestedTags],
+    hashtags: ['#mindset', '#stoic', '#nightdrive', '#darkaesthetic', '#discipline'],
     theme: category,
     category,
   };
