@@ -1,11 +1,5 @@
 {
   "env": {
     "FONTCONFIG_PATH": "/var/task/src/lib/fonts"
-  },
-  "crons": [
-    {
-      "path": "/api/cron/daily-master",
-      "schedule": "30 15 * * *"
-    }
-  ]
+  }
 }

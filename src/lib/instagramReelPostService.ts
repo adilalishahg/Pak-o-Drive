@@ -432,6 +432,31 @@ export async function executeAutoInstagramReelPost(options?: {
     console.warn('⚠️ [InstagramReelService] Audio freshness check non-fatal warning:', audioErr.message);
   }
 
+  // Step 0.5: Guard against duplicate cron dispatches within 30 minutes
+  if (source === 'cron' && process.env.MONGODB_URI) {
+    try {
+      await dbConnect();
+      const thirtyMinutesAgo = new Date(Date.now() - 30 * 60 * 1000);
+      const recentLog = await InstagramPostLog.findOne({
+        status: 'published',
+        createdAt: { $gte: thirtyMinutesAgo },
+      }).lean();
+
+      if (recentLog) {
+        console.log(`🛡️ [InstagramReelService] Cool-down active. A reel was already published ${Math.round((Date.now() - new Date(recentLog.createdAt).getTime()) / 60000)}m ago: "${recentLog.topic}". Skipping duplicate dispatch.`);
+        return {
+          success: true,
+          toolName: recentLog.topic,
+          postId: recentLog.postId,
+          permalink: recentLog.permalink,
+          videoUrl: recentLog.mediaUrl,
+        };
+      }
+    } catch (dbErr: any) {
+      console.warn('⚠️ [InstagramReelService] Duplicate guard check non-fatal warning:', dbErr.message);
+    }
+  }
+
   // Step 1: Generate Real Moving Video or Cinematic Video
   let videoPath = '';
   let videoDuration = 7.5;

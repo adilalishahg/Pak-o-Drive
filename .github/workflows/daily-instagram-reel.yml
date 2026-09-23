@@ -1,9 +1,10 @@
 name: Daily Instagram Cinematic AI Reel Post
 
+# Scheduled cron disabled in favor of Upstash QStash dedicated webhook runner
+# on:
+#   schedule:
+#     - cron: '15 18 * * *'
 on:
-  schedule:
-    # 18:15 UTC = 11:15 PM PKT (Off-peak backup runner for video compilation)
-    - cron: '15 18 * * *'
   workflow_dispatch:
     inputs:
       tool:
