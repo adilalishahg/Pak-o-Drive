@@ -1,12 +1,15 @@
 import mongoose, { Schema, Document, Model } from 'mongoose';
 
 export interface ISocialAccount extends Document {
-  platform: 'linkedin' | 'instagram';
+  platform: 'linkedin' | 'instagram' | 'twitter';
   accessToken: string;
   refreshToken?: string;
   expiresAt?: Date;
-  accountUrn: string; // e.g. "urn:li:person:abcdef" or Instagram Page ID
+  accountUrn: string;
   accountName?: string;
+  apiKey?: string;
+  apiSecret?: string;
+  accessTokenSecret?: string;
   isActive: boolean;
   lastPostedAt?: Date;
   postCount: number;
@@ -18,7 +21,7 @@ const SocialAccountSchema = new Schema<ISocialAccount>(
   {
     platform: {
       type: String,
-      enum: ['linkedin', 'instagram'],
+      enum: ['linkedin', 'instagram', 'twitter'],
       required: true,
       unique: true,
       index: true,
@@ -40,6 +43,15 @@ const SocialAccountSchema = new Schema<ISocialAccount>(
     accountName: {
       type: String,
       default: '',
+    },
+    apiKey: {
+      type: String,
+    },
+    apiSecret: {
+      type: String,
+    },
+    accessTokenSecret: {
+      type: String,
     },
     isActive: {
       type: Boolean,

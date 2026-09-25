@@ -6,9 +6,12 @@ import MetricCard from '../../components/common/MetricCard';
 import { useAdminDashboard } from '@/hooks/useAdminDashboard';
 import { useAdminLinkedInPost } from '@/hooks/useAdminLinkedInPost';
 import { AdminLinkedInPostModal } from '../../components/admin/social/AdminLinkedInPostModal';
+import { useAdminTwitterPost } from '@/hooks/useAdminTwitterPost';
+import { AdminTwitterPostModal } from '@/components/admin/social/AdminTwitterPostModal';
 
 export default function AdminDashboardPage() {
   const linkedInHook = useAdminLinkedInPost();
+  const twitterHook = useAdminTwitterPost();
   const {
     data,
     stats,
@@ -115,7 +118,19 @@ export default function AdminDashboardPage() {
             }}
           >
             <i className="fab fa-linkedin" style={{ fontSize: '1.1rem' }} />
-            <span>🚀 Post AI LinkedIn Carousel</span>
+            <span>🚀 Post LinkedIn</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => twitterHook.setIsOpen(true)}
+            className="btn btn-sm text-white fw-bold d-flex align-items-center gap-2 rounded-3 px-3 py-2 shadow-sm border-0"
+            style={{
+              background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
+            }}
+          >
+            <span style={{ fontSize: '1.05rem', fontWeight: 900 }}>𝕏</span>
+            <span>Post 𝕏 Thread</span>
           </button>
         </div>
       </div>
@@ -408,6 +423,9 @@ export default function AdminDashboardPage() {
 
       {/* Dynamic AI LinkedIn Carousel Modal */}
       <AdminLinkedInPostModal hook={linkedInHook} />
+
+      {/* Dynamic AI Twitter / X Post Modal */}
+      <AdminTwitterPostModal hook={twitterHook} />
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { executeAutoLinkedInPost, generateLinkedInTechPost, ensurePostHashtagsWithAI } from '@/lib/socialAutoPostService';
+import { executeAutoTwitterPost, generateTechTwitterThread } from '@/lib/twitterAutoPostService';
 import { CURATED_DECKS, renderSlobodanCarouselPdf } from '@/lib/carouselGenerator';
 
 export const dynamic = 'force-dynamic';
@@ -20,11 +21,34 @@ async function handleSocialPost(request: Request) {
   const authHeader = request.headers.get('authorization');
   const secret = searchParams.get('secret') || (authHeader ? authHeader.replace('Bearer ', '').trim() : '');
   const action = searchParams.get('action'); // 'preview' | 'preview-carousel' | 'publish'
+  const platform = searchParams.get('platform') || 'linkedin'; // 'linkedin' | 'twitter' | 'all'
   const cronSecret = process.env.CRON_SECRET;
 
   // Validate CRON_SECRET if configured and in production
   if (cronSecret && secret !== cronSecret && process.env.NODE_ENV === 'production') {
     return NextResponse.json({ success: false, error: 'Unauthorized. Invalid secret.' }, { status: 401 });
+  }
+
+  // Handle Twitter / X Cron dispatch
+  if (platform === 'twitter') {
+    if (action === 'preview') {
+      const threadData = await generateTechTwitterThread();
+      return NextResponse.json({
+        success: true,
+        mode: 'preview-twitter',
+        platform: 'twitter',
+        threadData,
+        durationMs: Date.now() - startTime,
+      });
+    }
+
+    const twitterResult = await executeAutoTwitterPost({ source: 'cron' });
+    return NextResponse.json({
+      success: twitterResult.success,
+      platform: 'twitter',
+      result: twitterResult,
+      durationMs: Date.now() - startTime,
+    });
   }
 
   // 1. Preview Carousel Mode: Render 8-slide 4:5 PDF & generate post text with AI hashtags
