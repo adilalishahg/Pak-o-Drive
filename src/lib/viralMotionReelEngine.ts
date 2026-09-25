@@ -67,7 +67,7 @@ export function isFfmpegAvailable(): boolean {
 export async function burnOverlayWithSharpAndFfmpeg(
   sourceVideoPath: string,
   quoteLines: string[],
-  durationSeconds: number = 7.5
+  durationSeconds: number = 6.5
 ): Promise<string> {
   if (!isFfmpegAvailable()) {
     return sourceVideoPath;
@@ -262,19 +262,19 @@ export async function generateViralAiContent(selectedCategory?: ReelCategory): P
   const category = selectedCategory || getActiveReelCategory();
   const catConfig = CATEGORIES_CONFIG[category];
 
-  const cleanViralCta = `Drop a "🔥" in the comments if you agree.
-Save this for when you need a reminder 📌
+  const cleanViralCta = `Save this for when you need a reminder 📌
+Share this with someone on the same frequency ♟️
 
-Follow @digitalinspirer for daily drive & unstoppable mindset.`;
+Follow @digitalinspirer for daily drive & high-velocity mindset.`;
 
-  const prompt = `You are a viral short-form video creative director specializing in high-retention, psychology-driven motivational and dark aesthetic car reels (like top accounts with 500k+ views).
+  const prompt = `You are a viral short-form video creative director specializing in high-retention, psychology-driven motivational and dark aesthetic reels for US & UK audiences (like top accounts with 500k+ views).
 
 Visual Background Category: "${catConfig.name}"
 Category Theme: ${catConfig.themePrompt}
 
-IMPORTANT INSTAGRAM ALGORITHM RULES (2026):
+IMPORTANT INSTAGRAM & TIKTOK ALGORITHM RULES (2026 FOR UK & USA):
 - NEVER write abstract, poetic, or cryptic lines (e.g. NEVER write "Rain cloaks the road", "Reflections whisper", "Shadows guide"). Viewers swipe away in 0.5s.
-- ALWAYS use psychological SCROLL-STOPPING HOOKS that trigger intense curiosity, relatability, or FOMO.
+- ALWAYS use psychological SCROLL-STOPPING HOOKS that trigger intense curiosity, relatability, or FOMO in US & UK audiences.
 - Line 1 MUST be a pattern-interrupt hook that forces the viewer to stop scrolling (e.g. "Rule #1 of the top 1%:", "Most people realize this 10 years too late:", "If you are grinding in silence:", "They laughed at your sacrifice:").
 - Lines 2 & 3 must deliver a hard-hitting, memorable truth or punchline.
 - Maximum 3 lines total. Keep each line between 3 to 7 words. Easy to read in 3 seconds.
@@ -283,14 +283,14 @@ Requirements:
 1. quoteLines: Exactly 3 punchy lines as an array of strings.
 2. title: An intense 2-4 word hook in ALL CAPS (e.g. "STAY DANGEROUS", "SILENT DISCIPLINE", "OUTWORK EVERYONE").
 3. captionHook: 1 powerful sentence on ONE single line.
-4. hashtags: Exactly 4 to 5 hyper-targeted hashtags (e.g. ["#mindset", "#stoic", "#nightdrive", "#darkaesthetic", "#discipline"]).
+4. hashtags: Exactly 5 hyper-targeted UK & USA viral hashtags (e.g. ["#mindset", "#stoicism", "#discipline", "#darkaesthetic", "#reelsuk"]).
 
 Output ONLY valid JSON with no markdown backticks:
 {
   "title": "...",
   "quoteLines": ["Hook line", "Truth line", "Punchline"],
   "captionHook": "...",
-  "hashtags": ["#mindset", "#stoic", "#nightdrive", "#darkaesthetic"],
+  "hashtags": ["#mindset", "#stoicism", "#discipline", "#darkaesthetic", "#reelsuk"],
   "theme": "${category}"
 }`;
 
@@ -304,7 +304,7 @@ Output ONLY valid JSON with no markdown backticks:
         const hook = parsed.captionHook || 'When you elevate your standards, daily noise can no longer reach you.';
         const hashtags = Array.isArray(parsed.hashtags) && parsed.hashtags.length > 0
           ? parsed.hashtags.slice(0, 5)
-          : ['#mindset', '#stoic', '#nightdrive', '#darkaesthetic', '#discipline'];
+          : ['#mindset', '#stoicism', '#discipline', '#darkaesthetic', '#reelsuk'];
 
         const caption = `${title} ⚡\n\n${hook}\n\n${cleanViralCta}\n\n${hashtags.join(' ')}`;
 
@@ -327,32 +327,32 @@ Output ONLY valid JSON with no markdown backticks:
     nature: {
       title: 'RULE OF THE TOP 1%',
       quoteLines: ['Rule #1 of the top 1%:', 'Grow in complete silence.', 'Let the results shatter the room.'],
-      caption: `RULE OF THE TOP 1% ⚡\n\nThe storm only shakes what is shallow. When your roots are deep, nothing can move you.\n\n${cleanViralCta}\n\n#mindset #stoic #nightdrive #darkaesthetic #discipline`,
+      caption: `RULE OF THE TOP 1% ⚡\n\nThe storm only shakes what is shallow. When your roots are deep, nothing can move you.\n\n${cleanViralCta}\n\n#mindset #stoicism #discipline #darkaesthetic #reelsuk #usaviral #wealthmindset #monkmode`,
     },
     roads: {
       title: 'MOVE IN SILENCE',
       quoteLines: ['If you are building in silence:', 'Never announce your moves.', 'Let the scoreboard speak for you.'],
-      caption: `MOVE IN SILENCE ⚡\n\nMost people tell everyone what they are going to do. The top 1% execute and disappear.\n\n${cleanViralCta}\n\n#mindset #stoic #nightdrive #darkaesthetic #discipline`,
+      caption: `MOVE IN SILENCE ⚡\n\nMost people tell everyone what they are going to do. The top 1% execute and disappear.\n\n${cleanViralCta}\n\n#mindset #stoicism #discipline #darkaesthetic #reelsuk #usaviral #wealthmindset #monkmode`,
     },
     beach: {
       title: 'RELENTLESS WAVES',
       quoteLines: ['Most people realize too late:', 'Intensity starts the journey.', 'Consistency finishes it.'],
-      caption: `RELENTLESS WAVES ⚡\n\nThe ocean never rushes, yet it carves mountains. Ruthless daily consistency beats talent every single time.\n\n${cleanViralCta}\n\n#mindset #stoic #nightdrive #darkaesthetic #discipline`,
+      caption: `RELENTLESS WAVES ⚡\n\nThe ocean never rushes, yet it carves mountains. Ruthless daily consistency beats talent every single time.\n\n${cleanViralCta}\n\n#mindset #stoicism #discipline #darkaesthetic #reelsuk #usaviral #wealthmindset #monkmode`,
     },
     buildings: {
       title: 'BUILD YOUR EMPIRE',
       quoteLines: ['They laughed at your sacrifice:', 'Now they ask how you did it.', 'Stack every win in silence.'],
-      caption: `BUILD YOUR EMPIRE ⚡\n\nNever let small-minded opinions talk you out of an empire. Brick by brick, quietly.\n\n${cleanViralCta}\n\n#mindset #stoic #nightdrive #darkaesthetic #discipline`,
+      caption: `BUILD YOUR EMPIRE ⚡\n\nNever let small-minded opinions talk you out of an empire. Brick by brick, quietly.\n\n${cleanViralCta}\n\n#mindset #stoicism #discipline #darkaesthetic #reelsuk #usaviral #wealthmindset #monkmode`,
     },
     sky: {
       title: 'ABOVE THE NOISE',
       quoteLines: ['When you elevate your standards:', 'Daily drama cannot reach you.', 'Stay untouchable at the top.'],
-      caption: `ABOVE THE NOISE ⚡\n\nSmall minds create noise. High-level vision creates generational wealth. Fly above it.\n\n${cleanViralCta}\n\n#mindset #stoic #nightdrive #darkaesthetic #discipline`,
+      caption: `ABOVE THE NOISE ⚡\n\nSmall minds create noise. High-level vision creates generational wealth. Fly above it.\n\n${cleanViralCta}\n\n#mindset #stoicism #discipline #darkaesthetic #reelsuk #usaviral #wealthmindset #monkmode`,
     },
     rain: {
       title: 'CLARITY IN THE STORM',
       quoteLines: ['Comfort destroys ambition:', 'Storms reveal your true strength.', 'Keep driving while they doubt.'],
-      caption: `CLARITY IN THE STORM ⚡\n\nHard seasons reveal who you truly are. Don't wish it was easier, make sure you are stronger.\n\n${cleanViralCta}\n\n#mindset #stoic #nightdrive #darkaesthetic #discipline`,
+      caption: `CLARITY IN THE STORM ⚡\n\nHard seasons reveal who you truly are. Don't wish it was easier, make sure you are stronger.\n\n${cleanViralCta}\n\n#mindset #stoicism #discipline #darkaesthetic #reelsuk #usaviral #wealthmindset #monkmode`,
     },
   };
 
@@ -361,7 +361,7 @@ Output ONLY valid JSON with no markdown backticks:
     title: fb.title,
     quoteLines: fb.quoteLines,
     caption: fb.caption,
-    hashtags: ['#mindset', '#stoic', '#nightdrive', '#darkaesthetic', '#discipline'],
+    hashtags: ['#mindset', '#stoicism', '#discipline', '#darkaesthetic', '#reelsuk', '#usaviral'],
     theme: category,
     category,
   };
@@ -420,7 +420,7 @@ async function ensureLocalVideoFile(sourceVideoPath: string): Promise<string> {
 export async function generateViralMotionReel(options?: ViralMotionReelOptions): Promise<ViralMotionReelResult> {
   const WIDTH = 720;
   const HEIGHT = 1280;
-  const duration = options?.durationSeconds || 7.5;
+  const duration = options?.durationSeconds || 6.5;
 
   const category = options?.category || getActiveReelCategory();
   console.log(`🏷️ [ViralMotionReel] Active Category for today: [${category.toUpperCase()}]`);

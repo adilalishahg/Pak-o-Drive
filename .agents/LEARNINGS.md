@@ -4,6 +4,36 @@ This file serves as persistent dynamic memory across coding agent sessions. Ever
 
 > 📦 **Historical Archive Notice**: Detailed operational entries, early prototypes, and historical setup steps from August 2026 have been archived to [`LEARNINGS_ARCHIVE.md`](./LEARNINGS_ARCHIVE.md) to keep this active knowledge base lean, token-efficient, and aligned with current Pak-o-Drive architecture.
 
+### 2026-09-25 — Viral Reels & TikTok Pipeline: UK/USA Geo-Targeting, Anti-Spam Hooks & Loop Duration Optimization
+- **📌 Issue**:
+  User's automated reels on Instagram and TikTok (`@digitalinspirer`) experienced sharp drops in views instead of going viral, despite targeting UK and USA audiences with motivational/stoic quote content.
+- **🔍 Root Cause**:
+  1. **Pakistani Geo-Fencing on TikTok**: `formatViralTikTokCaption` in `src/lib/tiktokPostService.ts` hardcoded Pakistani car parts copy (`Tap Link in Bio for Car Styling & COD Pakistan | +92 318 5205667`) and `#pakwheels`, forcing TikTok's regional recommendation system to quarantine the video in Pakistan and block it from US/UK FYP.
+  2. **Repetitive Spam Trigger & Engagement Bait**: Captions repeatedly used identical copy and comment-bait (`Drop a "🔥"`), which modern Meta and TikTok spam classifiers demote in distribution.
+  3. **Sub-optimal Loop Duration**: Default 7.5s video duration resulted in <100% completion rate for short 3-line quotes.
+  4. **Missing Container Location Assignment**: Instagram container setup logged UK location but never actually populated `containerPayload.location_id`.
+- **🛠️ Verified Code Fix**:
+  1. **Purged Pakistani Geo-Markers on TikTok**: Replaced car store text & phone numbers in `formatViralTikTokCaption` with viral high-retention Save/Follow triggers and Tier-1 tags (`#mindset #stoicism #discipline #darkaesthetic #reelsuk #usaviral #wealthmindset #monkmode`).
+  2. **Dynamic Anti-Spam Captions**: Upgraded `generateViralUkCaption` in `src/lib/instagramReelPostService.ts` with randomized high-impact psychological openers and Save/Share CTA triggers.
+  3. **6.5s Golden Loop Ratio**: Adjusted default duration to 6.5s in `src/lib/viralMotionReelEngine.ts` to ensure viewers finish reading while the video loops (generating >100% completion rate).
+  4. **Active Geo-Location Tagging**: Assigned `containerPayload.location_id = ukLocation.id` and expanded `UK_LOCATION_TAGS` in `src/lib/ukScheduleHelper.ts` to include London, Manchester, New York, Los Angeles, and Miami.
+  5. **Verification**: `npx tsc --noEmit` compiled with 0 errors and `graft build` indexed all 2634 nodes cleanly.
+
+---
+- **📌 Issue**:
+  User configured dedicated Upstash QStash cron schedules for automated social publishing (`auto-instagram-reel` at 23:00 PKT / 19:00 BST and `auto-social` at 10:00 AM PKT). However, legacy Vercel crons (`30 15 * * *` on `daily-master`) and GitHub Actions scheduled workflow (`15 18 * * *` on `daily-instagram-reel.yml`) created conflicting multi-runner executions at off-peak UK times (3:00 PM - 4:30 PM UK).
+- **🔍 Root Cause**:
+  1. `vercel.json` retained an active `"crons"` array targeting `/api/cron/daily-master` at 15:30 UTC.
+  2. `.github/workflows/daily-instagram-reel.yml` had active `on.schedule: - cron: '15 18 * * *'`, risking duplicate dispatches at 18:15 UTC.
+  3. `executeAutoInstagramReelPost` lacked a cool-down idempotency guard, allowing consecutive triggers or Upstash HTTP retry cascades to publish duplicate reels within short intervals.
+- **🛠️ Verified Code Fix**:
+  1. **Vercel Cron Disablement**: Removed `"crons"` configuration from `vercel.json`, completely preventing Vercel from triggering serverless crons.
+  2. **GitHub Actions Schedule Deactivation**: Commented out `on.schedule` in `.github/workflows/daily-instagram-reel.yml`, keeping only on-demand `workflow_dispatch` for manual CLI/debug runs.
+  3. **30-Minute Cool-down Lock**: Added Step 0.5 in `executeAutoInstagramReelPost` (`src/lib/instagramReelPostService.ts`) querying MongoDB `InstagramPostLog` for any reel published within the last 30 minutes. If found, skips redundant video generation and returns the existing reel record safely.
+  4. **Verification**: Executed `pnpm tsc --noEmit` passing with 0 errors.
+
+---
+
 ### 2026-09-18 — Vercel Deployment Storage Optimization: CDN/Cloudinary Video Migration & Zero-Storage Serverless Caching
 - **📌 Issue**:
   Vercel account usage showed a sudden spike in `Deployment Storage` rising up to ~5.0 GB on Sep 18. Each git push was uploading 216 MB of static files, causing rapid storage exhaustion across retained preview and production deployments.

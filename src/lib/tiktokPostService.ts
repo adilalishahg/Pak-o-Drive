@@ -23,15 +23,15 @@ export function formatViralTikTokCaption(rawCaption: string): string {
   const sections = rawCaption.split(/━+|─+/).map((s) => s.trim()).filter(Boolean);
   const mainHook = sections[0] || rawCaption.slice(0, 250);
 
-  // Dedicated high-traffic TikTok hashtags for automotive FYP
-  const tikTokTags = '#fyp #foryou #foryoupage #viral #carsoftiktok #pakwheels #pakodrive #supercars #nightdrive #carguy #darkaesthetic #explore';
+  // High-velocity UK & USA FYP viral hashtags for dark aesthetic & stoic mindset
+  const viralUkUsaTags = '#mindset #stoicism #discipline #darkaesthetic #reelsuk #usaviral #wealthmindset #monkmode #nightdrive #success #mentality #focus';
 
   return `${mainHook}
 
-🚗 Tap Link in Bio for Car Styling & COD Pakistan | +92 318 5205667
-Save & Share with someone on the grind 📌
+Save this so you don't lose it 📌
+Follow @digitalinspirer for daily drive & high-velocity mindset.
 
-${tikTokTags}`.trim();
+${viralUkUsaTags}`.trim();
 }
 
 /**

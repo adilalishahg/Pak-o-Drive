@@ -84,6 +84,9 @@ export const UK_LOCATION_TAGS = [
   { id: '109605799059530', name: 'Mayfair, London' },
   { id: '111588698868841', name: 'Birmingham, United Kingdom' },
   { id: '107380962618844', name: 'Knightsbridge, London' },
+  { id: '114674728543781', name: 'New York, New York' },
+  { id: '110860589270508', name: 'Los Angeles, California' },
+  { id: '115421528472506', name: 'Miami, Florida' },
 ];
 
 export function getRandomUkLocation(): { id: string; name: string } {

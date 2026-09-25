@@ -32,17 +32,29 @@ export interface InstagramReelResult {
  * Generates high-converting viral caption optimized for UK/Global Reach & Pak-o-Drive Dual Monetization
  */
 export async function generateViralUkCaption(title: string): Promise<string> {
+  const dynamicHooks = [
+    'Most people quit right before everything is about to change.',
+    'Rule #1 of silent ambition: Never announce your moves before they happen.',
+    'Comfort is the most dangerous drug in modern society. Choose your hard.',
+    'They laughed at your sacrifice, now they ask for the playbook.',
+    'You will never be criticized by someone doing more than you.',
+    'The version of you that wins had to ruthlessly eliminate who you used to be.',
+    'Stop telling people your goals. Show them the results and disappear.',
+    'Silence is the ultimate weapon. Let them think you are doing nothing.',
+  ];
+  const selectedHook = dynamicHooks[Math.floor(Math.random() * dynamicHooks.length)];
+
   return `${title.toUpperCase()} ⚡
 
-Most people quit right before everything is about to change. 
+${selectedHook}
 Stay focused. Keep building in silence.
 
-Drop a "🔥" in the comments if you agree.
 Save this for when you need a reminder 📌
+Share this with someone on the same frequency ♟️
 
-Follow @digitalinspirer for daily drive & unstoppable mindset.
+Follow @digitalinspirer for daily drive & high-velocity mindset.
 
-#mindset #stoic #nightdrive #darkaesthetic #discipline`;
+#mindset #stoicism #discipline #darkaesthetic #reelsuk #usatrending #wealthmindset #monkmode #nightdrive #success`;
 }
 
 /**
@@ -542,8 +554,9 @@ export async function executeAutoInstagramReelPost(options?: {
         access_token: accessToken,
       };
 
-      if (ukTargeting) {
-        console.log(`📍 [InstagramReelService] Algorithmic UK Geo-targeting: ${ukLocation.name}`);
+      if (ukTargeting && ukLocation?.id) {
+        containerPayload.location_id = ukLocation.id;
+        console.log(`📍 [InstagramReelService] Algorithmic UK Geo-targeting: ${ukLocation.name} (${ukLocation.id})`);
       }
 
       let containerRes = await fetch(`https://graph.facebook.com/v20.0/${igUserId}/media`, {
