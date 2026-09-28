@@ -15,23 +15,40 @@ export interface TikTokPostResult {
 }
 
 /**
- * Formats a high-velocity, clean caption optimized for TikTok's algorithm and UI
- * Avoids blocking the 9:16 video while maximizing FYP reach
+ * Formats a high-velocity, clean caption optimized for TikTok Pakistan FYP & Pak-o-Drive
+ * Strips any UK/US hashtags and @digitalinspirer branding, replacing with localized Pakistani automotive & Pak-o-Drive branding
  */
 export function formatViralTikTokCaption(rawCaption: string): string {
-  // Extract top hook / quote
-  const sections = rawCaption.split(/━+|─+/).map((s) => s.trim()).filter(Boolean);
-  const mainHook = sections[0] || rawCaption.slice(0, 250);
+  // 1. Strip out UK/US branding, hashtags, and previous CTAs cleanly
+  const cleanBody = rawCaption
+    .replace(/Follow\s+@digitalinspirer[^\n]*/gi, '')
+    .replace(/Follow\s+@pakodrive[^\n]*/gi, '')
+    .replace(/Save this[^\n]*/gi, '')
+    .replace(/Share this[^\n]*/gi, '')
+    .replace(/#\w+/g, '')
+    .trim();
 
-  // High-velocity UK & USA FYP viral hashtags for dark aesthetic & stoic mindset
-  const viralUkUsaTags = '#mindset #stoicism #discipline #darkaesthetic #reelsuk #usaviral #wealthmindset #monkmode #nightdrive #success #mentality #focus';
+  const lines = cleanBody
+    .split(/\n+/)
+    .map((l) => l.trim())
+    .filter(Boolean);
 
-  return `${mainHook}
+  const headline = lines[0] || 'NIGHT DRIVE PAKISTAN ⚡';
+  const subHook = lines.slice(1, 3).join('\n') || 'Built for those who move differently after dark.';
 
-Save this so you don't lose it 📌
-Follow @digitalinspirer for daily drive & high-velocity mindset.
+  // High-velocity Pakistani TikTok FYP viral hashtags
+  const viralPakTags = '#pakwheels #carsofpakistan #pakodrive #islamabad #lahore #karachi #nightdrive #carguy #carculture #pakistan #fyp #foryou #foryoupage #viral';
 
-${viralUkUsaTags}`.trim();
+  return `${headline}
+
+${subHook}
+
+Save & share with your car crew 📌
+Follow @pakodrive for Pakistan's premier automotive aesthetic & styling 🚗
+Tap Link in Bio for Car Styling Accessories | COD All Pakistan 🇵🇰
+WhatsApp: +92 318 5205667
+
+${viralPakTags}`.trim();
 }
 
 /**

@@ -67,7 +67,7 @@ export function isFfmpegAvailable(): boolean {
 export async function burnOverlayWithSharpAndFfmpeg(
   sourceVideoPath: string,
   quoteLines: string[],
-  durationSeconds: number = 6.5
+  durationSeconds: number = 6.0
 ): Promise<string> {
   if (!isFfmpegAvailable()) {
     return sourceVideoPath;
@@ -262,10 +262,10 @@ export async function generateViralAiContent(selectedCategory?: ReelCategory): P
   const category = selectedCategory || getActiveReelCategory();
   const catConfig = CATEGORIES_CONFIG[category];
 
-  const cleanViralCta = `Save this for when you need a reminder 📌
-Share this with someone on the same frequency ♟️
+  const cleanViralCta = `Save this reminder for when you need it 📌
+Send this to someone on the same frequency ♟️
 
-Follow @digitalinspirer for daily drive & high-velocity mindset.`;
+Follow @digitalinspirer for daily high-velocity mindset.`;
 
   const prompt = `You are a viral short-form video creative director specializing in high-retention, psychology-driven motivational and dark aesthetic reels for US & UK audiences (like top accounts with 500k+ views).
 
@@ -420,7 +420,7 @@ async function ensureLocalVideoFile(sourceVideoPath: string): Promise<string> {
 export async function generateViralMotionReel(options?: ViralMotionReelOptions): Promise<ViralMotionReelResult> {
   const WIDTH = 720;
   const HEIGHT = 1280;
-  const duration = options?.durationSeconds || 6.5;
+  const duration = options?.durationSeconds || 6.0;
 
   const category = options?.category || getActiveReelCategory();
   console.log(`🏷️ [ViralMotionReel] Active Category for today: [${category.toUpperCase()}]`);

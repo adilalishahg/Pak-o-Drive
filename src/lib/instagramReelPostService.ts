@@ -49,10 +49,10 @@ export async function generateViralUkCaption(title: string): Promise<string> {
 ${selectedHook}
 Stay focused. Keep building in silence.
 
-Save this for when you need a reminder 📌
-Share this with someone on the same frequency ♟️
+Save this reminder for when you need it 📌
+Send this to someone on the same frequency ♟️
 
-Follow @digitalinspirer for daily drive & high-velocity mindset.
+Follow @digitalinspirer for daily high-velocity mindset.
 
 #mindset #stoicism #discipline #darkaesthetic #reelsuk #usatrending #wealthmindset #monkmode #nightdrive #success`;
 }
@@ -471,7 +471,7 @@ export async function executeAutoInstagramReelPost(options?: {
 
   // Step 1: Generate Real Moving Video or Cinematic Video
   let videoPath = '';
-  let videoDuration = 7.5;
+  let videoDuration = 6.0;
   let toolName = options?.customToolName || 'Viral Mindset Reel';
   let caption = '';
 

@@ -1,0 +1,6 @@
+# Project Learnings & Architectural Memory — Pak-o-Drive
+
+## 2026-09-28: TikTok (Pakistan / Pak-o-Drive) vs Instagram (UK/US / DigitalInspirer) Decoupling
+- **Issue**: Views on Instagram Reels and TikTok auto-posts were flat (<50 views) with zero algorithmic distribution after the 2026-09-25 update.
+- **Root Cause**: Two critical bugs: (1) Caption duplication where CTA and hashtags were concatenated twice, triggering social spam filters; (2) Cross-contamination of niches where TikTok posts under `@pakodrive` were tagged with UK/US tags and promoted `@digitalinspirer`, ruining Pakistan audience retention and algorithmic categorization.
+- **Verified Fix**: Decoupled social distribution pipelines in [`src/lib/tiktokPostService.ts`](file:///d:/proj/Pak-o-Drive/src/lib/tiktokPostService.ts) and [`src/lib/instagramReelPostService.ts`](file:///d:/proj/Pak-o-Drive/src/lib/instagramReelPostService.ts). TikTok now receives sanitized, localized Pakistani automotive copy targeting `@pakodrive` with high-velocity local tags (`#pakwheels #carsofpakistan #pakodrive #islamabad #lahore #karachi`), COD Pakistan CTAs, and WhatsApp link; while Instagram maintains pure UK/US 1% mindset & dark aesthetic under `@digitalinspirer` with clean deduplicated copy and UK geo-tags. Verified with `npx tsc --noEmit` (0 errors).
