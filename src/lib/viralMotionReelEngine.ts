@@ -201,6 +201,8 @@ export interface ViralMotionReelResult {
  * Available viral audio tracks pool for dynamic daily music rotation
  */
 export const AUDIO_TRACKS_POOL = [
+  'public/audio/proven-viral-track-1-260likes.mp3',
+  'public/audio/proven-viral-track-2-176likes.mp3',
   'public/audio/viral-electronic-night-drive.mp3',
   'public/audio/viral-synthwave-memory.mp3',
   'public/audio/viral-dark-ambient-mindset.mp3',
@@ -210,12 +212,12 @@ export const AUDIO_TRACKS_POOL = [
 ];
 
 export const CATEGORY_VIRAL_AUDIO_MAP: Record<ReelCategory, string> = {
-  roads: 'public/audio/viral-electronic-night-drive.mp3',
-  buildings: 'public/audio/viral-synthwave-memory.mp3',
-  sky: 'public/audio/viral-snowfall-atmospheric.mp3',
-  beach: 'public/audio/viral-snowfall-atmospheric.mp3',
-  rain: 'public/audio/viral-dark-ambient-mindset.mp3',
-  nature: 'public/audio/viral-lofi-chill.mp3',
+  roads: 'public/audio/proven-viral-track-1-260likes.mp3',
+  buildings: 'public/audio/proven-viral-track-2-176likes.mp3',
+  sky: 'public/audio/proven-viral-track-1-260likes.mp3',
+  beach: 'public/audio/proven-viral-track-2-176likes.mp3',
+  rain: 'public/audio/proven-viral-track-1-260likes.mp3',
+  nature: 'public/audio/proven-viral-track-2-176likes.mp3',
 };
 
 function robustParseAiJson(rawText: string): any {

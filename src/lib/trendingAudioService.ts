@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
+import { execSync } from 'child_process';
 import { ReelCategory } from './reelCategoryLibrary';
 
 export interface TrendingAudioItem {
@@ -56,24 +57,33 @@ export function getCurrentWeekNumber(d: Date = new Date()): number {
 
 // 4-Week Rotating Curated Library of Viral, Copyright-Safe Trending Audios
 export const WEEKLY_VIRAL_AUDIO_POOLS: Record<number, TrendingAudioItem[]> = {
-  // Week 1: High Adrenaline Phonk & Stoic Synthwave
+  // Week 1: Proven Viral Hits & Stoic Resonance
   0: [
     {
-      id: 'w1-phonk-night-drive',
-      name: 'Electronic Future Beats / Night Drive',
+      id: 'proven-viral-track-1',
+      name: 'Proven Viral Stoic Ambient (260+ Likes Original)',
       category: 'roads',
-      localFileName: 'viral-electronic-night-drive.mp3',
-      sourceUrl: 'https://cdn.pixabay.com/download/audio/2022/08/02/audio_884fe92c21.mp3?filename=electronic-future-beats-117997.mp3',
-      mood: 'High-speed adrenaline & night drive',
+      localFileName: 'proven-viral-track-1-260likes.mp3',
+      sourceUrl: '',
+      mood: 'Deep reflection, quiet confidence & emotional mastery',
       weekIndex: 0,
     },
     {
-      id: 'w1-synthwave-memory',
-      name: '80s Synthwave Cyberpunk (Memory Reboot Vibe)',
+      id: 'proven-viral-track-2',
+      name: 'Proven Viral Ambient Resonance (176+ Likes Original)',
       category: 'buildings',
-      localFileName: 'viral-synthwave-memory.mp3',
-      sourceUrl: 'https://cdn.pixabay.com/download/audio/2022/10/14/audio_9939f792cb.mp3?filename=synthwave-80s-110045.mp3',
-      mood: 'Skylines, empires & ambitious mindset',
+      localFileName: 'proven-viral-track-2-176likes.mp3',
+      sourceUrl: '',
+      mood: 'Late night quiet clarity & mental discipline',
+      weekIndex: 0,
+    },
+    {
+      id: 'w1-phonk-night-drive',
+      name: 'Electronic Future Beats / Night Drive',
+      category: 'rain',
+      localFileName: 'viral-electronic-night-drive.mp3',
+      sourceUrl: 'https://cdn.pixabay.com/download/audio/2022/08/02/audio_884fe92c21.mp3?filename=electronic-future-beats-117997.mp3',
+      mood: 'High-speed adrenaline & night drive',
       weekIndex: 0,
     },
     {
@@ -398,20 +408,165 @@ export interface ResolvedViralAudio {
 }
 
 /**
+ * Safely resolves the ffmpeg binary across local dev and serverless runtime.
+ */
+function getFfmpegBinary(): string {
+  try {
+    const installer = eval('require')('@ffmpeg-installer/ffmpeg');
+    if (installer?.path && fs.existsSync(installer.path)) return installer.path;
+  } catch {}
+  return 'ffmpeg';
+}
+
+/**
+ * Dynamically queries Meta Graph API's official /ig_audio endpoint for real-time trending Reel tracks,
+ * downloads the CDN stream, normalizes it with FFmpeg into high-fidelity MP3, and returns the path.
+ */
+export async function fetchLiveInstagramTrendingAudio(): Promise<ResolvedViralAudio | null> {
+  const userId = process.env.INSTAGRAM_ACCOUNT_ID;
+  const token = process.env.INSTAGRAM_ACCESS_TOKEN;
+
+  if (!userId || !token) {
+    console.log('ℹ️ [TrendingAudioService] Meta Graph credentials not configured, skipping live /ig_audio query.');
+    return null;
+  }
+
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 12000);
+    const url = `https://graph.facebook.com/v19.0/ig_audio?audio_type=music&user_id=${userId}&access_token=${token}`;
+
+    const res = await fetch(url, { signal: controller.signal });
+    clearTimeout(timeoutId);
+
+    if (!res.ok) {
+      console.warn(`⚠️ [TrendingAudioService] /ig_audio returned status ${res.status}`);
+      return null;
+    }
+
+    const json = await res.json();
+    const audioList = json.audio || [];
+    const validItems = audioList.filter((item: any) => item.download_url && (item.duration_in_ms || 0) > 5000);
+
+    if (validItems.length === 0) {
+      console.log('ℹ️ [TrendingAudioService] No downloadable trending tracks found in live /ig_audio feed.');
+      return null;
+    }
+
+    // Pick a high-energy trending track (randomized among available live items for variety on each cron run)
+    const selected = validItems[Math.floor(Math.random() * validItems.length)];
+    const audioDir = getAudioStorageDir();
+    const fileName = `live-trending-${selected.audio_id}.mp3`;
+    const targetPath = path.join(audioDir, fileName);
+
+    // 1. If already downloaded and valid, reuse immediately
+    if (fs.existsSync(targetPath) && fs.statSync(targetPath).size > 15000) {
+      console.log(`⚡ [TrendingAudioService] Using cached live trending track: "${selected.title}" (${fileName})`);
+      return {
+        localPath: targetPath,
+        fileName,
+        sourceUrl: selected.download_url,
+        name: `🔥 Live Trending: ${selected.title}${selected.display_artist ? ` - ${selected.display_artist}` : ''}`,
+      };
+    }
+
+    // Check workspace public/audio fallback
+    const repoPath = path.resolve(process.cwd(), 'public/audio', fileName);
+    if (fs.existsSync(repoPath) && fs.statSync(repoPath).size > 15000) {
+      return {
+        localPath: repoPath,
+        fileName,
+        sourceUrl: selected.download_url,
+        name: `🔥 Live Trending: ${selected.title}${selected.display_artist ? ` - ${selected.display_artist}` : ''}`,
+      };
+    }
+
+    // 2. Download from Meta CDN stream
+    console.log(`📥 [TrendingAudioService] Fetching LIVE trending track: "${selected.title}" by "${selected.display_artist || 'Unknown'}" (ID: ${selected.audio_id})...`);
+    const streamRes = await fetch(selected.download_url);
+    if (!streamRes.ok) return null;
+
+    const buffer = Buffer.from(await streamRes.arrayBuffer());
+    if (buffer.length < 15000) return null;
+
+    const tmpInput = path.join(audioDir, `temp_meta_${selected.audio_id}_${Date.now()}.mp4`);
+    fs.writeFileSync(tmpInput, buffer);
+
+    try {
+      const ffmpegBin = getFfmpegBinary();
+      execSync(`"${ffmpegBin}" -y -i "${tmpInput}" -vn -acodec libmp3lame -q:a 2 "${targetPath}"`, { stdio: 'ignore' });
+      if (fs.existsSync(targetPath) && fs.statSync(targetPath).size > 15000) {
+        console.log(`✓ [TrendingAudioService] Converted live trending track to: ${fileName} (${fs.statSync(targetPath).size} bytes)`);
+        return {
+          localPath: targetPath,
+          fileName,
+          sourceUrl: selected.download_url,
+          name: `🔥 Live Trending: ${selected.title}${selected.display_artist ? ` - ${selected.display_artist}` : ''}`,
+        };
+      }
+    } finally {
+      if (fs.existsSync(tmpInput)) {
+        try { fs.unlinkSync(tmpInput); } catch {}
+      }
+    }
+  } catch (err: any) {
+    console.warn(`⚠️ [TrendingAudioService] Failed to fetch live Instagram trending audio: ${err.message}`);
+  }
+
+  return null;
+}
+
+/**
  * Resolves the active viral audio for a given category.
- * Guaranteed to return an existing local file on disk and its CDN/source URL.
+ * Prioritizes real-time live Meta Reels trending audio, then proven top-performing viral audio (260+ likes),
+ * with graceful fallbacks.
  */
 export async function resolveActiveViralAudio(category: ReelCategory): Promise<ResolvedViralAudio> {
+  const audioDir = getAudioStorageDir();
+
+  // 1. Dynamic Live Meta Reels Trending Audio (Live Meta Graph API /ig_audio)
+  try {
+    const liveTrending = await fetchLiveInstagramTrendingAudio();
+    if (liveTrending) {
+      console.log(`🚀 [TrendingAudioService] Applied LIVE trending track for reel: "${liveTrending.name}"`);
+      return liveTrending;
+    }
+  } catch (err: any) {
+    console.warn(`⚠️ [TrendingAudioService] Live audio fetch error, falling back: ${err.message}`);
+  }
+
+  // 2. Check for proven historical viral tracks (Extracted from 260+ and 176+ like top posts)
+  const provenTrack1 = path.join(audioDir, 'proven-viral-track-1-260likes.mp3');
+  const provenRepo1 = path.resolve(process.cwd(), 'public/audio/proven-viral-track-1-260likes.mp3');
+  if (fs.existsSync(provenTrack1) && fs.statSync(provenTrack1).size > 10000) {
+    console.log(`💎 [TrendingAudioService] Using proven 260-like viral track as fallback.`);
+    return {
+      localPath: provenTrack1,
+      fileName: 'proven-viral-track-1-260likes.mp3',
+      sourceUrl: '',
+      name: 'Proven Viral Stoic Ambient (260+ Likes Original)',
+    };
+  }
+  if (fs.existsSync(provenRepo1) && fs.statSync(provenRepo1).size > 10000) {
+    console.log(`💎 [TrendingAudioService] Using proven 260-like viral track as fallback.`);
+    return {
+      localPath: provenRepo1,
+      fileName: 'proven-viral-track-1-260likes.mp3',
+      sourceUrl: '',
+      name: 'Proven Viral Stoic Ambient (260+ Likes Original)',
+    };
+  }
+
+  // 3. Fall back to curated weekly pool
   const activePool = getActiveWeeklyAudioPool();
   const matchedItem =
     activePool.find((t) => t.category === category) ||
     activePool.find((t) => t.category === 'roads') ||
     activePool[0];
 
-  const audioDir = getAudioStorageDir();
   const localDest = path.join(audioDir, matchedItem.localFileName);
 
-  // 1. Check in writable cache (/tmp/viral_audio_cache or public/audio)
+  // Check in writable cache (/tmp/viral_audio_cache or public/audio)
   if (fs.existsSync(localDest) && fs.statSync(localDest).size > 10000) {
     return {
       localPath: localDest,
@@ -421,7 +576,7 @@ export async function resolveActiveViralAudio(category: ReelCategory): Promise<R
     };
   }
 
-  // 2. Check in public/audio in workspace
+  // Check in public/audio in workspace
   const repoPath = path.resolve(process.cwd(), 'public/audio', matchedItem.localFileName);
   if (fs.existsSync(repoPath) && fs.statSync(repoPath).size > 10000) {
     return {
@@ -432,7 +587,7 @@ export async function resolveActiveViralAudio(category: ReelCategory): Promise<R
     };
   }
 
-  // 3. Download directly on-demand into writable storage
+  // Download directly on-demand into writable storage
   try {
     console.log(`📥 [TrendingAudioService] On-demand fetching: ${matchedItem.name}...`);
     const res = await fetch(matchedItem.sourceUrl, {
@@ -458,7 +613,7 @@ export async function resolveActiveViralAudio(category: ReelCategory): Promise<R
     console.warn(`⚠️ [TrendingAudioService] On-demand audio download failed: ${err.message}`);
   }
 
-  // 4. Fallback to bundled aesthetic-lofi-trending.mp3
+  // Fallback to bundled aesthetic-lofi-trending.mp3
   const fallbackRepo = path.resolve(process.cwd(), 'public/audio/aesthetic-lofi-trending.mp3');
   return {
     localPath: fs.existsSync(fallbackRepo) ? fallbackRepo : localDest,
