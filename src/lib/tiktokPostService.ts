@@ -14,17 +14,29 @@ export interface TikTokPostResult {
   error?: string;
 }
 
+const TIKTOK_DISCUSSION_PROMPTS = [
+  'Which city has the best night drives: Lahore, Islamabad, or Karachi? 👇',
+  'Manual shift or Automatic glide? Real car guys know 🖤👇',
+  'Tag that one friend jo har signal par race lagata hai 😂👇',
+  'Aesthetic night cruise or raw highway pull? Comment below 👇',
+  'Civic X or Grande? Comment your choice 👇',
+  'Rate this night drive aesthetic from 1 to 10 🔥👇',
+];
+
 /**
  * Formats a high-velocity, clean caption optimized for TikTok Pakistan FYP & Pak-o-Drive
- * Strips any UK/US hashtags and @digitalinspirer branding, replacing with localized Pakistani automotive & Pak-o-Drive branding
+ * Strips raw phone numbers (which trigger TikTok commercial link suppression), adds comment-velocity prompts,
+ * and attaches focused automotive hashtags.
  */
 export function formatViralTikTokCaption(rawCaption: string): string {
-  // 1. Strip out UK/US branding, hashtags, and previous CTAs cleanly
+  // 1. Strip out UK/US branding, hashtags, phone numbers, and previous CTAs cleanly
   const cleanBody = rawCaption
     .replace(/Follow\s+@digitalinspirer[^\n]*/gi, '')
     .replace(/Follow\s+@pakodrive[^\n]*/gi, '')
     .replace(/Save this[^\n]*/gi, '')
     .replace(/Share this[^\n]*/gi, '')
+    .replace(/WhatsApp[^\n]*/gi, '')
+    .replace(/\+?92\s*\d[\d\s-]{7,}/gi, '')
     .replace(/#\w+/g, '')
     .trim();
 
@@ -34,19 +46,20 @@ export function formatViralTikTokCaption(rawCaption: string): string {
     .filter(Boolean);
 
   const headline = lines[0] || 'NIGHT DRIVE PAKISTAN ⚡';
-  const subHook = lines.slice(1, 3).join('\n') || 'Built for those who move differently after dark.';
+  const subHook = lines.slice(1, 3).join(' ') || 'Built for those who move differently after dark.';
+  const discussionPrompt = TIKTOK_DISCUSSION_PROMPTS[Math.floor(Math.random() * TIKTOK_DISCUSSION_PROMPTS.length)];
 
-  // High-velocity Pakistani TikTok FYP viral hashtags
-  const viralPakTags = '#pakwheels #carsofpakistan #pakodrive #islamabad #lahore #karachi #nightdrive #carguy #carculture #pakistan #fyp #foryou #foryoupage #viral';
+  // High-velocity Pakistani TikTok FYP viral hashtags (compact & focused)
+  const viralPakTags = '#pakwheels #carsofpakistan #pakodrive #carguy #nightdrive #islamabad #lahore #karachi #fyp #foryou #viral';
 
-  return `${headline}
+  return `${headline} 🚗
 
 ${subHook}
 
-Save & share with your car crew 📌
-Follow @pakodrive for Pakistan's premier automotive aesthetic & styling 🚗
+💬 ${discussionPrompt}
+
 Tap Link in Bio for Car Styling Accessories | COD All Pakistan 🇵🇰
-WhatsApp: +92 318 5205667
+Follow @pakodrive for Pakistan's premier automotive aesthetic ⚡
 
 ${viralPakTags}`.trim();
 }
@@ -68,6 +81,7 @@ async function publishViaBuffer(videoUrl: string, caption: string): Promise<TikT
 
   // Format optimized caption specifically tailored for TikTok FYP
   const trimmedCaption = formatViralTikTokCaption(caption);
+  const titleHook = (trimmedCaption.split('\n')[0] || 'Pak-o-Drive Viral Drive').replace(/[^\w\s⚡🚗🔥]/gi, '').slice(0, 90);
 
   const mutation = `
     mutation CreateTikTokPost($input: CreatePostInput!) {
@@ -101,6 +115,11 @@ async function publishViaBuffer(videoUrl: string, caption: string): Promise<TikT
       input: {
         channelId,
         text: trimmedCaption,
+        metadata: {
+          tiktok: {
+            title: titleHook,
+          },
+        },
         mode: 'shareNow',
         schedulingType: 'automatic',
         needsApproval: false,
