@@ -444,18 +444,19 @@ export async function executeAutoInstagramReelPost(options?: {
     console.warn('⚠️ [InstagramReelService] Audio freshness check non-fatal warning:', audioErr.message);
   }
 
-  // Step 0.5: Guard against duplicate cron dispatches within 30 minutes
+  // Step 0.5: Guard against duplicate cron dispatches within 4 hours (Strict Anti-Spam Shield)
   if (source === 'cron' && process.env.MONGODB_URI) {
     try {
       await dbConnect();
-      const thirtyMinutesAgo = new Date(Date.now() - 30 * 60 * 1000);
+      const fourHoursAgo = new Date(Date.now() - 4 * 60 * 60 * 1000);
       const recentLog = await InstagramPostLog.findOne({
         status: 'published',
-        createdAt: { $gte: thirtyMinutesAgo },
+        createdAt: { $gte: fourHoursAgo },
       }).lean();
 
       if (recentLog) {
-        console.log(`🛡️ [InstagramReelService] Cool-down active. A reel was already published ${Math.round((Date.now() - new Date(recentLog.createdAt).getTime()) / 60000)}m ago: "${recentLog.topic}". Skipping duplicate dispatch.`);
+        const minutesAgo = Math.round((Date.now() - new Date(recentLog.createdAt).getTime()) / 60000);
+        console.log(`🛡️ [InstagramReelService] Anti-spam cool-down active. A reel was already published ${minutesAgo}m ago: "${recentLog.topic}". Skipping duplicate dispatch.`);
         return {
           success: true,
           toolName: recentLog.topic,

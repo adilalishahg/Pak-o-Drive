@@ -584,49 +584,103 @@ function createEmergencyUniqueDeck(track: TechTrack, pastTopics: string[]): Caro
     {
       topic: 'Distributed Locks in Node.js: Preventing Double-Spend & Race Conditions',
       tag: 'DISTRIBUTED SYSTEMS',
+      caption: `Concurrency bugs in production don't announce themselves — they silently corrupt state during traffic spikes. ⚡\n\nWhen scaling distributed web applications:\n📌 Never rely on in-memory single-process locks across scaled instances.\n📌 Use distributed leases with strict fencing tokens to prevent zombie process overwrites.\n📌 Profile end-to-end latency before introducing distributed state.\n\n👉 Swipe through this visual architectural breakdown above! ➡️\n\n#SoftwareEngineering #DistributedSystems #NodeJS #SystemDesign #BackendEngineering #TechArchitecture`,
       points: [
-        'Why in-memory state fails across multiple containers',
-        'Redis Redlock algorithm and TTL lease management',
-        'Fencing tokens to prevent stale process writes',
+        'Why in-memory state fails across multiple scaled containers',
+        'Redis Redlock algorithm and TTL lease management patterns',
+        'Fencing tokens to prevent stale zombie process writes',
       ],
     },
     {
       topic: 'Edge Runtime vs Node.js Serverless: Cold Starts, Limits & TTFB',
       tag: 'CLOUD ARCHITECTURE',
+      caption: `Choosing Edge vs Node.js serverless isn't about hype — it's an engineering trade-off between cold starts and runtime capabilities. ⚡\n\nKey production criteria:\n📌 V8 Isolates boot in <5ms but lack full Node.js POSIX APIs.\n📌 Regional lambdas handle heavy compute but suffer from 200ms+ cold starts.\n📌 Smart hybrid architectures keep dynamic auth at the edge while streaming heavy DB calls.\n\n👉 Swipe through the complete comparative breakdown! ➡️\n\n#CloudArchitecture #Nextjs #Serverless #EdgeComputing #WebPerformance #SoftwareArchitecture`,
       points: [
         'V8 Isolate micro-runtimes vs full container initialization',
-        'Global edge propagation and zero cold start tradeoffs',
-        'Node.js native API compatibility constraints',
+        'Global edge propagation vs database connection pooling limits',
+        'Architectural decision matrix for sub-50ms TTFB in 2026',
       ],
     },
     {
-      topic: 'PostgreSQL Connection Pooling: PgBouncer vs Direct Connections',
-      tag: 'BACKEND PERFORMANCE',
+      topic: 'PostgreSQL Connection Pooling: PgBouncer vs Direct Serverless Connections',
+      tag: 'DATABASE PERFORMANCE',
+      caption: `The quickest way to bring down a production database during a traffic spike? Exhausting your connection pool. ⚡\n\nWhy connection management matters in serverless:\n📌 Every Postgres connection consumes 5-10MB backend RAM.\n📌 Hundreds of concurrent Lambdas will instantly trigger "too many connections" errors.\n📌 Transaction pooling via PgBouncer or Supabase Pooler maintains steady p99 latency.\n\n👉 Swipe to master high-concurrency database pooling! ➡️\n\n#PostgreSQL #DatabaseArchitecture #BackendEngineering #PgBouncer #DevOps #SystemDesign`,
       points: [
         'Why each Postgres connection consumes 5-10MB backend RAM',
         'Transaction pooling vs Session pooling in serverless environments',
-        'Eliminating connection exhaustion under traffic spikes',
+        'Eliminating connection exhaustion under peak traffic spikes',
       ],
     },
     {
-      topic: 'Zero-Copy Streaming in Node.js: Processing Gigabyte Payloads',
+      topic: 'Zero-Copy Streaming in Node.js: Processing Multi-Gigabyte Payloads',
       tag: 'SYSTEMS PROGRAMMING',
+      caption: `Buffering entire files in RAM is a ticking time bomb in production Node.js services. ⚡\n\nHow senior engineers handle massive payloads:\n📌 High-watermark backpressure ensures writers don't overwhelm readers.\n📌 Use stream.pipeline for safe automatic resource cleanup and error propagation.\n📌 Transform streams parse NDJSON or CSV chunks on the fly with <50MB RAM.\n\n👉 Swipe through the visual stream architecture guide! ➡️\n\n#NodeJS #BackendArchitecture #MemoryOptimization #Streams #SoftwareEngineering #Performance`,
       points: [
         'Backpressure handling with Readable and Writable streams',
-        'Avoiding high-watermark memory exhaustion',
-        'Pipeline utility for error propagation safety',
+        'Avoiding high-watermark memory exhaustion during bulk transfers',
+        'Stream pipeline utilities for fail-safe error propagation',
+      ],
+    },
+    {
+      topic: 'Next.js 16 Partial Prerendering: The Architecture of Instant Page Loads',
+      tag: 'NEXTJS ARCHITECTURE',
+      caption: `The debate between static site generation (SSG) and dynamic server rendering (SSR) is officially over. ⚡\n\nPartial Prerendering (PPR) combines the best of both worlds:\n📌 Static shell delivers instant TTFB directly from edge CDN cache.\n📌 Dynamic micro-holes stream in parallel without blocking the initial paint.\n📌 React 19 Suspense boundaries isolate slow microservice queries.\n\n👉 Swipe through this visual walkthrough of modern rendering! ➡️\n\n#Nextjs #React19 #WebDevelopment #FrontendArchitecture #CoreWebVitals #Performance`,
+      points: [
+        'Static edge shell delivery with dynamic parallel streaming',
+        'React 19 Suspense boundaries isolating database latency',
+        'Eliminating client waterfall requests on e-commerce product pages',
+      ],
+    },
+    {
+      topic: 'Event-Driven Microservices: Preventing Deadlocks & Consumer Lag',
+      tag: 'EVENT DRIVEN ARCHITECTURE',
+      caption: `Decoupled event architectures are great until consumer lag triggers memory exhaustion across your cluster. ⚡\n\nHow to design resilient event pipelines:\n📌 Implement dead-letter queues with exponential backoff and jitter.\n📌 Decouple state mutations using the transactional outbox pattern.\n📌 Monitor partition rebalancing overhead in Kafka and RabbitMQ.\n\n👉 Swipe through the complete event-driven resiliency blueprint! ➡️\n\n#Microservices #EventDriven #Kafka #SystemDesign #CloudArchitecture #BackendEngineering`,
+      points: [
+        'Dead-letter queues with exponential backoff and jitter retry loops',
+        'Transactional Outbox Pattern guaranteeing zero dropped events',
+        'Partition balancing and consumer backpressure monitoring',
+      ],
+    },
+    {
+      topic: 'Zero-Runtime Type Validation in TypeScript: Narrowing vs Schema Overhead',
+      tag: 'TYPESCRIPT ARCHITECTURE',
+      caption: `Validating every internal function call with heavy runtime schemas wastes significant CPU cycles at scale. ⚡\n\nSmart typing strategies:\n📌 Validate strictly at untrusted trust boundaries (APIs, webhooks, user input).\n📌 Use discriminated unions and exhaustive type narrowing across internal layers.\n📌 Leverage const type parameters for zero-allocation inference.\n\n👉 Swipe to optimize your TypeScript architecture! ➡️\n\n#TypeScript #JavaScript #CleanCode #SoftwareArchitecture #PerformanceOptimization #WebDev`,
+      points: [
+        'Validating strictly at network ingress boundaries vs internal paths',
+        'Exhaustive pattern matching with discriminated unions',
+        'Const type parameters for zero-overhead compile-time inference',
+      ],
+    },
+    {
+      topic: 'MongoDB WiredTiger Storage Engine: Profiling Query Latency & Compound Indexes',
+      tag: 'DATABASE ARCHITECTURE',
+      caption: `If your MongoDB queries are scanning more documents than they return, your database CPU is burning money. ⚡\n\nMastering MongoDB index performance:\n📌 Equality, Sort, Range (ESR) rule for zero-in-memory sorting.\n📌 Covered queries that resolve entirely from the index tree without document lookups.\n📌 Monitoring cache eviction rates and ticket exhaustion in WiredTiger.\n\n👉 Swipe to master database indexing architecture! ➡️\n\n#MongoDB #DatabaseOptimization #BackendEngineering #QueryTuning #SystemDesign #FullStack`,
+      points: [
+        'Applying the ESR (Equality, Sort, Range) rule to eliminate in-memory sorts',
+        'Designing covered index trees to bypass document storage engine lookups',
+        'Profiling cache evictions and read/write execution tickets',
       ],
     },
   ];
 
   // Pick first topic not in pastTopics
-  const candidate = EMERGENCY_TOPICS.find(
+  let candidate = EMERGENCY_TOPICS.find(
     (item) => !isTopicDuplicate(item.topic, '', pastTopics).isDuplicate
-  ) || EMERGENCY_TOPICS[0];
+  );
+
+  // If every static emergency topic was previously posted, dynamically synthesize a unique topic with week discriminator
+  if (!candidate) {
+    const fallbackBase = EMERGENCY_TOPICS[Math.floor(Math.random() * EMERGENCY_TOPICS.length)];
+    const dateStamp = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    candidate = {
+      ...fallbackBase,
+      topic: `${fallbackBase.topic} (Masterclass Edition • ${dateStamp})`,
+    };
+  }
 
   return {
     topic: candidate.topic,
-    caption: `Concurrency bugs in production don't announce themselves — they silently corrupt state during traffic spikes. ⚡\n\nWhen scaling distributed web applications:\n📌 Never rely on in-memory single-process locks across scaled instances.\n📌 Use distributed leases with strict fencing tokens to prevent zombie process overwrites.\n📌 Profile end-to-end latency before introducing distributed state.\n\n👉 Swipe through this visual architectural breakdown above! ➡️\n\n#SoftwareEngineering #DistributedSystems #NodeJS #SystemDesign #BackendEngineering #TechArchitecture #CleanCode`,
+    caption: candidate.caption,
     slides: [
       {
         isCover: true,
@@ -639,8 +693,8 @@ function createEmergencyUniqueDeck(track: TechTrack, pastTopics: string[]): Caro
       {
         slideType: 'intro',
         tag: '01 / CORE BOTTLENECK',
-        headline: 'Why single-node assumptions break at scale',
-        subheadline: 'Production challenges with concurrent state operations',
+        headline: 'Why standard approaches fail under production load',
+        subheadline: 'Real-world engineering challenges at high concurrency',
         points: candidate.points,
         footer: 'Swipe to continue ->',
       },
@@ -651,7 +705,7 @@ function createEmergencyUniqueDeck(track: TechTrack, pastTopics: string[]): Caro
         cardContent: {
           badge: 'PRODUCTION ARCHITECTURE',
           title: 'Deterministic State Management',
-          highlightText: 'Zero race conditions, zero orphaned leases',
+          highlightText: 'Zero race conditions, zero orphaned resources',
           bodyLines: [
             'Maintain strict TTL expiration on distributed resources.',
             'Validate fencing tokens before committing persistent writes.',
@@ -667,8 +721,8 @@ function createEmergencyUniqueDeck(track: TechTrack, pastTopics: string[]): Caro
         subheadline: 'Apply these resilient patterns in your production infrastructure.',
         points: [
           'Design with network partition awareness from day one.',
-          'Isolate state stores behind connection pools.',
-          'Enforce strict lease expirations.',
+          'Isolate state stores behind connection pools and circuit breakers.',
+          'Enforce strict lease expirations across all asynchronous handlers.',
         ],
         footer: 'Follow for weekly deep tech breakdowns',
       },

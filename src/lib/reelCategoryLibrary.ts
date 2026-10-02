@@ -11,34 +11,34 @@ export interface CategoryMetadata {
 
 export const CATEGORIES_CONFIG: Record<ReelCategory, CategoryMetadata> = {
   nature: {
-    name: 'Nature & Solitude',
-    themePrompt: 'deep resilience, rooted strength, inner peace amid chaos, silent growth, stoic nature',
-    suggestedTags: ['#naturelovers', '#mountains', '#innerpeace', '#stoicism', '#resilience', '#solitude', '#deepthoughts'],
+    name: 'Nature & Scenic Roadtrips',
+    themePrompt: 'Northern Pakistan roadtrips (Murree, Babusar, Swat), scenic highway cruising, unshakeable engine reliability, peaceful scenic mountain drives',
+    suggestedTags: ['#northernpakistan', '#roadtrip', '#pakwheels', '#carsofpakistan', '#pakistanroadtrips', '#naturedrive'],
   },
   roads: {
-    name: 'Highways & High Speed',
-    themePrompt: 'speed, relentless drive, staying in your lane, outworking everyone in silence, automotive adrenaline',
-    suggestedTags: ['#nightdrive', '#automotive', '#supercars', '#stayfocused', '#laneclosure', '#speedandstrength'],
+    name: 'Highways & Night Drive',
+    themePrompt: 'Islamabad Margalla Road, Lahore Ring Road, Karachi Sea View night drives, high-speed motorway cruising, automotive adrenaline, clean cockpit',
+    suggestedTags: ['#nightdrive', '#pakwheels', '#carsofpakistan', '#lahore', '#islamabad', '#carguy', '#m2motorway'],
   },
   beach: {
-    name: 'Ocean & Endless Waves',
-    themePrompt: 'relentless consistency (waves never stop), calmness in violent storms, emotional mastery, depth',
-    suggestedTags: ['#oceanmindset', '#consistencyiskey', '#unshakable', '#calminthestorm', '#depth', '#mindsetreset'],
+    name: 'Coastal Highway & Karachi Nights',
+    themePrompt: 'Makran Coastal Highway, Karachi Clifton night drive, ocean breeze, late night cruising with your car crew, peaceful automotive escape',
+    suggestedTags: ['#karachicars', '#coastalhighway', '#nightdrive', '#carsofpakistan', '#pakwheels', '#oceanvibes'],
   },
   buildings: {
-    name: 'Skyscrapers & City Empires',
-    themePrompt: 'building generational empires, skyline ambition, high-level vision, wealth mindset, executive discipline',
-    suggestedTags: ['#londoncity', '#skylineviews', '#wealthmindset', '#empirebuilder', '#highperformance', '#levelingup'],
+    name: 'City Skyline & Ambient Glow',
+    themePrompt: 'Islamabad Blue Area, Gulberg Lahore, Karachi skyline at night, ambient interior lighting, modern cockpit aesthetic, luxury automotive lifestyle',
+    suggestedTags: ['#ambientlighting', '#carstyling', '#pakodrive', '#lahorecars', '#islamabadcars', '#luxurydrive'],
   },
   sky: {
-    name: 'Clouds & Aviation Perspective',
-    themePrompt: 'rising above the noise, bird-eye perspective, flying higher than small drama, boundless vision',
-    suggestedTags: ['#aviation', '#aboveclouds', '#perspectiveiseverything', '#flyhigh', '#visionary', '#unstoppable'],
+    name: 'Golden Hour & Sunset Cruising',
+    themePrompt: 'Golden hour windshield reflections, sunset highway drives, clean car shine, aesthetic visuals, timeless automotive passion',
+    suggestedTags: ['#sunsetdrive', '#goldenhourcars', '#pakwheels', '#carsofpakistan', '#cleanbuild', '#aestheticcars'],
   },
   rain: {
-    name: 'Dark Rain & Moody Reflections',
-    themePrompt: 'finding clarity in dark times, comfort kills ambition, beautiful pain, unstoppable will in storms',
-    suggestedTags: ['#darkaesthetic', '#rainymood', '#comfortzonekills', '#clarity', '#grindseason', '#focusedmind'],
+    name: 'Monsoon Rain & Windscreen Clarity',
+    themePrompt: 'Monsoon driving in Lahore & Islamabad, rain on windshield, satisfying wiper wipe, hydrophobic ceramic shine, moody cozy cabin vibes',
+    suggestedTags: ['#raindrive', '#monsoonpakistan', '#carculture', '#pakwheels', '#carsofpakistan', '#aestheticdrive'],
   },
 };
 

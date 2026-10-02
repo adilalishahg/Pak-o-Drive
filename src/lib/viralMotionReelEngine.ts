@@ -262,35 +262,33 @@ export async function generateViralAiContent(selectedCategory?: ReelCategory): P
   const category = selectedCategory || getActiveReelCategory();
   const catConfig = CATEGORIES_CONFIG[category];
 
-  const cleanViralCta = `Save this reminder for when you need it 📌
-Send this to someone on the same frequency ♟️
+  const prompt = `You are the viral creative director behind @digitalinspirer's top-performing Instagram Reels (which generated 260+ likes and thousands of views).
 
-Follow @digitalinspirer for daily high-velocity mindset.`;
+YOUR GOAL: Generate a 3-line high-status psychological contrast reel and a rhythmic, deep-retention caption based on the proven Feb 2026 winning formula.
 
-  const prompt = `You are a viral short-form video creative director specializing in high-retention, psychology-driven motivational and dark aesthetic reels for US & UK audiences (like top accounts with 500k+ views).
-
-Visual Background Category: "${catConfig.name}"
-Category Theme: ${catConfig.themePrompt}
-
-IMPORTANT INSTAGRAM & TIKTOK ALGORITHM RULES (2026 FOR UK & USA):
-- NEVER write abstract, poetic, or cryptic lines (e.g. NEVER write "Rain cloaks the road", "Reflections whisper", "Shadows guide"). Viewers swipe away in 0.5s.
-- ALWAYS use psychological SCROLL-STOPPING HOOKS that trigger intense curiosity, relatability, or FOMO in US & UK audiences.
-- Line 1 MUST be a pattern-interrupt hook that forces the viewer to stop scrolling (e.g. "Rule #1 of the top 1%:", "Most people realize this 10 years too late:", "If you are grinding in silence:", "They laughed at your sacrifice:").
-- Lines 2 & 3 must deliver a hard-hitting, memorable truth or punchline.
-- Maximum 3 lines total. Keep each line between 3 to 7 words. Easy to read in 3 seconds.
+PROVEN WINNING FORMULA:
+- Hook on video: "Most people [common mistake] / Smart people [high-status response] / [Punchline truth]"
+- Theme: Emotional control, quiet discipline, mental power, restraint, strategic silence, self-mastery.
+- NEVER write abstract, poetic slogans (NEVER write "Build skylines", "Empire builders", "Outwork everyone").
+- ALWAYS write psychological truths that make viewers feel mature, wise, and superior so they share to their Instagram Story.
 
 Requirements:
-1. quoteLines: Exactly 3 punchy lines as an array of strings.
-2. title: An intense 2-4 word hook in ALL CAPS (e.g. "STAY DANGEROUS", "SILENT DISCIPLINE", "OUTWORK EVERYONE").
-3. captionHook: 1 powerful sentence on ONE single line.
-4. hashtags: Exactly 5 hyper-targeted UK & USA viral hashtags (e.g. ["#mindset", "#stoicism", "#discipline", "#darkaesthetic", "#reelsuk"]).
+1. quoteLines: Exactly 3 punchy lines:
+   - Line 1: Pattern-interrupt starting with "Most people..." (e.g. "Most people react instantly:", "Most people misunderstand intelligence:", "Most people argue to win:", "Most people fear being alone:")
+   - Line 2: The intelligent contrast (e.g. "Smart people respond intentionally.", "Real intelligence observes quietly.", "Wise people observe to learn.", "The top 1% find power in solitude.")
+   - Line 3: The philosophical punchline (e.g. "Speed is emotional. Control is intellectual.", "Sometimes the smartest move is staying calm.", "Restraint is the ultimate power.")
+2. title: An intense 2-4 word title in ALL CAPS (e.g. "EMOTIONAL MASTERY", "QUIET INTELLIGENCE", "REAL POWER", "STRATEGIC SILENCE").
+3. captionHook: 1 powerful hook sentence.
+4. captionBody: A rhythmic, spaced 3-beat caption exactly matching this format:
+   "[Line 1] ⚡👇\\n\\n[Line 2]\\n[Line 3] 🧠\\n\\nOne second ⏳\\nOne evaluation 🔍\\nOne measured reply 🤫\\n\\nOr none.\\nYou stay above the situation.\\n\\nEvery delay increases clarity 🧭\\nEvery restraint sharpens presence 📈\\nEvery quiet decision compounds 🌙\\n\\nFollow 👉 @digitalinspirer ✨"
 
 Output ONLY valid JSON with no markdown backticks:
 {
   "title": "...",
-  "quoteLines": ["Hook line", "Truth line", "Punchline"],
+  "quoteLines": ["Most people...", "Smart people...", "Punchline"],
   "captionHook": "...",
-  "hashtags": ["#mindset", "#stoicism", "#discipline", "#darkaesthetic", "#reelsuk"],
+  "caption": "Full formatted caption matching the 3-beat cadence above",
+  "hashtags": ["#wisdom", "#stayfocused", "#mindset", "#emotionalcontrol", "#growth"],
   "theme": "${category}"
 }`;
 
@@ -301,12 +299,12 @@ Output ONLY valid JSON with no markdown backticks:
       if (parsed?.quoteLines && Array.isArray(parsed.quoteLines) && parsed.quoteLines.length >= 2) {
         const title = (parsed.title || parsed.quoteLines[0]).toUpperCase();
         const quoteLines = parsed.quoteLines.filter((l: string) => typeof l === 'string' && l.trim().length > 0);
-        const hook = parsed.captionHook || 'When you elevate your standards, daily noise can no longer reach you.';
-        const hashtags = Array.isArray(parsed.hashtags) && parsed.hashtags.length > 0
-          ? parsed.hashtags.slice(0, 5)
-          : ['#mindset', '#stoicism', '#discipline', '#darkaesthetic', '#reelsuk'];
+        const hashtags = ['#wisdom', '#stayfocused', '#mindset', '#emotionalcontrol', '#growth'];
 
-        const caption = `${title} ⚡\n\n${hook}\n\n${cleanViralCta}\n\n${hashtags.join(' ')}`;
+        let caption = parsed.caption;
+        if (!caption || caption.length < 50) {
+          caption = `${quoteLines[0]} ⚡👇\n\n${quoteLines[1]}\n${quoteLines[2] || 'Control is intellectual.'} 🧠\n\nOne second ⏳\nOne evaluation 🔍\nOne measured reply 🤫\n\nOr none.\nYou stay above the situation.\n\nEvery delay increases clarity 🧭\nEvery restraint sharpens presence 📈\nEvery quiet decision compounds 🌙\n\nFollow 👉 @digitalinspirer ✨\n\n${hashtags.join('\n')}`;
+        }
 
         return {
           title,
@@ -322,46 +320,36 @@ Output ONLY valid JSON with no markdown backticks:
     console.warn(`⚠️ [ViralMotionReel] AI generation fallback: ${err.message}`);
   }
 
-  // Curated category fallbacks (3 punchy high-retention lines, zero filler)
-  const fallbacks: Record<ReelCategory, { title: string; quoteLines: string[]; caption: string }> = {
-    nature: {
-      title: 'RULE OF THE TOP 1%',
-      quoteLines: ['Rule #1 of the top 1%:', 'Grow in complete silence.', 'Let the results shatter the room.'],
-      caption: `RULE OF THE TOP 1% ⚡\n\nThe storm only shakes what is shallow. When your roots are deep, nothing can move you.\n\n${cleanViralCta}\n\n#mindset #stoicism #discipline #darkaesthetic #reelsuk #usaviral #wealthmindset #monkmode`,
+  // Proven historical fallbacks from the top-performing Feb 2026 reels (261 likes, 176 likes, 103 likes)
+  const PROVEN_WINNING_DECK = [
+    {
+      title: 'EMOTIONAL CONTROL',
+      quoteLines: ['Most people react instantly:', 'Smart people respond intentionally.', 'Speed is emotional. Control is intellectual.'],
+      caption: `Most people react instantly ⚡👇\n\nSmart people respond intentionally.\nSpeed is emotional.\n\nControl is intellectual 🧠\nYou don't rush.\n\nOne second ⏳\nOne evaluation 🔍\nOne measured reply 🤫\n\nOr none.\nYou stay above the situation.\n\nEvery delay increases clarity 🧭\nEvery restraint sharpens presence 📈\nEvery quiet decision compounds 🌙\n\nFollow 👉 @digitalinspirer ✨\n\n#wisdom\n#stayfocused\n#mindset\n#emotionalcontrol\n#growth`,
     },
-    roads: {
-      title: 'MOVE IN SILENCE',
-      quoteLines: ['If you are building in silence:', 'Never announce your moves.', 'Let the scoreboard speak for you.'],
-      caption: `MOVE IN SILENCE ⚡\n\nMost people tell everyone what they are going to do. The top 1% execute and disappear.\n\n${cleanViralCta}\n\n#mindset #stoicism #discipline #darkaesthetic #reelsuk #usaviral #wealthmindset #monkmode`,
+    {
+      title: 'QUIET INTELLIGENCE',
+      quoteLines: ['Most people misunderstand intelligence:', 'Real intelligence is never loud.', 'Sometimes the smartest move is staying calm.'],
+      caption: `Most people misunderstand intelligence 🧠👇\n\nReal intelligence isn't loud.\nIt doesn't compete for attention.\n\nIt observes 👀\nIt listens 🤫\nIt understands.\n\nSometimes the smartest move\nis choosing not to prove you're smart.\n\nYou stay calm.\nYou let others talk.\n\nOne moment of patience ⏳\nOne decision to stay silent 🤐\nOne ego left in check.\n\nBecause wisdom doesn't argue.\nIt recognizes.\n\nEvery restraint shows strength 💪\nEvery pause protects energy ⚡\nEvery quiet choice compounds 📈\n\nFollow 👉 @digitalinspirer ✨\n\n#wisdom\n#mindsetshift\n#emotionalintelligence\n#staycalm\n#growth`,
     },
-    beach: {
-      title: 'RELENTLESS WAVES',
-      quoteLines: ['Most people realize too late:', 'Intensity starts the journey.', 'Consistency finishes it.'],
-      caption: `RELENTLESS WAVES ⚡\n\nThe ocean never rushes, yet it carves mountains. Ruthless daily consistency beats talent every single time.\n\n${cleanViralCta}\n\n#mindset #stoicism #discipline #darkaesthetic #reelsuk #usaviral #wealthmindset #monkmode`,
+    {
+      title: 'OBSERVE TO LEARN',
+      quoteLines: ['Most people argue to win:', 'Wise people observe to learn.', 'You don’t need to prove intelligence.'],
+      caption: `Most people argue to win 🥊👇\n\nWise people observe to learn.\nThere's a difference.\n\nYou don't need to prove intelligence.\nYou demonstrate it through restraint 🤫\n\nOne situation 🎯\nOne choice to stay quiet 🤐\nOne mind in control 🧠\n\nLet others feel superior.\nYou stay strategic.\n\nEvery controlled reaction builds respect 📈\nEvery pause saves peace 🕊️\nEvery silent observation wins ♟️\n\nFollow 👉 @digitalinspirer ✨\n\n#wisdom\n#stayfocused\n#mindset\n#emotionalcontrol\n#growth`,
     },
-    buildings: {
-      title: 'BUILD YOUR EMPIRE',
-      quoteLines: ['They laughed at your sacrifice:', 'Now they ask how you did it.', 'Stack every win in silence.'],
-      caption: `BUILD YOUR EMPIRE ⚡\n\nNever let small-minded opinions talk you out of an empire. Brick by brick, quietly.\n\n${cleanViralCta}\n\n#mindset #stoicism #discipline #darkaesthetic #reelsuk #usaviral #wealthmindset #monkmode`,
+    {
+      title: 'DISCIPLINE BEATS NOISE',
+      quoteLines: ['Most people look for shortcuts:', 'The real path is boring and quiet.', 'Discipline always beats excitement.'],
+      caption: `Most people look for shortcuts 🚧👇\n\nBut the real path is boring.\nAnd that's why it works 🔁\n\nSame effort 📆\nSame focus 🎯\nSame routine 🔄\n\nDiscipline beats excitement 🧠\n\nOne habit daily 👣\nOne improvement weekly 🔧\nOne system long-term ⚙️\n\nEvery repetition hardens mental grit 💪\nEvery early morning counts 🌅\nEvery silent effort compounds 📈\n\nFollow 👉 @digitalinspirer ✨\n\n#wisdom\n#stayfocused\n#mindset\n#discipline\n#growth`,
     },
-    sky: {
-      title: 'ABOVE THE NOISE',
-      quoteLines: ['When you elevate your standards:', 'Daily drama cannot reach you.', 'Stay untouchable at the top.'],
-      caption: `ABOVE THE NOISE ⚡\n\nSmall minds create noise. High-level vision creates generational wealth. Fly above it.\n\n${cleanViralCta}\n\n#mindset #stoicism #discipline #darkaesthetic #reelsuk #usaviral #wealthmindset #monkmode`,
-    },
-    rain: {
-      title: 'CLARITY IN THE STORM',
-      quoteLines: ['Comfort destroys ambition:', 'Storms reveal your true strength.', 'Keep driving while they doubt.'],
-      caption: `CLARITY IN THE STORM ⚡\n\nHard seasons reveal who you truly are. Don't wish it was easier, make sure you are stronger.\n\n${cleanViralCta}\n\n#mindset #stoicism #discipline #darkaesthetic #reelsuk #usaviral #wealthmindset #monkmode`,
-    },
-  };
+  ];
 
-  const fb = fallbacks[category] || fallbacks.roads;
+  const candidate = PROVEN_WINNING_DECK[Math.floor(Math.random() * PROVEN_WINNING_DECK.length)];
   return {
-    title: fb.title,
-    quoteLines: fb.quoteLines,
-    caption: fb.caption,
-    hashtags: ['#mindset', '#stoicism', '#discipline', '#darkaesthetic', '#reelsuk', '#usaviral'],
+    title: candidate.title,
+    quoteLines: candidate.quoteLines,
+    caption: candidate.caption,
+    hashtags: ['#wisdom', '#stayfocused', '#mindset', '#emotionalcontrol', '#growth'],
     theme: category,
     category,
   };
