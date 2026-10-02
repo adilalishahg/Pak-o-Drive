@@ -22,3 +22,10 @@
 - **Root Cause**: Two algorithmic red flags: (1) TikTok caption included raw WhatsApp phone numbers (`WhatsApp: +92 318 5205667`), which triggers TikTok's automated commercial link / off-platform transaction penalty, killing organic FYP distribution; (2) Missing TikTok native title metadata and comment-velocity triggers (comments carry 2x weight of likes in TikTok ranking).
 - **Verified Fix**: (1) Upgraded [`src/lib/tiktokPostService.ts`](file:///d:/proj/Pak-o-Drive/src/lib/tiktokPostService.ts) to strip raw phone numbers and replace them with high-compliance "Link in Bio" calls; (2) Injected rotating Pakistani automotive discussion prompts (e.g. "Which city has best night drives: Lahore, Karachi, or Islamabad? 👇") to trigger high comment engagement; (3) Added `metadata: { tiktok: { title } }` to the Buffer GraphQL payload for native TikTok SEO crawler indexing. Verified with `pnpm tsc --noEmit` (0 errors).
 
+## 2026-10-02: LinkedIn Algorithmic Reach Protection & 12-Hour Anti-Spam Guard
+- **Issue**: Zero organic reach and feed impressions on LinkedIn technical carousel posts despite successful API dispatches.
+- **Root Cause**: Database audit revealed multiple crons (`daily-master` + `auto-social`) were posting to LinkedIn within seconds/minutes of each other (e.g. 2 posts on Oct 2 within 81 seconds, and 2 posts within 11 seconds at 05:00 UTC). LinkedIn's feed algorithm severely throttles accounts posting more than once every 12-18 hours as automated spam bots, killing distribution of both posts.
+- **Verified Fix**: (1) Implemented a strict 12-Hour Cooldown Guard in [`src/lib/socialAutoPostService.ts`](file:///d:/proj/Pak-o-Drive/src/lib/socialAutoPostService.ts) for all automated cron dispatches, gracefully preventing cannibalization and duplicate dispatches; (2) Verified dynamic 5-track AI carousel engine prevents topic repetition; (3) Verified full system build with `pnpm tsc --noEmit` (0 errors).
+
+
+

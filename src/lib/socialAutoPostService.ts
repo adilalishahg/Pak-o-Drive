@@ -521,6 +521,29 @@ export async function executeAutoLinkedInPost(
   const postSource = options.source || 'cron';
 
   try {
+    // 0. Algorithmic Reach Protection: Strict 12-Hour Cooldown Guard
+    // Prevents double-posting from multiple crons (daily-master + auto-social) which triggers LinkedIn spam throttling.
+    if (postSource === 'cron') {
+      await dbConnect();
+      const lastPost = await LinkedInPostLog.findOne({ status: 'published' }).sort({ createdAt: -1 });
+      if (lastPost && lastPost.createdAt) {
+        const msSinceLast = Date.now() - new Date(lastPost.createdAt).getTime();
+        const minCooldownMs = 12 * 60 * 60 * 1000; // 12 hours minimum spacing
+        if (msSinceLast < minCooldownMs) {
+          const hoursAgo = (msSinceLast / 1000 / 60 / 60).toFixed(1);
+          const hoursLeft = ((minCooldownMs - msSinceLast) / 1000 / 60 / 60).toFixed(1);
+          console.log(`🛡️ [AutoSocial] Cooldown active: Last LinkedIn post was ${hoursAgo}h ago. Skipping to protect profile from spam throttling. Next available in ${hoursLeft}h.`);
+          return {
+            success: true,
+            topic: lastPost.topic,
+            postId: lastPost.postId,
+            isCarousel: lastPost.isCarousel,
+            error: `Cooldown active (${hoursAgo}h ago). Skipped duplicate dispatch to protect LinkedIn reach.`,
+          };
+        }
+      }
+    }
+
     let chosenDeck;
     let resolvedTrack: TechTrack = 'agentic-ai';
     let isDynamic = false;
