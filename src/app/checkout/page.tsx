@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { useCheckout } from '../../hooks/useCheckout';
 import { SearchableCitySelect } from '@/components/common/SearchableCitySelect';
@@ -14,6 +14,9 @@ export default function CheckoutPage() {
     cartTotal,
     shippingInfo,
     shippingFee,
+    paymentMethod,
+    setPaymentMethod,
+    onlineDiscount,
     grandTotal,
     formData,
     updateField,
@@ -33,6 +36,16 @@ export default function CheckoutPage() {
     updateQuantity,
     removeFromCart,
   } = useCheckout();
+
+  const [copiedAccount, setCopiedAccount] = useState<string | null>(null);
+
+  const handleCopyAccount = (text: string, label: string) => {
+    if (typeof navigator !== 'undefined' && navigator.clipboard) {
+      navigator.clipboard.writeText(text);
+      setCopiedAccount(label);
+      setTimeout(() => setCopiedAccount(null), 2500);
+    }
+  };
 
   if (cart.length === 0) {
     return (
@@ -244,6 +257,191 @@ export default function CheckoutPage() {
                     />
                   </div>
                 </div>
+
+                {/* Step 2: Payment Method Selection */}
+                <div style={{ marginTop: '22px', paddingTop: '18px', borderTop: '1px solid #e2e8f0' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px', flexWrap: 'wrap', gap: '6px' }}>
+                    <label style={{ fontSize: '0.9rem', fontWeight: 800, color: '#0f172a', margin: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <i className="fas fa-wallet" style={{ color: '#ea580c' }} />
+                      <span>Select Payment Method</span>
+                    </label>
+                    <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#15803d', background: '#dcfce7', padding: '3px 8px', borderRadius: '12px' }}>
+                      🔥 Save Rs. 150 on Online Advance
+                    </span>
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '10px' }}>
+                    {/* Option 1: Cash on Delivery */}
+                    <div
+                      onClick={() => setPaymentMethod('COD')}
+                      style={{
+                        border: paymentMethod === 'COD' ? '2px solid #ea580c' : '1.5px solid #cbd5e1',
+                        background: paymentMethod === 'COD' ? '#fff7ed' : '#fff',
+                        borderRadius: '10px',
+                        padding: '12px 14px',
+                        cursor: 'pointer',
+                        transition: 'all 0.15s ease',
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                        <input
+                          type="radio"
+                          name="paymentMethod"
+                          checked={paymentMethod === 'COD'}
+                          onChange={() => setPaymentMethod('COD')}
+                          style={{ accentColor: '#ea580c', cursor: 'pointer' }}
+                        />
+                        <span style={{ fontSize: '0.88rem', fontWeight: 800, color: '#0f172a' }}>
+                          Cash on Delivery (COD)
+                        </span>
+                      </div>
+                      <p style={{ margin: 0, fontSize: '0.73rem', color: '#64748b', paddingLeft: '22px' }}>
+                        Standard dispatch. Pay cash when courier rider reaches your doorstep.
+                      </p>
+                    </div>
+
+                    {/* Option 2: JazzCash */}
+                    <div
+                      onClick={() => setPaymentMethod('JazzCash')}
+                      style={{
+                        border: paymentMethod === 'JazzCash' ? '2px solid #16a34a' : '1.5px solid #cbd5e1',
+                        background: paymentMethod === 'JazzCash' ? '#f0fdf4' : '#fff',
+                        borderRadius: '10px',
+                        padding: '12px 14px',
+                        cursor: 'pointer',
+                        transition: 'all 0.15s ease',
+                        position: 'relative',
+                      }}
+                    >
+                      <span style={{
+                        position: 'absolute',
+                        top: '-9px',
+                        right: '8px',
+                        background: '#16a34a',
+                        color: '#fff',
+                        fontSize: '0.64rem',
+                        fontWeight: 800,
+                        padding: '2px 7px',
+                        borderRadius: '4px',
+                        letterSpacing: '0.3px',
+                      }}>
+                        SAVE RS. 150
+                      </span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                        <input
+                          type="radio"
+                          name="paymentMethod"
+                          checked={paymentMethod === 'JazzCash'}
+                          onChange={() => setPaymentMethod('JazzCash')}
+                          style={{ accentColor: '#16a34a', cursor: 'pointer' }}
+                        />
+                        <span style={{ fontSize: '0.88rem', fontWeight: 800, color: '#0f172a' }}>
+                          JazzCash (Online)
+                        </span>
+                      </div>
+                      <p style={{ margin: 0, fontSize: '0.73rem', color: '#15803d', fontWeight: 600, paddingLeft: '22px' }}>
+                        Instant Rs. 150 OFF + Priority Air Dispatch ⚡
+                      </p>
+                    </div>
+
+                    {/* Option 3: Easypaisa */}
+                    <div
+                      onClick={() => setPaymentMethod('Easypaisa')}
+                      style={{
+                        border: paymentMethod === 'Easypaisa' ? '2px solid #16a34a' : '1.5px solid #cbd5e1',
+                        background: paymentMethod === 'Easypaisa' ? '#f0fdf4' : '#fff',
+                        borderRadius: '10px',
+                        padding: '12px 14px',
+                        cursor: 'pointer',
+                        transition: 'all 0.15s ease',
+                        position: 'relative',
+                      }}
+                    >
+                      <span style={{
+                        position: 'absolute',
+                        top: '-9px',
+                        right: '8px',
+                        background: '#16a34a',
+                        color: '#fff',
+                        fontSize: '0.64rem',
+                        fontWeight: 800,
+                        padding: '2px 7px',
+                        borderRadius: '4px',
+                        letterSpacing: '0.3px',
+                      }}>
+                        SAVE RS. 150
+                      </span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                        <input
+                          type="radio"
+                          name="paymentMethod"
+                          checked={paymentMethod === 'Easypaisa'}
+                          onChange={() => setPaymentMethod('Easypaisa')}
+                          style={{ accentColor: '#16a34a', cursor: 'pointer' }}
+                        />
+                        <span style={{ fontSize: '0.88rem', fontWeight: 800, color: '#0f172a' }}>
+                          Easypaisa (Online)
+                        </span>
+                      </div>
+                      <p style={{ margin: 0, fontSize: '0.73rem', color: '#15803d', fontWeight: 600, paddingLeft: '22px' }}>
+                        Instant Rs. 150 OFF + Priority Air Dispatch ⚡
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Online Account Transfer Box (Shown when JazzCash or Easypaisa is selected) */}
+                  {paymentMethod !== 'COD' && (
+                    <div style={{
+                      marginTop: '12px',
+                      background: '#f8fafc',
+                      border: '1.5px dashed #86efac',
+                      borderRadius: '10px',
+                      padding: '12px 16px',
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px', flexWrap: 'wrap', gap: '6px' }}>
+                        <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#0f172a' }}>
+                          📲 Official {paymentMethod} Account Details:
+                        </span>
+                        <span style={{ fontSize: '0.7rem', fontWeight: 800, color: '#15803d', background: '#dcfce7', padding: '2px 8px', borderRadius: '4px' }}>
+                          Save Rs. 150 Applied
+                        </span>
+                      </div>
+
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#fff', padding: '10px 14px', borderRadius: '8px', border: '1px solid #e2e8f0', flexWrap: 'wrap', gap: '8px' }}>
+                        <div>
+                          <div style={{ fontSize: '0.74rem', color: '#64748b' }}>Account Title: <strong style={{ color: '#0f172a' }}>Adil Ali Shah</strong></div>
+                          <div style={{ fontSize: '1rem', fontWeight: 900, color: '#0f172a', letterSpacing: '0.5px' }}>
+                            0318-5205667
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleCopyAccount('03185205667', paymentMethod)}
+                          style={{
+                            border: 'none',
+                            background: copiedAccount === paymentMethod ? '#16a34a' : '#0f172a',
+                            color: '#fff',
+                            borderRadius: '6px',
+                            padding: '6px 12px',
+                            fontSize: '0.76rem',
+                            fontWeight: 700,
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                          }}
+                        >
+                          <i className={copiedAccount === paymentMethod ? 'fas fa-check' : 'fas fa-copy'} />
+                          <span>{copiedAccount === paymentMethod ? 'Copied!' : 'Copy Number'}</span>
+                        </button>
+                      </div>
+
+                      <p style={{ margin: '8px 0 0', fontSize: '0.72rem', color: '#64748b', lineHeight: 1.4 }}>
+                        ℹ️ Transfer exactly <strong style={{ color: '#0f172a' }}>Rs. {grandTotal.toLocaleString()}</strong>. Order place hone ke baad payment screenshot / TID WhatsApp par share kar dein for immediate priority dispatch.
+                      </p>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 
@@ -445,6 +643,14 @@ export default function CheckoutPage() {
                     </div>
                   )}
 
+                  {/* Online Advance Discount Row */}
+                  {onlineDiscount > 0 && (
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.86rem', color: '#16a34a', fontWeight: 700 }}>
+                      <span>Online Payment Discount ({paymentMethod})</span>
+                      <span>- Rs. {onlineDiscount.toLocaleString()}</span>
+                    </div>
+                  )}
+
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1.1rem', paddingTop: '10px', borderTop: '1px solid #f1f5f9' }}>
                     <span style={{ fontWeight: 800, color: '#0f172a' }}>Total Amount</span>
                     <span style={{ fontWeight: 900, color: 'var(--pd-primary, #ea580c)' }}>
@@ -453,20 +659,27 @@ export default function CheckoutPage() {
                   </div>
                 </div>
 
-                {/* COD Guarantee Box */}
+                {/* Guarantee & Confidence Box */}
                 <div style={{
-                  background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '8px',
-                  padding: '10px 12px', marginBottom: '16px', fontSize: '0.78rem', color: '#166534',
+                  background: paymentMethod === 'COD' ? '#f0fdf4' : '#eff6ff',
+                  border: `1px solid ${paymentMethod === 'COD' ? '#bbf7d0' : '#bfdbfe'}`,
+                  borderRadius: '8px',
+                  padding: '10px 12px', marginBottom: '16px', fontSize: '0.78rem',
+                  color: paymentMethod === 'COD' ? '#166534' : '#1e40af',
                   display: 'flex', alignItems: 'center', gap: '8px',
                 }}>
-                  <i className="fas fa-hand-holding-usd" style={{ fontSize: '18px', flexShrink: 0, color: '#16a34a' }} />
+                  <i className={paymentMethod === 'COD' ? 'fas fa-hand-holding-usd' : 'fas fa-bolt'} style={{ fontSize: '18px', flexShrink: 0, color: paymentMethod === 'COD' ? '#16a34a' : '#2563eb' }} />
                   <div>
-                    <strong>Cash on Delivery (COD)</strong>
-                    <div style={{ fontSize: '0.7rem', color: '#15803d' }}>Pay with cash only when your parcel reaches your doorstep.</div>
+                    <strong>{paymentMethod === 'COD' ? 'Cash on Delivery (COD)' : `Priority Air Dispatch (${paymentMethod})`}</strong>
+                    <div style={{ fontSize: '0.7rem', color: paymentMethod === 'COD' ? '#15803d' : '#3b82f6' }}>
+                      {paymentMethod === 'COD'
+                        ? 'Pay with cash only when your parcel reaches your doorstep.'
+                        : 'Advance paid orders receive top-priority same-day courier dispatch!'}
+                    </div>
                   </div>
                 </div>
 
-                {/* Primary Button: Complete COD Order */}
+                {/* Primary Button */}
                 <button
                   type="submit"
                   disabled={loading}
@@ -479,9 +692,13 @@ export default function CheckoutPage() {
                     width: '100%',
                     cursor: loading ? 'not-allowed' : 'pointer',
                     opacity: loading ? 0.85 : 1,
-                    background: 'linear-gradient(135deg, #ea580c, #c2410c)',
+                    background: paymentMethod === 'COD'
+                      ? 'linear-gradient(135deg, #ea580c, #c2410c)'
+                      : 'linear-gradient(135deg, #16a34a, #15803d)',
                     color: '#fff',
-                    boxShadow: '0 4px 16px rgba(234,88,12,0.35)',
+                    boxShadow: paymentMethod === 'COD'
+                      ? '0 4px 16px rgba(234,88,12,0.35)'
+                      : '0 4px 16px rgba(22,163,74,0.35)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -494,10 +711,15 @@ export default function CheckoutPage() {
                       <span className="spinner-border spinner-border-sm" />
                       <span>Placing Your Order…</span>
                     </>
-                  ) : (
+                  ) : paymentMethod === 'COD' ? (
                     <>
                       <i className="fas fa-check-circle" />
                       <span>Complete Order (Cash On Delivery)</span>
+                    </>
+                  ) : (
+                    <>
+                      <i className="fas fa-bolt" />
+                      <span>Place Order via {paymentMethod} (Rs. 150 OFF)</span>
                     </>
                   )}
                 </button>
@@ -523,8 +745,12 @@ export default function CheckoutPage() {
                     gap: '8px',
                   }}
                 >
-                  <i className="fab fa-whatsapp" style={{ fontSize: '1.2rem' }} />
-                  <span>Order via WhatsApp (1-Click)</span>
+                  <i className="fab fa-whatsapp" style={{ fontSize: '18px' }} />
+                  <span>
+                    {paymentMethod === 'COD'
+                      ? 'Order via WhatsApp (1-Click)'
+                      : `Order & Share ${paymentMethod} Receipt on WhatsApp`}
+                  </span>
                 </button>
 
                 {/* Trust assurance footer */}

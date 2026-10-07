@@ -27,8 +27,14 @@ const OrderSchema = new Schema<IOrderDocument>(
       },
     ],
     shippingFee: { type: Number, default: 0 },
+    onlineDiscount: { type: Number, default: 0 },
     totalAmount: { type: Number, required: true },
-    paymentMethod: { type: String, enum: ['COD'], default: 'COD', required: true },
+    paymentMethod: {
+      type: String,
+      enum: ['COD', 'JazzCash', 'Easypaisa', 'Bank Transfer'],
+      default: 'COD',
+      required: true,
+    },
     status: {
       type: String,
       enum: ['Pending', 'Processing', 'On the Way', 'Shipped', 'Delivered', 'Cancelled'],

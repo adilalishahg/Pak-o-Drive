@@ -29,6 +29,7 @@ export interface IOrder {
   customerDetails: ICustomerDetails;
   items: IOrderItem[];
   shippingFee?: number;
+  onlineDiscount?: number;
   totalAmount: number;
   paymentMethod: string;
   status: OrderStatus;

@@ -39,6 +39,8 @@ export function formatOrderWhatsAppMessage(order: any): string {
 
   const itemsTotal = (order.items || []).reduce((sum: number, it: any) => sum + (Number(it.price || 0) * (it.quantity || 1)), 0);
   const shippingFee = Number(order.shippingFee || 0);
+  const onlineDiscount = Number(order.onlineDiscount || 0);
+  const paymentMethod = order.paymentMethod || 'COD';
 
   return (
     `🛒 *NEW ORDER RECEIVED!* 🚀\n` +
@@ -46,7 +48,9 @@ export function formatOrderWhatsAppMessage(order: any): string {
     `📋 *Order ID:* #${shortId}\n` +
     `🧾 *Subtotal:* Rs. ${itemsTotal.toLocaleString()}\n` +
     `🚚 *Delivery Fee:* ${shippingFee > 0 ? `Rs. ${shippingFee.toLocaleString()}` : 'FREE (Twin Cities)'}\n` +
-    `💰 *Total Amount:* Rs. ${total.toLocaleString()} (Cash On Delivery)\n` +
+    (onlineDiscount > 0 ? `🎁 *Online Discount:* -Rs. ${onlineDiscount.toLocaleString()}\n` : '') +
+    `💳 *Payment Mode:* ${paymentMethod} ${paymentMethod !== 'COD' ? '(Advance Transfer - Check Proof)' : '(COD)'}\n` +
+    `💰 *Total Amount:* Rs. ${total.toLocaleString()}\n` +
     `📦 *Total Items:* ${order.items?.length || 1}\n\n` +
     `👤 *Customer Details:*\n` +
     `• *Name:* ${customer.name || 'Customer'}\n` +

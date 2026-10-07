@@ -34,13 +34,17 @@ export function useCheckout() {
     orderNotes: '',
   });
 
+  // Payment Method Selection: 'COD' | 'JazzCash' | 'Easypaisa'
+  const [paymentMethod, setPaymentMethod] = useState<'COD' | 'JazzCash' | 'Easypaisa'>('COD');
+  const onlineDiscount = paymentMethod !== 'COD' ? 150 : 0;
+
   // Dynamic Zone-Based Delivery Fee Calculation (Rawalpindi Hub vs Outer Cities/Sindh)
   const shippingInfo: ShippingZoneInfo = useMemo(() => {
     return calculateDeliveryFee(formData.city, cartTotal);
   }, [formData.city, cartTotal]);
 
   const shippingFee = shippingInfo.rate;
-  const grandTotal = cartTotal + shippingFee;
+  const grandTotal = Math.max(0, cartTotal + shippingFee - onlineDiscount);
 
   // Layer 1: Saved Profile from Browser LocalStorage (Same Device)
   const [savedProfile, setSavedProfile] = useState<SavedDeliveryProfile | null>(null);
@@ -250,6 +254,9 @@ export function useCheckout() {
             variantId: i.variant?._id,
           })),
           shippingFee,
+          paymentMethod,
+          onlineDiscount,
+          totalAmount: grandTotal,
           utmSource: utmSource || undefined,
           utmMedium: utmMedium || undefined,
           utmCampaign: utmCampaign || undefined,
@@ -324,14 +331,28 @@ export function useCheckout() {
           }\n`
         : `🚚 *Delivery Charges (${shippingInfo.zone}):* 100% FREE DELIVERY\n`;
 
+    const paymentLine =
+      paymentMethod === 'COD'
+        ? `💵 *Payment Mode:* Cash On Delivery (COD)`
+        : `📲 *Payment Mode:* Online Advance (${paymentMethod}) — Instant Rs. 150 Discount Applied! (Proof Attached)`;
+
+    const discountLine =
+      onlineDiscount > 0
+        ? `🎁 *Online Payment Discount:* -Rs. ${onlineDiscount.toLocaleString()}\n`
+        : '';
+
     const text = encodeURIComponent(
-      `Hello Pak-o-Drive! I would like to place an order via Cash On Delivery:\n\n` +
+      `Hello Pak-o-Drive! I would like to place an order:\n\n` +
         `📦 *Order Items:*\n${itemsSummary}\n\n` +
         `🧾 *Subtotal:* Rs. ${cartTotal.toLocaleString()}\n` +
         `${deliveryLine}` +
-        `💰 *Total Amount Payable (COD):* Rs. ${grandTotal.toLocaleString()}` +
+        `${discountLine}` +
+        `💰 *Final Payable Amount:* Rs. ${grandTotal.toLocaleString()}\n` +
+        `${paymentLine}` +
         `${customerSection}\n\n` +
-        `Please confirm my order and share the dispatch date. Thank you!`
+        (paymentMethod !== 'COD'
+          ? `I am paying via ${paymentMethod} to get the Rs. 150 discount. Please confirm payment receipt and dispatch date. Thank you!`
+          : `Please confirm my Cash On Delivery order and share the dispatch date. Thank you!`)
     );
 
     window.open(`https://wa.me/${whatsappNumber.replace('+', '')}?text=${text}`, '_blank');
@@ -342,6 +363,9 @@ export function useCheckout() {
     cartTotal,
     shippingInfo,
     shippingFee,
+    paymentMethod,
+    setPaymentMethod,
+    onlineDiscount,
     grandTotal,
     formData,
     updateField,

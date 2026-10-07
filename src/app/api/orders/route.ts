@@ -88,7 +88,7 @@ export async function POST(request: Request) {
     const body = await request.json();
 
 
-    const { customerDetails, items, utmSource, utmMedium, utmCampaign } = body;
+    const { customerDetails, items, paymentMethod: rawPaymentMethod, utmSource, utmMedium, utmCampaign } = body;
 
     // 1. Validate inputs
     if (!customerDetails || !customerDetails.name || !customerDetails.phone || !customerDetails.address || !customerDetails.city) {
@@ -289,18 +289,24 @@ export async function POST(request: Request) {
       });
     }
 
-    // 5. Calculate verified server-side shipping fee based on customer city & cart value
+    // 5. Calculate verified server-side shipping fee & online discount
+    const validPaymentMethod = ['JazzCash', 'Easypaisa', 'Bank Transfer'].includes(rawPaymentMethod)
+      ? rawPaymentMethod
+      : 'COD';
+    const onlineDiscount = validPaymentMethod !== 'COD' ? 150 : 0;
+
     const verifiedShipping = calculateDeliveryFee(customerDetails.city, calculatedTotal);
     const shippingFee = verifiedShipping.rate;
-    const finalTotalAmount = calculatedTotal + shippingFee;
+    const finalTotalAmount = Math.max(0, calculatedTotal + shippingFee - onlineDiscount);
 
     // Save order in MongoDB
     const order = new Order({
       customerDetails,
       items: resolvedItems,
       shippingFee,
+      onlineDiscount,
       totalAmount: finalTotalAmount,
-      paymentMethod: 'COD',
+      paymentMethod: validPaymentMethod,
       status: 'Pending',
       whatsappSent: false,
       utmSource: utmSource || undefined,
