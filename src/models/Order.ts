@@ -26,6 +26,7 @@ const OrderSchema = new Schema<IOrderDocument>(
         variantId: { type: String },
       },
     ],
+    shippingFee: { type: Number, default: 0 },
     totalAmount: { type: Number, required: true },
     paymentMethod: { type: String, enum: ['COD'], default: 'COD', required: true },
     status: {

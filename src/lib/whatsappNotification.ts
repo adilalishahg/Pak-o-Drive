@@ -37,10 +37,15 @@ export function formatOrderWhatsAppMessage(order: any): string {
 
   const customer = order.customerDetails || {};
 
+  const itemsTotal = (order.items || []).reduce((sum: number, it: any) => sum + (Number(it.price || 0) * (it.quantity || 1)), 0);
+  const shippingFee = Number(order.shippingFee || 0);
+
   return (
     `🛒 *NEW ORDER RECEIVED!* 🚀\n` +
     `━━━━━━━━━━━━━━━━━━━━━\n` +
     `📋 *Order ID:* #${shortId}\n` +
+    `🧾 *Subtotal:* Rs. ${itemsTotal.toLocaleString()}\n` +
+    `🚚 *Delivery Fee:* ${shippingFee > 0 ? `Rs. ${shippingFee.toLocaleString()}` : 'FREE (Twin Cities)'}\n` +
     `💰 *Total Amount:* Rs. ${total.toLocaleString()} (Cash On Delivery)\n` +
     `📦 *Total Items:* ${order.items?.length || 1}\n\n` +
     `👤 *Customer Details:*\n` +

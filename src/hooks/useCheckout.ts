@@ -1,11 +1,12 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCart } from '../context/CartContext';
 import { logInteraction } from '../components/common/AnalyticsTracker';
 import { PAKISTAN_PHONE_REGEX } from '../lib/constants';
 import { CheckoutFormData } from '@/types';
+import { calculateDeliveryFee, ShippingZoneInfo } from '@/lib/shippingRates';
 
 export interface SavedDeliveryProfile {
   fullName: string;
@@ -32,6 +33,14 @@ export function useCheckout() {
     email: '',
     orderNotes: '',
   });
+
+  // Dynamic Zone-Based Delivery Fee Calculation (Rawalpindi Hub vs Outer Cities/Sindh)
+  const shippingInfo: ShippingZoneInfo = useMemo(() => {
+    return calculateDeliveryFee(formData.city, cartTotal);
+  }, [formData.city, cartTotal]);
+
+  const shippingFee = shippingInfo.rate;
+  const grandTotal = cartTotal + shippingFee;
 
   // Layer 1: Saved Profile from Browser LocalStorage (Same Device)
   const [savedProfile, setSavedProfile] = useState<SavedDeliveryProfile | null>(null);
@@ -240,6 +249,7 @@ export function useCheckout() {
             variantName: i.variant?.name,
             variantId: i.variant?._id,
           })),
+          shippingFee,
           utmSource: utmSource || undefined,
           utmMedium: utmMedium || undefined,
           utmCampaign: utmCampaign || undefined,
@@ -256,7 +266,7 @@ export function useCheckout() {
 
       logInteraction('checkout_success', window.location.pathname, {
         orderId: data.orderId,
-        amount: cartTotal,
+        amount: grandTotal,
         itemsCount: cart.length,
       });
 
@@ -307,10 +317,19 @@ export function useCheckout() {
         ? `\n\n👤 *Customer & Delivery Details:*\n${customerDetailsList.join('\n')}`
         : '';
 
+    const deliveryLine =
+      shippingFee > 0
+        ? `🚚 *Delivery Charges (${shippingInfo.zone} via ${shippingInfo.courier}):* Rs. ${shippingFee.toLocaleString()}${
+            shippingInfo.discountApplied ? ` (Special Discount Applied - Was Rs. ${shippingInfo.originalRate})` : ''
+          }\n`
+        : `🚚 *Delivery Charges (${shippingInfo.zone}):* 100% FREE DELIVERY\n`;
+
     const text = encodeURIComponent(
       `Hello Pak-o-Drive! I would like to place an order via Cash On Delivery:\n\n` +
         `📦 *Order Items:*\n${itemsSummary}\n\n` +
-        `💰 *Total Amount:* Rs. ${cartTotal.toLocaleString()} (Cash On Delivery - Free Delivery)` +
+        `🧾 *Subtotal:* Rs. ${cartTotal.toLocaleString()}\n` +
+        `${deliveryLine}` +
+        `💰 *Total Amount Payable (COD):* Rs. ${grandTotal.toLocaleString()}` +
         `${customerSection}\n\n` +
         `Please confirm my order and share the dispatch date. Thank you!`
     );
@@ -321,6 +340,9 @@ export function useCheckout() {
   return {
     cart,
     cartTotal,
+    shippingInfo,
+    shippingFee,
+    grandTotal,
     formData,
     updateField,
     loading,

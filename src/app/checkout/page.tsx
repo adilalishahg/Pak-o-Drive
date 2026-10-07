@@ -12,6 +12,9 @@ export default function CheckoutPage() {
   const {
     cart,
     cartTotal,
+    shippingInfo,
+    shippingFee,
+    grandTotal,
     formData,
     updateField,
     loading,
@@ -379,14 +382,73 @@ export default function CheckoutPage() {
                     <span>Subtotal</span>
                     <span style={{ fontWeight: 600, color: '#0f172a' }}>Rs. {cartTotal.toLocaleString()}</span>
                   </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.86rem', color: '#64748b' }}>
-                    <span>Shipping Charges (Nationwide)</span>
-                    <span style={{ fontWeight: 800, color: '#16a34a' }}>FREE SHIPPING</span>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', fontSize: '0.86rem', color: '#64748b' }}>
+                    <div>
+                      <span>Delivery Charges</span>
+                      {formData.city ? (
+                        <div style={{ fontSize: '0.72rem', color: '#64748b', marginTop: '2px' }}>
+                          <span style={{ fontWeight: 600, color: '#334155' }}>{shippingInfo.zone}</span> • {shippingInfo.courier} ({shippingInfo.deliveryTime})
+                        </div>
+                      ) : (
+                        <div style={{ fontSize: '0.72rem', color: '#94a3b8', marginTop: '2px' }}>
+                          Select your city to calculate courier fee
+                        </div>
+                      )}
+                    </div>
+                    {formData.city ? (
+                      shippingFee === 0 ? (
+                        <span style={{ fontWeight: 800, color: '#16a34a', whiteSpace: 'nowrap' }}>
+                          {shippingInfo.discountApplied ? (
+                            <>
+                              <span style={{ textDecoration: 'line-through', color: '#94a3b8', fontSize: '0.78rem', marginRight: '5px' }}>
+                                Rs. {shippingInfo.originalRate}
+                              </span>
+                              FREE
+                            </>
+                          ) : (
+                            'FREE (Local Hub)'
+                          )}
+                        </span>
+                      ) : (
+                        <div style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
+                          {shippingInfo.discountApplied && (
+                            <span style={{ textDecoration: 'line-through', color: '#94a3b8', fontSize: '0.78rem', marginRight: '6px' }}>
+                              Rs. {shippingInfo.originalRate}
+                            </span>
+                          )}
+                          <span style={{ fontWeight: 800, color: shippingInfo.discountApplied ? '#16a34a' : '#0f172a' }}>
+                            Rs. {shippingFee.toLocaleString()}
+                          </span>
+                        </div>
+                      )
+                    ) : (
+                      <span style={{ fontWeight: 600, color: '#94a3b8', fontSize: '0.8rem', whiteSpace: 'nowrap' }}>--</span>
+                    )}
                   </div>
+
+                  {/* Delivery Promotion Banner (Discount Applied or Progress Upsell) */}
+                  {formData.city && shippingInfo.discountMessage && (
+                    <div style={{
+                      fontSize: '0.73rem',
+                      padding: '6px 10px',
+                      borderRadius: '6px',
+                      fontWeight: 600,
+                      background: shippingInfo.discountApplied ? '#f0fdf4' : '#eff6ff',
+                      color: shippingInfo.discountApplied ? '#15803d' : '#1d4ed8',
+                      border: `1px solid ${shippingInfo.discountApplied ? '#bbf7d0' : '#bfdbfe'}`,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                    }}>
+                      <i className={shippingInfo.discountApplied ? 'fas fa-check-circle' : 'fas fa-info-circle'} />
+                      <span>{shippingInfo.discountMessage}</span>
+                    </div>
+                  )}
+
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1.1rem', paddingTop: '10px', borderTop: '1px solid #f1f5f9' }}>
                     <span style={{ fontWeight: 800, color: '#0f172a' }}>Total Amount</span>
                     <span style={{ fontWeight: 900, color: 'var(--pd-primary, #ea580c)' }}>
-                      Rs. {cartTotal.toLocaleString()}
+                      Rs. {grandTotal.toLocaleString()}
                     </span>
                   </div>
                 </div>

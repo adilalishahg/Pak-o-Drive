@@ -7,6 +7,7 @@ import CampaignOffer from '../../../models/CampaignOffer';
 import { fireConversionEvent } from '../../../utils/conversionApi';
 import { sendAdminOrderNotification } from '../../../lib/whatsappNotification';
 import { checkRateLimit } from '@/lib/rateLimiter';
+import { calculateDeliveryFee } from '@/lib/shippingRates';
 
 export async function GET(request: Request) {
   try {
@@ -288,11 +289,17 @@ export async function POST(request: Request) {
       });
     }
 
-    // 5. Save order in MongoDB
+    // 5. Calculate verified server-side shipping fee based on customer city & cart value
+    const verifiedShipping = calculateDeliveryFee(customerDetails.city, calculatedTotal);
+    const shippingFee = verifiedShipping.rate;
+    const finalTotalAmount = calculatedTotal + shippingFee;
+
+    // Save order in MongoDB
     const order = new Order({
       customerDetails,
       items: resolvedItems,
-      totalAmount: calculatedTotal,
+      shippingFee,
+      totalAmount: finalTotalAmount,
       paymentMethod: 'COD',
       status: 'Pending',
       whatsappSent: false,
@@ -311,7 +318,7 @@ export async function POST(request: Request) {
     // 7. Asynchronous Conversion Tracking (Meta CAPI + TikTok)
     void fireConversionEvent({
       orderId: savedOrder._id.toString(),
-      value: calculatedTotal,
+      value: finalTotalAmount,
       email: customerDetails.email,
       phone: customerDetails.phone,
       clientIp:
