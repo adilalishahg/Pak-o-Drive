@@ -1,0 +1,67 @@
+{
+  "lastRefreshed": 1791372038097,
+  "weekNumber": 41,
+  "updatedDate": "2026-10-07T11:20:42.851Z",
+  "tracks": [
+    {
+      "id": "w2-phonk-drift",
+      "name": "Midnight Cyber Velocity Drift",
+      "category": "roads",
+      "localFileName": "viral-w2-midnight-drift.mp3",
+      "sourceUrl": "https://cdn.pixabay.com/download/audio/2022/08/02/audio_884fe92c21.mp3?filename=electronic-future-beats-117997.mp3",
+      "mood": "Relentless night highway drive",
+      "weekIndex": 1,
+      "lastUpdated": "2026-10-07T11:20:38.785Z"
+    },
+    {
+      "id": "w2-empire-synth",
+      "name": "Metropolis Skyline Cyber Synth",
+      "category": "buildings",
+      "localFileName": "viral-w2-empire-synth.mp3",
+      "sourceUrl": "https://cdn.pixabay.com/download/audio/2022/10/14/audio_9939f792cb.mp3?filename=synthwave-80s-110045.mp3",
+      "mood": "Building high-rises and financial freedom",
+      "weekIndex": 1,
+      "lastUpdated": "2026-10-07T11:20:41.104Z"
+    },
+    {
+      "id": "w2-storm-mindset",
+      "name": "Heavy Storm Deep Stoic Reflection",
+      "category": "rain",
+      "localFileName": "viral-w2-storm-mindset.mp3",
+      "sourceUrl": "https://cdn.pixabay.com/download/audio/2022/01/18/audio_d0a13f69d2.mp3?filename=the-beat-of-nature-122841.mp3",
+      "mood": "Calmness under external turbulence",
+      "weekIndex": 1,
+      "lastUpdated": "2026-10-07T11:20:41.445Z"
+    },
+    {
+      "id": "w2-aviation-clouds",
+      "name": "Flight Horizon Ethereal Atmosphere",
+      "category": "sky",
+      "localFileName": "viral-w2-aviation-clouds.mp3",
+      "sourceUrl": "https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3?filename=chill-abstract-intention-12099.mp3",
+      "mood": "Elevated vision above the noise",
+      "weekIndex": 1,
+      "lastUpdated": "2026-10-07T11:20:41.890Z"
+    },
+    {
+      "id": "w2-ocean-waves",
+      "name": "Ocean Horizon Relentless Pulse",
+      "category": "beach",
+      "localFileName": "viral-w2-aviation-clouds.mp3",
+      "sourceUrl": "https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3?filename=chill-abstract-intention-12099.mp3",
+      "mood": "Unstoppable consistency",
+      "weekIndex": 1,
+      "lastUpdated": "2026-10-07T11:20:42.471Z"
+    },
+    {
+      "id": "w2-mountain-lofi",
+      "name": "Mountain Summit Lo-Fi Solitude",
+      "category": "nature",
+      "localFileName": "viral-w2-mountain-lofi.mp3",
+      "sourceUrl": "https://cdn.pixabay.com/download/audio/2022/05/16/audio_db6591201e.mp3?filename=lofi-chill-medium-version-159456.mp3",
+      "mood": "Unwavering roots and peaceful power",
+      "weekIndex": 1,
+      "lastUpdated": "2026-10-07T11:20:42.850Z"
+    }
+  ]
+}

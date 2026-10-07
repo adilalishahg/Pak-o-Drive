@@ -437,7 +437,7 @@ export default function CheckoutPage() {
                       </div>
 
                       <p style={{ margin: '8px 0 0', fontSize: '0.72rem', color: '#64748b', lineHeight: 1.4 }}>
-                        ℹ️ Transfer exactly <strong style={{ color: '#0f172a' }}>Rs. {grandTotal.toLocaleString()}</strong>. Order place hone ke baad payment screenshot / TID WhatsApp par share kar dein for immediate priority dispatch.
+                        ℹ️ Please transfer exactly <strong style={{ color: '#0f172a' }}>Rs. {grandTotal.toLocaleString()}</strong>. After placing your order, please share your payment screenshot or Transaction ID (TID) on WhatsApp for immediate priority dispatch.
                       </p>
                     </div>
                   )}

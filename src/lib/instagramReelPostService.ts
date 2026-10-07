@@ -33,28 +33,27 @@ export interface InstagramReelResult {
  */
 export async function generateViralUkCaption(title: string): Promise<string> {
   const dynamicHooks = [
-    'Most people quit right before everything is about to change.',
-    'Rule #1 of silent ambition: Never announce your moves before they happen.',
-    'Comfort is the most dangerous drug in modern society. Choose your hard.',
-    'They laughed at your sacrifice, now they ask for the playbook.',
-    'You will never be criticized by someone doing more than you.',
-    'The version of you that wins had to ruthlessly eliminate who you used to be.',
-    'Stop telling people your goals. Show them the results and disappear.',
-    'Silence is the ultimate weapon. Let them think you are doing nothing.',
+    'Stop trading 40 hours a week for a fixed paycheck. Digital products scale with zero inventory.',
+    'Build assets once, get paid repeatedly. The internet rewards digital leverage.',
+    '3 digital tools I use daily in Canva & Notion to scale on autopilot.',
+    'Don’t overcomplicate it: 1 specific problem + 1 clean digital template = consistent passive sales.',
+    'If you have a laptop and 1 hour a day, you can start building digital assets today.',
   ];
   const selectedHook = dynamicHooks[Math.floor(Math.random() * dynamicHooks.length)];
 
-  return `${title.toUpperCase()} ⚡
+  return `Comment "TOOLS" below and I'll DM you all 3 links instantly! 📩👇
 
-${selectedHook}
-Stay focused. Keep building in silence.
+${title.toUpperCase()} — ${selectedHook}
 
-Save this reminder for when you need it 📌
-Send this to someone on the same frequency ♟️
+Why these digital tools win:
+• 95%+ profit margins 📈
+• Zero physical inventory or shipping 📦
+• Automated 24/7 sales through bio links 🌙
 
-Follow @digitalinspirer for daily high-velocity mindset.
+Save this reel for later 📌
+Follow 👉 @digitalinspirer for daily AI & digital income blueprints.
 
-#mindset #stoicism #discipline #darkaesthetic #reelsuk #usatrending #wealthmindset #monkmode #nightdrive #success`;
+#aitools #contentcreator #artificialintelligence #productivity #digitaltools #reelsgrowth #facelessmarketing`;
 }
 
 /**
@@ -473,7 +472,7 @@ export async function executeAutoInstagramReelPost(options?: {
   // Step 1: Generate Real Moving Video or Cinematic Video
   let videoPath = '';
   let videoDuration = 6.0;
-  let toolName = options?.customToolName || 'Viral Mindset Reel';
+  let toolName = options?.customToolName || 'Digital Products & AI Growth';
   let caption = '';
 
   let reelQuoteLines: string[] | undefined = undefined;

@@ -81,7 +81,7 @@ export function OrderInvoiceCard({ order, shortId }: OrderInvoiceCardProps) {
               Payment
             </p>
             <p style={{ margin: '0 0 3px', fontSize: '0.78rem', color: '#111' }}>
-              Method: <strong style={{ color: '#16a34a' }}>COD</strong>
+              Method: <strong style={{ color: '#16a34a' }}>{order.paymentMethod || 'COD'}</strong>
             </p>
             <p style={{ margin: 0, fontSize: '0.75rem', color: '#6b7280', lineHeight: 1.55 }}>
               {order.customerDetails.phone}

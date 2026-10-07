@@ -94,7 +94,8 @@ export function useOrderConfirmation() {
       .join('\n');
 
     const emailLine = order.customerDetails.email ? `\nEmail: ${order.customerDetails.email}` : '';
-    const msg = `*Order Confirmation*\nOrder ID: #${order._id?.slice(-8).toUpperCase()}\nName: ${order.customerDetails.name}\nPhone: ${order.customerDetails.phone}${emailLine}\nAddress: ${order.customerDetails.address}, ${order.customerDetails.city}\n\nItems:\n${items}\n\nTotal: PKR ${order.totalAmount.toLocaleString()}\nPayment: COD`;
+    const paymentLabel = order.paymentMethod && order.paymentMethod !== 'COD' ? `${order.paymentMethod} (Online Advance Transfer)` : 'Cash On Delivery (COD)';
+    const msg = `*Order Confirmation*\nOrder ID: #${order._id?.slice(-8).toUpperCase()}\nName: ${order.customerDetails.name}\nPhone: ${order.customerDetails.phone}${emailLine}\nAddress: ${order.customerDetails.address}, ${order.customerDetails.city}\n\nItems:\n${items}\n\nTotal: PKR ${order.totalAmount.toLocaleString()}\nPayment: ${paymentLabel}`;
 
     window.open(`https://wa.me/${whatsappNumber.replace('+', '')}?text=${encodeURIComponent(msg)}`, '_blank');
   }, [order, whatsappNumber]);

@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 
-export type ReelCategory = 'nature' | 'roads' | 'beach' | 'buildings' | 'sky' | 'rain';
+export type ReelCategory = 'workspace' | 'luxury' | 'buildings' | 'roads' | 'sky' | 'nature' | 'beach' | 'rain';
 
 export interface CategoryMetadata {
   name: string;
@@ -10,58 +10,78 @@ export interface CategoryMetadata {
 }
 
 export const CATEGORIES_CONFIG: Record<ReelCategory, CategoryMetadata> = {
-  nature: {
-    name: 'Nature & Scenic Roadtrips',
-    themePrompt: 'Northern Pakistan roadtrips (Murree, Babusar, Swat), scenic highway cruising, unshakeable engine reliability, peaceful scenic mountain drives',
-    suggestedTags: ['#northernpakistan', '#roadtrip', '#pakwheels', '#carsofpakistan', '#pakistanroadtrips', '#naturedrive'],
+  workspace: {
+    name: 'Modern Tech & Creator Workspace',
+    themePrompt: 'Minimalist desk setup, MacBook workflow, coffee cup, sleek dark ambient desk lights, typing on keyboard, high-focus remote builder lifestyle',
+    suggestedTags: ['#digitalproducts', '#workspace', '#remotework', '#sidehustle', '#buildinpublic', '#canvatemplates'],
   },
-  roads: {
-    name: 'Highways & Night Drive',
-    themePrompt: 'Islamabad Margalla Road, Lahore Ring Road, Karachi Sea View night drives, high-speed motorway cruising, automotive adrenaline, clean cockpit',
-    suggestedTags: ['#nightdrive', '#pakwheels', '#carsofpakistan', '#lahore', '#islamabad', '#carguy', '#m2motorway'],
-  },
-  beach: {
-    name: 'Coastal Highway & Karachi Nights',
-    themePrompt: 'Makran Coastal Highway, Karachi Clifton night drive, ocean breeze, late night cruising with your car crew, peaceful automotive escape',
-    suggestedTags: ['#karachicars', '#coastalhighway', '#nightdrive', '#carsofpakistan', '#pakwheels', '#oceanvibes'],
+  luxury: {
+    name: 'Luxury Penthouse & High-Income Lifestyle',
+    themePrompt: 'High-rise glass office, luxury city view, financial freedom, late night founder focus, minimalist modern aesthetic',
+    suggestedTags: ['#financialfreedom', '#digitalwealth', '#passiveincome', '#onlinebusiness', '#growthmindset', '#solopreneur'],
   },
   buildings: {
-    name: 'City Skyline & Ambient Glow',
-    themePrompt: 'Islamabad Blue Area, Gulberg Lahore, Karachi skyline at night, ambient interior lighting, modern cockpit aesthetic, luxury automotive lifestyle',
-    suggestedTags: ['#ambientlighting', '#carstyling', '#pakodrive', '#lahorecars', '#islamabadcars', '#luxurydrive'],
+    name: 'Metropolis Skyline & Ambient Glow',
+    themePrompt: 'Tokyo/Manhattan night skyline, neon highway reflections, cyber modern cityscape, high status executive aesthetic',
+    suggestedTags: ['#aitools', '#techstack', '#digitalnomad', '#creatorlife', '#makemoneyonline'],
+  },
+  roads: {
+    name: 'Late Night High-Speed Cruising',
+    themePrompt: 'Clean cockpit night drive, focused perspective, smooth highway lights, intentional execution and momentum',
+    suggestedTags: ['#nightdrive', '#focusmode', '#escapethe9to5', '#entrepreneur', '#momentum'],
   },
   sky: {
-    name: 'Golden Hour & Sunset Cruising',
-    themePrompt: 'Golden hour windshield reflections, sunset highway drives, clean car shine, aesthetic visuals, timeless automotive passion',
-    suggestedTags: ['#sunsetdrive', '#goldenhourcars', '#pakwheels', '#carsofpakistan', '#cleanbuild', '#aestheticcars'],
+    name: 'Golden Hour & Horizon Focus',
+    themePrompt: 'Golden hour city flight, airplane wing over clouds, broad perspective, timeless wealth building',
+    suggestedTags: ['#timelesswealth', '#digitalproducts', '#onlineincome', '#freedomlifestyle'],
+  },
+  nature: {
+    name: 'Scenic Moody Mountains & Focus',
+    themePrompt: 'Peaceful misty valley, evergreen pines, calm unhurried determination, mental clarity for high-output creators',
+    suggestedTags: ['#clarity', '#deepwork', '#creatorjourney', '#mindsetshift'],
+  },
+  beach: {
+    name: 'Ocean Waves & Remote Freedom',
+    themePrompt: 'Pacific ocean calm waves, sunset coastline, true location freedom, working from anywhere in the world',
+    suggestedTags: ['#locationfreedom', '#digitalnomad', '#laptoplifestyle', '#passiveincome'],
   },
   rain: {
-    name: 'Monsoon Rain & Windscreen Clarity',
-    themePrompt: 'Monsoon driving in Lahore & Islamabad, rain on windshield, satisfying wiper wipe, hydrophobic ceramic shine, moody cozy cabin vibes',
-    suggestedTags: ['#raindrive', '#monsoonpakistan', '#carculture', '#pakwheels', '#carsofpakistan', '#aestheticdrive'],
+    name: 'Moody Rain & Quiet Execution',
+    themePrompt: 'Rain streaks on dark glass, ambient city lights, cozy deep work session, building silent assets',
+    suggestedTags: ['#deepwork', '#buildinpublic', '#focused', '#digitalcreator'],
   },
 };
 
 const DAY_CATEGORY_MAP: Record<number, ReelCategory> = {
-  0: 'rain',       // Sunday
-  1: 'nature',     // Monday
-  2: 'roads',      // Tuesday
-  3: 'beach',      // Wednesday
-  4: 'buildings',  // Thursday
-  5: 'sky',        // Friday
-  6: 'roads',      // Saturday
+  0: 'luxury',     // Sunday
+  1: 'workspace',  // Monday
+  2: 'buildings',  // Tuesday
+  3: 'workspace',  // Wednesday
+  4: 'luxury',     // Thursday
+  5: 'roads',      // Friday
+  6: 'workspace',  // Saturday
 };
 
 export const CATEGORY_VIDEOS: Record<ReelCategory, string[]> = {
-  beach: [
-    'https://cdn.coverr.co/videos/coverr-calm-waves-in-an-ocean-gulf-4513/1080p.mp4',
-    'https://cdn.coverr.co/videos/coverr-waves-in-the-ocean-9488/1080p.mp4',
-    'https://cdn.coverr.co/videos/coverr-sunrise-on-the-beach-9704/1080p.mp4',
+  workspace: [
+    'https://cdn.coverr.co/videos/coverr-manhattan-skyline-7479/1080p.mp4',
+    'https://cdn.coverr.co/videos/coverr-houston-texas-at-night-4130/1080p.mp4',
+    'https://cdn.coverr.co/videos/coverr-temp-zna6gen-3-alpha-2777358279-a-dynamic-time-lapse-mp4-5453/1080p.mp4',
+  ],
+  luxury: [
+    'https://cdn.coverr.co/videos/coverr-modern-apartment-living-room-with-city-view-9122/1080p.mp4',
+    'https://cdn.coverr.co/videos/coverr-manhattan-skyline-7479/1080p.mp4',
+    'https://cdn.coverr.co/videos/coverr-temp-zna6gen-3-alpha-2777358279-a-dynamic-time-lapse-mp4-5453/1080p.mp4',
   ],
   buildings: [
     'https://cdn.coverr.co/videos/coverr-houston-texas-at-night-4130/1080p.mp4',
     'https://cdn.coverr.co/videos/coverr-manhattan-skyline-7479/1080p.mp4',
     'https://cdn.coverr.co/videos/coverr-temp-zna6gen-3-alpha-2777358279-a-dynamic-time-lapse-mp4-5453/1080p.mp4',
+  ],
+  beach: [
+    'https://cdn.coverr.co/videos/coverr-calm-waves-in-an-ocean-gulf-4513/1080p.mp4',
+    'https://cdn.coverr.co/videos/coverr-waves-in-the-ocean-9488/1080p.mp4',
+    'https://cdn.coverr.co/videos/coverr-sunrise-on-the-beach-9704/1080p.mp4',
   ],
   nature: [
     'https://cdn.coverr.co/videos/coverr-above-a-misty-forest-518/1080p.mp4',

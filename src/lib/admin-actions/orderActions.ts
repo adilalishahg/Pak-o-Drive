@@ -569,7 +569,8 @@ COURIER: ${order.courierName || 'TCS / Trax Express'}
       const hasAddress = address.length >= 10;
       const riskLevel = !hasPhone || !hasAddress ? '⚠️ High Risk' : '🟢 Verified Safe';
 
-      const waMsg = `Assalam-o-Alaikum ${custName} Bhai! 🚗\n\nPak-o-Drive se aapka Order #${orderShortId} receive hua hai:\n📦 Items: ${itemsList}\n💰 Total Amount: PKR ${ord.totalAmount.toLocaleString()} (Cash on Delivery)\n📍 Delivery City: ${city}\n\nKya hum aapka parcel TCS Express se rawana karein?\n1️⃣ Confirm karne ke liye 'YES' ya '1' reply karein.\n2️⃣ Address change karna ho tou yahan likhein.\n\nShukriya! Pak-o-Drive Team`;
+      const paymentLabel = ord.paymentMethod && ord.paymentMethod !== 'COD' ? `Online Payment (${ord.paymentMethod})` : 'Cash on Delivery (COD)';
+      const waMsg = `Hello ${custName}! 🚗\n\nThank you for choosing Pak-o-Drive. Your Order #${orderShortId} has been received:\n📦 Items: ${itemsList}\n💰 Total Amount: PKR ${ord.totalAmount.toLocaleString()} (${paymentLabel})\n📍 Delivery City: ${city}\n\nPlease confirm your order dispatch:\n1️⃣ Reply 'YES' or '1' to confirm dispatch via TCS Express.\n2️⃣ Reply here if you need to update your address or share payment proof.\n\nThank you! Pak-o-Drive Team`;
 
       const waLink = `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodeURIComponent(waMsg)}`;
 
