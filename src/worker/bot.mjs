@@ -977,19 +977,17 @@ async function start() {
 
     for (const msg of m.messages) {
       const senderJid = msg.key.remoteJid;
-      if (!senderJid || senderJid === 'status@broadcast' || senderJid.includes('@g.us')) continue;
-
-      const senderPhone = senderJid.split('@')[0];
-
-      // 🛑 Ignore newsletters, LIDs, channels, and community numbers
+      // 🛑 Ignore group chats, status broadcasts, and newsletters
       if (
-        senderJid.includes('@newsletter') ||
-        senderJid.includes('@lid') ||
-        senderPhone.startsWith('120363') ||
-        senderPhone.length > 15
+        !senderJid ||
+        senderJid === 'status@broadcast' ||
+        senderJid.includes('@g.us') ||
+        senderJid.includes('@newsletter')
       ) {
         continue;
       }
+
+      const senderPhone = senderJid.split('@')[0];
 
       const rawText =
         msg.message?.conversation ||
