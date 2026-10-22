@@ -824,38 +824,10 @@ async function fetchLiveGoldPrice() {
   return null;
 }
 
-function formatGoldMessage(data, isPeriodicAlert = false, prevPrice = null) {
+function formatGoldMessage(data) {
   const isUp = data.changePercent >= 0;
   const trendEmoji = isUp ? '🟢' : '🔴';
   const sign = isUp ? '+' : '';
-
-  let diffText = '';
-  if (prevPrice !== null && prevPrice !== undefined) {
-    const diff = data.price - prevPrice;
-    if (diff > 0) {
-      diffText = `\n⚡ *5-Min Move:* +$${diff.toFixed(2)} 📈`;
-    } else if (diff < 0) {
-      diffText = `\n⚡ *5-Min Move:* -$${Math.abs(diff).toFixed(2)} 📉`;
-    } else {
-      diffText = `\n⚡ *5-Min Move:* $0.00 (Flat) ⏸️`;
-    }
-  }
-
-  if (isPeriodicAlert) {
-    return (
-      `🟡 *XAU / USD (Gold Spot) 5-MIN ALERT* ⏱️\n` +
-      `━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
-      `💰 *Live Price:* $${data.price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}\n` +
-      `📊 *24h Change:* ${sign}${data.changePercent.toFixed(2)}% ${trendEmoji}${diffText}\n` +
-      `🔺 *24h High:* $${data.high.toLocaleString('en-US', { minimumFractionDigits: 2 })}\n` +
-      `🔻 *24h Low:* $${data.low.toLocaleString('en-US', { minimumFractionDigits: 2 })}\n` +
-      `━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
-      `🔄 *Status:* Auto-Alert Har 5 Min Baad\n` +
-      `🕒 *Time:* ${data.time} PKT\n` +
-      `📡 *Source:* ${data.source}\n\n` +
-      `🛑 *Stop karne ke liye:* \`!gold off\` reply karein.`
-    );
-  }
 
   return (
     `🟡 *XAU / USD (Gold Spot) LIVE* 📈\n` +
@@ -867,55 +839,8 @@ function formatGoldMessage(data, isPeriodicAlert = false, prevPrice = null) {
     `🕒 *Time:* ${data.time} PKT\n` +
     `📡 *Source:* ${data.source}\n` +
     `━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
-    `💡 *5-Min Auto Alerts:* Har 5 minute updates ke liye type karein: \`!gold on\``
+    `💡 *Note:* Har baar latest updated rate ke liye \`gold\` likh kar bhejein.`
   );
-}
-
-let goldSchedulerInterval = null;
-let lastKnownGoldPrice = null;
-
-function startGoldPriceScheduler(socket) {
-  if (goldSchedulerInterval) clearInterval(goldSchedulerInterval);
-
-  console.log('🟡 [Gold Scheduler] Starting 5-minute automatic XAU/USD price alerts...');
-
-  const dispatchGoldAlert = async (isInitial = false) => {
-    try {
-      const data = await fetchLiveGoldPrice();
-      if (!data) {
-        console.warn('⚠️ [Gold Scheduler] Live gold price fetch returned null.');
-        return;
-      }
-
-      const adminJids = await getAllAdminJids(socket);
-      if (adminJids.length === 0) {
-        console.warn('⚠️ [Gold Scheduler] No admin JIDs found.');
-        return;
-      }
-
-      const alertText = formatGoldMessage(data, true, lastKnownGoldPrice);
-      lastKnownGoldPrice = data.price;
-
-      console.log(`🟡 [Gold Alert] Sending ${isInitial ? 'startup' : '5-minute'} price ($${data.price}) to:`, adminJids);
-
-      for (const targetJid of adminJids) {
-        try {
-          await socket.sendMessage(targetJid, { text: alertText });
-          console.log(`✅ [Gold Alert Delivered] to ${targetJid}`);
-        } catch (sendErr) {
-          console.error(`❌ [Gold Alert Send Failed to ${targetJid}]:`, sendErr.message);
-        }
-      }
-    } catch (err) {
-      console.error('❌ [Gold Scheduler Error]:', err.message);
-    }
-  };
-
-  // 1. Send first alert 2 seconds after socket connects so user gets it immediately!
-  setTimeout(() => dispatchGoldAlert(true), 2500);
-
-  // 2. Schedule every 5 minutes (5 * 60 * 1000 ms)
-  goldSchedulerInterval = setInterval(() => dispatchGoldAlert(false), 5 * 60 * 1000);
 }
 
 
@@ -965,10 +890,6 @@ async function start() {
       const statusCode = lastDisconnect?.error?.output?.statusCode;
       const shouldReconnect = statusCode !== DisconnectReason.loggedOut;
 
-      if (goldSchedulerInterval) {
-        clearInterval(goldSchedulerInterval);
-        goldSchedulerInterval = null;
-      }
 
       for (const [, ticker] of activeGoldTickers.entries()) {
         if (ticker.interval) clearInterval(ticker.interval);
@@ -1031,7 +952,6 @@ async function start() {
       startOrderWatcher(socket);
       startDailyTrendsScheduler(socket);
       startWebChatWatcher(socket);
-      startGoldPriceScheduler(socket);
     }
 
   });
@@ -1144,72 +1064,38 @@ async function start() {
         }
       }
 
-      // 🟡 XAU/USD LIVE GOLD COMMANDS (5-Min Auto-Alerts & On-Demand Instant Quotes)
+      // 🟡 XAU/USD LIVE GOLD ON-DEMAND QUERY (Instant Real-time Quotes)
       const cleanGoldCmd = rawText.toLowerCase().replace(/[?!.,#*~_]/g, ' ').trim();
       const goldWords = cleanGoldCmd.split(/\s+/).filter(Boolean);
 
-      const isGoldOn =
-        /(^|\s)(!gold\s*on|gold\s*on|xau\s*on|start\s*gold|gold\s*start|gold\s*5m)(|\s)/i.test(cleanGoldCmd) ||
-        cleanGoldCmd === 'gold on' ||
-        cleanGoldCmd === '!gold on';
-
-      const isGoldOff =
-        /(^|\s)(!gold\s*off|gold\s*off|xau\s*off|stop\s*gold|gold\s*stop)(|\s)/i.test(cleanGoldCmd) ||
-        cleanGoldCmd === 'gold off' ||
-        cleanGoldCmd === '!gold off';
-
       const isGoldQuery =
-        !isGoldOn &&
-        !isGoldOff &&
-        (goldWords.includes('gold') ||
-          goldWords.includes('xau') ||
-          goldWords.includes('xauusd') ||
-          cleanGoldCmd.includes('gold price') ||
-          cleanGoldCmd.includes('gold rate') ||
-          cleanGoldCmd.includes('sona rate') ||
-          cleanGoldCmd.includes('sone ka rate') ||
-          cleanGoldCmd.includes('gold ka rate') ||
-          cleanGoldCmd === 'gold' ||
-          cleanGoldCmd === 'xau' ||
-          cleanGoldCmd === 'xauusd');
+        goldWords.includes('gold') ||
+        goldWords.includes('xau') ||
+        goldWords.includes('xauusd') ||
+        cleanGoldCmd.includes('gold price') ||
+        cleanGoldCmd.includes('gold rate') ||
+        cleanGoldCmd.includes('sona rate') ||
+        cleanGoldCmd.includes('sone ka rate') ||
+        cleanGoldCmd.includes('gold ka rate') ||
+        cleanGoldCmd === 'gold' ||
+        cleanGoldCmd === 'xau' ||
+        cleanGoldCmd === 'xauusd';
 
-      if (isGoldOn || isGoldOff || isGoldQuery) {
-        console.log(`🟡 [Gold Command Triggered] Message: "${rawText}" from: ${senderPhone}`);
+      if (isGoldQuery) {
+        console.log(`🟡 [Gold Query Triggered] Message: "${rawText}" from: ${senderPhone}`);
         const chatJid = msg.key.remoteJid;
-
-        if (isGoldOn) {
-          startGoldPriceScheduler(socket);
-          await socket.sendMessage(chatJid, {
-            text: '✅ *XAU/USD 5-Minute Auto-Alerts activate ho gaye hain!*',
-          }).catch(() => {});
+        console.log(`🟡 [Gold Query] Fetching live price for ${chatJid}...`);
+        const goldData = await fetchLiveGoldPrice();
+        if (!goldData) {
+          await socket.sendMessage(chatJid, { text: '⚠️ Live gold rate fetch karne me masla aaya. Dobara try karein.' }).catch(() => {});
           continue;
         }
-
-        if (isGoldOff) {
-          if (goldSchedulerInterval) {
-            clearInterval(goldSchedulerInterval);
-            goldSchedulerInterval = null;
-          }
-          await socket.sendMessage(chatJid, {
-            text: '🛑 *XAU/USD 5-Minute Auto-Alerts band kar diye gaye hain.*\n\nDubara start karne ke liye: `!gold on` ya instant rate ke liye `gold` type karein.',
-          }).catch(() => {});
-          continue;
-        }
-
-        if (isGoldQuery) {
-          console.log(`🟡 [Gold Query] Fetching live price for ${chatJid}...`);
-          const goldData = await fetchLiveGoldPrice();
-          if (!goldData) {
-            await socket.sendMessage(chatJid, { text: '⚠️ Live gold rate fetch karne me masla aaya. Dobara try karein.' }).catch(() => {});
-            continue;
-          }
-          const replyText = formatGoldMessage(goldData, false, null);
-          await socket.sendMessage(chatJid, { text: replyText }).catch((err) => {
-            console.error('[Gold Reply Send Error]:', err.message);
-          });
-          console.log(`✅ [Gold Reply Sent] to ${chatJid}`);
-          continue;
-        }
+        const replyText = formatGoldMessage(goldData);
+        await socket.sendMessage(chatJid, { text: replyText }).catch((err) => {
+          console.error('[Gold Reply Send Error]:', err.message);
+        });
+        console.log(`✅ [Gold Reply Sent] to ${chatJid}`);
+        continue;
       }
 
       const allAdminJids = await getAllAdminJids(socket);
