@@ -1,5 +1,6 @@
 import path from 'path';
 import fs from 'fs';
+import http from 'http';
 import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 import qrcodeTerminal from 'qrcode-terminal';
@@ -9,6 +10,23 @@ import pino from 'pino';
 // Prevent unexpected process crashes
 process.on('uncaughtException', (err) => console.error('[Bot uncaughtException]', err));
 process.on('unhandledRejection', (err) => console.error('[Bot unhandledRejection]', err));
+
+// 🌐 Alwaysdata 24/7 Managed Web Daemon listener
+const HTTP_PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : null;
+if (HTTP_PORT) {
+  try {
+    const server = http.createServer((req, res) => {
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ status: 'ONLINE', service: 'Pak-o-Drive WhatsApp Bot' }));
+    });
+    const ip = process.env.IP || '::';
+    server.listen(HTTP_PORT, ip, () => {
+      console.log(`🌐 [Alwaysdata Daemon] HTTP service active on ${ip}:${HTTP_PORT}`);
+    });
+  } catch (err) {
+    console.error('[HTTP Listener Error]', err);
+  }
+}
 
 dotenv.config({ path: path.join(process.cwd(), '.env') });
 dotenv.config({ path: path.join(process.cwd(), '.env.local') });
