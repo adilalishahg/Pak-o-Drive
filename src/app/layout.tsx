@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { Analytics } from '@vercel/analytics/next';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import { headers } from 'next/headers';
-import { Inter, Roboto } from 'next/font/google';
+import { Inter } from 'next/font/google';
 import './bootstrap.min.css';
 import '@fortawesome/fontawesome-free/css/all.min.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
@@ -24,13 +24,6 @@ const inter = Inter({
   display: 'swap',
   variable: '--font-inter',
   weight: ['300', '400', '500', '600', '700', '800'],
-});
-
-const roboto = Roboto({
-  subsets: ['latin'],
-  display: 'swap',
-  variable: '--font-roboto',
-  weight: ['400', '500', '700'],
 });
 import AnalyticsTracker from '../components/common/AnalyticsTracker';
 import { DynamicThemeProvider } from '../components/common/DynamicThemeProvider';
@@ -366,7 +359,7 @@ export default async function RootLayout({
     mainEntity: dynamicFaqEntities,
   };
   return (
-    <html lang="en" prefix="og: https://ogp.me/ns#" className={`${inter.variable} ${roboto.variable}`} data-scroll-behavior="smooth">
+    <html lang="en" prefix="og: https://ogp.me/ns#" className={inter.variable} data-scroll-behavior="smooth">
       <head>
         {/* Preconnect to external image & font domains */}
         <link rel="preconnect" href="https://images.unsplash.com" crossOrigin="anonymous" />
