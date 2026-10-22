@@ -715,6 +715,150 @@ Reply as Ali (Pak-o-Drive):`;
 
 
 
+/**
+ * ============================================================================
+ * 🟡 LIVE XAU/USD (GOLD) PRICE FETCHER & TICKER ENGINE (Options A & B)
+ * ============================================================================
+ */
+const activeGoldTickers = new Map(); // chatJid -> { key, interval, lastPrice, startedAt }
+
+async function fetchLiveGoldPrice() {
+  // 1. Binance Futures XAUUSDT (Primary: Real-time, 0ms delay, free public feed)
+  try {
+    const res = await fetch('https://fapi.binance.com/fapi/v1/ticker/24hr?symbol=XAUUSDT', {
+      headers: { 'User-Agent': 'Mozilla/5.0' },
+      signal: AbortSignal.timeout(6000),
+    });
+    if (res.ok) {
+      const d = await res.json();
+      const price = parseFloat(d.lastPrice);
+      if (!isNaN(price) && price > 0) {
+        return {
+          price,
+          high: parseFloat(d.highPrice) || price,
+          low: parseFloat(d.lowPrice) || price,
+          changePercent: parseFloat(d.priceChangePercent) || 0,
+          source: 'Binance Live (XAU/USDT)',
+          time: new Date().toLocaleTimeString('en-PK', {
+            timeZone: 'Asia/Karachi',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+          }),
+        };
+      }
+    }
+  } catch (e) {}
+
+  // 2. Binance Spot PAXGUSDT (Fallback 1: Spot Gold Pegged 1:1)
+  try {
+    const res = await fetch('https://api.binance.com/api/v3/ticker/24hr?symbol=PAXGUSDT', {
+      headers: { 'User-Agent': 'Mozilla/5.0' },
+      signal: AbortSignal.timeout(6000),
+    });
+    if (res.ok) {
+      const d = await res.json();
+      const price = parseFloat(d.lastPrice);
+      if (!isNaN(price) && price > 0) {
+        return {
+          price,
+          high: parseFloat(d.highPrice) || price,
+          low: parseFloat(d.lowPrice) || price,
+          changePercent: parseFloat(d.priceChangePercent) || 0,
+          source: 'Binance Spot PAXG',
+          time: new Date().toLocaleTimeString('en-PK', {
+            timeZone: 'Asia/Karachi',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+          }),
+        };
+      }
+    }
+  } catch (e) {}
+
+  // 3. COMEX Gold Futures (Fallback 2: Yahoo Finance GC=F)
+  try {
+    const res = await fetch('https://query1.finance.yahoo.com/v8/finance/chart/GC=F?interval=1m&range=1d', {
+      headers: { 'User-Agent': 'Mozilla/5.0' },
+      signal: AbortSignal.timeout(6000),
+    });
+    if (res.ok) {
+      const d = await res.json();
+      const meta = d?.chart?.result?.[0]?.meta;
+      if (meta?.regularMarketPrice) {
+        const price = parseFloat(meta.regularMarketPrice);
+        const prevClose = parseFloat(meta.chartPreviousClose) || price;
+        const changePercent = prevClose > 0 ? ((price - prevClose) / prevClose) * 100 : 0;
+        return {
+          price,
+          high: parseFloat(meta.regularMarketDayHigh) || price,
+          low: parseFloat(meta.regularMarketDayLow) || price,
+          changePercent,
+          source: 'COMEX Gold Futures (GC=F)',
+          time: new Date().toLocaleTimeString('en-PK', {
+            timeZone: 'Asia/Karachi',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+          }),
+        };
+      }
+    }
+  } catch (e) {}
+
+  return null;
+}
+
+function formatGoldMessage(data, isPeriodicAlert = false, prevPrice = null) {
+  const isUp = data.changePercent >= 0;
+  const trendEmoji = isUp ? '🟢' : '🔴';
+  const sign = isUp ? '+' : '';
+
+  let diffText = '';
+  if (prevPrice !== null && prevPrice !== undefined) {
+    const diff = data.price - prevPrice;
+    if (diff > 0) {
+      diffText = `\n⚡ *5-Min Move:* +$${diff.toFixed(2)} 📈`;
+    } else if (diff < 0) {
+      diffText = `\n⚡ *5-Min Move:* -$${Math.abs(diff).toFixed(2)} 📉`;
+    } else {
+      diffText = `\n⚡ *5-Min Move:* $0.00 (Flat) ⏸️`;
+    }
+  }
+
+  if (isPeriodicAlert) {
+    return (
+      `🟡 *XAU / USD (Gold Spot) 5-MIN ALERT* ⏱️\n` +
+      `━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
+      `💰 *Live Price:* $${data.price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}\n` +
+      `📊 *24h Change:* ${sign}${data.changePercent.toFixed(2)}% ${trendEmoji}${diffText}\n` +
+      `🔺 *24h High:* $${data.high.toLocaleString('en-US', { minimumFractionDigits: 2 })}\n` +
+      `🔻 *24h Low:* $${data.low.toLocaleString('en-US', { minimumFractionDigits: 2 })}\n` +
+      `━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
+      `🔄 *Status:* Auto-Alert Har 5 Min Baad\n` +
+      `🕒 *Time:* ${data.time} PKT\n` +
+      `📡 *Source:* ${data.source}\n\n` +
+      `🛑 *Stop karne ke liye:* \`!gold off\` reply karein.`
+    );
+  }
+
+  return (
+    `🟡 *XAU / USD (Gold Spot) LIVE* 📈\n` +
+    `━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
+    `💰 *Live Price:* $${data.price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}\n` +
+    `📊 *24h Change:* ${sign}${data.changePercent.toFixed(2)}% ${trendEmoji}\n` +
+    `🔺 *24h High:* $${data.high.toLocaleString('en-US', { minimumFractionDigits: 2 })}\n` +
+    `🔻 *24h Low:* $${data.low.toLocaleString('en-US', { minimumFractionDigits: 2 })}\n` +
+    `🕒 *Time:* ${data.time} PKT\n` +
+    `📡 *Source:* ${data.source}\n` +
+    `━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
+    `💡 *5-Min Auto Alerts:* Har 5 minute updates ke liye type karein: \`!gold on\``
+  );
+}
+
+
+
 async function start() {
   if (MONGODB_URI && mongoose.connection.readyState === 0) {
     try {
@@ -759,6 +903,11 @@ async function start() {
     if (connection === 'close') {
       const statusCode = lastDisconnect?.error?.output?.statusCode;
       const shouldReconnect = statusCode !== DisconnectReason.loggedOut;
+
+      for (const [, ticker] of activeGoldTickers.entries()) {
+        if (ticker.interval) clearInterval(ticker.interval);
+      }
+      activeGoldTickers.clear();
 
       console.log(`[WhatsApp] Connection closed (code: ${statusCode}). Reconnecting: ${shouldReconnect}`);
       WhatsAppBotStatus.findOneAndUpdate(
@@ -900,6 +1049,94 @@ async function start() {
           }
         } catch (bridgeErr) {
           console.error('[Web Agent Bridge Error]', bridgeErr);
+        }
+      }
+
+      // 🟡 XAU/USD LIVE GOLD COMMANDS (5-Min Auto-Alerts & On-Demand Instant Quotes)
+      const cleanGoldCmd = rawText.trim().toLowerCase();
+      const isGoldOn = /^(!gold\s*on|!gold\s*start|!xau\s*on|gold\s*on|xau\s*on|!ticker\s*on|!gold\s*5m)$/i.test(cleanGoldCmd);
+      const isGoldOff = /^(!gold\s*off|!gold\s*stop|!xau\s*off|gold\s*off|xau\s*off|!ticker\s*off)$/i.test(cleanGoldCmd);
+      const isGoldQuery =
+        !isGoldOn &&
+        !isGoldOff &&
+        (/^(!gold|gold|xau|xauusd|xau\/usd)$/i.test(cleanGoldCmd) ||
+          /^(gold\s*price|gold\s*rate|xau\s*price|xauusd\s*price|sone\s*ka\s*rate|sona\s*rate|gold\s*ka\s*rate|suna\s*rate)$/i.test(cleanGoldCmd));
+
+      if (isGoldOn || isGoldOff || isGoldQuery) {
+        const chatJid = msg.key.remoteJid;
+
+        if (isGoldOn) {
+          if (activeGoldTickers.has(chatJid)) {
+            const existing = activeGoldTickers.get(chatJid);
+            if (existing?.interval) clearInterval(existing.interval);
+            activeGoldTickers.delete(chatJid);
+          }
+
+          const goldData = await fetchLiveGoldPrice();
+          if (!goldData) {
+            await socket.sendMessage(chatJid, { text: '⚠️ Live gold market data fetch karne me masla aaya. Thori der baad check karein.' });
+            continue;
+          }
+
+          const initialMsgText = formatGoldMessage(goldData, true, null);
+          const sentMsg = await socket.sendMessage(chatJid, { text: initialMsgText });
+
+          if (sentMsg?.key) {
+            const tickerState = {
+              key: sentMsg.key,
+              lastPrice: goldData.price,
+              interval: null,
+              startedAt: Date.now(),
+            };
+
+            // 5-Minute Periodic Dispatcher (5 * 60 * 1000 ms)
+            tickerState.interval = setInterval(async () => {
+              try {
+                const latestData = await fetchLiveGoldPrice();
+                if (!latestData) return;
+
+                const alertText = formatGoldMessage(latestData, true, tickerState.lastPrice);
+                tickerState.lastPrice = latestData.price;
+
+                // Send fresh 5-minute notification message so mobile phone alerts / rings the user
+                const alertMsg = await socket.sendMessage(chatJid, { text: alertText }).catch(() => {});
+                if (alertMsg?.key) tickerState.key = alertMsg.key;
+              } catch (intervalErr) {
+                console.error('[Gold 5-Min Alert Error]', intervalErr.message);
+              }
+            }, 5 * 60 * 1000); // 5 minutes
+
+            activeGoldTickers.set(chatJid, tickerState);
+            console.log(`✅ [Gold Ticker] Started 5-minute live price alerts for ${chatJid}`);
+          }
+          continue;
+        }
+
+        if (isGoldOff) {
+          if (activeGoldTickers.has(chatJid)) {
+            const tickerState = activeGoldTickers.get(chatJid);
+            if (tickerState?.interval) clearInterval(tickerState.interval);
+            activeGoldTickers.delete(chatJid);
+            await socket.sendMessage(chatJid, {
+              text: '🛑 *XAU/USD 5-Minute Auto-Alerts band kar diye gaye hain.*\n\nDubara start karne ke liye: `!gold on` ya instant rate ke liye `gold` type karein.',
+            });
+          } else {
+            await socket.sendMessage(chatJid, {
+              text: 'ℹ️ *Koi active gold alert nahi chal raha.*\n\n5-Minute alerts start karne ke liye type karein: `!gold on`',
+            });
+          }
+          continue;
+        }
+
+        if (isGoldQuery) {
+          const goldData = await fetchLiveGoldPrice();
+          if (!goldData) {
+            await socket.sendMessage(chatJid, { text: '⚠️ Live gold rate fetch karne me masla aaya. Dobara try karein.' });
+            continue;
+          }
+          const replyText = formatGoldMessage(goldData, false, null);
+          await socket.sendMessage(chatJid, { text: replyText });
+          continue;
         }
       }
 
