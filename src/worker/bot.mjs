@@ -857,6 +857,53 @@ function formatGoldMessage(data, isPeriodicAlert = false, prevPrice = null) {
   );
 }
 
+let goldSchedulerInterval = null;
+let lastKnownGoldPrice = null;
+
+function startGoldPriceScheduler(socket) {
+  if (goldSchedulerInterval) clearInterval(goldSchedulerInterval);
+
+  console.log('🟡 [Gold Scheduler] Starting 5-minute automatic XAU/USD price alerts...');
+
+  const dispatchGoldAlert = async (isInitial = false) => {
+    try {
+      const data = await fetchLiveGoldPrice();
+      if (!data) {
+        console.warn('⚠️ [Gold Scheduler] Live gold price fetch returned null.');
+        return;
+      }
+
+      const adminJids = await getAllAdminJids(socket);
+      if (adminJids.length === 0) {
+        console.warn('⚠️ [Gold Scheduler] No admin JIDs found.');
+        return;
+      }
+
+      const alertText = formatGoldMessage(data, true, lastKnownGoldPrice);
+      lastKnownGoldPrice = data.price;
+
+      console.log(`🟡 [Gold Alert] Sending ${isInitial ? 'startup' : '5-minute'} price ($${data.price}) to:`, adminJids);
+
+      for (const targetJid of adminJids) {
+        try {
+          await socket.sendMessage(targetJid, { text: alertText });
+          console.log(`✅ [Gold Alert Delivered] to ${targetJid}`);
+        } catch (sendErr) {
+          console.error(`❌ [Gold Alert Send Failed to ${targetJid}]:`, sendErr.message);
+        }
+      }
+    } catch (err) {
+      console.error('❌ [Gold Scheduler Error]:', err.message);
+    }
+  };
+
+  // 1. Send first alert 2 seconds after socket connects so user gets it immediately!
+  setTimeout(() => dispatchGoldAlert(true), 2500);
+
+  // 2. Schedule every 5 minutes (5 * 60 * 1000 ms)
+  goldSchedulerInterval = setInterval(() => dispatchGoldAlert(false), 5 * 60 * 1000);
+}
+
 
 
 async function start() {
@@ -903,6 +950,11 @@ async function start() {
     if (connection === 'close') {
       const statusCode = lastDisconnect?.error?.output?.statusCode;
       const shouldReconnect = statusCode !== DisconnectReason.loggedOut;
+
+      if (goldSchedulerInterval) {
+        clearInterval(goldSchedulerInterval);
+        goldSchedulerInterval = null;
+      }
 
       for (const [, ticker] of activeGoldTickers.entries()) {
         if (ticker.interval) clearInterval(ticker.interval);
@@ -965,6 +1017,7 @@ async function start() {
       startOrderWatcher(socket);
       startDailyTrendsScheduler(socket);
       startWebChatWatcher(socket);
+      startGoldPriceScheduler(socket);
     }
 
   });
@@ -972,8 +1025,7 @@ async function start() {
 
 
   socket.ev.on('messages.upsert', async (m) => {
-    // 💡 Allow both 'notify' and 'append' so self-messages & mobile replies are captured
-    if (m.type !== 'notify' && m.type !== 'append') return;
+    if (!m.messages || m.messages.length === 0) return;
 
     for (const msg of m.messages) {
       const senderJid = msg.key.remoteJid;
@@ -1011,7 +1063,7 @@ async function start() {
         continue;
       }
 
-      console.log(`📩 [WhatsApp Msg] from: ${senderPhone} (fromMe: ${msg.key.fromMe}): "${rawText.trim()}"`);
+      console.log(`📩 [WhatsApp Msg Received] from: ${senderPhone} (fromMe: ${msg.key.fromMe}): "${rawText.trim()}"`);
 
       // 🛑 Whitelist check: Ignore personal / family excluded numbers
       if (EXCLUDED_NUMBERS.some((n) => senderPhone.includes(n))) {
@@ -1112,76 +1164,36 @@ async function start() {
         const chatJid = msg.key.remoteJid;
 
         if (isGoldOn) {
-          if (activeGoldTickers.has(chatJid)) {
-            const existing = activeGoldTickers.get(chatJid);
-            if (existing?.interval) clearInterval(existing.interval);
-            activeGoldTickers.delete(chatJid);
-          }
-
-          const goldData = await fetchLiveGoldPrice();
-          if (!goldData) {
-            await socket.sendMessage(chatJid, { text: '⚠️ Live gold market data fetch karne me masla aaya. Thori der baad check karein.' });
-            continue;
-          }
-
-          const initialMsgText = formatGoldMessage(goldData, true, null);
-          const sentMsg = await socket.sendMessage(chatJid, { text: initialMsgText });
-
-          if (sentMsg?.key) {
-            const tickerState = {
-              key: sentMsg.key,
-              lastPrice: goldData.price,
-              interval: null,
-              startedAt: Date.now(),
-            };
-
-            // 5-Minute Periodic Dispatcher (5 * 60 * 1000 ms)
-            tickerState.interval = setInterval(async () => {
-              try {
-                const latestData = await fetchLiveGoldPrice();
-                if (!latestData) return;
-
-                const alertText = formatGoldMessage(latestData, true, tickerState.lastPrice);
-                tickerState.lastPrice = latestData.price;
-
-                // Send fresh 5-minute notification message so mobile phone alerts / rings the user
-                const alertMsg = await socket.sendMessage(chatJid, { text: alertText }).catch(() => {});
-                if (alertMsg?.key) tickerState.key = alertMsg.key;
-              } catch (intervalErr) {
-                console.error('[Gold 5-Min Alert Error]', intervalErr.message);
-              }
-            }, 5 * 60 * 1000); // 5 minutes
-
-            activeGoldTickers.set(chatJid, tickerState);
-            console.log(`✅ [Gold Ticker] Started 5-minute live price alerts for ${chatJid}`);
-          }
+          startGoldPriceScheduler(socket);
+          await socket.sendMessage(chatJid, {
+            text: '✅ *XAU/USD 5-Minute Auto-Alerts activate ho gaye hain!*',
+          }).catch(() => {});
           continue;
         }
 
         if (isGoldOff) {
-          if (activeGoldTickers.has(chatJid)) {
-            const tickerState = activeGoldTickers.get(chatJid);
-            if (tickerState?.interval) clearInterval(tickerState.interval);
-            activeGoldTickers.delete(chatJid);
-            await socket.sendMessage(chatJid, {
-              text: '🛑 *XAU/USD 5-Minute Auto-Alerts band kar diye gaye hain.*\n\nDubara start karne ke liye: `!gold on` ya instant rate ke liye `gold` type karein.',
-            });
-          } else {
-            await socket.sendMessage(chatJid, {
-              text: 'ℹ️ *Koi active gold alert nahi chal raha.*\n\n5-Minute alerts start karne ke liye type karein: `!gold on`',
-            });
+          if (goldSchedulerInterval) {
+            clearInterval(goldSchedulerInterval);
+            goldSchedulerInterval = null;
           }
+          await socket.sendMessage(chatJid, {
+            text: '🛑 *XAU/USD 5-Minute Auto-Alerts band kar diye gaye hain.*\n\nDubara start karne ke liye: `!gold on` ya instant rate ke liye `gold` type karein.',
+          }).catch(() => {});
           continue;
         }
 
         if (isGoldQuery) {
+          console.log(`🟡 [Gold Query] Fetching live price for ${chatJid}...`);
           const goldData = await fetchLiveGoldPrice();
           if (!goldData) {
-            await socket.sendMessage(chatJid, { text: '⚠️ Live gold rate fetch karne me masla aaya. Dobara try karein.' });
+            await socket.sendMessage(chatJid, { text: '⚠️ Live gold rate fetch karne me masla aaya. Dobara try karein.' }).catch(() => {});
             continue;
           }
           const replyText = formatGoldMessage(goldData, false, null);
-          await socket.sendMessage(chatJid, { text: replyText });
+          await socket.sendMessage(chatJid, { text: replyText }).catch((err) => {
+            console.error('[Gold Reply Send Error]:', err.message);
+          });
+          console.log(`✅ [Gold Reply Sent] to ${chatJid}`);
           continue;
         }
       }
