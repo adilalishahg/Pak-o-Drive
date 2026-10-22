@@ -721,6 +721,7 @@ Reply as Ali (Pak-o-Drive):`;
  * ============================================================================
  */
 const activeGoldTickers = new Map(); // chatJid -> { key, interval, lastPrice, startedAt }
+let heartbeatInterval = null;
 
 async function fetchLiveGoldPrice() {
   // 1. TradingView Live Spot Feed (OANDA:XAUUSD & TVC:GOLD) - 100% Real-Time Spot Forex Gold
@@ -890,6 +891,22 @@ async function start() {
       const statusCode = lastDisconnect?.error?.output?.statusCode;
       const shouldReconnect = statusCode !== DisconnectReason.loggedOut;
 
+      if (heartbeatInterval) {
+        clearInterval(heartbeatInterval);
+        heartbeatInterval = null;
+      }
+      if (orderWatcherInterval) {
+        clearInterval(orderWatcherInterval);
+        orderWatcherInterval = null;
+      }
+      if (trendsSchedulerInterval) {
+        clearInterval(trendsSchedulerInterval);
+        trendsSchedulerInterval = null;
+      }
+      if (webChatWatcherInterval) {
+        clearInterval(webChatWatcherInterval);
+        webChatWatcherInterval = null;
+      }
 
       for (const [, ticker] of activeGoldTickers.entries()) {
         if (ticker.interval) clearInterval(ticker.interval);
@@ -930,8 +947,9 @@ async function start() {
         { upsert: true, new: true }
       ).catch(() => {});
 
-      // Heartbeat ping every 15 seconds to keep dashboard live
-      setInterval(async () => {
+      if (heartbeatInterval) clearInterval(heartbeatInterval);
+      // Heartbeat ping every 30 seconds to keep dashboard live without excessive writes
+      heartbeatInterval = setInterval(async () => {
         try {
           if (mongoose.connection.readyState === 1) {
             await WhatsAppBotStatus.findOneAndUpdate(
@@ -946,7 +964,7 @@ async function start() {
             );
           }
         } catch (e) {}
-      }, 15000);
+      }, 30000);
 
       // Start automatic background watchers
       startOrderWatcher(socket);
@@ -1083,7 +1101,11 @@ async function start() {
 
       if (isGoldQuery) {
         console.log(`🟡 [Gold Query Triggered] Message: "${rawText}" from: ${senderPhone}`);
-        const chatJid = msg.key.remoteJid;
+        let chatJid = msg.key.remoteJid;
+        if (msg.key.fromMe || chatJid.includes('@lid')) {
+          const selfAdminJid = getAdminJid(socket);
+          if (selfAdminJid) chatJid = selfAdminJid;
+        }
         console.log(`🟡 [Gold Query] Fetching live price for ${chatJid}...`);
         const goldData = await fetchLiveGoldPrice();
         if (!goldData) {
@@ -1374,7 +1396,7 @@ function startOrderWatcher(socket) {
       const unnotifiedOrders = await Order.find({
         whatsappSent: { $ne: true },
         status: { $ne: 'Cancelled' },
-      }).sort({ createdAt: 1 }).limit(5);
+      }).sort({ createdAt: 1 }).limit(5).lean();
 
       if (!unnotifiedOrders || unnotifiedOrders.length === 0) return;
 
@@ -1416,7 +1438,7 @@ function startOrderWatcher(socket) {
     } catch (err) {
       console.error('[Order Watcher Error]', err);
     }
-  }, 5000);
+  }, 20000);
 }
 
 function startDailyTrendsScheduler(socket) {
@@ -1488,7 +1510,7 @@ let webChatWatcherInterval = null;
 function startWebChatWatcher(socket) {
   if (webChatWatcherInterval) clearInterval(webChatWatcherInterval);
 
-  console.log('⚡ [Web Chat Watcher] Active (Polling live visitor inquiries every 3s)...');
+  console.log('⚡ [Web Chat Watcher] Active (Polling live visitor inquiries every 10s)...');
   webChatWatcherInterval = setInterval(async () => {
     try {
       if (mongoose.connection.readyState !== 1) return;
@@ -1531,7 +1553,7 @@ function startWebChatWatcher(socket) {
     } catch (err) {
       console.error('[WebChat Watcher Poll Error]:', err.message);
     }
-  }, 3000);
+  }, 10000);
 }
 
 start().catch(console.error);
