@@ -977,8 +977,18 @@ async function start() {
 
     for (const msg of m.messages) {
       const senderJid = msg.key.remoteJid;
-      // 🛑 Ignore group chats and status broadcasts
-      if (!senderJid || senderJid === 'status@broadcast' || senderJid.includes('@g.us')) continue;
+      // 🛑 Ignore group chats, status broadcasts, channels, newsletters, and community numbers
+      if (
+        !senderJid ||
+        senderJid === 'status@broadcast' ||
+        senderJid.includes('@g.us') ||
+        senderJid.includes('@newsletter') ||
+        senderJid.includes('@lid') ||
+        senderPhone.startsWith('120363') ||
+        senderPhone.length > 15
+      ) {
+        continue;
+      }
 
       const senderPhone = senderJid.split('@')[0];
 
