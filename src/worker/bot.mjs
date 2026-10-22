@@ -723,11 +723,52 @@ Reply as Ali (Pak-o-Drive):`;
 const activeGoldTickers = new Map(); // chatJid -> { key, interval, lastPrice, startedAt }
 
 async function fetchLiveGoldPrice() {
-  // 1. Binance Futures XAUUSDT (Primary: Real-time, 0ms delay, free public feed)
+  // 1. TradingView Live Spot Feed (OANDA:XAUUSD & TVC:GOLD) - 100% Real-Time Spot Forex Gold
+  try {
+    const res = await fetch('https://scanner.tradingview.com/cfd/scan', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
+      },
+      body: JSON.stringify({
+        symbols: { tickers: ['OANDA:XAUUSD', 'TVC:GOLD'] },
+        columns: ['close', 'change', 'high', 'low'],
+      }),
+      signal: AbortSignal.timeout(5000),
+    });
+    if (res.ok) {
+      const d = await res.json();
+      const row = d?.data?.[0]?.d || d?.data?.[1]?.d;
+      if (row && row[0] > 0) {
+        const price = parseFloat(row[0]);
+        const changePercent = parseFloat(row[1]) || 0;
+        const high = parseFloat(row[2]) || price;
+        const low = parseFloat(row[3]) || price;
+        return {
+          price,
+          high,
+          low,
+          changePercent,
+          source: 'TradingView (Spot XAU/USD)',
+          time: new Date().toLocaleTimeString('en-PK', {
+            timeZone: 'Asia/Karachi',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+          }),
+        };
+      }
+    }
+  } catch (e) {
+    console.warn('[TradingView Feed Warning, trying fallback]:', e.message);
+  }
+
+  // 2. Binance Futures XAUUSDT (Fallback 1)
   try {
     const res = await fetch('https://fapi.binance.com/fapi/v1/ticker/24hr?symbol=XAUUSDT', {
       headers: { 'User-Agent': 'Mozilla/5.0' },
-      signal: AbortSignal.timeout(6000),
+      signal: AbortSignal.timeout(5000),
     });
     if (res.ok) {
       const d = await res.json();
@@ -750,38 +791,11 @@ async function fetchLiveGoldPrice() {
     }
   } catch (e) {}
 
-  // 2. Binance Spot PAXGUSDT (Fallback 1: Spot Gold Pegged 1:1)
-  try {
-    const res = await fetch('https://api.binance.com/api/v3/ticker/24hr?symbol=PAXGUSDT', {
-      headers: { 'User-Agent': 'Mozilla/5.0' },
-      signal: AbortSignal.timeout(6000),
-    });
-    if (res.ok) {
-      const d = await res.json();
-      const price = parseFloat(d.lastPrice);
-      if (!isNaN(price) && price > 0) {
-        return {
-          price,
-          high: parseFloat(d.highPrice) || price,
-          low: parseFloat(d.lowPrice) || price,
-          changePercent: parseFloat(d.priceChangePercent) || 0,
-          source: 'Binance Spot PAXG',
-          time: new Date().toLocaleTimeString('en-PK', {
-            timeZone: 'Asia/Karachi',
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit',
-          }),
-        };
-      }
-    }
-  } catch (e) {}
-
   // 3. COMEX Gold Futures (Fallback 2: Yahoo Finance GC=F)
   try {
     const res = await fetch('https://query1.finance.yahoo.com/v8/finance/chart/GC=F?interval=1m&range=1d', {
       headers: { 'User-Agent': 'Mozilla/5.0' },
-      signal: AbortSignal.timeout(6000),
+      signal: AbortSignal.timeout(5000),
     });
     if (res.ok) {
       const d = await res.json();
