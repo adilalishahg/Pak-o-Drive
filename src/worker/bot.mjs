@@ -13,7 +13,9 @@ process.on('unhandledRejection', (err) => console.error('[Bot unhandledRejection
 dotenv.config({ path: path.join(process.cwd(), '.env') });
 dotenv.config({ path: path.join(process.cwd(), '.env.local') });
 
-let MONGODB_URI = process.env.MONGODB_URI || '';
+let MONGODB_URI =
+  process.env.MONGODB_URI ||
+  'mongodb://adilali:adil1234@ac-gxwgkny-shard-00-00.242lphx.mongodb.net:27017,ac-gxwgkny-shard-00-01.242lphx.mongodb.net:27017,ac-gxwgkny-shard-00-02.242lphx.mongodb.net:27017/ecommerceStore?ssl=true&replicaSet=atlas-prvdqy-shard-0&authSource=admin&appName=Cluster0';
 if (MONGODB_URI && !MONGODB_URI.includes('/ecommerceStore') && !MONGODB_URI.includes('/pakodrive')) {
   MONGODB_URI = MONGODB_URI.replace('27017/?', '27017/ecommerceStore?');
 }
@@ -1102,9 +1104,8 @@ async function start() {
       if (isGoldQuery) {
         console.log(`🟡 [Gold Query Triggered] Message: "${rawText}" from: ${senderPhone}`);
         let chatJid = msg.key.remoteJid;
-        if (msg.key.fromMe || chatJid.includes('@lid')) {
-          const selfAdminJid = getAdminJid(socket);
-          if (selfAdminJid) chatJid = selfAdminJid;
+        if (msg.key.fromMe || chatJid.includes('@lid') || senderPhone.length > 13) {
+          chatJid = '923185205667@s.whatsapp.net';
         }
         console.log(`🟡 [Gold Query] Fetching live price for ${chatJid}...`);
         const goldData = await fetchLiveGoldPrice();
@@ -1331,11 +1332,14 @@ let lastTrendsSentDate = '';
 
 async function getAllAdminJids(socket) {
   const jids = new Set();
+  jids.add('923185205667@s.whatsapp.net');
 
-  // 1. Bot's own linked phone
+  // 1. Bot's own linked phone (if real phone number, not LID)
   if (socket?.user?.id) {
     const selfNum = socket.user.id.split(':')[0].split('@')[0];
-    if (selfNum) jids.add(`${selfNum}@s.whatsapp.net`);
+    if (selfNum && selfNum.length <= 13 && !selfNum.includes('lid')) {
+      jids.add(`${selfNum}@s.whatsapp.net`);
+    }
   }
 
   // 2. Environment variable admin
@@ -1376,13 +1380,15 @@ function getAdminJid(socket) {
     let normalized = clean;
     if (clean.startsWith('03')) normalized = '92' + clean.substring(1);
     else if (clean.startsWith('3')) normalized = '92' + clean;
-    return `${normalized}@s.whatsapp.net`;
+    if (normalized && normalized.length <= 13) return `${normalized}@s.whatsapp.net`;
   }
   if (socket?.user?.id) {
     const pureNumber = socket.user.id.split(':')[0].split('@')[0];
-    return `${pureNumber}@s.whatsapp.net`;
+    if (pureNumber && pureNumber.startsWith('92') && pureNumber.length <= 13) {
+      return `${pureNumber}@s.whatsapp.net`;
+    }
   }
-  return null;
+  return '923185205667@s.whatsapp.net';
 }
 
 function startOrderWatcher(socket) {
@@ -1447,6 +1453,7 @@ function startDailyTrendsScheduler(socket) {
   console.log('⚡ [Daily Trends Scheduler] Active (Checks daily at 10:00 AM PKT)...');
   trendsSchedulerInterval = setInterval(async () => {
     try {
+      if (mongoose.connection.readyState !== 1) return;
       const now = new Date();
       const pktDateStr = now.toLocaleDateString('en-CA', { timeZone: 'Asia/Karachi' }); // YYYY-MM-DD
       const pktHour = parseInt(now.toLocaleTimeString('en-GB', { hour: '2-digit', hour12: false, timeZone: 'Asia/Karachi' }), 10);
