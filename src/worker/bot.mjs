@@ -993,6 +993,10 @@ async function start() {
         msg.message?.conversation ||
         msg.message?.extendedTextMessage?.text ||
         msg.message?.imageMessage?.caption ||
+        msg.message?.ephemeralMessage?.message?.conversation ||
+        msg.message?.ephemeralMessage?.message?.extendedTextMessage?.text ||
+        msg.message?.viewOnceMessage?.message?.conversation ||
+        msg.message?.viewOnceMessage?.message?.extendedTextMessage?.text ||
         '';
 
       // 🌐 2-WAY WEB AGENT BRIDGE: Support both explicit prefix (#W5243 ...) and WhatsApp native Swipe-to-Reply (Quoted Message)
@@ -1053,16 +1057,36 @@ async function start() {
       }
 
       // 🟡 XAU/USD LIVE GOLD COMMANDS (5-Min Auto-Alerts & On-Demand Instant Quotes)
-      const cleanGoldCmd = rawText.trim().toLowerCase();
-      const isGoldOn = /^(!gold\s*on|!gold\s*start|!xau\s*on|gold\s*on|xau\s*on|!ticker\s*on|!gold\s*5m)$/i.test(cleanGoldCmd);
-      const isGoldOff = /^(!gold\s*off|!gold\s*stop|!xau\s*off|gold\s*off|xau\s*off|!ticker\s*off)$/i.test(cleanGoldCmd);
+      const cleanGoldCmd = rawText.toLowerCase().replace(/[?!.,#*~_]/g, ' ').trim();
+      const goldWords = cleanGoldCmd.split(/\s+/).filter(Boolean);
+
+      const isGoldOn =
+        /(^|\s)(!gold\s*on|gold\s*on|xau\s*on|start\s*gold|gold\s*start|gold\s*5m)(|\s)/i.test(cleanGoldCmd) ||
+        cleanGoldCmd === 'gold on' ||
+        cleanGoldCmd === '!gold on';
+
+      const isGoldOff =
+        /(^|\s)(!gold\s*off|gold\s*off|xau\s*off|stop\s*gold|gold\s*stop)(|\s)/i.test(cleanGoldCmd) ||
+        cleanGoldCmd === 'gold off' ||
+        cleanGoldCmd === '!gold off';
+
       const isGoldQuery =
         !isGoldOn &&
         !isGoldOff &&
-        (/^(!gold|gold|xau|xauusd|xau\/usd)$/i.test(cleanGoldCmd) ||
-          /^(gold\s*price|gold\s*rate|xau\s*price|xauusd\s*price|sone\s*ka\s*rate|sona\s*rate|gold\s*ka\s*rate|suna\s*rate)$/i.test(cleanGoldCmd));
+        (goldWords.includes('gold') ||
+          goldWords.includes('xau') ||
+          goldWords.includes('xauusd') ||
+          cleanGoldCmd.includes('gold price') ||
+          cleanGoldCmd.includes('gold rate') ||
+          cleanGoldCmd.includes('sona rate') ||
+          cleanGoldCmd.includes('sone ka rate') ||
+          cleanGoldCmd.includes('gold ka rate') ||
+          cleanGoldCmd === 'gold' ||
+          cleanGoldCmd === 'xau' ||
+          cleanGoldCmd === 'xauusd');
 
       if (isGoldOn || isGoldOff || isGoldQuery) {
+        console.log(`🟡 [Gold Command Triggered] Message: "${rawText}" from: ${senderPhone}`);
         const chatJid = msg.key.remoteJid;
 
         if (isGoldOn) {
@@ -1368,21 +1392,23 @@ async function getAllAdminJids(socket) {
     if (norm) jids.add(`${norm}@s.whatsapp.net`);
   }
 
-  // 3. Database SiteInfo multi-admin phones
-  try {
-    const siteInfo = await SiteInfo.findOne().lean();
-    if (siteInfo?.adminPhones) {
-      const splitPhones = siteInfo.adminPhones.split(/[,;\n]+/);
-      for (const raw of splitPhones) {
-        const clean = raw.replace(/[^0-9]/g, '');
-        if (!clean) continue;
-        let norm = clean;
-        if (clean.startsWith('03')) norm = '92' + clean.substring(1);
-        else if (clean.startsWith('3')) norm = '92' + clean;
-        if (norm) jids.add(`${norm}@s.whatsapp.net`);
+  // 3. Database SiteInfo multi-admin phones (only if DB is connected)
+  if (mongoose.connection.readyState === 1) {
+    try {
+      const siteInfo = await SiteInfo.findOne().lean();
+      if (siteInfo?.adminPhones) {
+        const splitPhones = siteInfo.adminPhones.split(/[,;\n]+/);
+        for (const raw of splitPhones) {
+          const clean = raw.replace(/[^0-9]/g, '');
+          if (!clean) continue;
+          let norm = clean;
+          if (clean.startsWith('03')) norm = '92' + clean.substring(1);
+          else if (clean.startsWith('3')) norm = '92' + clean;
+          if (norm) jids.add(`${norm}@s.whatsapp.net`);
+        }
       }
-    }
-  } catch (err) {}
+    } catch (err) {}
+  }
 
   return Array.from(jids);
 }
@@ -1409,6 +1435,8 @@ function startOrderWatcher(socket) {
   console.log('⚡ [Order Watcher] Started background polling for new web orders...');
   orderWatcherInterval = setInterval(async () => {
     try {
+      if (mongoose.connection.readyState !== 1) return;
+
       const unnotifiedOrders = await Order.find({
         whatsappSent: { $ne: true },
         status: { $ne: 'Cancelled' },
