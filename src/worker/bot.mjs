@@ -977,11 +977,12 @@ async function start() {
 
     for (const msg of m.messages) {
       const senderJid = msg.key.remoteJid;
-      // 🛑 Ignore group chats, status broadcasts, channels, newsletters, and community numbers
+      if (!senderJid || senderJid === 'status@broadcast' || senderJid.includes('@g.us')) continue;
+
+      const senderPhone = senderJid.split('@')[0];
+
+      // 🛑 Ignore newsletters, LIDs, channels, and community numbers
       if (
-        !senderJid ||
-        senderJid === 'status@broadcast' ||
-        senderJid.includes('@g.us') ||
         senderJid.includes('@newsletter') ||
         senderJid.includes('@lid') ||
         senderPhone.startsWith('120363') ||
@@ -990,15 +991,6 @@ async function start() {
         continue;
       }
 
-      const senderPhone = senderJid.split('@')[0];
-
-      // 🛑 Whitelist check: Ignore personal / family excluded numbers
-      if (EXCLUDED_NUMBERS.some((n) => senderPhone.includes(n))) {
-        console.log(`[Whitelist] Phone ${senderPhone} is in personal excluded list. Staying 100% silent.`);
-        continue;
-      }
-
-      // 👑 ADMIN HUMAN TAKEOVER: If store owner sends any message from their phone, pause bot for 5 minutes from last message
       const rawText =
         msg.message?.conversation ||
         msg.message?.extendedTextMessage?.text ||
@@ -1008,6 +1000,28 @@ async function start() {
         msg.message?.viewOnceMessage?.message?.conversation ||
         msg.message?.viewOnceMessage?.message?.extendedTextMessage?.text ||
         '';
+
+      if (!rawText.trim()) continue;
+
+      // Ignore bot's own automated replies to prevent feedback loops
+      if (
+        rawText.startsWith('🟡 *XAU / USD') ||
+        rawText.startsWith('🛑 *XAU/USD') ||
+        rawText.startsWith('🛒 *NAYA ORDER') ||
+        rawText.startsWith('💬 *LIVE WEB')
+      ) {
+        continue;
+      }
+
+      console.log(`📩 [WhatsApp Msg] from: ${senderPhone} (fromMe: ${msg.key.fromMe}): "${rawText.trim()}"`);
+
+      // 🛑 Whitelist check: Ignore personal / family excluded numbers
+      if (EXCLUDED_NUMBERS.some((n) => senderPhone.includes(n))) {
+        console.log(`[Whitelist] Phone ${senderPhone} is in personal excluded list. Staying 100% silent.`);
+        continue;
+      }
+
+      // 👑 ADMIN HUMAN TAKEOVER: If store owner sends any message from their phone, pause bot for 5 minutes from last message
 
       // 🌐 2-WAY WEB AGENT BRIDGE: Support both explicit prefix (#W5243 ...) and WhatsApp native Swipe-to-Reply (Quoted Message)
       let targetShortCode = '';
